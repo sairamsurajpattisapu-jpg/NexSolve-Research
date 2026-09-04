@@ -5,7 +5,7 @@ export function useProductionData() {
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
   useEffect(() => {
-    if (!snapshot.data || snapshot.analysisSource === 'production') void refreshProductionData()
+    if (!snapshot.data) void refreshProductionData()
   }, [snapshot.analysisSource, snapshot.data])
 
     return { ...snapshot, reload: refreshProductionData, analyzePcap: uploadPcap, clearUploadedAnalysis, analysisId: ANALYSIS_ID }
