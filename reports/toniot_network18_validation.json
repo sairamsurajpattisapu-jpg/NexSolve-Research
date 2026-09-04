@@ -1,0 +1,91 @@
+{
+  "dataset": "TON_IoT",
+  "file": "TON-IoT/validation/GroundTruth_Network_18.csv",
+  "provenance": {
+    "source": "Official UNSW TON_IoT distribution",
+    "downloaded_file_size_claim_bytes": 45787608,
+    "observed_bytes": 45787608,
+    "size_matches_claim": true,
+    "sha256": "446170e48b77da494809648ebfd45c7d517ad34baf34079d200d282235878508",
+    "external_hash_comparison": "Not available; no expected SHA-256 was supplied.",
+    "source_csv_modified": false
+  },
+  "schema": {
+    "rows": 801188,
+    "columns": 7,
+    "header": ["ts", "src_ip", "src_port", "dst_ip", "dst_port", "proto", "type"],
+    "datatypes": {"ts": "integer", "src_ip": "string", "src_port": "integer", "dst_ip": "string", "dst_port": "integer", "proto": "string", "type": "string"},
+    "malformed_rows": 0,
+    "missing_cells": 0,
+    "first_five_rows": [["1556361734", "192.168.1.35", "40128", "192.168.1.195", "80", "tcp", "xss"], ["1556361734", "192.168.1.35", "40130", "192.168.1.195", "80", "tcp", "xss"], ["1556361734", "192.168.1.35", "40132", "192.168.1.195", "80", "tcp", "xss"], ["1556361734", "192.168.1.35", "40134", "192.168.1.195", "80", "tcp", "xss"], ["1556361734", "192.168.1.35", "40136", "192.168.1.195", "80", "tcp", "xss"]]
+  },
+  "timestamp_audit": {
+    "column": "ts",
+    "representation": "Unix epoch seconds",
+    "parse_success": 801188,
+    "missing": 0,
+    "malformed": 0,
+    "unique_timestamp_values": 98710,
+    "duplicate_timestamp_rows": 801187,
+    "earliest_epoch": 1556361734,
+    "latest_epoch": 1556549129,
+    "earliest_utc": "2019-04-27T10:42:14+00:00",
+    "latest_utc": "2019-04-29T14:45:29+00:00",
+    "timezone": "UTC interpretation of epoch seconds; the integer field itself carries no explicit offset",
+    "chronologically_sorted": true,
+    "timestamp_quality": "All rows parsed and are non-decreasing; duplicate timestamps are expected because many events share a second."
+  },
+  "labels": {
+    "field": "type",
+    "values_and_counts": {"xss": 605685, "ransomware": 5629, "backdoor": 188864, "mitm": 1010},
+    "benign_count": 0,
+    "attack_count": 801188,
+    "attack_categories": ["xss", "ransomware", "backdoor", "mitm"],
+    "interpretation": "Ground-truth event records contain attack names only; no BENIGN/normal value is present. Attack count means all rows are attack-event records, not that this file is a complete labeled traffic dataset."
+  },
+  "network_features": {
+    "source_ip": "src_ip",
+    "destination_ip": "dst_ip",
+    "source_port": "src_port",
+    "destination_port": "dst_port",
+    "protocol": "proto",
+    "bytes": null,
+    "packets": null,
+    "duration": null,
+    "device_identity": null,
+    "attack_category": "type",
+    "scenario_or_event_identifier": null
+  },
+  "temporal_feasibility": {
+    "window_seconds": 60,
+    "non_empty_windows": 1877,
+    "benign_windows": 0,
+    "attack_windows": 1877,
+    "duration_seconds": 187395,
+    "contiguous_forecast_pairs": 1848,
+    "gaps_between_windows": 28,
+    "largest_gap_in_60s_buckets": 908,
+    "state_transitions": {"BENIGN_to_ATTACK": 0, "ATTACK_to_BENIGN": 0, "ATTACK_to_ATTACK": 1848},
+    "next_window_feasibility": "Not feasible for the locked binary BENIGN/ATTACK forecast using this file alone because every observed window is an attack-event window."
+  },
+  "leakage_audit": {
+    "risks": [
+      "type is the attack-event ground-truth label and must never be a historical feature.",
+      "src_ip and dst_ip may encode the attack environment or event identity; the file contains only 14 source IPs and 146 destination IPs.",
+      "Fixed time periods and event timestamps may identify attack activity.",
+      "This ground-truth file has no filename-independent scenario identifier, but IP/time combinations can act as proxies.",
+      "The file must not be used alone to construct benign historical states or traffic features."
+    ],
+    "observed_protocol_counts": {"tcp": 632629, "udp": 168384, "icmp": 175},
+    "source_ip_unique": 14,
+    "destination_ip_unique": 146,
+    "source_destination_pairs": 241
+  },
+  "decision": "B",
+  "decision_text": "TIMESTAMP EXISTS BUT MORE DATA REQUIRED",
+  "decision_reason": "The file has genuine, ordered timestamps and attack categories, but it is attack-only ground truth with no benign observations and no traffic-flow statistics. A separate official processed network traffic CSV containing benign and attack flows, timestamps, and usable flow features is required.",
+  "forecasting_experiment_run": false,
+  "models_trained": false,
+  "required_additional_file": "One official TON_IoT processed network traffic CSV with ts (or equivalent timestamp), benign/attack label, and network flow features; exact filename and size are not inferred here.",
+  "protected_inputs_modified": false
+}

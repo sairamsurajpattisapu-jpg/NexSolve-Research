@@ -1,0 +1,56 @@
+{
+  "status": "PARTIALLY_AVAILABLE",
+  "rows": [
+    {
+      "model": "Current LSTM",
+      "T+1_f1": "N/A",
+      "T+2_f1": "N/A",
+      "T+3_f1": "N/A",
+      "T+4_f1": "N/A",
+      "T+5_f1": "N/A",
+      "coverage": "N/A",
+      "calibration": "N/A"
+    },
+    {
+      "model": "Empirical Transition",
+      "T+1_f1": "N/A",
+      "T+2_f1": "N/A",
+      "T+3_f1": "N/A",
+      "T+4_f1": "N/A",
+      "T+5_f1": "N/A",
+      "coverage": "N/A",
+      "calibration": "N/A"
+    },
+    {
+      "model": "Future Packet+Flow LSTM",
+      "T+1_f1": "N/A",
+      "T+2_f1": "N/A",
+      "T+3_f1": "N/A",
+      "T+4_f1": "N/A",
+      "T+5_f1": "N/A",
+      "coverage": "N/A",
+      "calibration": "N/A"
+    },
+    {
+      "model": "Logistic Regression",
+      "T+1_f1": "N/A",
+      "T+2_f1": "N/A",
+      "T+3_f1": "N/A",
+      "T+4_f1": "N/A",
+      "T+5_f1": "N/A",
+      "coverage": "N/A",
+      "calibration": "N/A"
+    },
+    {
+      "model": "Persistence",
+      "T+1_f1": "N/A",
+      "T+2_f1": "N/A",
+      "T+3_f1": "N/A",
+      "T+4_f1": "N/A",
+      "T+5_f1": "N/A",
+      "coverage": "N/A",
+      "calibration": "N/A"
+    }
+  ],
+  "note": "No hypothetical metrics inserted; existing aggregate metrics remain in world_model_final_evaluation.json."
+}

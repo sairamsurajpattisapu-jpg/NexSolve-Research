@@ -1,0 +1,1 @@
+{"external_detection_model":"none","external_representation_model":"none","selected_model":"local NumPy LSTM","reason":"Only option with verified local feature contract, future-state output, recursive rollout, and runnable dependencies","no_download":true,"packet_blocker":"Official Friday CIC PCAP must be audited before packet integration"}

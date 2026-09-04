@@ -1,0 +1,46 @@
+{
+  "title": "NEXSOLVE Packet and Flow Feature Specification",
+  "status": "Design only; implementation and PCAP verification pending",
+  "windowing": {
+    "window_seconds": 60,
+    "assignment": "floor(packet_timestamp / 60 seconds) using UTC-normalized packet timestamps",
+    "flow_key": ["src_ip", "src_port", "dst_ip", "dst_port", "protocol"],
+    "bidirectional_flow_key": "canonicalize the two endpoint directions while retaining directional counters",
+    "missing_value_policy": "Use explicit missing indicators for unavailable protocol fields; do not silently convert unavailable packet evidence to zero."
+  },
+  "packet_features": [
+    {"name":"packet_count","definition":"count of packets assigned to the window","source":"packet records","verification":"available if PCAP is readable"},
+    {"name":"mean_packet_size","definition":"mean captured or wire packet length; choose one definition and record it","source":"packet length","verification":"available if length field exists"},
+    {"name":"std_packet_size","definition":"population standard deviation of packet size","source":"packet length","verification":"available if length field exists"},
+    {"name":"min_packet_size","definition":"minimum packet size","source":"packet length","verification":"available if length field exists"},
+    {"name":"max_packet_size","definition":"maximum packet size","source":"packet length","verification":"available if length field exists"},
+    {"name":"mean_ttl","definition":"mean IP TTL across IP packets","source":"IPv4 TTL or IPv6 hop limit, with protocol-specific provenance","verification":"must verify header coverage"},
+    {"name":"std_ttl","definition":"standard deviation of TTL/hop-limit","source":"IP header","verification":"must verify"},
+    {"name":"min_ttl","definition":"minimum TTL/hop-limit","source":"IP header","verification":"must verify"},
+    {"name":"max_ttl","definition":"maximum TTL/hop-limit","source":"IP header","verification":"must verify"},
+    {"name":"tcp_syn_count","definition":"TCP packets with SYN flag","source":"TCP flags","verification":"must verify"},
+    {"name":"tcp_ack_count","definition":"TCP packets with ACK flag","source":"TCP flags","verification":"must verify"},
+    {"name":"tcp_fin_count","definition":"TCP packets with FIN flag","source":"TCP flags","verification":"must verify"},
+    {"name":"tcp_rst_count","definition":"TCP packets with RST flag","source":"TCP flags","verification":"must verify"},
+    {"name":"tcp_psh_count","definition":"TCP packets with PSH flag","source":"TCP flags","verification":"must verify"},
+    {"name":"tcp_urg_count","definition":"TCP packets with URG flag","source":"TCP flags","verification":"must verify"},
+    {"name":"mean_tcp_window","definition":"mean advertised TCP window, with scaling policy documented","source":"TCP header/options","verification":"must verify"},
+    {"name":"std_tcp_window","definition":"standard deviation of advertised TCP window","source":"TCP header/options","verification":"must verify"},
+    {"name":"fragment_count","definition":"packets carrying IPv4 fragment offset or MF flag; define IPv6 fragmentation separately","source":"IP header","verification":"must verify"},
+    {"name":"retransmission_count","definition":"deterministic duplicate TCP sequence-range evidence within canonical flow, with SYN/FIN and out-of-order rules documented","source":"TCP sequence/acknowledgement analysis","verification":"inferred, not a native packet field; must validate against analyzer semantics"},
+    {"name":"mean_iat","definition":"mean delta between consecutive packet timestamps in the window, with per-flow and global policy recorded","source":"packet timestamps","verification":"available if timestamps exist"},
+    {"name":"std_iat","definition":"standard deviation of consecutive packet timestamp deltas","source":"packet timestamps","verification":"available if timestamps exist"},
+    {"name":"max_iat","definition":"maximum consecutive packet timestamp delta","source":"packet timestamps","verification":"available if timestamps exist"}
+  ],
+  "flow_features": [
+    "flow_count", "unique_src_ips", "unique_dst_ips", "unique_src_ports", "unique_dst_ports", "protocol_counts", "total_bytes", "total_packets", "mean_duration", "mean_flow_bytes", "mean_flow_packets", "attack_ratio"
+  ],
+  "flow_feature_rules": {
+    "duration": "packet-flow last timestamp minus first timestamp; do not use labels",
+    "bytes": "sum packet lengths, with captured versus original length explicitly selected",
+    "attack_ratio": "label-derived evaluation metadata only; never an input feature for forecasting",
+    "protocol_counts": "fixed vocabulary plus other/unknown bucket fitted without future data"
+  },
+  "features_not_yet_verified": ["TTL fields in the selected capture", "TCP window scaling and option coverage", "fragment visibility", "payload definition under truncation or encryption", "retransmission observability and false-positive rate", "packet-to-Network_23 correspondence"],
+  "determinism": ["pin parser/library version", "normalize timestamp timezone", "sort by timestamp then stable packet index", "define duplicate packets and retransmission rules", "fit vocabularies/scalers on training period only", "write extractor manifest with source hash and parser settings"]
+}

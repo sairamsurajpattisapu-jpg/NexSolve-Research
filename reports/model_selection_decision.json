@@ -1,0 +1,24 @@
+{
+  "status": "HOLD",
+  "reason": "no candidate has complete T+1 through T+5 metrics",
+  "ranking": [
+    {
+      "model": "Persistence",
+      "score": [
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0
+      ]
+    },
+    {
+      "model": "Current LSTM",
+      "score": [
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0
+      ]
+    }
+  ]
+}

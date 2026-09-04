@@ -1,0 +1,18 @@
+{
+  "schema_version": "sih-demo-1.0",
+  "existing_endpoints": {
+    "traffic_analysis": {"endpoint": "POST /api/traffic/analyze", "source": "shared/types/traffic.ts", "status": "completed", "fields": ["analysisId", "status", "recordsProcessed", "timeRange", "featureColumns", "featureCategories", "warnings", "errors", "statistics"]},
+    "forecast_health": {"endpoint": "GET /api/forecast/health", "source": "shared/types/forecast.ts", "fields": ["status", "model", "service_status", "model_loaded", "model_version", "feature_count", "sequence_length", "K", "packet_features_available"]},
+    "forecast": {"endpoint": "POST /api/forecast", "source": "shared/types/forecast.ts", "request": {"states": "NetworkStateInput[]"}, "response": ["status", "currentState", "forecasts", "defenderGuidance", "evidence", "limitations", "model"]}
+  },
+  "objects": {
+    "current_state": ["timestamp", "attackProbability", "predictedStage", "confidence", "uncertainty", "status", "riskTrend", "stage", "evidence", "limitations"],
+    "attack_assessment": ["currentState.stage", "currentState.evidence", "currentState.status"],
+    "forecast_point": ["horizon", "attackProbability", "confidence", "uncertainty", "trend", "stage", "stageStatus", "techniques", "evidence", "limitations"],
+    "attack_progression": ["stage.stage", "stage.confidence", "stage.status", "stage.evidence", "stage.evidence_source"],
+    "mitre_context": ["technique_id", "technique_name", "tactics", "status", "confidence", "reference"],
+    "explanation": ["explanation", "limitations"],
+    "defender_guidance": ["priority", "recommendation"]
+  },
+  "constraints": ["No fake forecast values", "Packet features remain unavailable until PCAP processing", "ATT&CK context is contextual, not confirmed ground truth", "CSV summary metadata is not automatically a model-ready temporal sequence"]
+}

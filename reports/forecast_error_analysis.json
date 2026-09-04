@@ -1,0 +1,5 @@
+{
+  "status": "NOT_YET_AVAILABLE",
+  "reason": "Existing evidence does not contain horizon-specific prediction records; no values fabricated.",
+  "required_next_artifact": "Run the temporal evaluator on identical T+1 through T+5 test targets."
+}

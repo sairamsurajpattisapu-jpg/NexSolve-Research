@@ -1,0 +1,979 @@
+# UNSW-NB15 Quality
+
+Run timestamp (UTC): `2026-09-03T10:49:46+00:00`
+
+## Dataset
+
+UNSW-NB15
+
+## Traffic Files
+
+```json
+[
+  {
+    "file": "UNSW-NB15\\raw\\UNSW-NB15_1.csv",
+    "size_bytes": 168979718,
+    "rows": 700001,
+    "columns": 49,
+    "column_names": [
+      "srcip",
+      "sport",
+      "dstip",
+      "dsport",
+      "proto",
+      "state",
+      "dur",
+      "sbytes",
+      "dbytes",
+      "sttl",
+      "dttl",
+      "sloss",
+      "dloss",
+      "service",
+      "Sload",
+      "Dload",
+      "Spkts",
+      "Dpkts",
+      "swin",
+      "dwin",
+      "stcpb",
+      "dtcpb",
+      "smeansz",
+      "dmeansz",
+      "trans_depth",
+      "res_bdy_len",
+      "Sjit",
+      "Djit",
+      "Stime",
+      "Ltime",
+      "Sintpkt",
+      "Dintpkt",
+      "tcprtt",
+      "synack",
+      "ackdat",
+      "is_sm_ips_ports",
+      "ct_state_ttl",
+      "ct_flw_http_mthd",
+      "is_ftp_login",
+      "ct_ftp_cmd",
+      "ct_srv_src",
+      "ct_srv_dst",
+      "ct_dst_ltm",
+      "ct_src_ltm",
+      "ct_src_dport_ltm",
+      "ct_dst_sport_ltm",
+      "ct_dst_src_ltm",
+      "attack_cat",
+      "Label"
+    ],
+    "labels": {
+      "0": 677786,
+      "1": 22215
+    },
+    "attack_categories": {
+      "<missing>": 677786,
+      "Exploits": 5409,
+      "Reconnaissance": 1759,
+      "DoS": 1167,
+      "Generic": 7522,
+      "Shellcode": 223,
+      "Fuzzers": 5051,
+      "Worms": 24,
+      "Backdoors": 534,
+      "Analysis": 526
+    },
+    "blank_rows": 0,
+    "malformed_rows": 0,
+    "missing_cells_by_column_index": {
+      "47": 677786
+    },
+    "adjacent_duplicate_rows": 17820,
+    "timestamp_columns": [
+      "Stime",
+      "Ltime"
+    ],
+    "timestamp_min_numeric": 1421927377.0,
+    "timestamp_max_numeric": 1421955842.0,
+    "first_row": [
+      "\ufeff59.166.0.0",
+      "1390",
+      "149.171.126.6",
+      "53",
+      "udp",
+      "CON",
+      "0.001055",
+      "132",
+      "164",
+      "31",
+      "29",
+      "0",
+      "0",
+      "dns",
+      "500473.9375",
+      "621800.9375",
+      "2",
+      "2",
+      "0",
+      "0",
+      "0",
+      "0",
+      "66",
+      "82",
+      "0",
+      "0",
+      "0",
+      "0",
+      "1421927414",
+      "1421927414",
+      "0.017",
+      "0.013",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "3",
+      "7",
+      "1",
+      "3",
+      "1",
+      "1",
+      "1",
+      "",
+      "0"
+    ],
+    "last_row_nonempty": true
+  },
+  {
+    "file": "UNSW-NB15\\raw\\UNSW-NB15_2.csv",
+    "size_bytes": 165221021,
+    "rows": 700001,
+    "columns": 49,
+    "column_names": [
+      "srcip",
+      "sport",
+      "dstip",
+      "dsport",
+      "proto",
+      "state",
+      "dur",
+      "sbytes",
+      "dbytes",
+      "sttl",
+      "dttl",
+      "sloss",
+      "dloss",
+      "service",
+      "Sload",
+      "Dload",
+      "Spkts",
+      "Dpkts",
+      "swin",
+      "dwin",
+      "stcpb",
+      "dtcpb",
+      "smeansz",
+      "dmeansz",
+      "trans_depth",
+      "res_bdy_len",
+      "Sjit",
+      "Djit",
+      "Stime",
+      "Ltime",
+      "Sintpkt",
+      "Dintpkt",
+      "tcprtt",
+      "synack",
+      "ackdat",
+      "is_sm_ips_ports",
+      "ct_state_ttl",
+      "ct_flw_http_mthd",
+      "is_ftp_login",
+      "ct_ftp_cmd",
+      "ct_srv_src",
+      "ct_srv_dst",
+      "ct_dst_ltm",
+      "ct_src_ltm",
+      "ct_src_dport_ltm",
+      "ct_dst_sport_ltm",
+      "ct_dst_src_ltm",
+      "attack_cat",
+      "Label"
+    ],
+    "labels": {
+      "0": 647252,
+      "1": 52749
+    },
+    "attack_categories": {
+      "<missing>": 647252,
+      "Exploits": 11103,
+      "Reconnaissance": 3116,
+      "Backdoor": 370,
+      "DoS": 4637,
+      "Generic": 27883,
+      "Fuzzers": 4668,
+      "Analysis": 608,
+      "Shellcode": 324,
+      "Worms": 40
+    },
+    "blank_rows": 0,
+    "malformed_rows": 0,
+    "missing_cells_by_column_index": {
+      "47": 647252,
+      "37": 285256,
+      "38": 307038,
+      "39": 307038
+    },
+    "adjacent_duplicate_rows": 32666,
+    "timestamp_columns": [
+      "Stime",
+      "Ltime"
+    ],
+    "timestamp_min_numeric": 1421955795.0,
+    "timestamp_max_numeric": 1424231129.0,
+    "first_row": [
+      "59.166.0.0",
+      "6055",
+      "149.171.126.5",
+      "54145",
+      "tcp",
+      "FIN",
+      "0.072974",
+      "4238",
+      "60788",
+      "31",
+      "29",
+      "7",
+      "30",
+      "-",
+      "458245.4375",
+      "6571546.5",
+      "72",
+      "72",
+      "255",
+      "255",
+      "1003293149",
+      "1003585034",
+      "59",
+      "844",
+      "0",
+      "0",
+      "62.04531",
+      "61.899776",
+      "1421955842",
+      "1421955842",
+      "1.02269",
+      "0.997042",
+      "0.002317",
+      "0.002173",
+      "0.000144",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "13",
+      "13",
+      "6",
+      "7",
+      "1",
+      "1",
+      "2",
+      "",
+      "0"
+    ],
+    "last_row_nonempty": true
+  },
+  {
+    "file": "UNSW-NB15\\raw\\UNSW-NB15_3.csv",
+    "size_bytes": 154588103,
+    "rows": 700001,
+    "columns": 49,
+    "column_names": [
+      "srcip",
+      "sport",
+      "dstip",
+      "dsport",
+      "proto",
+      "state",
+      "dur",
+      "sbytes",
+      "dbytes",
+      "sttl",
+      "dttl",
+      "sloss",
+      "dloss",
+      "service",
+      "Sload",
+      "Dload",
+      "Spkts",
+      "Dpkts",
+      "swin",
+      "dwin",
+      "stcpb",
+      "dtcpb",
+      "smeansz",
+      "dmeansz",
+      "trans_depth",
+      "res_bdy_len",
+      "Sjit",
+      "Djit",
+      "Stime",
+      "Ltime",
+      "Sintpkt",
+      "Dintpkt",
+      "tcprtt",
+      "synack",
+      "ackdat",
+      "is_sm_ips_ports",
+      "ct_state_ttl",
+      "ct_flw_http_mthd",
+      "is_ftp_login",
+      "ct_ftp_cmd",
+      "ct_srv_src",
+      "ct_srv_dst",
+      "ct_dst_ltm",
+      "ct_src_ltm",
+      "ct_src_dport_ltm",
+      "ct_dst_sport_ltm",
+      "ct_dst_src_ltm",
+      "attack_cat",
+      "Label"
+    ],
+    "labels": {
+      "0": 542576,
+      "1": 157425
+    },
+    "attack_categories": {
+      "<missing>": 542576,
+      "Exploits": 16574,
+      "Fuzzers": 9137,
+      "DoS": 5642,
+      "Generic": 118198,
+      "Shellcode": 593,
+      "Backdoor": 759,
+      "Reconnaissance": 5582,
+      "Worms": 67,
+      "Analysis": 873
+    },
+    "blank_rows": 0,
+    "malformed_rows": 0,
+    "missing_cells_by_column_index": {
+      "37": 656405,
+      "38": 689429,
+      "39": 689429,
+      "47": 542576
+    },
+    "adjacent_duplicate_rows": 145409,
+    "timestamp_columns": [
+      "Stime",
+      "Ltime"
+    ],
+    "timestamp_min_numeric": 1424231099.0,
+    "timestamp_max_numeric": 1424250009.0,
+    "first_row": [
+      "59.166.0.1",
+      "18247",
+      "149.171.126.4",
+      "7662",
+      "tcp",
+      "FIN",
+      "0.119596",
+      "4550",
+      "68342",
+      "31",
+      "29",
+      "7",
+      "33",
+      "-",
+      "300478.2813",
+      "4514398.5",
+      "78",
+      "80",
+      "255",
+      "255",
+      "1818376620",
+      "1818657356",
+      "58",
+      "854",
+      "0",
+      "0",
+      "87.137592",
+      "85.643619",
+      "1424231129",
+      "1424231129",
+      "1.549156",
+      "1.50719",
+      "0.000644",
+      "0.000521",
+      "0.000123",
+      "0",
+      "0",
+      "",
+      "",
+      " ",
+      "6",
+      "2",
+      "2",
+      "5",
+      "1",
+      "1",
+      "2",
+      "",
+      "0"
+    ],
+    "last_row_nonempty": true
+  },
+  {
+    "file": "UNSW-NB15\\raw\\UNSW-NB15_4.csv",
+    "size_bytes": 97588754,
+    "rows": 440044,
+    "columns": 49,
+    "column_names": [
+      "srcip",
+      "sport",
+      "dstip",
+      "dsport",
+      "proto",
+      "state",
+      "dur",
+      "sbytes",
+      "dbytes",
+      "sttl",
+      "dttl",
+      "sloss",
+      "dloss",
+      "service",
+      "Sload",
+      "Dload",
+      "Spkts",
+      "Dpkts",
+      "swin",
+      "dwin",
+      "stcpb",
+      "dtcpb",
+      "smeansz",
+      "dmeansz",
+      "trans_depth",
+      "res_bdy_len",
+      "Sjit",
+      "Djit",
+      "Stime",
+      "Ltime",
+      "Sintpkt",
+      "Dintpkt",
+      "tcprtt",
+      "synack",
+      "ackdat",
+      "is_sm_ips_ports",
+      "ct_state_ttl",
+      "ct_flw_http_mthd",
+      "is_ftp_login",
+      "ct_ftp_cmd",
+      "ct_srv_src",
+      "ct_srv_dst",
+      "ct_dst_ltm",
+      "ct_src_ltm",
+      "ct_src_dport_ltm",
+      "ct_dst_sport_ltm",
+      "ct_dst_src_ltm",
+      "attack_cat",
+      "Label"
+    ],
+    "labels": {
+      "0": 351150,
+      "1": 88894
+    },
+    "attack_categories": {
+      "<missing>": 351150,
+      "Exploits": 11439,
+      "Fuzzers": 5390,
+      "Backdoor": 666,
+      "DoS": 4907,
+      "Generic": 61878,
+      "Reconnaissance": 3530,
+      "Shellcode": 371,
+      "Analysis": 670,
+      "Worms": 43
+    },
+    "blank_rows": 0,
+    "malformed_rows": 0,
+    "missing_cells_by_column_index": {
+      "37": 406484,
+      "38": 433412,
+      "39": 433412,
+      "47": 351150
+    },
+    "adjacent_duplicate_rows": 84391,
+    "timestamp_columns": [
+      "Stime",
+      "Ltime"
+    ],
+    "timestamp_min_numeric": 1424249984.0,
+    "timestamp_max_numeric": 1424262069.0,
+    "first_row": [
+      "59.166.0.9",
+      "7045",
+      "149.171.126.7",
+      "25",
+      "tcp",
+      "FIN",
+      "0.201886",
+      "37552",
+      "3380",
+      "31",
+      "29",
+      "18",
+      "8",
+      "smtp",
+      "1459437.5",
+      "130766.8672",
+      "52",
+      "42",
+      "255",
+      "255",
+      "1422136554",
+      "3572668484",
+      "722",
+      "80",
+      "0",
+      "0",
+      "456.043567",
+      "15.530109",
+      "1424250009",
+      "1424250009",
+      "3.943843",
+      "4.912488",
+      "0.00059",
+      "0.000473",
+      "0.000117",
+      "0",
+      "0",
+      "",
+      "",
+      " ",
+      "2",
+      "2",
+      "7",
+      "4",
+      "1",
+      "1",
+      "3",
+      "",
+      "0"
+    ],
+    "last_row_nonempty": true
+  }
+]
+```
+
+## Ground Truth
+
+```json
+{
+  "file": "UNSW-NB15\\raw\\UNSW-NB15_GT.csv",
+  "size_bytes": 86426111,
+  "rows": 174347,
+  "columns": 12,
+  "column_names": [
+    "Start time",
+    "Last time",
+    "Attack category",
+    "Attack subcategory",
+    "Protocol",
+    "Source IP",
+    "Source Port",
+    "Destination IP",
+    "Destination Port",
+    "Attack Name",
+    "Attack Reference",
+    "."
+  ],
+  "labels": {},
+  "attack_categories": {},
+  "blank_rows": 0,
+  "malformed_rows": 0,
+  "missing_cells_by_column_index": {
+    "10": 160,
+    "3": 280
+  },
+  "adjacent_duplicate_rows": 6,
+  "timestamp_columns": [
+    "Start time",
+    "Last time"
+  ],
+  "timestamp_min_numeric": 1421927414.0,
+  "timestamp_max_numeric": 1424262069.0,
+  "first_row": [
+    "1421927414",
+    "1421927416",
+    "Reconnaissance",
+    "HTTP",
+    "tcp",
+    "175.45.176.0",
+    "13284",
+    "149.171.126.16",
+    "80",
+    "Domino Web Server Database Access: /doladmin.nsf (https://strikecenter.bpointsys.com/bps/strikes/recon/http/domino/access_domino_doladmin_nsf.xml)",
+    "-",
+    "."
+  ],
+  "last_row_nonempty": true
+}
+```
+
+## Feature Definitions
+
+```json
+[
+  {
+    "number": "1",
+    "name": "srcip",
+    "type": "nominal",
+    "description": "Source IP address"
+  },
+  {
+    "number": "2",
+    "name": "sport",
+    "type": "integer",
+    "description": "Source port number"
+  },
+  {
+    "number": "3",
+    "name": "dstip",
+    "type": "nominal",
+    "description": "Destination IP address"
+  },
+  {
+    "number": "4",
+    "name": "dsport",
+    "type": "integer",
+    "description": "Destination port number"
+  },
+  {
+    "number": "5",
+    "name": "proto",
+    "type": "nominal",
+    "description": "Transaction protocol"
+  },
+  {
+    "number": "6",
+    "name": "state",
+    "type": "nominal",
+    "description": "Indicates to the state and its dependent protocol, e.g. ACC, CLO, CON, ECO, ECR, FIN, INT, MAS, PAR, REQ, RST, TST, TXD, URH, URN, and (-) (if not used state)"
+  },
+  {
+    "number": "7",
+    "name": "dur",
+    "type": "Float",
+    "description": "Record total duration"
+  },
+  {
+    "number": "8",
+    "name": "sbytes",
+    "type": "Integer",
+    "description": "Source to destination transaction bytes "
+  },
+  {
+    "number": "9",
+    "name": "dbytes",
+    "type": "Integer",
+    "description": "Destination to source transaction bytes"
+  },
+  {
+    "number": "10",
+    "name": "sttl",
+    "type": "Integer",
+    "description": "Source to destination time to live value "
+  },
+  {
+    "number": "11",
+    "name": "dttl",
+    "type": "Integer",
+    "description": "Destination to source time to live value"
+  },
+  {
+    "number": "12",
+    "name": "sloss",
+    "type": "Integer",
+    "description": "Source packets retransmitted or dropped "
+  },
+  {
+    "number": "13",
+    "name": "dloss",
+    "type": "Integer",
+    "description": "Destination packets retransmitted or dropped"
+  },
+  {
+    "number": "14",
+    "name": "service",
+    "type": "nominal",
+    "description": "http, ftp, smtp, ssh, dns, ftp-data ,irc  and (-) if not much used service"
+  },
+  {
+    "number": "15",
+    "name": "Sload",
+    "type": "Float",
+    "description": "Source bits per second"
+  },
+  {
+    "number": "16",
+    "name": "Dload",
+    "type": "Float",
+    "description": "Destination bits per second"
+  },
+  {
+    "number": "17",
+    "name": "Spkts",
+    "type": "integer",
+    "description": "Source to destination packet count "
+  },
+  {
+    "number": "18",
+    "name": "Dpkts",
+    "type": "integer",
+    "description": "Destination to source packet count"
+  },
+  {
+    "number": "19",
+    "name": "swin",
+    "type": "integer",
+    "description": "Source TCP window advertisement value"
+  },
+  {
+    "number": "20",
+    "name": "dwin",
+    "type": "integer",
+    "description": "Destination TCP window advertisement value"
+  },
+  {
+    "number": "21",
+    "name": "stcpb",
+    "type": "integer",
+    "description": "Source TCP base sequence number"
+  },
+  {
+    "number": "22",
+    "name": "dtcpb",
+    "type": "integer",
+    "description": "Destination TCP base sequence number"
+  },
+  {
+    "number": "23",
+    "name": "smeansz",
+    "type": "integer",
+    "description": "Mean of the ?ow packet size transmitted by the src "
+  },
+  {
+    "number": "24",
+    "name": "dmeansz",
+    "type": "integer",
+    "description": "Mean of the ?ow packet size transmitted by the dst "
+  },
+  {
+    "number": "25",
+    "name": "trans_depth",
+    "type": "integer",
+    "description": "Represents the pipelined depth into the connection of http request/response transaction"
+  },
+  {
+    "number": "26",
+    "name": "res_bdy_len",
+    "type": "integer",
+    "description": "Actual uncompressed content size of the data transferred from the server\ufffds http service."
+  },
+  {
+    "number": "27",
+    "name": "Sjit",
+    "type": "Float",
+    "description": "Source jitter (mSec)"
+  },
+  {
+    "number": "28",
+    "name": "Djit",
+    "type": "Float",
+    "description": "Destination jitter (mSec)"
+  },
+  {
+    "number": "29",
+    "name": "Stime",
+    "type": "Timestamp",
+    "description": "record start time"
+  },
+  {
+    "number": "30",
+    "name": "Ltime",
+    "type": "Timestamp",
+    "description": "record last time"
+  },
+  {
+    "number": "31",
+    "name": "Sintpkt",
+    "type": "Float",
+    "description": "Source interpacket arrival time (mSec)"
+  },
+  {
+    "number": "32",
+    "name": "Dintpkt",
+    "type": "Float",
+    "description": "Destination interpacket arrival time (mSec)"
+  },
+  {
+    "number": "33",
+    "name": "tcprtt",
+    "type": "Float",
+    "description": "TCP connection setup round-trip time, the sum of \ufffdsynack\ufffd and \ufffdackdat\ufffd."
+  },
+  {
+    "number": "34",
+    "name": "synack",
+    "type": "Float",
+    "description": "TCP connection setup time, the time between the SYN and the SYN_ACK packets."
+  },
+  {
+    "number": "35",
+    "name": "ackdat",
+    "type": "Float",
+    "description": "TCP connection setup time, the time between the SYN_ACK and the ACK packets."
+  },
+  {
+    "number": "36",
+    "name": "is_sm_ips_ports",
+    "type": "Binary",
+    "description": "If source (1) and destination (3)IP addresses equal and port numbers (2)(4)  equal then, this variable takes value 1 else 0"
+  },
+  {
+    "number": "37",
+    "name": "ct_state_ttl",
+    "type": "Integer",
+    "description": "No. for each state (6) according to specific range of values for source/destination time to live (10) (11)."
+  },
+  {
+    "number": "38",
+    "name": "ct_flw_http_mthd",
+    "type": "Integer",
+    "description": "No. of flows that has methods such as Get and Post in http service."
+  },
+  {
+    "number": "39",
+    "name": "is_ftp_login",
+    "type": "Binary",
+    "description": "If the ftp session is accessed by user and password then 1 else 0. "
+  },
+  {
+    "number": "40",
+    "name": "ct_ftp_cmd",
+    "type": "integer",
+    "description": "No of flows that has a command in ftp session."
+  },
+  {
+    "number": "41",
+    "name": "ct_srv_src",
+    "type": "integer",
+    "description": "No. of connections that contain the same service (14) and source address (1) in 100 connections according to the last time (26)."
+  },
+  {
+    "number": "42",
+    "name": "ct_srv_dst",
+    "type": "integer",
+    "description": "No. of connections that contain the same service (14) and destination address (3) in 100 connections according to the last time (26)."
+  },
+  {
+    "number": "43",
+    "name": "ct_dst_ltm",
+    "type": "integer",
+    "description": "No. of connections of the same destination address (3) in 100 connections according to the last time (26)."
+  },
+  {
+    "number": "44",
+    "name": "ct_src_ ltm",
+    "type": "integer",
+    "description": "No. of connections of the same source address (1) in 100 connections according to the last time (26)."
+  },
+  {
+    "number": "45",
+    "name": "ct_src_dport_ltm",
+    "type": "integer",
+    "description": "No of connections of the same source address (1) and the destination port (4) in 100 connections according to the last time (26)."
+  },
+  {
+    "number": "46",
+    "name": "ct_dst_sport_ltm",
+    "type": "integer",
+    "description": "No of connections of the same destination address (3) and the source port (2) in 100 connections according to the last time (26)."
+  },
+  {
+    "number": "47",
+    "name": "ct_dst_src_ltm",
+    "type": "integer",
+    "description": "No of connections of the same source (1) and the destination (3) address in in 100 connections according to the last time (26)."
+  },
+  {
+    "number": "48",
+    "name": "attack_cat",
+    "type": "nominal",
+    "description": "The name of each attack category. In this data set , nine categories e.g. Fuzzers, Analysis, Backdoors, DoS Exploits, Generic, Reconnaissance, Shellcode and Worms"
+  },
+  {
+    "number": "49",
+    "name": "Label",
+    "type": "binary",
+    "description": "0 for normal and 1 for attack records"
+  }
+]
+```
+
+## Event List
+
+```json
+{
+  "file": "UNSW-NB15\\raw\\UNSW-NB15_LIST_EVENTS.csv",
+  "size_bytes": 4639,
+  "rows": 208,
+  "columns": 3,
+  "column_names": [
+    "Attack category",
+    "Attack subcategory",
+    "Number of events"
+  ],
+  "labels": {},
+  "attack_categories": {},
+  "blank_rows": 0,
+  "malformed_rows": 0,
+  "missing_cells_by_column_index": {
+    "1": 3,
+    "0": 1
+  },
+  "adjacent_duplicate_rows": 0,
+  "timestamp_columns": [],
+  "timestamp_min_numeric": null,
+  "timestamp_max_numeric": null,
+  "first_row": [
+    "normal",
+    "",
+    "2218761"
+  ],
+  "last_row_nonempty": true
+}
+```
+
+## Gt Relationship
+
+Not joined: GT records use start/end times and flow identity fields, while traffic rows have no proven one-to-one key. Row-number alignment was not assumed.
+
+## Quality Warnings
+
+```json
+[
+  "The four traffic files are headerless; column names are assigned from the local feature definition and the observed 49-field schema.",
+  "Global duplicate counts were not computed; adjacent duplicate counts are reported.",
+  "GT-to-traffic linkage requires a documented key and was not claimed from row order."
+]
+```
+
+## Forecasting Suitability
+
+Timestamped traffic supports exploratory window/state analysis, but GT linkage and dataset ordering require care.

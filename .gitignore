@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+dist/
+
+# PCAP
+*.pcap
+*.pcapng
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Large research datasets
+CIC-IDS2017/
+UNSW-NB15/
+TON-IoT/
+
+# Large MITRE data
+MITRE/*.json
+
+# Research outputs / generated artifacts
+results/
+experiments/
+
+# Logs / temporary files
+*.log
+tmp/
+temp/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,15 @@
+{
+  "source": "MITRE/enterprise-attack-19.2.json",
+  "attack_pattern_count": 858,
+  "mapping": [
+    {
+      "dataset_label": "UNSW attack categories and CIC labels",
+      "security_state": "ATTACK",
+      "candidate_attack_technique": null,
+      "confidence": null,
+      "evidence": "Network dataset labels do not establish ATT&CK technique identity.",
+      "mapping_status": "unmapped"
+    }
+  ],
+  "observed_vs_forecasted": "No observed or forecasted ATT&CK mapping is claimed in this run."
+}

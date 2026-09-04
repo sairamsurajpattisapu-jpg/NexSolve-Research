@@ -1,0 +1,43 @@
+{
+  "best_candidate": "CIC-DDoS2019",
+  "backup_candidate": "TON_IoT",
+  "winner_score": 45,
+  "backup_score": 42,
+  "winner_reasons": [
+    "Official UNB documentation explicitly states timestamp-based flow labeling.",
+    "Source/destination IP, ports, and protocol fields are part of the documented label basis.",
+    "Two documented capture days provide a chronological future-day design.",
+    "Attack schedules include many distinct attack periods rather than one single block.",
+    "Benign background traffic is explicitly described.",
+    "Generated per-machine CSVs provide a practical first acquisition target.",
+    "Official download, paper, license, and attack-time tables support reproducibility."
+  ],
+  "backup_not_selected": "TON_IoT has explicit timestamped security-event ground truth and event diversity, but its heterogeneous multimodal packaging and IP/timestamp joins create more linkage and leakage complexity.",
+  "exact_next_download": {
+    "filename": "UNKNOWN: official directory listing must be inspected before selecting a smallest generated CSV",
+    "source": "http://cicresearch.ca//CICDataset/CICDDoS2019/",
+    "approximate_size": "UNKNOWN",
+    "purpose": "Inspect one official generated flow CSV header and timestamp coverage before full acquisition."
+  },
+  "forecasting_potential": "HIGH",
+  "advanced_model": "NOT JUSTIFIED YET",
+  "next_step": "Inspect the official public TON_IoT SharePoint folder listing and acquire one smallest processed network CSV plus its timestamped ground truth file; do not download the full dataset.",
+  "ton_iot_validation": {
+    "status": "D",
+    "source_reachable": true,
+    "exact_file_identified": false,
+    "reason": "The public folder response exposed no exact CSV filenames or direct file URLs; no guessed API path or download was used.",
+    "report": "reports/toniot_timestamp_validation.md"
+  },
+  "ton_iot_network23_validation": {
+    "status": "A",
+    "ready_for_locked_feasibility_evaluation": true,
+    "file": "TON-IoT/validation/Network_dataset_23.csv",
+    "rows": 339021,
+    "windows_60_seconds": 893,
+    "contiguous_forecast_pairs": 889,
+    "benign_windows": 30,
+    "attack_windows": 863,
+    "report": "reports/toniot_network23_validation.md"
+  }
+}

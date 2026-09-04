@@ -1,0 +1,14 @@
+﻿[
+    {
+        "name":  "model-service",
+        "pid":  25972
+    },
+    {
+        "name":  "backend",
+        "pid":  17992
+    },
+    {
+        "name":  "frontend",
+        "pid":  3092
+    }
+]

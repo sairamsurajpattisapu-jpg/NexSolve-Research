@@ -1,0 +1,1 @@
+{"method":"training-window mean and standard deviation","fit_scope":"training windows only","artifact":"preprocessing.npz","packet_features_policy":"zeros with packet_features_available=false until PCAP audit","future_information":false}

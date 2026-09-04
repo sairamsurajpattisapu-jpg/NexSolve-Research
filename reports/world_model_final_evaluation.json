@@ -1,0 +1,159 @@
+{
+  "status": "PARTIALLY_DONE",
+  "dataset": "UNSW-NB15",
+  "model": {
+    "dataset": "UNSW-NB15",
+    "training_command": "python world_model.py train-evaluate",
+    "model_status": "research prototype",
+    "test_result_source": "reports/world_model_evaluation.json",
+    "external_pretrained_weights": false,
+    "limitations": [
+      "one eligible mixed-state future episode",
+      "packet PCAP not audited",
+      "NumPy prototype"
+    ],
+    "license": "NexSolve-Research implementation; dataset citation and license remain with UNSW-NB15 source"
+  },
+  "split": "Existing 60-second contiguous-run split: first two runs pre-test, 80/20 train/validation; first later mixed-state run untouched test.",
+  "metrics": {
+    "lstm": {
+      "precision": 1.0,
+      "recall": 0.36363636363636365,
+      "f1": 0.5333333333333333,
+      "macro_f1": 0.5607843137254902,
+      "balanced_accuracy": 0.6818181818181819,
+      "confusion_matrix": [
+        [
+          5,
+          0
+        ],
+        [
+          7,
+          4
+        ]
+      ],
+      "roc_auc": 0.6363636363636364,
+      "pr_auc": 0.8485791985791986,
+      "coverage": 0.6666666666666666,
+      "abstention_rate": 0.3333333333333333,
+      "forecast_cases": 24,
+      "evaluated_cases": 16,
+      "abstentions": 8
+    },
+    "temporal_persistence": {
+      "precision": 0.9285714285714286,
+      "recall": 0.9285714285714286,
+      "f1": 0.9285714285714286,
+      "macro_f1": 0.9142857142857144,
+      "balanced_accuracy": 0.9142857142857144,
+      "confusion_matrix": [
+        [
+          9,
+          1
+        ],
+        [
+          1,
+          13
+        ]
+      ],
+      "roc_auc": 0.9142857142857144,
+      "pr_auc": 0.9039115646258503,
+      "coverage": 1.0,
+      "abstention_rate": 0.0,
+      "forecast_cases": 24
+    }
+  },
+  "expanded_evaluation": {
+    "eligible_episode_count": 1,
+    "forecast_cases": 24,
+    "aggregate_results": {
+      "current_state": {
+        "precision": 0.9285714285714286,
+        "recall": 0.9285714285714286,
+        "f1": 0.9285714285714286,
+        "macro_f1": 0.9142857142857144,
+        "balanced_accuracy": 0.9142857142857144,
+        "confusion_matrix": [
+          [
+            9,
+            1
+          ],
+          [
+            1,
+            13
+          ]
+        ],
+        "class_support": {
+          "1": 14,
+          "0": 10
+        },
+        "roc_auc": "Not computed",
+        "pr_auc": "Not computed",
+        "forecast_cases": 24,
+        "evaluated_cases": 24,
+        "coverage": 1.0,
+        "abstentions": 0,
+        "abstention_rate": 0.0
+      },
+      "persistence": {
+        "precision": 0.9285714285714286,
+        "recall": 0.9285714285714286,
+        "f1": 0.9285714285714286,
+        "macro_f1": 0.9142857142857144,
+        "balanced_accuracy": 0.9142857142857144,
+        "confusion_matrix": [
+          [
+            9,
+            1
+          ],
+          [
+            1,
+            13
+          ]
+        ],
+        "class_support": {
+          "1": 14,
+          "0": 10
+        },
+        "roc_auc": "Not computed",
+        "pr_auc": "Not computed",
+        "forecast_cases": 24,
+        "evaluated_cases": 24,
+        "coverage": 1.0,
+        "abstentions": 0,
+        "abstention_rate": 0.0
+      },
+      "empirical_transition": {
+        "precision": 0.9285714285714286,
+        "recall": 0.9285714285714286,
+        "f1": 0.9285714285714286,
+        "macro_f1": 0.9142857142857144,
+        "balanced_accuracy": 0.9142857142857144,
+        "confusion_matrix": [
+          [
+            9,
+            1
+          ],
+          [
+            1,
+            13
+          ]
+        ],
+        "class_support": {
+          "1": 14,
+          "0": 10
+        },
+        "roc_auc": "Not computed",
+        "pr_auc": "Not computed",
+        "forecast_cases": 24,
+        "evaluated_cases": 24,
+        "coverage": 1.0,
+        "abstentions": 0,
+        "abstention_rate": 0.0
+      }
+    }
+  },
+  "comparison_conclusion": "The LSTM does not improve over persistence on the measured eligible episode; no improvement claim is justified.",
+  "packet_features_available": false,
+  "retraining_performed": false
+}

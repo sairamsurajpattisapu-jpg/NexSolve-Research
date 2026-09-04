@@ -1,0 +1,28 @@
+{
+  "dataset": "CIC-DDoS2019",
+  "source_url": "https://cicresearch.ca/CICDataset/CICDDoS2019/",
+  "source_type": "Official CIC/UNB download form",
+  "download_attempt": {
+    "status": "blocked",
+    "reason": "The official endpoint exposes a form requiring personal identity fields; no public directory listing or file URL was available.",
+    "submitted": false,
+    "download_date": "2026-09-03"
+  },
+  "file": {
+    "obtained": false,
+    "filename": null,
+    "size_bytes": null,
+    "sha256": null
+  },
+  "schema_validation": "Not performed: no official generated flow CSV was obtained.",
+  "timestamp_validation": "Not performed: no official generated flow CSV was obtained.",
+  "label_validation": "Not performed: no official generated flow CSV was obtained.",
+  "temporal_validation": "Not performed: no official generated flow CSV was obtained.",
+  "leakage_validation": "Not performed at file level: source documentation indicates timestamp/network-tuple labeling, but the actual file was not inspected.",
+  "decision": "D",
+  "decision_text": "TIMESTAMP CLAIM NOT VERIFIED",
+  "ready_for_locked_forecasting": false,
+  "next_requirement": "The user must complete or authorize completion of the official CIC download form with accurate identity information, after which one smallest generated flow CSV can be selected and hashed.",
+  "existing_datasets_modified": false,
+  "production_repository_modified": false
+}

@@ -1,0 +1,32 @@
+{
+  "path": "C:\\Users\\saira\\Downloads\\Friday-WorkingHours.pcap",
+  "filename": "Friday-WorkingHours.pcap",
+  "size_bytes": 8839309056,
+  "sha256": "beff0dcce1eebc9b2454582f4dc8ed0ba0112b2c619a710bf03af93147254cd0",
+  "file_type": "PCAPNG",
+  "pcap_format": "PCAPNG",
+  "capture_interface_link_type": "UNKNOWN",
+  "capture_interface_link_type_code": null,
+  "packet_count": 9997874,
+  "first_timestamp_utc": "2017-07-07T11:59:39.599128+00:00",
+  "last_timestamp_utc": "2017-07-07T20:02:41.169108+00:00",
+  "capture_duration_seconds": 28981.569979906082,
+  "protocols": [
+    "ICMP",
+    "IPv4",
+    "IPv6",
+    "TCP",
+    "UDP"
+  ],
+  "ipv4_packets": 9915680,
+  "ipv6_packets": 28507,
+  "tcp_packets": 9191727,
+  "udp_packets": 750106,
+  "icmp_packets": 965,
+  "packets_containing_ttl": 9944187,
+  "packets_containing_tcp_flags": 9191727,
+  "packets_containing_tcp_window_size": 9191727,
+  "packets_containing_fragmentation_fields": 196,
+  "packets_with_payload": 7630829,
+  "audit_timestamp_utc": "2026-09-04T05:41:43+00:00"
+}

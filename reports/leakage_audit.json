@@ -1,0 +1,66 @@
+{
+  "status": "passed_with_blockers",
+  "generated_at_utc": "2026-09-03T18:07:18+00:00",
+  "findings": [
+    {
+      "id": "target-columns",
+      "severity": "none",
+      "location": "active feature schema",
+      "explanation": "No attack label or target column is present in the encoded feature lists.",
+      "remediation": "Keep labels target-only.",
+      "status": "passed"
+    },
+    {
+      "id": "future-features",
+      "severity": "none",
+      "location": "active feature schema",
+      "explanation": "No future, next, or target-named feature is present.",
+      "remediation": "Reject future-derived names during schema validation.",
+      "status": "passed"
+    },
+    {
+      "id": "split-overlap",
+      "severity": "none",
+      "location": "temporal split definition",
+      "explanation": "Train, validation, and test window identifiers are disjoint and ordered.",
+      "remediation": "Continue chronological split enforcement.",
+      "status": "passed"
+    },
+    {
+      "id": "calibration-contamination",
+      "severity": "medium",
+      "location": "validation split",
+      "explanation": "Validation is one-class, so calibration cannot be fitted without invalid statistical assumptions.",
+      "remediation": "Acquire a validation episode containing both classes; keep calibration BLOCKED_BY_DATA until then.",
+      "status": "open"
+    },
+    {
+      "id": "cic-timestamps",
+      "severity": "high",
+      "location": "CIC-IDS2017 flow CSVs",
+      "explanation": "No exact event timestamp is present, preventing legitimate chronological CIC evaluation.",
+      "remediation": "Use a verified timestamp-bearing source or the original PCAP.",
+      "status": "blocked"
+    }
+  ],
+  "feature_audit": {
+    "passed": true,
+    "target_features": [],
+    "future_named_features": []
+  },
+  "window_audit": {
+    "passed": true,
+    "overlaps": {
+      "train_validation": [],
+      "test_train": [],
+      "test_validation": []
+    }
+  },
+  "controls": [
+    "labels are target metadata only",
+    "scaler fit on training windows only",
+    "chronological ordering preserved",
+    "future observations excluded",
+    "scenario/IP/tuple identifiers excluded"
+  ]
+}

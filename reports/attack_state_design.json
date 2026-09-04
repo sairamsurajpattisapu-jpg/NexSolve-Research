@@ -1,0 +1,29 @@
+{
+  "mapping": {
+    "BENIGN": {
+      "raw_labels": [
+        "0",
+        "normal",
+        "<missing>"
+      ],
+      "mitre_status": "unmapped"
+    },
+    "ATTACK": {
+      "raw_labels": "Any non-benign observed attack category",
+      "mitre_status": "unmapped"
+    }
+  },
+  "unsupported_states": [
+    "INITIAL_ACCESS",
+    "EXECUTION",
+    "PERSISTENCE",
+    "PRIVILEGE_ESCALATION",
+    "CREDENTIAL_ACCESS",
+    "DISCOVERY",
+    "LATERAL_MOVEMENT",
+    "COMMAND_AND_CONTROL",
+    "EXFILTRATION",
+    "IMPACT"
+  ],
+  "principle": "Observed label -> security state -> ATT&CK mapping -> forecasted next state are separate concepts."
+}

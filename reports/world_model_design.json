@@ -1,0 +1,36 @@
+{
+  "title": "NEXSOLVE Temporal Network World Model Design",
+  "status": "Design only; no training",
+  "state": {
+    "formula": "S_t = [flow_features_t, packet_features_t, temporal_features_t]",
+    "flow_features": ["flow_count", "unique_src_ips", "unique_dst_ips", "unique_src_ports", "unique_dst_ports", "protocol_counts", "total_bytes", "total_packets", "mean_duration", "mean_flow_bytes", "mean_flow_packets"],
+    "packet_features": "the verified subset of the packet feature specification",
+    "temporal_features": ["previous observed security state", "rolling traffic volume", "delta flow count", "delta unique ports", "delta destination count", "delta mean IAT", "delta TCP flag distribution"],
+    "excluded_inputs": ["current or future target labels", "attack_ratio", "attack category", "MITRE stage labels", "future-window aggregates", "filename", "raw timestamp as an unrestricted identifier"],
+    "normalization": "training-period-only transformations; robust/log transforms for heavy-tailed counts, with missingness indicators"
+  },
+  "transition_model": {
+    "object": "P(S_t+1 | S_t, context_t)",
+    "context": "a fixed-length history of observed states and optional elapsed-time encoding",
+    "target": "next contiguous 60-second state; skip gaps or mark them explicitly rather than pretending continuity",
+    "baseline": "Logistic Regression comparison on leakage-controlled state features, trained chronologically; this phase does not run it",
+    "future_model": "probabilistic transition model whose output includes state distribution and predictive uncertainty"
+  },
+  "rollout": {
+    "K": 5,
+    "horizon": "five contiguous 60-second steps, up to five minutes",
+    "procedure": ["start from states available through prediction time", "predict a distribution for S_t+1", "feed the predicted distribution or sampled state into the next transition", "repeat through S_t+K", "aggregate attack-state and stage probabilities across rollouts"],
+    "attack_probability": "P(label_{t+k}=ATTACK | information through t)",
+    "stage_probability": "contextual hypothesis probability from a separately calibrated stage scorer; never ground truth without stage labels",
+    "uncertainty": "ensemble or Monte Carlo rollout dispersion plus calibrated predictive intervals where supported",
+    "abstention": ["missing or non-contiguous history", "insufficient training transition support", "out-of-distribution feature values", "uncertainty above predefined validation threshold", "no verified packet coverage for a required feature"],
+    "evaluation": ["chronological train/validation/test", "no random row split", "one-step and K-step calibration", "macro-F1 and balanced accuracy for state", "Brier/ log loss and calibration error for probabilities", "coverage and abstention rate", "transition-specific recall"]
+  },
+  "progression_and_mitre": {
+    "stages": ["Reconnaissance", "Initial Access", "Execution", "Persistence", "Privilege Escalation", "Discovery", "Lateral Movement", "Command and Control", "Collection", "Exfiltration", "Impact"],
+    "method": "map observed packet/flow patterns to candidate ATT&CK techniques using documented contextual evidence and a calibrated multi-label scorer",
+    "constraint": "dataset attack labels are not stage labels; inferred stage outputs must be marked contextual, uncertain, and non-ground-truth",
+    "evidence": "retain source window, features, rule/model rationale, confidence, and abstention reason"
+  },
+  "leakage_controls": ["remove raw IPs or encode only training-fitted grouped representations", "exclude fixed attack-time and scenario identifiers", "exclude filenames", "exclude labels and attack categories from S_t", "construct deltas using past windows only", "fit preprocessing on training period only", "split by chronological time and scenario/episode where possible", "deduplicate overlapping flow/packet observations before splitting", "never join future ground truth into historical features"]
+}

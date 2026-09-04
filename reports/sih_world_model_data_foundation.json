@@ -1,0 +1,62 @@
+{
+  "title": "NEXSOLVE SIH 26153 World Model Data Foundation",
+  "run_date_utc": "2026-09-03",
+  "scope": "Phase 1-4 evidence only; no model training or production changes",
+  "local_packet_level_inventory": {
+    "searched_roots": ["TON-IoT/", "CIC-IDS2017/", "UNSW-NB15/"],
+    "pcap_files": [],
+    "pcapng_files": [],
+    "zeek_conn_logs": [],
+    "packet_derived_feature_files": [],
+    "filename_search_result": "No matching packet-capture or packet-derived filenames were found.",
+    "content_search_result": "No local packet-level artifact was found. Existing CSVs are flow or event tables.",
+    "existing_relevant_flow_fields": {
+      "TON-IoT Network_dataset_23": ["ts", "src_ip", "src_port", "dst_ip", "dst_port", "proto", "duration", "src_bytes", "dst_bytes", "src_pkts", "dst_pkts", "label", "type"],
+      "CIC-IDS2017 MachineLearningCSV": ["Flow Duration", "Total Fwd Packets", "Total Backward Packets", "Flow IAT Mean", "Flow IAT Std", "packet length aggregates", "TCP flag counts", "Init_Win_bytes_forward", "Init_Win_bytes_backward", "Label"],
+      "UNSW-NB15 raw": ["Stime", "Ltime", "srcip", "sport", "dstip", "dsport", "proto", "dur", "sbytes", "dbytes", "Spkts", "Dpkts", "sttl", "dttl", "swin", "dwin", "Label"]
+    },
+    "important_negative_finding": "No local file provides raw packet observations for TTL variance, per-packet payload distribution, fragment flags, or retransmission evidence. Flow aggregates must not be represented as packet-level observations."
+  },
+  "authoritative_sources": [
+    {
+      "dataset": "CIC-IDS2017",
+      "source": "https://www.unb.ca/cic/datasets/ids-2017.html",
+      "evidence": "UNB states that the public distribution includes full packet payloads in PCAP format and labeled flows. It documents five days, benign Monday traffic, and attacks plus normal activity on Tuesday-Friday."
+    },
+    {
+      "dataset": "TON-IoT",
+      "source": "https://research.unsw.edu.au/projects/toniot-datasets",
+      "evidence": "UNSW states that raw network data includes PCAP, Zeek logs and CSVs, and separately documents processed data and timestamped security-event ground truth."
+    },
+    {
+      "dataset": "UNSW-NB15",
+      "source": "https://research.unsw.edu.au/projects/unsw-nb15-dataset",
+      "evidence": "UNSW states that raw packets were captured as PCAP and that Bro/Argus-derived CSV features are provided."
+    }
+  ],
+  "smallest_practical_official_packet_source": {
+    "recommendation": "CIC-IDS2017 single scenario capture",
+    "exact_filename": "Friday-WorkingHours-Afternoon-PortScan.pcap",
+    "official_source": "UNB CIC-IDS2017 download page: https://www.unb.ca/cic/datasets/ids-2017.html; download gate: http://cicresearch.ca/CICDataset/CIC-IDS-2017/",
+    "access_method": "Use the official UNB/CIC download form, select the single Friday afternoon port-scan PCAP, retain the downloaded filename and SHA-256, and do not download the full five-day set.",
+    "size": {
+      "exact_file_size_bytes": null,
+      "published_context": "UNB publishes 8.3 GB for the complete Friday capture day, not a separate byte size for this scenario file.",
+      "status": "UNKNOWN until official download/access and local stat"
+    },
+    "benign_traffic": "Yes at the day level: the official page describes Friday as attacks plus normal activity. The exact scenario-file benign row/packet proportion must be measured after download.",
+    "attack_traffic": "Yes: Friday afternoon includes Port Scan and DDoS LOIT; this file is the port-scan scenario target.",
+    "temporal_information": "Yes in the raw PCAP packet timestamps; the official page documents Friday port-scan intervals from approximately 13:55 to 15:29. Packet timestamp precision and timezone must be verified from the file.",
+    "overlap_with_network_dataset_23": "Not established. CIC-IDS2017 and TON-IoT Network 23 are different experiments, dates, hosts and address spaces. The filename similarity to a flow CSV is not correspondence evidence.",
+    "why_this_is_smallest": "A single scenario file exercises timestamps, benign/attack context, port-scan signatures and packet extraction while avoiding the full multi-day CIC PCAP download. It is a development fixture, not sufficient final training data."
+  },
+  "flow_packet_alignment": {
+    "candidate_key": ["timestamp", "src_ip", "dst_ip", "src_port", "dst_port", "protocol"],
+    "network_23_status": "The local file has ts and the five tuple fields, but has flow start/record timestamps rather than a packet table.",
+    "required_test": ["extract packet timestamps and five tuples from the selected PCAP", "normalize UTC and protocol/port types", "compare time tolerance and tuple keys", "measure matched flow coverage and one-to-many mappings", "reject alignment if coverage or provenance is insufficient"],
+    "current_conclusion": "Schema-level alignment is feasible in principle; actual packet-to-Network_23 alignment is UNKNOWN and must not be claimed before the measured join. GroundTruth_Network_18 must not manufacture labels."
+  },
+  "additional_data_required": true,
+  "additional_data_reason": "At least one official raw PCAP is required to validate the extractor. More captures or a verified packet/flow pair are required before claiming dataset-specific alignment or full SIH packet coverage.",
+  "next_step": "Acquire only the official CIC-IDS2017 Friday-WorkingHours-Afternoon-PortScan.pcap, record size and SHA-256, then inspect its packet timestamp, tuple, TTL, TCP option/window, payload, fragment and retransmission availability."
+}

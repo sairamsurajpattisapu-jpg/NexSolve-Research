@@ -1,0 +1,16 @@
+{
+  "generated_at_utc": "2026-09-03T17:06:53+00:00",
+  "search_root": "C:\\Users\\saira\\OneDrive\\Desktop\\NexSolve-Research",
+  "pcap_files": [],
+  "packet_extraction_performed": false,
+  "status": "BLOCKED",
+  "finding": "No .pcap or .pcapng file exists in the research workspace.",
+  "dependent_phases": [
+    "packet feature extraction",
+    "flow-packet alignment",
+    "packet compliance",
+    "PCAP-based temporal episode validation"
+  ],
+  "next_acquisition": "Official scenario-matched CIC-IDS2017 PCAP, beginning with Friday-WorkingHours-Afternoon-PortScan.pcap",
+  "privacy": "No raw payloads were read or stored."
+}

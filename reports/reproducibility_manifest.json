@@ -1,0 +1,82 @@
+{
+  "generated_at_utc": "2026-09-03T17:06:53+00:00",
+  "workspace": "C:\\Users\\saira\\OneDrive\\Desktop\\NexSolve-Research",
+  "datasets": {
+    "world_model": "UNSW-NB15",
+    "flow_audit": "CIC-IDS2017 MachineLearningCVE"
+  },
+  "model": {
+    "package": "models/nexsolve_world_model",
+    "format": "NumPy NPZ",
+    "architecture": "NumpyLSTM",
+    "seed": 7,
+    "window_seconds": 60,
+    "lookback": 8,
+    "forecast_horizon": 5,
+    "feature_count": 46
+  },
+  "model_artifact_hashes": {
+    "config.json": {
+      "size_bytes": 185,
+      "sha256": "a085a5dba4eb11bd7bb32635ad2346ee594100257f41eab6b6d22998280a5da6"
+    },
+    "feature_schema.json": {
+      "size_bytes": 841,
+      "sha256": "88fb378e94cbc6098814c0171794929e3b2993c0f9fa2e33a9564192bb75e639"
+    },
+    "metadata.json": {
+      "size_bytes": 418,
+      "sha256": "0a864468934a0556aec347f69a9446c82fbacd43ab4a3aa6fd402e7fabb06f09"
+    },
+    "model.npz": {
+      "size_bytes": 65404,
+      "sha256": "07ce2d2d792b6e73304fbcb69cbfe93cefe6d13dcb515cad700ce0be80e0e8a9"
+    },
+    "preprocessing.json": {
+      "size_bytes": 237,
+      "sha256": "c613df55cb79da1bb594acf560ef4fd4d8d04d2f627a19cfa8936f26a2934d64"
+    },
+    "preprocessing.npz": {
+      "size_bytes": 1240,
+      "sha256": "ee6cc7b1ea16b2828c68f9f0e104c861d6e4a6ae589aec92a1dc4139e885df6d"
+    }
+  },
+  "cic_csv_hashes": {
+    "Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv": {
+      "size_bytes": 77123859,
+      "sha256": "6ff1580f5f81c0ae28a26f7631721018577f5f7c5e0feac28b795fcfe7b411ee"
+    },
+    "Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv": {
+      "size_bytes": 76906168,
+      "sha256": "ca1824c51bfbb7b3c72290a11be04366ba8815878c6a1cc5c44cb1cee269e99b"
+    },
+    "Friday-WorkingHours-Morning.pcap_ISCX.csv": {
+      "size_bytes": 58316725,
+      "sha256": "53a41c24d570ea83b7ac55b2e94df94e7a8216aeb80a2af0246b6bc8bb543000"
+    },
+    "Monday-WorkingHours.pcap_ISCX.csv": {
+      "size_bytes": 176927918,
+      "sha256": "852c4beb34eda186f32561fa79df7a0747e92e1a6535b01270820dd9ffe17f34"
+    },
+    "Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv": {
+      "size_bytes": 83102436,
+      "sha256": "6bcda3857c2504676034e3ea57762d38393cc734cb377a726bd5cb153961b1b5"
+    },
+    "Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv": {
+      "size_bytes": 52023263,
+      "sha256": "d67066211fb1689c78406f1506f4c44704ecb92088353d5c96d96d6474eb819d"
+    },
+    "Tuesday-WorkingHours.pcap_ISCX.csv": {
+      "size_bytes": 135078995,
+      "sha256": "52b8692ae8c7d2ed04671fe2b98335693c0a92c7ab157d8c8b534d6523080851"
+    },
+    "Wednesday-workingHours.pcap_ISCX.csv": {
+      "size_bytes": 225166395,
+      "sha256": "893c27dc968bf7a8adef1689f90be55ca4a4dc3088fb63d6ff247ac56856df2a"
+    }
+  },
+  "preprocessing": "train-only scaler fit as documented in existing evaluation",
+  "splits": "Existing 60-second contiguous-run split: first two runs pre-test, 80/20 train/validation; first later mixed-state run untouched test.",
+  "code_version": "not available: workspace is not a git repository",
+  "retraining": false
+}

@@ -1,0 +1,77 @@
+{
+  "status": "PARTIALLY_DONE",
+  "detection": {
+    "source": "existing CIC Logistic Regression baseline",
+    "comparability": "static detection only; not forecasting",
+    "artifact": "results/detection_baseline.json"
+  },
+  "forecasting": {
+    "dataset": "UNSW-NB15",
+    "model": "existing NumPy LSTM",
+    "test_cases": 24,
+    "evaluated_cases": 16,
+    "metrics": {
+      "precision": 1.0,
+      "recall": 0.36363636363636365,
+      "f1": 0.5333333333333333,
+      "macro_f1": 0.5607843137254902,
+      "balanced_accuracy": 0.6818181818181819,
+      "confusion_matrix": [
+        [
+          5,
+          0
+        ],
+        [
+          7,
+          4
+        ]
+      ],
+      "roc_auc": 0.6363636363636364,
+      "pr_auc": 0.8485791985791986,
+      "coverage": 0.6666666666666666,
+      "abstention_rate": 0.3333333333333333,
+      "forecast_cases": 24,
+      "evaluated_cases": 16,
+      "abstentions": 8
+    }
+  },
+  "persistence_baseline": {
+    "precision": 0.9285714285714286,
+    "recall": 0.9285714285714286,
+    "f1": 0.9285714285714286,
+    "macro_f1": 0.9142857142857144,
+    "balanced_accuracy": 0.9142857142857144,
+    "confusion_matrix": [
+      [
+        9,
+        1
+      ],
+      [
+        1,
+        13
+      ]
+    ],
+    "roc_auc": 0.9142857142857144,
+    "pr_auc": 0.9039115646258503,
+    "coverage": 1.0,
+    "abstention_rate": 0.0,
+    "forecast_cases": 24
+  },
+  "multi_horizon": {
+    "status": "NOT_YET_SUPPORTED",
+    "reason": "Existing reported evaluation is aggregate next-window scoring; horizon-specific T+1..T+5 metrics are not available."
+  },
+  "calibration": {
+    "status": "NOT_YET_SUPPORTED",
+    "reason": "No sufficient independent validation evidence for calibration claim."
+  },
+  "coverage": 0.6666666666666666,
+  "abstention": 0.3333333333333333,
+  "data_quality": {
+    "cic_files": 8,
+    "cic_rows": 2830743,
+    "cic_valid_rows": 2827876,
+    "cic_malformed_rows": 2867,
+    "cic_timestamp_available": false
+  }
+}

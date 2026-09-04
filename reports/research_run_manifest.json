@@ -1,0 +1,357 @@
+{
+  "run_timestamp_utc": "2026-09-03T10:49:46+00:00",
+  "workspace": "C:\\Users\\saira\\OneDrive\\Desktop\\NexSolve-Research",
+  "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "packages": {
+    "numpy": "available",
+    "scikit-learn": "available",
+    "pandas": "not installed"
+  },
+  "files_discovered": [
+    {
+      "path": "__pycache__\\run_research.cpython-311.pyc",
+      "size_bytes": 99931,
+      "modified_time": "2026-09-03T10:49:46.713926+00:00",
+      "sha256": "775734546cb35e1423590b8da29013180d914a946a041307964b955602d41bde"
+    },
+    {
+      "path": "CIC-IDS2017\\MachineLearningCSV\\MachineLearningCVE\\Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv",
+      "size_bytes": 77123859,
+      "modified_time": "2026-09-03T08:29:19.185966+00:00",
+      "sha256": "6ff1580f5f81c0ae28a26f7631721018577f5f7c5e0feac28b795fcfe7b411ee"
+    },
+    {
+      "path": "CIC-IDS2017\\MachineLearningCSV\\MachineLearningCVE\\Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv",
+      "size_bytes": 76906168,
+      "modified_time": "2026-09-03T08:29:18.713937+00:00",
+      "sha256": "ca1824c51bfbb7b3c72290a11be04366ba8815878c6a1cc5c44cb1cee269e99b"
+    },
+    {
+      "path": "CIC-IDS2017\\MachineLearningCSV\\MachineLearningCVE\\Friday-WorkingHours-Morning.pcap_ISCX.csv",
+      "size_bytes": 58316725,
+      "modified_time": "2026-09-03T08:29:18.327850+00:00",
+      "sha256": "53a41c24d570ea83b7ac55b2e94df94e7a8216aeb80a2af0246b6bc8bb543000"
+    },
+    {
+      "path": "CIC-IDS2017\\MachineLearningCSV\\MachineLearningCVE\\Monday-WorkingHours.pcap_ISCX.csv",
+      "size_bytes": 176927918,
+      "modified_time": "2026-09-03T08:29:17.947092+00:00",
+      "sha256": "852c4beb34eda186f32561fa79df7a0747e92e1a6535b01270820dd9ffe17f34"
+    },
+    {
+      "path": "CIC-IDS2017\\MachineLearningCSV\\MachineLearningCVE\\Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv",
+      "size_bytes": 83102436,
+      "modified_time": "2026-09-03T08:29:16.829092+00:00",
+      "sha256": "6bcda3857c2504676034e3ea57762d38393cc734cb377a726bd5cb153961b1b5"
+    },
+    {
+      "path": "CIC-IDS2017\\MachineLearningCSV\\MachineLearningCVE\\Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv",
+      "size_bytes": 52023263,
+      "modified_time": "2026-09-03T08:29:16.336808+00:00",
+      "sha256": "d67066211fb1689c78406f1506f4c44704ecb92088353d5c96d96d6474eb819d"
+    },
+    {
+      "path": "CIC-IDS2017\\MachineLearningCSV\\MachineLearningCVE\\Tuesday-WorkingHours.pcap_ISCX.csv",
+      "size_bytes": 135078995,
+      "modified_time": "2026-09-03T08:29:15.996536+00:00",
+      "sha256": "52b8692ae8c7d2ed04671fe2b98335693c0a92c7ab157d8c8b534d6523080851"
+    },
+    {
+      "path": "CIC-IDS2017\\MachineLearningCSV\\MachineLearningCVE\\Wednesday-workingHours.pcap_ISCX.csv",
+      "size_bytes": 225166395,
+      "modified_time": "2026-09-03T08:29:15.124235+00:00",
+      "sha256": "893c27dc968bf7a8adef1689f90be55ca4a4dc3088fb63d6ff247ac56856df2a"
+    },
+    {
+      "path": "CIC-IDS2017\\MachineLearningCSV.zip",
+      "size_bytes": 235102953,
+      "modified_time": "2026-09-03T08:19:00.226548+00:00",
+      "sha256": "c3f26274b36c837ccf28ffd2dbf4582941c30b3ee70a635c6e5b2f87c4727928"
+    },
+    {
+      "path": "MITRE\\enterprise-attack-19.2.json",
+      "size_bytes": 53835637,
+      "modified_time": "2026-09-03T08:16:50.359857+00:00",
+      "sha256": "dc1639caa5501d720e280cf1cbd8fbe009884a0c9b3e6e9ed9d0c25166c3d8f4"
+    },
+    {
+      "path": "reports\\attack_state_design.json",
+      "size_bytes": 666,
+      "modified_time": "2026-09-03T10:48:41.597013+00:00",
+      "sha256": "a8e0b02506ef4ace1bfbd2b4b5213fe2307b0e8cec9bb5a8b195c16b4af6727d"
+    },
+    {
+      "path": "reports\\attack_state_design.md",
+      "size_bytes": 934,
+      "modified_time": "2026-09-03T10:48:41.597013+00:00",
+      "sha256": "ca8767ebf7c40c10d32f1ce52ebd3a8536d6f1f7178bfec4582162462fc68782"
+    },
+    {
+      "path": "reports\\cic_forecastability.json",
+      "size_bytes": 4183,
+      "modified_time": "2026-09-03T10:47:36.785222+00:00",
+      "sha256": "71c49fb56496d3b9691beefb1086f75eb9bc6a10889d33f70bf2688ddd64eda7"
+    },
+    {
+      "path": "reports\\cic_forecastability.md",
+      "size_bytes": 4095,
+      "modified_time": "2026-09-03T10:47:36.785222+00:00",
+      "sha256": "283c76806ec081b29374c2a2fbbc0f72d6a26f12701f30fc579de037936bcaaa"
+    },
+    {
+      "path": "reports\\cic_ids2017_quality.json",
+      "size_bytes": 34250,
+      "modified_time": "2026-09-03T10:47:08.769793+00:00",
+      "sha256": "49e54c33c3c5b14979483c67c93c9b08601bc9dad2e5db36073a808b50a83e85"
+    },
+    {
+      "path": "reports\\cic_ids2017_quality.md",
+      "size_bytes": 31436,
+      "modified_time": "2026-09-03T10:47:08.769793+00:00",
+      "sha256": "916ec970337aed9e58327b055b4144dfc5bb211d128d76a61ce011237176ee76"
+    },
+    {
+      "path": "reports\\cic_timestamp_source_audit.json",
+      "size_bytes": 22947,
+      "modified_time": "2026-09-03T10:47:36.802560+00:00",
+      "sha256": "d9b24e783e6d56f96374acbf49971b4948658e92eaa5804dd857ca7937bf67b0"
+    },
+    {
+      "path": "reports\\cic_timestamp_source_audit.md",
+      "size_bytes": 21591,
+      "modified_time": "2026-09-03T10:47:36.802560+00:00",
+      "sha256": "0157fc9de5a8d92288134b8fb87171bc004605ac04919488578785f55785cd69"
+    },
+    {
+      "path": "reports\\cross_dataset_comparison.md",
+      "size_bytes": 598,
+      "modified_time": "2026-09-03T10:40:22.385136+00:00",
+      "sha256": "8daa236d514c0d7f6a155d98d4cb5b61b5ac574891ba83afcb5a3a9f89ca30bc"
+    },
+    {
+      "path": "reports\\explainability_findings.md",
+      "size_bytes": 293,
+      "modified_time": "2026-09-03T10:40:22.385136+00:00",
+      "sha256": "e8c90b0a87f00d85335c87cdea20bcb2077d5cc741b611c2b8ddcecc5d22e5db"
+    },
+    {
+      "path": "reports\\forecast_claim_boundary.json",
+      "size_bytes": 1226,
+      "modified_time": "2026-09-03T10:48:41.599905+00:00",
+      "sha256": "72cf718e6a9bc5ba3d7c70fbea209788a76b3ee23f2dfb01883d1cafcfcb3f5e"
+    },
+    {
+      "path": "reports\\forecast_claim_boundary.md",
+      "size_bytes": 1312,
+      "modified_time": "2026-09-03T10:48:41.597013+00:00",
+      "sha256": "b6794358c408f1c0d59caf1aad61dbc6b5a1531292512a7d73f0d71afe296ba8"
+    },
+    {
+      "path": "reports\\forecast_methodology.md",
+      "size_bytes": 1571,
+      "modified_time": "2026-09-03T10:48:41.599905+00:00",
+      "sha256": "a81c42c9146c8f00e3c9c0e581ccc0d34c519a4ad44cab2961ff9c00f8bf21e9"
+    },
+    {
+      "path": "reports\\forecast_problem_definition.json",
+      "size_bytes": 2327,
+      "modified_time": "2026-09-03T10:48:41.593251+00:00",
+      "sha256": "360631a1c7d3089f034676c2bd6badfce3bfedcf2ff09c2cb51736511f7ab60d"
+    },
+    {
+      "path": "reports\\forecast_problem_definition.md",
+      "size_bytes": 2407,
+      "modified_time": "2026-09-03T10:48:41.593251+00:00",
+      "sha256": "07db1518d34a63665a1c9ccb272276b9dd3b6be5c40509d24088166582301187"
+    },
+    {
+      "path": "reports\\forecast_split_analysis.json",
+      "size_bytes": 5211,
+      "modified_time": "2026-09-03T10:49:32.347274+00:00",
+      "sha256": "654d6946e828f8f698e6b504f7519c87dadfa68433533af5c6d02943adc93983"
+    },
+    {
+      "path": "reports\\forecast_split_analysis.md",
+      "size_bytes": 5063,
+      "modified_time": "2026-09-03T10:49:32.347274+00:00",
+      "sha256": "d90df67f80ebe76f70d53bbf7dc0b11c50324e3f1ba2dca0d3f7f969490ad317"
+    },
+    {
+      "path": "reports\\leakage_audit.json",
+      "size_bytes": 13760,
+      "modified_time": "2026-09-03T10:48:41.595901+00:00",
+      "sha256": "48459fa9d8bfa2c18543fca55f8c67d2f0b7368bb44eec68c3488b0a8030501a"
+    },
+    {
+      "path": "reports\\leakage_audit.md",
+      "size_bytes": 13254,
+      "modified_time": "2026-09-03T10:48:41.597013+00:00",
+      "sha256": "8966e57958929d46e16adea448e65ba549667d3d7424c3c8f34f904181d8a4f1"
+    },
+    {
+      "path": "reports\\mitre_mapping.json",
+      "size_bytes": 513,
+      "modified_time": "2026-09-03T10:48:42.020022+00:00",
+      "sha256": "82c6509f059c2edb0bb5b72d1c1c2ed919ca9f8211341bff488bcad243b28794"
+    },
+    {
+      "path": "reports\\mitre_mapping.md",
+      "size_bytes": 586,
+      "modified_time": "2026-09-03T10:48:42.020022+00:00",
+      "sha256": "961a36b24e758dd018d04bb334f243d5654260dc4abe8ac610b48432de967300"
+    },
+    {
+      "path": "reports\\NEXSOLVE_RESEARCH_STATUS.md",
+      "size_bytes": 11570,
+      "modified_time": "2026-09-03T10:40:22.385136+00:00",
+      "sha256": "8c94f2c1255bd87299f36549d3ca6a572c60dda59282ac56ed57f2be1b176f51"
+    },
+    {
+      "path": "reports\\research_run_manifest.json",
+      "size_bytes": 14586,
+      "modified_time": "2026-09-03T10:46:40.604386+00:00",
+      "sha256": "e334725d7358265448a358b497e1cc034b96414b7f45be596547d2e3106d460b"
+    },
+    {
+      "path": "reports\\temporal_analysis.json",
+      "size_bytes": 990894,
+      "modified_time": "2026-09-03T10:48:41.523735+00:00",
+      "sha256": "d0ff9fae5dbeaf4bb7f9d645b8af1c192eb0df46ad0dbdf7769c0682fb7f557c"
+    },
+    {
+      "path": "reports\\temporal_analysis.md",
+      "size_bytes": 947068,
+      "modified_time": "2026-09-03T10:48:41.592242+00:00",
+      "sha256": "c6f333cf37d9b62151720fe7538c4e97f58897a34782fd002eae7975280b31da"
+    },
+    {
+      "path": "reports\\unsw_forecast_expanded_evaluation.json",
+      "size_bytes": 9373,
+      "modified_time": "2026-09-03T10:49:32.349529+00:00",
+      "sha256": "b570644234ad3da8fb922e8579c24c1d599db7c37fca150a095b0c4910c3faa2"
+    },
+    {
+      "path": "reports\\unsw_forecast_expanded_evaluation.md",
+      "size_bytes": 9011,
+      "modified_time": "2026-09-03T10:49:32.349529+00:00",
+      "sha256": "fd8afc0d5c480b8889bce32e7b162d6a3ebb5a33e9dcb1219ccdaad1c16c613d"
+    },
+    {
+      "path": "reports\\unsw_nb15_quality.json",
+      "size_bytes": 22640,
+      "modified_time": "2026-09-03T10:48:00.327666+00:00",
+      "sha256": "e3eb49db37b41a06d91fc1d9a6b708db9787ec97cee778db1b2df25489573c8b"
+    },
+    {
+      "path": "reports\\unsw_nb15_quality.md",
+      "size_bytes": 20922,
+      "modified_time": "2026-09-03T10:48:00.327666+00:00",
+      "sha256": "b7035adb2ce188d009c6808fa0ea3e0eb78233a1f29aa696db1ec24507fbd4ef"
+    },
+    {
+      "path": "results\\cic_forecast_baseline_comparison.json",
+      "size_bytes": 189,
+      "modified_time": "2026-09-03T10:47:36.787229+00:00",
+      "sha256": "14c8dd4b3a7a00200d47a4c85bf384d23ff87539e3954dcd3c6068b37ddbfc72"
+    },
+    {
+      "path": "results\\cic_forecast_baseline_comparison.md",
+      "size_bytes": 245,
+      "modified_time": "2026-09-03T10:47:36.788240+00:00",
+      "sha256": "5589690fc275bfd43cc71ae2378c63399448af18ea7505f1bd2fb713ee9a8b69"
+    },
+    {
+      "path": "results\\detection_baseline.json",
+      "size_bytes": 3569,
+      "modified_time": "2026-09-03T10:49:23.867883+00:00",
+      "sha256": "d29fa8afaf15009b5d26be4d27c617b629e3c6085bfc826fd362278a4ce5b001"
+    },
+    {
+      "path": "results\\detection_baseline.md",
+      "size_bytes": 3538,
+      "modified_time": "2026-09-03T10:49:23.867883+00:00",
+      "sha256": "2349886a20d3e79670993475d2840686030cf80f2c809c1d814e3dc006c8bf49"
+    },
+    {
+      "path": "results\\forecast_baseline_comparison.json",
+      "size_bytes": 11654,
+      "modified_time": "2026-09-03T10:49:32.344256+00:00",
+      "sha256": "ec313f44dab37b978778965f04b0960156b6185a28f52b918913525871bb9b26"
+    },
+    {
+      "path": "results\\forecast_baseline_comparison.md",
+      "size_bytes": 11061,
+      "modified_time": "2026-09-03T10:49:32.347274+00:00",
+      "sha256": "c1d97f0558a17fc881e387fc202c2d61f7674842efcea9f10f618c2ade43fa78"
+    },
+    {
+      "path": "results\\unsw_forecast_expanded_baselines.json",
+      "size_bytes": 5518,
+      "modified_time": "2026-09-03T10:49:32.352027+00:00",
+      "sha256": "2d3a92ea731bb0e618a77c806b3cd0a347967c14760288903a7fc340f6db831b"
+    },
+    {
+      "path": "results\\unsw_forecast_expanded_baselines.md",
+      "size_bytes": 5219,
+      "modified_time": "2026-09-03T10:49:32.352027+00:00",
+      "sha256": "2eba5fe33795fc39c1712d7c09acb131178400cd52ae0e70dafea676fba7186c"
+    },
+    {
+      "path": "UNSW-NB15\\OneDrive_1_03-09-2026.zip",
+      "size_bytes": 334203032,
+      "modified_time": "2026-09-03T08:24:47.450499+00:00",
+      "sha256": "e9b0a72c83df2472407846adb6b4f04ef3aac54196704f429e651774de0387c4"
+    },
+    {
+      "path": "UNSW-NB15\\raw\\UNSW-NB15_1.csv",
+      "size_bytes": 168979718,
+      "modified_time": "2026-09-03T02:53:00+00:00",
+      "sha256": "7d851bbeabd27894ce39c8e78835c73341fc946652fb7743b9eff193b55eb511"
+    },
+    {
+      "path": "UNSW-NB15\\raw\\UNSW-NB15_2.csv",
+      "size_bytes": 165221021,
+      "modified_time": "2026-09-03T02:52:00+00:00",
+      "sha256": "6130ad02873cc6069ae695cf2844f2e8c2e9a9a1b7532dd82ab8f202757cacf8"
+    },
+    {
+      "path": "UNSW-NB15\\raw\\UNSW-NB15_3.csv",
+      "size_bytes": 154588103,
+      "modified_time": "2026-09-03T08:35:56.114061+00:00",
+      "sha256": "ae990a96c3dfcd425ce2801aadb1727a34d5e0ae6d8215dbcdae60dedfaef640"
+    },
+    {
+      "path": "UNSW-NB15\\raw\\UNSW-NB15_4.csv",
+      "size_bytes": 97588754,
+      "modified_time": "2026-09-03T08:36:06.685141+00:00",
+      "sha256": "cdf563692d51d405541dd659ddcdad9fa01f001f05fe9fc4b67f00ca12fbc96a"
+    },
+    {
+      "path": "UNSW-NB15\\raw\\UNSW-NB15_features.csv",
+      "size_bytes": 4044,
+      "modified_time": "2026-09-03T08:39:05.898752+00:00",
+      "sha256": "c55f19cceebb6360dc50f44f8a5f246ccefbcf8a6c604ac1ad46e643869cafce"
+    },
+    {
+      "path": "UNSW-NB15\\raw\\UNSW-NB15_GT.csv",
+      "size_bytes": 86426111,
+      "modified_time": "2026-09-03T08:40:14.919527+00:00",
+      "sha256": "6d27542cb6457db599e0a78274ac141fec0296531f00ac5569551a276c5ab1a8"
+    },
+    {
+      "path": "UNSW-NB15\\raw\\UNSW-NB15_LIST_EVENTS.csv",
+      "size_bytes": 4639,
+      "modified_time": "2026-09-03T08:39:05.915893+00:00",
+      "sha256": "5b40f8128e2c87e691157c76debde04c328b0eb66bab97f1e7e17625f84497f2"
+    }
+  ],
+  "scripts_discovered": [
+    "run_research.py"
+  ],
+  "datasets_discovered": [
+    "CIC-IDS2017",
+    "UNSW-NB15",
+    "MITRE ATT&CK 19.2"
+  ]
+}

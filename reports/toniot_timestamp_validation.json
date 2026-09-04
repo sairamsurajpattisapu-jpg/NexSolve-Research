@@ -1,0 +1,30 @@
+{
+  "dataset": "TON_IoT",
+  "official_source": "https://research.unsw.edu.au/projects/toniot-datasets",
+  "official_download_link": "https://unsw-my.sharepoint.com/:f:/g/personal/z5025758_ad_unsw_edu_au/EvBTaetotpdGnW7rJQ8fCvYBh8063CNeY9W33MpRsarJaQ?e=yZlnxW",
+  "access_check": {
+    "status": "public_folder_reachable",
+    "http_status": 200,
+    "login_required": "Not observed",
+    "file_listing_available_to_this_check": false,
+    "reason": "The public SharePoint page did not expose exact CSV filenames or direct download URLs in its returned HTML."
+  },
+  "file_obtained": false,
+  "filename": null,
+  "size_bytes": null,
+  "sha256": null,
+  "row_count": null,
+  "schema": "Not computed: no file obtained.",
+  "timestamp": "Not computed: no file obtained.",
+  "labels": "Not computed: no file obtained.",
+  "temporal_windows": "Not computed: no file obtained.",
+  "state_transitions": "Not computed: no file obtained.",
+  "leakage_check": "Not performed at file level; official documentation indicates timestamp/IP-based security-event labeling and this remains a future audit risk.",
+  "decision": "D",
+  "decision_text": "ACCESSIBLE SOURCE BUT EXACT VALIDATION FILE NOT IDENTIFIED",
+  "ready_for_locked_forecasting": false,
+  "additional_files_needed": "One exact processed network CSV containing timestamp and labels, plus its corresponding timestamped network security-event ground truth file; exact names and sizes require a visible official folder listing.",
+  "existing_datasets_modified": false,
+  "production_repository_modified": false,
+  "advanced_model_trained": false
+}

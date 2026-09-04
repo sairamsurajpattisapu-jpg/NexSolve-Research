@@ -1,0 +1,19 @@
+{
+  "status": "RESEARCH_ONLY",
+  "claims": [
+    {"claim": "AI forecasting", "status": "MEASURED", "evidence": "UNSW next-window LSTM experiment; one eligible mixed-state episode"},
+    {"claim": "World Model", "status": "SUPPORTED", "evidence": "Protected NumPy LSTM and 46-feature state contract"},
+    {"claim": "T+1 through T+5", "status": "SUPPORTED", "evidence": "Recursive five-step implementation; horizon metrics unavailable"},
+    {"claim": "MITRE ATT&CK", "status": "SUPPORTED", "evidence": "Local STIX validation for contextual T1046 only"},
+    {"claim": "packet-level intelligence", "status": "PENDING_PCAP", "evidence": "No PCAP processed"},
+    {"claim": "flow-level intelligence", "status": "MEASURED", "evidence": "CIC flow audit/adapter and UNSW state pipeline"},
+    {"claim": "explainability", "status": "SUPPORTED", "evidence": "Deterministic ablation association, not causality"},
+    {"claim": "accuracy", "status": "MEASURED", "evidence": "Prototype UNSW metrics only"},
+    {"claim": "real-time operation", "status": "NOT_SUPPORTED", "evidence": "No latency or throughput evaluation"},
+    {"claim": "generalization", "status": "NOT_SUPPORTED", "evidence": "Insufficient independent evidence"},
+    {"claim": "unseen attack detection", "status": "BLOCKED_BY_DATA", "evidence": "Requires future scenario-separated test data"},
+    {"claim": "enterprise applicability", "status": "BLOCKED_BY_DATA", "evidence": "Scale and operational efficacy unmeasured"},
+    {"claim": "production readiness", "status": "NOT_SUPPORTED", "evidence": "Final model validation incomplete"},
+    {"claim": "guaranteed attack prediction", "status": "NOT_SUPPORTED", "evidence": "Not scientifically supported"}
+  ]
+}
