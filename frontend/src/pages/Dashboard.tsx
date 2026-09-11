@@ -11,7 +11,7 @@ import type { JobStatusResponse, UploadedAnalysisResponse } from '../types/api'
 import { formatNumber, formatTimestamp } from '../utils/format'
 
 export function Dashboard() {
-  const { data, loading, error, reload, analyzePcap, clearUploadedAnalysis, analysisSource, uploadError } = useProductionData()
+  const { data, loading, error, reload, analyzePcap, clearUploadedAnalysis, setUploadedAnalysis, analysisSource, uploadError } = useProductionData()
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [selectionError, setSelectionError] = useState<string | null>(null)
@@ -23,6 +23,7 @@ export function Dashboard() {
   if (error || !data) return <ErrorState message={error ?? 'No analysis has been loaded.'} onRetry={() => void reload()} />
   const { traffic, detection } = data.results
   const windows = traffic.windows_data ?? []
+  const effectiveResult = jobResult ?? (analysisSource === 'uploaded' ? (data.results as unknown as UploadedAnalysisResponse) : null)
 
   const submitCapture = async () => {
     if (!file) return
@@ -42,6 +43,7 @@ export function Dashboard() {
       if (cur.status === 'COMPLETED') {
         const res = await api.getJobResult(cur.job_id)
         setJobResult(res)
+        await setUploadedAnalysis(res)
       }
     } catch {
       // Graceful fallback to legacy synchronous upload
@@ -65,17 +67,17 @@ export function Dashboard() {
         eyebrow="Overview / Predictive Intelligence"
         title="Network Security Posture & Forecast"
         description={
-          jobResult?.is_demo
-            ? `SIH Demo Evaluation: ${jobResult.demo_scenario_name}. Deterministic forward assessment without live capture dependency.`
-            : jobResult
-            ? `Forensic analysis complete for: ${jobResult.source?.name || 'Uploaded PCAP'}.`
+          effectiveResult?.is_demo
+            ? `SIH Demo Evaluation: ${effectiveResult.demo_scenario_name}. Deterministic forward assessment without live capture dependency.`
+            : effectiveResult
+            ? `Forensic analysis complete for: ${effectiveResult.source?.name || 'Uploaded PCAP'}.`
             : analysisSource === 'uploaded'
             ? `Live read of uploaded capture: ${data.results.source?.name ?? 'temporary analysis'}.`
             : 'A live read of the verified CIC-IDS2017 packet-window analysis.'
         }
         action={
           <div className="heading-actions">
-            {(analysisSource === 'uploaded' || jobResult || activeJob) && (
+            {(analysisSource === 'uploaded' || effectiveResult || activeJob) && (
               <button className="button button-quiet" onClick={resetJobView}>
                 Return to production
               </button>
@@ -97,16 +99,17 @@ export function Dashboard() {
       {/* SIH Demo Mode Selector */}
       {showDemoMode && !activeJob && (
         <DemoModeSelector
-          onSelectScenario={(res) => {
+          onSelectScenario={async (res) => {
             setJobResult(res)
             setActiveJob(null)
+            await setUploadedAnalysis(res)
           }}
           onClose={() => setShowDemoMode(false)}
         />
       )}
 
       {/* 1. PCAP Upload Panel */}
-      {!jobResult && !activeJob && (
+      {!effectiveResult && !activeJob && (
         <Panel className="capture-upload">
           <div>
             <span className="eyebrow">Network capture audit</span>
@@ -158,36 +161,12 @@ export function Dashboard() {
       )}
 
       {/* 3. Completed Job Full Result View */}
-      {jobResult && (
-        <JobResult result={jobResult} onReset={resetJobView} />
+      {effectiveResult && (
+        <JobResult result={effectiveResult} onReset={resetJobView} />
       )}
 
-      {/* 4. Legacy Uploaded Capture Result Badge */}
-      {analysisSource === 'uploaded' && !jobResult && (
-        <Panel className="capture-result">
-          <div>
-            <span className="eyebrow">Uploaded capture result</span>
-            <strong>{data.results.source?.name}</strong>
-            <small>
-              {data.results.upload?.size_bytes.toLocaleString()} bytes &middot;{' '}
-              {data.results.upload?.format.toUpperCase()}
-            </small>
-          </div>
-          <div>
-            <span>Duration</span>
-            <strong>
-              {Math.max(0, (windows.at(-1)?.window_end ?? 0) - (windows[0]?.window_start ?? 0))} seconds
-            </strong>
-          </div>
-          <div>
-            <span>Protocols</span>
-            <strong>{Object.keys(traffic.protocol_counts).join(', ') || 'None parsed'}</strong>
-          </div>
-        </Panel>
-      )}
-
-      {/* 5. Production Dashboard Panels (visible when not viewing completed job result) */}
-      {!jobResult && (
+      {/* 4. Production Dashboard Panels (visible when not viewing completed job result) */}
+      {!effectiveResult && (
         <>
           <div className="metric-grid">
             <MetricCard

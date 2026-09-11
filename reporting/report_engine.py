@@ -111,13 +111,25 @@ def generate_html_report(report: NexSolveReport) -> str:
     # Key findings rows
     findings_html = "".join(f"<li>{html.escape(f)}</li>" for f in exec_sec.key_findings)
 
+    # Pre-calculate abstention and display formats
+    is_abstained = abs_sec.abstained or ah_sec.state == "ABSTAINED"
+    ah_dur_str = f"{ah_sec.horizon_seconds}s ({ah_sec.horizon_windows} windows)" if not is_abstained else "N/A (abstained)"
+    ah_lead_str = f"{ah_sec.lead_time_seconds:.1f}s" if ah_sec.lead_time_seconds is not None else "N/A (abstained)"
+    conf_raw_score_str = f"{conf_sec.forecast_score:.4f}" if (conf_sec.confidence_state != "WITHHELD" and not is_abstained) else "N/A (abstained)"
+
     # Forecast points rows
     forecast_rows_html = ""
     for fp in fore_sec.forecast_points:
-        prob_str = f"{fp.attack_probability:.2%}" if fp.attack_probability is not None else "ABSTAINED"
-        stage_str = html.escape(fp.predicted_stage or "None")
-        uncert_str = f"{fp.uncertainty:.2f}" if fp.uncertainty is not None else "N/A"
-        expl_str = html.escape("; ".join(fp.explanation) if fp.explanation else "None")
+        if fp.attack_probability is not None:
+            prob_str = f"{fp.attack_probability:.2%}"
+            stage_str = html.escape(fp.predicted_stage or "None")
+            uncert_str = f"{fp.uncertainty:.2f}" if fp.uncertainty is not None else "N/A"
+            expl_str = html.escape("; ".join(fp.explanation) if fp.explanation else "None")
+        else:
+            prob_str = "WITHHELD (ABSTAINED)"
+            stage_str = "N/A (abstained)"
+            uncert_str = "N/A (abstained)"
+            expl_str = html.escape("; ".join(fp.explanation) if fp.explanation else "Forecast abstained due to insufficient history")
         forecast_rows_html += f"""
         <tr>
           <td>T+{fp.horizon} ({fp.horizon * 60}s)</td>
@@ -425,8 +437,9 @@ def generate_html_report(report: NexSolveReport) -> str:
             <div class="stat-value">{net_sec.packet_count:,} pkts</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Capture Duration</div>
-            <div class="stat-value">{net_sec.duration_seconds:.1f}s</div>
+            <div class="stat-label">Temporal Window Coverage</div>
+            <div class="stat-value">{net_sec.temporal_window_coverage_seconds:.1f}s</div>
+            <div class="small-text" style="margin-top: 4px;">Packet Timestamp Span: {net_sec.packet_timestamp_span_seconds:.2f}s</div>
           </div>
         </div>
         <table style="margin-top: 10px;">
@@ -466,8 +479,8 @@ def generate_html_report(report: NexSolveReport) -> str:
         </div>
         <div class="stat-card">
           <div class="stat-label">Horizon Duration & Lead Time</div>
-          <div class="stat-value">{ah_sec.horizon_seconds}s ({ah_sec.horizon_windows} windows)</div>
-          <div class="small-text" style="margin-top: 4px;">Lead Time: {ah_sec.lead_time_seconds if ah_sec.lead_time_seconds is not None else 'None'} seconds</div>
+          <div class="stat-value">{ah_dur_str}</div>
+          <div class="small-text" style="margin-top: 4px;">Lead Time: {ah_lead_str}</div>
         </div>
       </div>
       <table>
@@ -523,7 +536,7 @@ def generate_html_report(report: NexSolveReport) -> str:
           <strong>Calibration Disclaimer:</strong> {html.escape(conf_sec.disclaimer)}
         </div>
         <table style="margin-bottom: 12px;">
-          <tr><td>Raw Model Score</td><td><strong>{conf_sec.forecast_score:.4f}</strong></td></tr>
+          <tr><td>Raw Model Score</td><td><strong>{conf_raw_score_str}</strong></td></tr>
           <tr><td>Calibrated Confidence</td><td><strong>{conf_sec.confidence_value if conf_sec.confidence_value is not None else 'WITHHELD (UNSUPPORTED)'}</strong></td></tr>
           <tr><td>Uncertainty Level</td><td><strong>{html.escape(conf_sec.uncertainty_level)}</strong></td></tr>
         </table>

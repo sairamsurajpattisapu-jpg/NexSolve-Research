@@ -137,7 +137,14 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
 
-PRODUCTION_ANALYSIS_ID = "production-cic-ids2017"
+from model_service.active_analysis import (
+    PRODUCTION_ANALYSIS_ID,
+    get_cached_analysis,
+    get_current_analysis_id,
+    remove_cached_analysis,
+    reset_to_production,
+    set_current_analysis,
+)
 
 
 @app.exception_handler(DatabaseConfigurationError)
@@ -161,13 +168,37 @@ def production_analysis() -> dict[str, Any]:
 
 
 def analysis_for_id(analysis_id: str) -> dict[str, Any]:
+    if analysis_id in ("current", "active", ""):
+        analysis_id = get_current_analysis_id()
     if analysis_id == PRODUCTION_ANALYSIS_ID:
         result = production_analysis()
         return {**result, "source": result["source"]}
+
+    # 1. Check in-memory cached active analyses
+    cached = get_cached_analysis(analysis_id)
+    if cached is not None:
+        return cached
+
+    # 2. Check completed in-memory jobs from JOB_MANAGER
+    job = JOB_MANAGER.get_job(analysis_id)
+    if job is not None and job.status == "COMPLETED" and job.result is not None:
+        return job.result
+
+    # 3. Check demo scenarios
+    if analysis_id.startswith("demo-"):
+        scenario_id = analysis_id[5:].upper()
+        try:
+            from demo.scenarios import get_demo_scenario
+            return get_demo_scenario(scenario_id)
+        except Exception:
+            pass
+
+    # 4. Check database persistence
     uploaded = get_uploaded_analysis(analysis_id)
-    if uploaded is None:
-        raise HTTPException(status_code=404, detail="analysis not found")
-    return uploaded
+    if uploaded is not None:
+        return uploaded
+
+    raise HTTPException(status_code=404, detail="analysis not found")
 
 
 @app.exception_handler(RequestValidationError)
@@ -219,6 +250,42 @@ async def start_analysis(request: AnalysisRequest) -> dict[str, Any]:
     """Return the completed read-only production analysis; no PCAP work is started."""
     result = production_analysis()
     return {"analysis_id": result["analysis_id"], "status": result["status"], "source": result["source"]}
+
+
+class SwitchAnalysisRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    analysis_id: str
+
+
+@app.get("/api/analysis/current")
+async def get_current_analysis() -> dict[str, Any]:
+    """Return the currently active canonical analysis ID and payload."""
+    current_id = get_current_analysis_id()
+    res = analysis_for_id(current_id)
+    return {
+        "analysis_id": current_id,
+        "status": res.get("status", "completed"),
+        "source": res.get("source"),
+        "is_production": current_id == PRODUCTION_ANALYSIS_ID,
+        "results": res,
+    }
+
+
+@app.post("/api/analysis/current")
+async def switch_current_analysis(body: SwitchAnalysisRequest) -> dict[str, Any]:
+    """Safely switch the active canonical analysis to a valid analysis ID."""
+    target_id = body.analysis_id
+    try:
+        res = analysis_for_id(target_id)
+    except HTTPException:
+        raise HTTPException(status_code=404, detail=f"Cannot switch to nonexistent analysis: {target_id}")
+    set_current_analysis(target_id, res)
+    return {
+        "analysis_id": target_id,
+        "status": res.get("status", "completed"),
+        "source": res.get("source"),
+        "is_production": target_id == PRODUCTION_ANALYSIS_ID,
+    }
 
 
 @app.exception_handler(ResourceLimitExceededError)
@@ -449,7 +516,9 @@ async def analyze_pcap(file: UploadFile = File(...)) -> dict[str, Any]:
     if len(content) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail=f"Capture exceeds the {MAX_UPLOAD_BYTES // (1024 * 1024)} MB upload limit.")
     try:
-        return analyze_uploaded_capture(filename, content)
+        res = analyze_uploaded_capture(filename, content)
+        set_current_analysis(res["analysis_id"], res)
+        return res
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
     except (DatabaseConfigurationError, DatabaseStorageError) as error:
@@ -462,10 +531,11 @@ async def analyze_pcap(file: UploadFile = File(...)) -> dict[str, Any]:
 async def delete_uploaded_analysis(analysis_id: str) -> None:
     if analysis_id == PRODUCTION_ANALYSIS_ID:
         raise HTTPException(status_code=400, detail="The production analysis is read-only.")
+    remove_cached_analysis(analysis_id)
     try:
         delete_analysis(analysis_id)
-    except (DatabaseConfigurationError, DatabaseStorageError) as error:
-        raise HTTPException(status_code=503, detail=str(error)) from error
+    except (DatabaseConfigurationError, DatabaseStorageError):
+        pass
 
 
 @app.get("/api/analysis/{analysis_id}/status")
@@ -484,19 +554,29 @@ async def analysis_results(analysis_id: str) -> dict[str, Any]:
 async def alerts(limit: int = 100) -> dict[str, Any]:
     if limit < 1 or limit > 500:
         raise HTTPException(status_code=422, detail="limit must be between 1 and 500")
-    detection = production_analysis()["detection"]
-    return {"status": detection["status"], "analysis_id": PRODUCTION_ANALYSIS_ID, "total": detection["detected_events"], "alerts": detection["findings"][:limit]}
+    current_id = get_current_analysis_id()
+    res = analysis_for_id(current_id)
+    detection = res.get("detection", {})
+    return {
+        "status": detection.get("status", "completed"),
+        "analysis_id": current_id,
+        "total": detection.get("detected_events", len(detection.get("findings", []))),
+        "alerts": detection.get("findings", [])[:limit],
+    }
 
 
 @app.get("/api/traffic")
 async def traffic() -> dict[str, Any]:
-    return {"analysis_id": PRODUCTION_ANALYSIS_ID, **production_analysis()["traffic"]}
+    current_id = get_current_analysis_id()
+    res = analysis_for_id(current_id)
+    traffic_data = res.get("traffic", {})
+    return {"analysis_id": current_id, **traffic_data}
 
 
 @app.get("/api/reports/{analysis_id}")
 async def report(analysis_id: str) -> dict[str, Any]:
     result = analysis_for_id(analysis_id)
-    return {"report_id": analysis_id, "status": result["status"], "metadata": result["source"], "validation": result["validation"], "traffic": {key: value for key, value in result["traffic"].items() if key != "windows_data"}, "detection": result["detection"]}
+    return {"report_id": result.get("analysis_id", analysis_id), "status": result["status"], "metadata": result["source"], "validation": result["validation"], "traffic": {key: value for key, value in result["traffic"].items() if key != "windows_data"}, "detection": result["detection"]}
 
 
 @app.post("/forecast", response_model=ForecastResponse)

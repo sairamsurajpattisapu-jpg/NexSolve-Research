@@ -1,5 +1,13 @@
 import { useEffect, useSyncExternalStore } from 'react'
-import { clearUploadedAnalysis, getSnapshot, refreshProductionData, subscribe, ANALYSIS_ID, uploadPcap } from '../stores/productionStore'
+import {
+  clearUploadedAnalysis,
+  getSnapshot,
+  refreshProductionData,
+  subscribe,
+  setUploadedAnalysis,
+  ANALYSIS_ID,
+  uploadPcap,
+} from '../stores/productionStore'
 
 export function useProductionData() {
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
@@ -8,5 +16,14 @@ export function useProductionData() {
     if (!snapshot.data) void refreshProductionData()
   }, [snapshot.analysisSource, snapshot.data])
 
-    return { ...snapshot, reload: refreshProductionData, analyzePcap: uploadPcap, clearUploadedAnalysis, analysisId: ANALYSIS_ID }
+  const dynamicAnalysisId = snapshot.data?.results?.analysis_id ?? (snapshot.analysisSource === 'production' ? ANALYSIS_ID : 'unknown')
+
+  return {
+    ...snapshot,
+    reload: refreshProductionData,
+    analyzePcap: uploadPcap,
+    clearUploadedAnalysis,
+    setUploadedAnalysis,
+    analysisId: dynamicAnalysisId,
+  }
 }

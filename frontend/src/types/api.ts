@@ -114,6 +114,21 @@ export interface AnalysisResults {
   validation: ValidationReport
   traffic: TrafficSummary
   detection: DetectionSummary
+  forecasts?: ForecastPoint[]
+  attack_horizon?: AttackHorizonPayload | null
+  attackHorizon?: AttackHorizonPayload | null
+  evidence_chain?: EvidenceChainPayload | null
+  evidenceChain?: EvidenceChainPayload | null
+  confidence?: ForecastConfidencePayload | null
+  unknown_behavior?: UnknownBehaviorPayload | null
+  unknownBehavior?: UnknownBehaviorPayload | null
+  abstention?: ForecastAbstentionPayload | null
+  is_demo?: boolean
+  demo_scenario_id?: string
+  demo_scenario_name?: string
+  demo_scenario_description?: string
+  demo_expected_behavior?: string
+  processing_metrics?: Record<string, number>
 }
 
 export interface AnalysisSource {

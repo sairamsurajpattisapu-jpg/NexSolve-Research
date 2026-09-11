@@ -66,6 +66,8 @@ class NetworkActivitySummarySection:
     unique_src_ips: int
     unique_dst_ips: int
     unique_dst_ports: int
+    packet_timestamp_span_seconds: float = 0.0
+    temporal_window_coverage_seconds: float = 60.0
     category: EpistemicCategory = "OBSERVED"
 
     def to_dict(self) -> dict[str, Any]:
@@ -75,6 +77,8 @@ class NetworkActivitySummarySection:
             "flow_count": self.flow_count,
             "byte_count": self.byte_count,
             "duration_seconds": self.duration_seconds,
+            "packet_timestamp_span_seconds": self.packet_timestamp_span_seconds,
+            "temporal_window_coverage_seconds": self.temporal_window_coverage_seconds,
             "protocol_distribution": self.protocol_distribution,
             "tcp_flag_counts": self.tcp_flag_counts,
             "unique_src_ips": self.unique_src_ips,
@@ -92,6 +96,8 @@ class TemporalBehaviorSection:
     temporal_continuity: str
     packet_rate_trend: str
     flow_churn_trend: str
+    packet_timestamp_span_seconds: float = 0.0
+    temporal_window_coverage_seconds: float = 60.0
     category: EpistemicCategory = "OBSERVED"
 
     def to_dict(self) -> dict[str, Any]:
@@ -101,6 +107,8 @@ class TemporalBehaviorSection:
             "window_duration_seconds": self.window_duration_seconds,
             "earliest_timestamp": self.earliest_timestamp,
             "latest_timestamp": self.latest_timestamp,
+            "packet_timestamp_span_seconds": self.packet_timestamp_span_seconds,
+            "temporal_window_coverage_seconds": self.temporal_window_coverage_seconds,
             "temporal_continuity": self.temporal_continuity,
             "packet_rate_trend": self.packet_rate_trend,
             "flow_churn_trend": self.flow_churn_trend,

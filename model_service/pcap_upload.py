@@ -87,6 +87,12 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
     traffic = traffic_summary(windows)
     detection = analyze_packet_windows(windows)
     duration_seconds = max(0, int(windows[-1]["window_end"]) - int(windows[0]["window_start"]))
+    packet_ts = [p.timestamp for p in _packets if p.timestamp is not None]
+    packet_span_seconds = round(max(packet_ts) - min(packet_ts), 4) if packet_ts else 0.0
+    traffic["duration_seconds"] = duration_seconds
+    traffic["packet_timestamp_span_seconds"] = packet_span_seconds
+    traffic["temporal_window_coverage_seconds"] = duration_seconds
+    traffic["packet_span_seconds"] = packet_span_seconds
 
     # Trust Layer integration
     from ml.forecasting import assemble_forecast_intelligence

@@ -74,11 +74,23 @@ def build_capture_quality(quality: dict[str, Any]) -> CaptureQualitySection:
     loss = quality.get("packet_loss_ratio", 0.0)
     reordered_ratio = reordered / total if total > 0 else 0.0
 
-    status = "HIGH"
-    if loss > 0.10 or malformed > 50:
-        status = "DEGRADED"
-    elif loss > 0.02 or malformed > 5:
-        status = "MODERATE"
+    raw_status = quality.get("status") or quality.get("quality_status")
+    if raw_status:
+        raw_str = str(raw_status).upper()
+        if "DEGRADED" in raw_str:
+            status = "DEGRADED"
+        elif "INSUFFICIENT" in raw_str:
+            status = "INSUFFICIENT"
+        elif "GOOD" in raw_str or "HIGH" in raw_str:
+            status = "HIGH"
+        else:
+            status = raw_str
+    else:
+        status = "HIGH"
+        if loss > 0.10 or malformed > 50:
+            status = "DEGRADED"
+        elif loss > 0.02 or malformed > 5:
+            status = "MODERATE"
 
     return CaptureQualitySection(
         capture_id=quality.get("capture_id", "uploaded-capture"),
@@ -96,12 +108,19 @@ def build_capture_quality(quality: dict[str, Any]) -> CaptureQualitySection:
 def build_network_activity(traffic: dict[str, Any], validation: dict[str, Any]) -> NetworkActivitySummarySection:
     protocol_counts = traffic.get("protocol_counts", {})
     tcp_flags = traffic.get("tcp_flag_counts", {})
+    win = validation.get("window", {})
+    window_seconds = win.get("seconds", 60)
+    window_count = validation.get("rows", 1) or 1
+    window_coverage = float(traffic.get("duration_seconds") if traffic.get("duration_seconds") is not None else float(window_count * window_seconds))
+    packet_span = float(traffic.get("packet_timestamp_span_seconds") if traffic.get("packet_timestamp_span_seconds") is not None else traffic.get("packet_span_seconds", 0.0))
     
     return NetworkActivitySummarySection(
         packet_count=traffic.get("packets", 0),
         flow_count=traffic.get("flows", 0) or traffic.get("packets", 0),
         byte_count=traffic.get("bytes", 0) or (traffic.get("packets", 0) * 128),
-        duration_seconds=float(traffic.get("duration_seconds") if traffic.get("duration_seconds") is not None else 60.0),
+        duration_seconds=window_coverage,
+        packet_timestamp_span_seconds=packet_span,
+        temporal_window_coverage_seconds=window_coverage,
         protocol_distribution=dict(protocol_counts),
         tcp_flag_counts=dict(tcp_flags),
         unique_src_ips=traffic.get("unique_src_ips", 1),
@@ -114,16 +133,22 @@ def build_temporal_behavior(validation: dict[str, Any], traffic: dict[str, Any])
     win = validation.get("window", {})
     start_min = win.get("start_min")
     start_max = win.get("start_max")
+    window_seconds = win.get("seconds", 60)
+    window_count = validation.get("rows", 0)
+    window_coverage = float(traffic.get("duration_seconds") if traffic.get("duration_seconds") is not None else float(window_count * window_seconds))
+    packet_span = float(traffic.get("packet_timestamp_span_seconds") if traffic.get("packet_timestamp_span_seconds") is not None else traffic.get("packet_span_seconds", 0.0))
     
     earliest = datetime.fromtimestamp(start_min, timezone.utc).isoformat() if start_min is not None else None
-    latest = datetime.fromtimestamp(start_max, timezone.utc).isoformat() if start_max is not None else None
+    latest = datetime.fromtimestamp(start_max + window_seconds, timezone.utc).isoformat() if start_max is not None else earliest
     continuity = "CONTINUOUS" if win.get("ordered", True) else "DISCONTINUOUS"
 
     return TemporalBehaviorSection(
-        window_count=validation.get("rows", 0),
-        window_duration_seconds=win.get("seconds", 60),
+        window_count=window_count,
+        window_duration_seconds=window_seconds,
         earliest_timestamp=earliest,
         latest_timestamp=latest,
+        packet_timestamp_span_seconds=packet_span,
+        temporal_window_coverage_seconds=window_coverage,
         temporal_continuity=continuity,
         packet_rate_trend=traffic.get("rate_trend", "STABLE"),
         flow_churn_trend=traffic.get("churn_trend", "STABLE"),
@@ -148,19 +173,46 @@ def build_forecast_section(
         points.append(
             ForecastPointReport(
                 horizon=horizon,
-                attack_probability=prob,
-                predicted_stage=stage,
-                confidence=conf,
-                uncertainty=uncert,
+                attack_probability=None if is_abstained else prob,
+                predicted_stage=None if is_abstained else stage,
+                confidence=None if is_abstained else conf,
+                uncertainty=None if is_abstained else uncert,
                 explanation=list(expl),
             )
         )
 
-    summary = (
-        "Forecast rollout abstained due to sequence/data constraints."
-        if is_abstained
-        else f"Generated {len(points)} multi-step temporal forecast horizons (60s intervals)."
-    )
+    if is_abstained and abstention:
+        reason = abstention.get("reason", "INSUFFICIENT_HISTORY")
+        explanation = abstention.get("explanation", "Preconditions not met")
+        summary = f"Forecast rollout abstained ({reason}): {explanation}"
+        if not points:
+            for h in range(1, 6):
+                points.append(
+                    ForecastPointReport(
+                        horizon=h,
+                        attack_probability=None,
+                        predicted_stage=None,
+                        confidence=None,
+                        uncertainty=None,
+                        explanation=[f"Forecast withheld: {reason} ({explanation})"],
+                    )
+                )
+    elif is_abstained:
+        summary = "Forecast rollout abstained due to sequence/data constraints."
+        if not points:
+            for h in range(1, 6):
+                points.append(
+                    ForecastPointReport(
+                        horizon=h,
+                        attack_probability=None,
+                        predicted_stage=None,
+                        confidence=None,
+                        uncertainty=None,
+                        explanation=["Forecast withheld due to sequence/data constraints."],
+                    )
+                )
+    else:
+        summary = f"Generated {len(points)} multi-step temporal forecast horizons (60s intervals)."
 
     return ForecastSection(
         model_version=model_version,
@@ -174,7 +226,7 @@ def build_forecast_section(
 def build_attack_horizon(horizon: dict[str, Any] | None) -> AttackHorizonSection:
     if not horizon:
         return AttackHorizonSection(
-            state="NO_ATTACK_FORECAST",
+            state="NOT_AVAILABLE",
             onset_horizon=None,
             onset_timestamp=None,
             lead_time_seconds=None,
@@ -184,21 +236,28 @@ def build_attack_horizon(horizon: dict[str, Any] | None) -> AttackHorizonSection
             end_timestamp=None,
             temporal_consistency=0.0,
             decay_observed=False,
-            summary="No attack forecast generated.",
+            summary="Attack horizon evaluation abstained.",
         )
 
+    raw_state = horizon.get("state", "NO_ATTACK_FORECAST")
+    is_abstained = raw_state == "ABSTAINED" or bool(horizon.get("abstention_reason"))
+    state = "ABSTAINED" if is_abstained else raw_state
+    summary = horizon.get("summary", "")
+    if is_abstained and not summary:
+        summary = f"Attack horizon evaluation abstained: {horizon.get('abstention_reason', 'INSUFFICIENT_HISTORY')}."
+
     return AttackHorizonSection(
-        state=horizon.get("state", "NO_ATTACK_FORECAST"),
-        onset_horizon=horizon.get("onset_horizon"),
-        onset_timestamp=horizon.get("onset_timestamp"),
-        lead_time_seconds=horizon.get("lead_time_seconds"),
-        horizon_windows=horizon.get("horizon_windows", 0),
-        horizon_seconds=horizon.get("horizon_seconds", 0),
-        end_horizon=horizon.get("end_horizon"),
-        end_timestamp=horizon.get("end_timestamp"),
-        temporal_consistency=float(horizon.get("temporal_consistency") if horizon.get("temporal_consistency") is not None else 1.0),
-        decay_observed=bool(horizon.get("decay_observed", False)),
-        summary=horizon.get("summary", ""),
+        state=state,
+        onset_horizon=None if is_abstained else horizon.get("onset_horizon"),
+        onset_timestamp=None if is_abstained else horizon.get("onset_timestamp"),
+        lead_time_seconds=None if is_abstained else horizon.get("lead_time_seconds"),
+        horizon_windows=0 if is_abstained else horizon.get("horizon_windows", 0),
+        horizon_seconds=0 if is_abstained else horizon.get("horizon_seconds", 0),
+        end_horizon=None if is_abstained else horizon.get("end_horizon"),
+        end_timestamp=None if is_abstained else horizon.get("end_timestamp"),
+        temporal_consistency=0.0 if is_abstained else float(horizon.get("temporal_consistency") if horizon.get("temporal_consistency") is not None else 1.0),
+        decay_observed=False if is_abstained else bool(horizon.get("decay_observed", False)),
+        summary=summary,
     )
 
 
@@ -372,8 +431,9 @@ def build_provenance_section(
     win = validation.get("window", {})
     start_min = win.get("start_min")
     start_max = win.get("start_max")
+    window_seconds = win.get("seconds", 60)
     earliest = datetime.fromtimestamp(start_min, timezone.utc).isoformat() if start_min is not None else None
-    latest = datetime.fromtimestamp(start_max, timezone.utc).isoformat() if start_max is not None else None
+    latest = datetime.fromtimestamp(start_max + window_seconds, timezone.utc).isoformat() if start_max is not None else earliest
 
     return ProvenanceSection(
         capture_hash=capture_hash,

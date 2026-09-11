@@ -13,10 +13,30 @@ export function Threats() {
   if (error || !data) return <ErrorState message={error ?? 'No analysis has been loaded.'} onRetry={() => void reload()} />
   const normalizedQuery = query.trim().toLowerCase().replaceAll('_', ' ')
   const findings = data.results.detection.findings.filter((finding) => `${finding.attack_category.replaceAll('_', ' ')} ${finding.prediction.replaceAll('_', ' ')} ${finding.evidence.map((item) => `${item.rule_id ?? ''} ${item.type.replaceAll('_', ' ')} ${item.message}`).join(' ')}`.toLowerCase().includes(normalizedQuery) && (severity === 'all' || finding.severity === severity))
+
+  const trustResponse = (data.results.attack_horizon || data.results.abstention || data.results.evidence_chain || data.results.forecasts)
+    ? {
+        currentState: {
+          timestamp: new Date().toISOString(),
+          attackProbability: null,
+          predictedStage: null,
+          confidence: null,
+          uncertainty: null,
+          explanation: [],
+        },
+        forecasts: data.results.forecasts ?? [],
+        attack_horizon: data.results.attack_horizon ?? data.results.attackHorizon,
+        evidence_chain: data.results.evidence_chain ?? data.results.evidenceChain,
+        confidence: data.results.confidence,
+        unknown_behavior: data.results.unknown_behavior ?? data.results.unknownBehavior,
+        abstention: data.results.abstention,
+      }
+    : undefined
+
   return (
     <div className="page-stack page-enter">
       <SectionHeading eyebrow="Threats / Evidence" title="Detection findings & Forecast Trust Layer" description={`Traffic-derived indicators, attack horizon, and deterministic evidence chain from ${data.results.source?.name ?? 'the completed packet analysis'}.`} action={<span className="method-badge">PREDICTIVE INTELLIGENCE</span>} />
-      <ForecastTrustPanel />
+      <ForecastTrustPanel initialResponse={trustResponse} allowFixtureSwitching={!trustResponse || Boolean(data.results.is_demo)} />
       <Panel className="filter-panel">
         <div className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search findings or evidence" aria-label="Search findings" /></div>
         <div className="select-wrap"><SlidersHorizontal size={15} /><select value={severity} onChange={(event) => setSeverity(event.target.value)} aria-label="Filter severity"><option value="all">All severity</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>

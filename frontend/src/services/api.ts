@@ -81,4 +81,23 @@ export const api = {
   getDemoScenarioResult: (scenarioId: string) => request<UploadedAnalysisResponse>(`/api/demo/scenarios/${scenarioId}`),
   getDemoReportJsonUrl: (scenarioId: string) => `${API_BASE}/api/demo/scenarios/${scenarioId}/report.json`,
   getDemoReportHtmlUrl: (scenarioId: string) => `${API_BASE}/api/demo/scenarios/${scenarioId}/report.html`,
+  getCurrentAnalysis: () =>
+    request<{
+      analysis_id: string
+      status: string
+      source: { name: string; kind: string; filename?: string; size_bytes?: number }
+      is_production: boolean
+      results: AnalysisResults
+    }>('/api/analysis/current'),
+  setCurrentAnalysis: (analysisId: string) =>
+    request<{
+      analysis_id: string
+      status: string
+      source: { name: string; kind: string }
+      is_production: boolean
+    }>('/api/analysis/current', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ analysis_id: analysisId }),
+    }),
 }

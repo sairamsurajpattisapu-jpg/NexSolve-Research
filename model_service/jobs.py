@@ -286,6 +286,12 @@ class JobManager:
             traffic = traffic_summary(windows)
             detection = analyze_packet_windows(windows)
             duration_seconds = max(0, int(windows[-1]["window_end"]) - int(windows[0]["window_start"]))
+            packet_ts = [p.timestamp for p in packets if p.timestamp is not None]
+            packet_span_seconds = round(max(packet_ts) - min(packet_ts), 4) if packet_ts else 0.0
+            traffic["duration_seconds"] = duration_seconds
+            traffic["packet_timestamp_span_seconds"] = packet_span_seconds
+            traffic["temporal_window_coverage_seconds"] = duration_seconds
+            traffic["packet_span_seconds"] = packet_span_seconds
             network_state_extraction_ms = round((time.perf_counter() - t_state_start) * 1000, 2)
 
             # 4. FORECAST
@@ -450,6 +456,8 @@ class JobManager:
                         "processing_seconds": round(total_duration, 3),
                         "stage_timings_ms": stage_timings,
                     }
+            from model_service.active_analysis import set_current_analysis
+            set_current_analysis(job_id, analysis_result)
 
         except ResourceLimitExceededError as rle:
             with self._lock:
