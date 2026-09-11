@@ -82,6 +82,51 @@ def _session_factory():
     return sessionmaker(bind=_engine(), expire_on_commit=False)
 
 
+def init_db() -> bool:
+    """Initialize database tables if DATABASE_URL is set.
+    Returns True if tables were created, False if database is not configured.
+    """
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        return False
+    try:
+        engine = _engine()
+        Base.metadata.create_all(engine)
+        return True
+    except Exception as e:
+        raise DatabaseStorageError(f"Database initialization failed: {e}") from e
+
+
+def check_db_health() -> dict[str, Any]:
+    """Check database status and connectivity.
+    Distinguishes MEMORY mode from DATABASE mode without false positives.
+    """
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        return {
+            "status": "UNCONFIGURED",
+            "mode": "MEMORY",
+            "detail": "DATABASE_URL not set; running in in-memory session mode",
+        }
+    try:
+        engine = _engine()
+        with engine.connect() as conn:
+            from sqlalchemy import text
+            conn.execute(text("SELECT 1"))
+        return {
+            "status": "HEALTHY",
+            "mode": "DATABASE",
+            "detail": "Database connection verified",
+        }
+    except Exception as e:
+        return {
+            "status": "UNHEALTHY",
+            "mode": "DATABASE",
+            "detail": f"Connection check failed: {type(e).__name__}",
+        }
+
+
+
 def _finding_values(finding: dict[str, Any]) -> dict[str, Any]:
     evidence = finding.get("evidence", [])
     first = evidence[0] if evidence else {}

@@ -1,0 +1,301 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NexSolveForecastIntelligenceResponse",
+  "description": "Unified data contract for NexSolve POST /forecast response including Attack Horizon, Evidence Intelligence, Forecast Confidence, Unknown Behavior, and Forecast Abstention.",
+  "type": "object",
+  "required": [
+    "forecasts",
+    "attack_horizon",
+    "evidence_chain",
+    "confidence",
+    "unknown_behavior",
+    "abstention"
+  ],
+  "properties": {
+    "currentState": {
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": ["string", "null"] },
+        "attackProbability": { "type": ["number", "null"] }
+      }
+    },
+    "forecasts": {
+      "type": "array",
+      "description": "Multi-horizon predicted attack probabilities across discrete 60s windows.",
+      "items": {
+        "type": "object",
+        "required": ["horizon", "attackProbability", "confidence", "uncertainty"],
+        "properties": {
+          "horizon": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "attackProbability": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+          "predictedStage": { "type": ["string", "null"] },
+          "confidence": { "type": ["number", "null"] },
+          "uncertainty": { "type": ["number", "null"] },
+          "explanation": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "attack_horizon": {
+      "type": "object",
+      "description": "Temporal reach, lead time, and attack horizon span.",
+      "required": [
+        "state",
+        "onset_horizon",
+        "onset_timestamp",
+        "lead_time_seconds",
+        "horizon_windows",
+        "horizon_seconds",
+        "decision_threshold",
+        "temporal_consistency",
+        "decay_observed",
+        "confidence_summary",
+        "evidence_chain",
+        "summary"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "NO_ATTACK_FORECAST",
+            "EARLY_SIGNAL",
+            "SUSTAINED_ATTACK_FORECAST",
+            "UNCERTAIN_FORECAST",
+            "ABSTAINED"
+          ]
+        },
+        "onset_horizon": { "type": ["integer", "null"], "minimum": 1, "maximum": 5 },
+        "onset_timestamp": { "type": ["string", "null"] },
+        "lead_time_seconds": { "type": ["integer", "null"] },
+        "horizon_windows": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "horizon_seconds": { "type": "integer", "minimum": 0, "maximum": 300 },
+        "end_horizon": { "type": ["integer", "null"], "minimum": 1, "maximum": 5 },
+        "end_timestamp": { "type": ["string", "null"] },
+        "decision_threshold": { "type": "number", "default": 0.5 },
+        "temporal_consistency": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "decay_observed": { "type": "boolean" },
+        "confidence_summary": {
+          "type": "object",
+          "required": ["calibration_status"],
+          "properties": {
+            "mean_confidence": { "type": ["number", "null"] },
+            "min_confidence": { "type": ["number", "null"] },
+            "max_confidence": { "type": ["number", "null"] },
+            "calibration_status": {
+              "type": "string",
+              "enum": ["CALIBRATED", "UNCALIBRATED", "UNSUPPORTED"]
+            }
+          }
+        },
+        "evidence_chain": { "type": "array" },
+        "abstention_reason": { "type": ["string", "null"] },
+        "summary": { "type": "string" }
+      }
+    },
+    "evidence_chain": {
+      "type": "object",
+      "description": "Observable physical telemetry corroborating or contradicting the forecast hypothesis.",
+      "required": [
+        "current_timestamp",
+        "supporting",
+        "contradictory",
+        "evidence_strength",
+        "evidence_quality",
+        "supporting_feature_count",
+        "contradictory_feature_count",
+        "provenance_complete",
+        "explanation",
+        "limitations"
+      ],
+      "properties": {
+        "current_window_id": { "type": ["string", "null"] },
+        "current_timestamp": { "type": "string" },
+        "forecast_horizon": { "type": "integer" },
+        "supporting": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/EvidenceItem" }
+        },
+        "contradictory": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/EvidenceItem" }
+        },
+        "evidence_strength": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "evidence_quality": {
+          "type": "string",
+          "enum": ["HIGH", "MODERATE", "DEGRADED", "INSUFFICIENT"]
+        },
+        "supporting_feature_count": { "type": "integer", "minimum": 0 },
+        "contradictory_feature_count": { "type": "integer", "minimum": 0 },
+        "provenance_complete": { "type": "boolean" },
+        "explanation": { "type": "string" },
+        "limitations": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "description": "Statistical confidence, calibration status, and epistemic uncertainty metrics.",
+      "required": [
+        "forecast_score",
+        "confidence_value",
+        "confidence_state",
+        "evidence_strength",
+        "calibration_status",
+        "uncertainty_level",
+        "explanation"
+      ],
+      "properties": {
+        "forecast_score": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "confidence_value": { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+        "confidence_state": {
+          "type": "string",
+          "enum": ["CALIBRATED", "UNCALIBRATED", "WITHHELD"]
+        },
+        "evidence_strength": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "calibration_status": {
+          "type": "string",
+          "enum": ["CALIBRATED", "UNCALIBRATED", "UNSUPPORTED"]
+        },
+        "uncertainty_level": {
+          "type": "string",
+          "enum": ["LOW", "MODERATE", "HIGH"]
+        },
+        "explanation": { "type": "string" }
+      }
+    },
+    "unknown_behavior": {
+      "type": "object",
+      "description": "Classification of telemetry into known baseline, weak pattern, or unknown behavior space.",
+      "required": [
+        "classification",
+        "reason",
+        "supporting_evidence",
+        "contradictory_evidence",
+        "coverage",
+        "abstain_recommended"
+      ],
+      "properties": {
+        "classification": {
+          "type": "string",
+          "enum": ["KNOWN_PATTERN", "WEAK_PATTERN", "UNKNOWN_BEHAVIOR"]
+        },
+        "reason": { "type": "string" },
+        "supporting_evidence": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "contradictory_evidence": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "coverage": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "abstain_recommended": { "type": "boolean" }
+      }
+    },
+    "abstention": {
+      "type": "object",
+      "description": "Forecast availability gate enforcing sequence preconditions and abstention policies.",
+      "required": [
+        "abstained",
+        "reason",
+        "severity",
+        "status",
+        "missing_requirements",
+        "explanation"
+      ],
+      "properties": {
+        "abstained": { "type": "boolean" },
+        "reason": {
+          "type": ["string", "null"],
+          "enum": [
+            "INSUFFICIENT_HISTORY",
+            "TIMESTAMP_DISCONTINUITY",
+            "MISSING_REQUIRED_FEATURES",
+            "CAPTURE_QUALITY_INSUFFICIENT",
+            "UNKNOWN_BEHAVIOR_ABSTAIN",
+            null
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["LOW", "MODERATE", "CRITICAL"]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "FORECAST_AVAILABLE",
+            "FORECAST_AVAILABLE_BUT_UNCALIBRATED",
+            "FORECAST_UNAVAILABLE"
+          ]
+        },
+        "missing_requirements": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "explanation": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "EvidenceItem": {
+      "type": "object",
+      "required": [
+        "evidence_id",
+        "timestamp",
+        "evidence_type",
+        "feature_name",
+        "observed_value",
+        "baseline_value",
+        "delta",
+        "relative_change",
+        "direction",
+        "severity",
+        "reliability",
+        "source",
+        "provenance",
+        "explanation",
+        "is_supporting"
+      ],
+      "properties": {
+        "evidence_id": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "window_id": { "type": ["string", "null"] },
+        "evidence_type": {
+          "type": "string",
+          "enum": [
+            "TRAFFIC_VOLUME",
+            "FLOW_CHURN",
+            "PORT_DIVERSITY",
+            "SCANNING_RATE",
+            "PROTOCOL_ASYMMETRY",
+            "TCP_FLAG_ANOMALY",
+            "PACKET_SIZE_DEVIATION",
+            "CAPTURE_QUALITY_DEGRADATION"
+          ]
+        },
+        "feature_name": { "type": "string" },
+        "observed_value": { "type": "number" },
+        "baseline_value": { "type": "number" },
+        "delta": { "type": "number" },
+        "relative_change": { "type": "number" },
+        "direction": {
+          "type": "string",
+          "enum": ["INCREASE", "DECREASE", "ANOMALOUS", "STABLE"]
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+        },
+        "reliability": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "source": { "type": "string" },
+        "provenance": { "type": "object" },
+        "explanation": { "type": "string" },
+        "is_supporting": { "type": "boolean" }
+      }
+    }
+  }
+}

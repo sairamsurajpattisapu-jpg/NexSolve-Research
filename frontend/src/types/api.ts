@@ -63,6 +63,7 @@ export interface TrafficSummary {
   icmp: number
   retransmissions: number
   fragmented_packets: number
+  flows?: number
   protocol_counts: Record<string, number>
   windows_data?: WindowRow[]
 }
@@ -159,4 +160,198 @@ export interface UploadedAnalysisResponse {
   protocol_summary: Record<string, number>
   findings: Finding[]
   summary: { packet_count: number; window_count: number; finding_count: number; threat_level: Severity }
+  forecasts?: ForecastPoint[]
+  attack_horizon?: AttackHorizonPayload | null
+  attackHorizon?: AttackHorizonPayload | null
+  evidence_chain?: EvidenceChainPayload | null
+  evidenceChain?: EvidenceChainPayload | null
+  confidence?: ForecastConfidencePayload | null
+  unknown_behavior?: UnknownBehaviorPayload | null
+  unknownBehavior?: UnknownBehaviorPayload | null
+  abstention?: ForecastAbstentionPayload | null
+  is_demo?: boolean
+  demo_scenario_id?: string
+  demo_scenario_name?: string
+  demo_scenario_description?: string
+  demo_expected_behavior?: string
+  processing_metrics?: Record<string, number>
+}
+
+export type AttackHorizonStateType =
+  | 'NO_ATTACK_FORECAST'
+  | 'EARLY_SIGNAL'
+  | 'SUSTAINED_ATTACK_FORECAST'
+  | 'UNCERTAIN_FORECAST'
+  | 'ABSTAINED'
+
+export interface HorizonEvidence {
+  horizon: number
+  horizon_seconds: number
+  predicted_timestamp: string | null
+  attack_probability: number | null
+  confidence: number | null
+  predicted_stage: string | null
+  above_threshold: boolean
+  abstained: boolean
+  reason?: string | null
+}
+
+export interface ConfidenceSummary {
+  mean_confidence: number | null
+  min_confidence: number | null
+  max_confidence: number | null
+  calibration_status: string
+}
+
+export interface AttackHorizonPayload {
+  state: AttackHorizonStateType
+  onset_horizon: number | null
+  onset_timestamp: string | null
+  lead_time_seconds: number | null
+  horizon_windows: number
+  horizon_seconds: number
+  end_horizon: number | null
+  end_timestamp: string | null
+  decision_threshold: number
+  temporal_consistency: number
+  decay_observed: boolean
+  confidence_summary: ConfidenceSummary
+  evidence_chain: HorizonEvidence[]
+  abstention_reason: string | null
+  summary: string
+}
+
+export interface ForecastPoint {
+  horizon: number
+  attackProbability: number | null
+  predictedStage: string | null
+  confidence: number | null
+  uncertainty: number | null
+  explanation: string[]
+}
+
+export interface EvidenceItemPayload {
+  evidence_id: string
+  timestamp: string
+  window_id: string | number | null
+  evidence_type: string
+  feature_name: string
+  observed_value: number
+  baseline_value: number | null
+  delta: number | null
+  relative_change: number | null
+  direction: 'INCREASE' | 'DECREASE' | 'ANOMALOUS' | 'NEUTRAL' | 'STABLE'
+  severity: 'INFO' | 'LOW' | 'MEDIUM' | 'HIGH'
+  reliability: number
+  source: string
+  provenance: Record<string, unknown>
+  explanation: string
+  is_supporting: boolean
+}
+
+export interface EvidenceChainPayload {
+  current_window_id: string | number | null
+  current_timestamp: string
+  forecast_horizon: number
+  supporting: EvidenceItemPayload[]
+  contradictory: EvidenceItemPayload[]
+  evidence_strength: number
+  evidence_quality: 'HIGH' | 'DEGRADED' | 'INSUFFICIENT' | 'MEDIUM'
+  supporting_feature_count: number
+  contradictory_feature_count: number
+  provenance_complete: boolean
+  explanation: string
+  limitations: Array<string | { type: string; description: string; impact?: string }>
+}
+
+export interface ForecastConfidencePayload {
+  forecast_score: number | null
+  confidence_value: number | null
+  confidence_state: 'CALIBRATED' | 'UNCALIBRATED' | 'LOW_SUPPORT' | 'HIGH_UNCERTAINTY' | 'WITHHELD' | 'UNKNOWN'
+  evidence_strength: number
+  calibration_status: 'UNSUPPORTED' | 'UNCALIBRATED' | 'CALIBRATED'
+  uncertainty_level: 'LOW' | 'MEDIUM' | 'HIGH'
+  explanation: string
+}
+
+export interface UnknownBehaviorPayload {
+  classification: 'KNOWN_PATTERN' | 'WEAK_PATTERN' | 'UNKNOWN_BEHAVIOR'
+  reason: string
+  supporting_evidence: string[]
+  contradictory_evidence: string[]
+  coverage: number
+  abstain_recommended: boolean
+}
+
+export interface ForecastAbstentionPayload {
+  abstained: boolean
+  reason: string | null
+  severity: 'NONE' | 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+  status: 'FORECAST_AVAILABLE' | 'FORECAST_AVAILABLE_BUT_UNCALIBRATED' | 'FORECAST_UNAVAILABLE'
+  missing_requirements: string[]
+  explanation: string
+  observed_windows?: number | null
+  required_windows?: number | null
+  capture_duration_seconds?: number | null
+  gap_seconds?: number | null
+}
+
+export interface ForecastResponse {
+  currentState: Record<string, unknown>
+  forecasts: ForecastPoint[]
+  attack_horizon?: AttackHorizonPayload | null
+  attackHorizon?: AttackHorizonPayload | null
+  evidence_chain?: EvidenceChainPayload | null
+  evidenceChain?: EvidenceChainPayload | null
+  confidence?: ForecastConfidencePayload | null
+  unknown_behavior?: UnknownBehaviorPayload | null
+  unknownBehavior?: UnknownBehaviorPayload | null
+  abstention?: ForecastAbstentionPayload | null
+}
+
+export type JobStatusType =
+  | 'QUEUED'
+  | 'PROCESSING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'ABORTED'
+  | 'RESOURCE_LIMIT_EXCEEDED'
+
+export type JobStageType =
+  | 'INGESTION'
+  | 'PARSING'
+  | 'FLOW_RECONSTRUCTION'
+  | 'WINDOWING'
+  | 'NETWORK_STATE'
+  | 'FORECAST'
+  | 'EVIDENCE'
+  | 'REPORT'
+  | 'COMPLETE'
+
+export interface JobError {
+  code?: string
+  message?: string
+  status?: string
+  resource?: string
+  observed?: number
+  limit?: number
+  recoverable?: boolean
+  explanation?: string
+}
+
+export interface JobStatusResponse {
+  job_id: string
+  status: JobStatusType
+  progress: number
+  stage: JobStageType
+  created_at: string
+  started_at: string | null
+  completed_at: string | null
+  error: JobError | null
+  processing_statistics?: {
+    packets_processed?: number
+    flows_processed?: number
+    windows_processed?: number
+    processing_seconds?: number
+  }
 }

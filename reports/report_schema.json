@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NexSolveForensicReportSchema",
+  "description": "Schema for NexSolve comprehensive forensic & predictive network threat intelligence report.",
+  "type": "object",
+  "required": [
+    "report_id",
+    "title",
+    "system_tagline",
+    "generated_at_utc",
+    "sections"
+  ],
+  "properties": {
+    "report_id": { "type": "string" },
+    "title": { "type": "string" },
+    "system_tagline": { "type": "string" },
+    "generated_at_utc": { "type": "string", "format": "date-time" },
+    "sections": {
+      "type": "object",
+      "required": [
+        "executive_summary",
+        "capture_quality",
+        "network_activity",
+        "temporal_behavior",
+        "forecast",
+        "attack_horizon",
+        "evidence_chain",
+        "confidence",
+        "unknown_behavior",
+        "abstention",
+        "limitations",
+        "provenance",
+        "processing_metadata"
+      ],
+      "properties": {
+        "executive_summary": {
+          "type": "object",
+          "required": ["category", "status", "overall_threat_level", "key_findings", "forecast_summary", "epistemic_disclaimer"],
+          "properties": {
+            "category": { "type": "string", "enum": ["INFERRED"] },
+            "status": { "type": "string" },
+            "overall_threat_level": { "type": "string" },
+            "key_findings": { "type": "array", "items": { "type": "string" } },
+            "forecast_summary": { "type": "string" },
+            "epistemic_disclaimer": { "type": "string" }
+          }
+        },
+        "capture_quality": {
+          "type": "object",
+          "required": ["category", "quality_status", "parsed_packets", "total_packets_observed", "packet_loss_ratio"],
+          "properties": {
+            "category": { "type": "string", "enum": ["OBSERVED"] },
+            "capture_id": { "type": "string" },
+            "quality_status": { "type": "string" },
+            "parsed_packets": { "type": "integer" },
+            "total_packets_observed": { "type": "integer" },
+            "malformed_packets": { "type": "integer" },
+            "truncated_packets": { "type": "integer" },
+            "reordered_packets": { "type": "integer" },
+            "packet_loss_ratio": { "type": "number" },
+            "reordered_ratio": { "type": "number" }
+          }
+        },
+        "network_activity": {
+          "type": "object",
+          "required": ["category", "packet_count", "flow_count", "duration_seconds", "protocol_distribution"],
+          "properties": {
+            "category": { "type": "string", "enum": ["OBSERVED"] },
+            "packet_count": { "type": "integer" },
+            "flow_count": { "type": "integer" },
+            "byte_count": { "type": "integer" },
+            "duration_seconds": { "type": "number" },
+            "protocol_distribution": { "type": "object" },
+            "tcp_flag_counts": { "type": "object" },
+            "unique_src_ips": { "type": "integer" },
+            "unique_dst_ips": { "type": "integer" },
+            "unique_dst_ports": { "type": "integer" }
+          }
+        },
+        "temporal_behavior": {
+          "type": "object",
+          "required": ["category", "window_count", "temporal_continuity"],
+          "properties": {
+            "category": { "type": "string", "enum": ["OBSERVED"] },
+            "window_count": { "type": "integer" },
+            "window_duration_seconds": { "type": "integer" },
+            "earliest_timestamp": { "type": ["string", "null"] },
+            "latest_timestamp": { "type": ["string", "null"] },
+            "temporal_continuity": { "type": "string" },
+            "packet_rate_trend": { "type": "string" },
+            "flow_churn_trend": { "type": "string" }
+          }
+        },
+        "forecast": {
+          "type": "object",
+          "required": ["category", "model_version", "forecast_points", "abstained"],
+          "properties": {
+            "category": { "type": "string", "enum": ["FORECAST"] },
+            "model_version": { "type": "string" },
+            "forecast_points": { "type": "array" },
+            "decision_threshold": { "type": "number" },
+            "abstained": { "type": "boolean" },
+            "summary": { "type": "string" }
+          }
+        },
+        "attack_horizon": {
+          "type": "object",
+          "required": ["category", "state", "horizon_windows", "horizon_seconds", "temporal_consistency"],
+          "properties": {
+            "category": { "type": "string", "enum": ["FORECAST"] },
+            "state": { "type": "string" },
+            "onset_horizon": { "type": ["integer", "null"] },
+            "onset_timestamp": { "type": ["string", "null"] },
+            "lead_time_seconds": { "type": ["integer", "null"] },
+            "horizon_windows": { "type": "integer" },
+            "horizon_seconds": { "type": "integer" },
+            "end_horizon": { "type": ["integer", "null"] },
+            "end_timestamp": { "type": ["string", "null"] },
+            "temporal_consistency": { "type": "number" },
+            "decay_observed": { "type": "boolean" },
+            "summary": { "type": "string" }
+          }
+        },
+        "evidence_chain": {
+          "type": "object",
+          "required": ["category", "evidence_strength", "evidence_quality", "supporting_evidence", "contradictory_evidence"],
+          "properties": {
+            "category": { "type": "string", "enum": ["INFERRED"] },
+            "evidence_strength": { "type": "number" },
+            "evidence_quality": { "type": "string" },
+            "supporting_evidence": { "type": "array" },
+            "contradictory_evidence": { "type": "array" },
+            "explanation": { "type": "string" },
+            "limitations": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "confidence": {
+          "type": "object",
+          "required": ["category", "forecast_score", "confidence_state", "calibration_status", "disclaimer"],
+          "properties": {
+            "category": { "type": "string", "enum": ["INFERRED"] },
+            "forecast_score": { "type": "number" },
+            "confidence_value": { "type": ["number", "null"] },
+            "confidence_state": { "type": "string" },
+            "calibration_status": { "type": "string" },
+            "uncertainty_level": { "type": "string" },
+            "disclaimer": { "type": "string" }
+          }
+        },
+        "unknown_behavior": {
+          "type": "object",
+          "required": ["category", "classification", "coverage", "abstain_recommended"],
+          "properties": {
+            "category": { "type": "string", "enum": ["UNKNOWN"] },
+            "classification": { "type": "string" },
+            "reason": { "type": "string" },
+            "supporting_evidence": { "type": "array", "items": { "type": "string" } },
+            "contradictory_evidence": { "type": "array", "items": { "type": "string" } },
+            "coverage": { "type": "number" },
+            "abstain_recommended": { "type": "boolean" }
+          }
+        },
+        "abstention": {
+          "type": "object",
+          "required": ["category", "abstained", "status", "severity"],
+          "properties": {
+            "category": { "type": "string", "enum": ["ABSTAINED"] },
+            "abstained": { "type": "boolean" },
+            "reason": { "type": ["string", "null"] },
+            "severity": { "type": "string" },
+            "status": { "type": "string" },
+            "missing_requirements": { "type": "array", "items": { "type": "string" } },
+            "explanation": { "type": "string" }
+          }
+        },
+        "limitations": {
+          "type": "object",
+          "required": ["category", "limitations", "capture_limitations", "calibration_caveats"],
+          "properties": {
+            "category": { "type": "string", "enum": ["OBSERVED"] },
+            "limitations": { "type": "array", "items": { "type": "string" } },
+            "capture_limitations": { "type": "array", "items": { "type": "string" } },
+            "calibration_caveats": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "required": ["category", "source_filename", "packet_count", "model_version", "processing_version"],
+          "properties": {
+            "category": { "type": "string", "enum": ["OBSERVED"] },
+            "capture_hash": { "type": ["string", "null"] },
+            "source_filename": { "type": "string" },
+            "file_size_bytes": { "type": "integer" },
+            "packet_count": { "type": "integer" },
+            "flow_count": { "type": "integer" },
+            "window_count": { "type": "integer" },
+            "time_range": { "type": "object" },
+            "model_version": { "type": "string" },
+            "processing_version": { "type": "string" }
+          }
+        },
+        "processing_metadata": {
+          "type": "object",
+          "required": ["category", "job_id", "generated_at_utc", "processing_seconds", "stage"],
+          "properties": {
+            "category": { "type": "string", "enum": ["OBSERVED"] },
+            "job_id": { "type": "string" },
+            "generated_at_utc": { "type": "string" },
+            "processing_seconds": { "type": "number" },
+            "stage": { "type": "string" },
+            "peak_memory_mb": { "type": ["number", "null"] }
+          }
+        }
+      }
+    }
+  }
+}

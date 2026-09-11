@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import tempfile
 import uuid
+import json
 from pathlib import Path
 from typing import Any
 
-from ml.data.pcap_extractor import extract_packet_windows
+from ml.data.pcap_extractor import extract_canonical_capture
 from ml.detection import analyze_packet_windows, traffic_summary
 from model_service.database import DatabaseStorageError, get_analysis, persist_analysis
+from nexsolve_core.state import build_network_state_candidates, build_state_history, evaluate_model_compatibility
 
 MAX_UPLOAD_BYTES = 64 * 1024 * 1024
 ALLOWED_EXTENSIONS = {".pcap", ".pcapng"}
@@ -18,9 +20,10 @@ PCAP_MAGICS = {
 }
 RUNTIME_DIR = Path(__file__).resolve().parents[1] / "runtime"
 RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+MODEL_SCHEMA = json.loads((Path(__file__).resolve().parents[1] / "models" / "nexsolve_world_model" / "feature_schema.json").read_text(encoding="utf-8"))
 
 
-def _validation(windows: list[dict[str, Any]]) -> dict[str, Any]:
+def _validation(windows: list[dict[str, Any]], compatibility: dict[str, Any]) -> dict[str, Any]:
     columns = sorted({key for window in windows for key in window})
     null_counts = {column: sum(window.get(column) is None for window in windows) for column in columns}
     starts = [int(window["window_start"]) for window in windows]
@@ -46,8 +49,11 @@ def _validation(windows: list[dict[str, Any]]) -> dict[str, Any]:
             "flow_features_available": False,
             "packet_features_available": True,
             "labels_available": False,
-            "forecast_model_ready": False,
-            "reason": "Uploaded capture was analyzed as packet aggregates; no labels or forecast-model contract are inferred.",
+            "forecast_model_ready": compatibility["model_ready"],
+            "reason": compatibility["reason"],
+            "available_features": compatibility["available_features"],
+            "missing_features": compatibility["missing_features"],
+            "unreliable_features": compatibility["unreliable_features"],
         },
     }
 
@@ -68,21 +74,70 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
         capture_path = Path(work_dir) / f"capture{suffix}"
         capture_path.write_bytes(content)
         try:
-            windows, quality = extract_packet_windows(capture_path)
+            _packets, canonical_windows, quality = extract_canonical_capture(capture_path)
         except Exception as error:
             raise RuntimeError("The file could not be parsed as a supported PCAP/PCAPNG capture.") from error
 
-    if not windows:
+    if not canonical_windows:
         raise RuntimeError("The capture contained no parseable timestamped packets.")
+    windows = [window.to_dict() for window in canonical_windows]
+    candidates = build_network_state_candidates(canonical_windows, MODEL_SCHEMA)
+    history = build_state_history(candidates)
+    compatibility = evaluate_model_compatibility(candidates, MODEL_SCHEMA, history.status).to_dict()
     traffic = traffic_summary(windows)
     detection = analyze_packet_windows(windows)
     duration_seconds = max(0, int(windows[-1]["window_end"]) - int(windows[0]["window_start"]))
+
+    # Trust Layer integration
+    from ml.forecasting import assemble_forecast_intelligence
+    flow_features = tuple(MODEL_SCHEMA.get("flow_features", ()))
+    forecast_points: list[dict[str, Any]] = []
+    reason = compatibility.get("reason", "Incompatible feature contract for world model.")
+    for h in range(1, 6):
+        forecast_points.append({
+            "horizon": h,
+            "attackProbability": None,
+            "predictedStage": None,
+            "confidence": None,
+            "uncertainty": None,
+            "explanation": [f"Forecast abstained: {reason}"],
+        })
+    state_dicts = [
+        {
+            "timestamp": c.start_timestamp,
+            "flow_features": c.flow_features,
+            "packet_features": c.packet_features,
+            "temporal_features": c.temporal_features,
+            "packet_features_available": True,
+        }
+        for c in candidates
+    ]
+    intelligence = assemble_forecast_intelligence(
+        sequence=state_dicts,
+        forecast_points=forecast_points,
+        capture_quality=quality,
+        provenance_info={"capture_id": analysis_id, "source": filename},
+        min_sequence_length=8,
+        required_features=flow_features,
+        calibration_status="UNSUPPORTED",
+        decision_threshold=0.5,
+        window_seconds=60,
+    )
+
     result = {
         "analysis_id": analysis_id,
         "status": "completed",
         "source": {"name": filename, "kind": "uploaded_pcap", "filename": filename, "size_bytes": len(content)},
         "upload": {"filename": filename, "size_bytes": len(content), "format": suffix[1:]},
-        "validation": _validation(windows),
+        "validation": _validation(windows, compatibility),
+        "model_compatibility": compatibility,
+        "network_state": {
+            "available": True,
+            "candidate_count": len(candidates),
+            "window_ids": [candidate.window_id for candidate in candidates],
+            "history": history.to_dict(),
+            "label_semantics": "UNKNOWN for unlabeled PCAP; heuristic findings are not ground-truth labels.",
+        },
         "traffic": traffic,
         "detection": detection,
         "quality": quality,
@@ -92,6 +147,16 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
         "protocol_summary": traffic["protocol_counts"],
         "findings": detection["findings"],
         "summary": {"packet_count": traffic["packets"], "window_count": traffic["windows"], "finding_count": detection["detected_events"], "threat_level": detection["threat_level"]},
+        # Trust Layer & Forecast Intelligence
+        "forecasts": forecast_points,
+        "attack_horizon": intelligence.attack_horizon,
+        "attackHorizon": intelligence.attack_horizon,
+        "evidence_chain": intelligence.evidence_chain,
+        "evidenceChain": intelligence.evidence_chain,
+        "confidence": intelligence.confidence,
+        "unknown_behavior": intelligence.unknown_behavior,
+        "unknownBehavior": intelligence.unknown_behavior,
+        "abstention": intelligence.abstention,
     }
     return persist_analysis(result)
 

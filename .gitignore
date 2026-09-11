@@ -36,6 +36,8 @@ experiments/
 *.log
 tmp/
 temp/
+runtime/
+scratch/
 
 # OS
 .DS_Store

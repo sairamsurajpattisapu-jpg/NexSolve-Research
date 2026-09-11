@@ -1,0 +1,19 @@
+{
+  "model_type": "Direct Ridge Classifier (Multi-Horizon)",
+  "features": "18 flow features, past-only lookback 8",
+  "input_dimension": 144,
+  "horizons": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "seed": 7,
+  "trained_on": "UNSW-NB15 Episode 0 only",
+  "class_weight": "balanced",
+  "production_connected": false,
+  "production_eligible": false,
+  "promotion_status": "HOLD",
+  "reason": "Does not consistently outperform persistence across multiple independent test episodes."
+}

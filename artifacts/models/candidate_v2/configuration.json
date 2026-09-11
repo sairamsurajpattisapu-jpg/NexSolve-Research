@@ -1,0 +1,14 @@
+{
+  "model": "direct_flattened_logistic",
+  "seed": 7,
+  "lookback": 8,
+  "horizons": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "trained_on": "UNSW-NB15 train episode only",
+  "production_connected": false
+}

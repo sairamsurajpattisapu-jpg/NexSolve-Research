@@ -6,13 +6,24 @@ import argparse
 import os
 import time
 import tracemalloc
-from collections import Counter, defaultdict
-from dataclasses import dataclass
+from collections import Counter
+from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
 
-from scapy.all import ICMP, IP, IPv6, PcapNgReader, TCP, UDP
+from scapy.all import ARP, Dot1Q, ICMP, IP, IPv6, PcapNgReader, TCP, UDP
+from scapy.layers.inet6 import IPv6ExtHdrFragment
+
+from nexsolve_core.schemas import (
+    PacketRecord,
+    Provenance,
+    TemporalWindow,
+    build_flows,
+    build_temporal_windows,
+    make_capture_quality,
+)
+from ml.data.packet_features import aggregate_window_features
 
 
 @dataclass(frozen=True)
@@ -50,88 +61,124 @@ def _safe_float(value: Any) -> float | None:
     return number
 
 
-def packet_record_from_pkt(pkt: Any) -> dict[str, Any] | None:
-    timestamp = _safe_float(getattr(pkt, "time", None))
-    if timestamp is None:
-        return None
+def _payload_layers(layer: Any) -> Iterator[Any]:
+    current = layer
+    while current is not None and current.__class__.__name__ != "NoPayload":
+        yield current
+        current = getattr(current, "payload", None)
+
+
+def _truncation_status(pkt: Any) -> str:
     if IP in pkt:
         ip_layer = pkt[IP]
-        src_ip, dst_ip = str(ip_layer.src), str(ip_layer.dst)
-        ttl = getattr(ip_layer, "ttl", None)
-        ip_version = 4
-        protocol = "TCP" if pkt.haslayer(TCP) else "UDP" if pkt.haslayer(UDP) else "ICMP" if pkt.haslayer(ICMP) else str(ip_layer.proto)
+        declared = getattr(ip_layer, "len", None)
+        if declared is None:
+            return "UNKNOWN"
+        return "FALSE" if len(bytes(ip_layer)) >= int(declared) else "TRUE"
+    if IPv6 in pkt:
+        ipv6_layer = pkt[IPv6]
+        declared = getattr(ipv6_layer, "plen", None)
+        if declared is None:
+            return "UNKNOWN"
+        return "FALSE" if len(bytes(ipv6_layer)) >= int(declared) + 40 else "TRUE"
+    return "UNKNOWN"
+
+
+def packet_record_from_pkt(
+    pkt: Any,
+    *,
+    packet_index: int | None = None,
+    capture_id: str = "unknown",
+    capture_start: float | None = None,
+) -> PacketRecord | None:
+    timestamp = _safe_float(getattr(pkt, "time", None))
+    if timestamp is None or timestamp < 0:
+        return None
+    parsing_status = "parsed"
+    unsupported_reason = None
+    icmp_type = icmp_code = None
+    extension_headers: tuple[str, ...] = ()
+    src_ip = dst_ip = None
+    ttl = ip_version = None
+    protocol = "UNSUPPORTED"
+    if IP in pkt:
+        ip_layer = pkt[IP]
+        src_ip, dst_ip, ttl, ip_version = str(ip_layer.src), str(ip_layer.dst), getattr(ip_layer, "ttl", None), 4
+        protocol = "TCP" if pkt.haslayer(TCP) else "UDP" if pkt.haslayer(UDP) else "ICMP" if pkt.haslayer(ICMP) else f"IPv4_PROTO_{ip_layer.proto}"
     elif IPv6 in pkt:
         ip_layer = pkt[IPv6]
-        src_ip, dst_ip = str(ip_layer.src), str(ip_layer.dst)
-        ttl = getattr(ip_layer, "hlim", None)
-        ip_version = 6
-        protocol = "TCP" if pkt.haslayer(TCP) else "UDP" if pkt.haslayer(UDP) else "ICMP" if pkt.haslayer(ICMP) else "IPv6"
+        src_ip, dst_ip, ttl, ip_version = str(ip_layer.src), str(ip_layer.dst), getattr(ip_layer, "hlim", None), 6
+        extension_headers = tuple(layer.__class__.__name__ for layer in _payload_layers(ip_layer.payload) if layer.__class__.__name__.startswith("IPv6ExtHdr"))
+        icmpv6 = next((layer for layer in _payload_layers(ip_layer.payload) if layer.__class__.__name__.startswith("ICMPv6")), None)
+        protocol = "TCP" if pkt.haslayer(TCP) else "UDP" if pkt.haslayer(UDP) else "ICMPv6" if icmpv6 is not None else f"IPv6_NEXT_HEADER_{ip_layer.nh}"
+        if extension_headers and any(name not in {"IPv6ExtHdrHopByHop", "IPv6ExtHdrRouting", "IPv6ExtHdrDestOpt", "IPv6ExtHdrFragment"} for name in extension_headers):
+            parsing_status = "unsupported"
+            unsupported_reason = "Unsupported IPv6 extension header chain."
+    elif pkt.haslayer(ARP):
+        arp_layer = pkt[ARP]
+        src_ip, dst_ip, protocol = str(getattr(arp_layer, "psrc", "")) or None, str(getattr(arp_layer, "pdst", "")) or None, "ARP"
     else:
-        src_ip, dst_ip, ttl, ip_version = None, None, None, None
-        protocol = "other"
+        parsing_status = "unsupported"
+        unsupported_reason = "Link-layer or protocol semantics are unavailable."
+    if protocol.startswith(("IPv4_PROTO_", "IPv6_NEXT_HEADER_")):
+        parsing_status = "unsupported"
+        unsupported_reason = "Transport protocol is unavailable to the canonical extractor."
 
     payload_length = None
     src_port = dst_port = None
     tcp_flags = tcp_window = tcp_seq = tcp_ack = None
-    fragment_offset = None
-    more_fragments = None
-    identification = None
-
     if pkt.haslayer(TCP):
         tcp_layer = pkt[TCP]
-        src_port = int(getattr(tcp_layer, "sport", 0) or 0)
-        dst_port = int(getattr(tcp_layer, "dport", 0) or 0)
-        tcp_flags = int(getattr(tcp_layer, "flags", 0) or 0)
-        tcp_window = int(getattr(tcp_layer, "window", 0) or 0)
-        tcp_seq = int(getattr(tcp_layer, "seq", 0) or 0)
-        tcp_ack = int(getattr(tcp_layer, "ack", 0) or 0)
+        src_port, dst_port = int(tcp_layer.sport), int(tcp_layer.dport)
+        tcp_flags, tcp_window = int(tcp_layer.flags), int(tcp_layer.window)
+        tcp_seq, tcp_ack = int(tcp_layer.seq), int(tcp_layer.ack)
         payload_length = len(bytes(tcp_layer.payload))
     elif pkt.haslayer(UDP):
         udp_layer = pkt[UDP]
-        src_port = int(getattr(udp_layer, "sport", 0) or 0)
-        dst_port = int(getattr(udp_layer, "dport", 0) or 0)
+        src_port, dst_port = int(udp_layer.sport), int(udp_layer.dport)
         payload_length = len(bytes(udp_layer.payload))
-    elif pkt.haslayer(ICMP):
-        payload_length = len(bytes(pkt[ICMP].payload))
+    else:
+        icmp_layer = pkt[ICMP] if pkt.haslayer(ICMP) else next((layer for layer in _payload_layers(pkt[IPv6].payload) if layer.__class__.__name__.startswith("ICMPv6")), None) if IPv6 in pkt else None
+        if icmp_layer is not None:
+            icmp_type, icmp_code = int(getattr(icmp_layer, "type", 0)), int(getattr(icmp_layer, "code", 0))
+            payload_length = len(bytes(icmp_layer.payload))
 
+    fragment_offset = more_fragments = identification = None
+    ipv6_fragment_id = ipv6_fragment_offset = None
+    ipv6_more_fragments = None
     if IP in pkt:
         ipv4 = pkt[IP]
-        fragment_offset = int(getattr(ipv4, "frag", 0) or 0)
-        more_fragments = bool(getattr(ipv4, "flags", 0) & 0x1) if hasattr(ipv4, "flags") else None
-        identification = int(getattr(ipv4, "id", 0) or 0)
+        fragment_offset, more_fragments, identification = int(ipv4.frag or 0), bool(ipv4.flags & 0x1), int(ipv4.id)
     elif IPv6 in pkt:
-        fragment_offset = getattr(pkt[IPv6], "frag", None)
-        more_fragments = None
-        identification = None
-
-    packet_length = len(bytes(pkt))
-    return {
-        "timestamp": timestamp,
-        "src_ip": src_ip,
-        "dst_ip": dst_ip,
-        "protocol": protocol,
-        "src_port": src_port,
-        "dst_port": dst_port,
-        "packet_length": packet_length,
-        "payload_length": payload_length,
-        "ttl": int(ttl) if ttl is not None else None,
-        "ip_version": ip_version,
-        "tcp_flags": tcp_flags,
-        "tcp_window": tcp_window,
-        "tcp_seq": tcp_seq,
-        "tcp_ack": tcp_ack,
-        "fragment_offset": fragment_offset,
-        "more_fragments": more_fragments,
-        "identification": identification,
-    }
+        fragment = pkt.getlayer(IPv6ExtHdrFragment)
+        if fragment is not None:
+            ipv6_fragment_offset, ipv6_more_fragments, ipv6_fragment_id = int(fragment.offset), bool(fragment.m), int(fragment.id)
+            fragment_offset, more_fragments, identification = ipv6_fragment_offset, ipv6_more_fragments, ipv6_fragment_id
+    vlan_layers = tuple(layer for layer in _payload_layers(pkt) if isinstance(layer, Dot1Q))
+    vlan = vlan_layers[0] if vlan_layers else None
+    return PacketRecord(
+        timestamp=timestamp, src_ip=src_ip, dst_ip=dst_ip, ip_version=ip_version, protocol=protocol,
+        src_port=src_port, dst_port=dst_port, packet_length=len(bytes(pkt)), payload_length=payload_length,
+        ttl=int(ttl) if ttl is not None else None, tcp_flags=tcp_flags, tcp_window=tcp_window,
+        tcp_seq=tcp_seq, tcp_ack=tcp_ack, fragment_offset=fragment_offset, more_fragments=more_fragments,
+        identification=identification, icmp_type=icmp_type, icmp_code=icmp_code,
+        ipv6_extension_headers=extension_headers, ipv6_fragment_id=ipv6_fragment_id,
+        ipv6_fragment_offset=ipv6_fragment_offset, ipv6_more_fragments=ipv6_more_fragments,
+        vlan_id=int(vlan.vlan) if vlan is not None else None, vlan_priority=int(vlan.prio) if vlan is not None else None,
+        vlan_ids=tuple(int(layer.vlan) for layer in vlan_layers),
+        packet_index=packet_index, capture_relative_timestamp=(timestamp - capture_start) if capture_start is not None else None,
+        parsing_status=parsing_status, unsupported_reason=unsupported_reason,
+        truncation_status=_truncation_status(pkt),
+        provenance=Provenance(capture_id, (packet_index,) if packet_index is not None else (), (), (), (timestamp,), "packet_extraction"),
+    )
 
 
-def iter_streaming_packets(path: str | Path) -> Iterator[dict[str, Any]]:
+def iter_streaming_packets(path: str | Path) -> Iterator[PacketRecord]:
     pcap_path = Path(path)
     reader = PcapNgReader(str(pcap_path))
     try:
-        for pkt in reader:
-            record = packet_record_from_pkt(pkt)
+        for packet_index, pkt in enumerate(reader):
+            record = packet_record_from_pkt(pkt, packet_index=packet_index, capture_id=pcap_path.name)
             if record is not None:
                 yield record
     finally:
@@ -254,6 +301,8 @@ def compute_packet_window_stats(records: list[dict[str, Any]], retransmission_co
 
 
 def _detect_retransmission(record: dict[str, Any], sequence_ends: dict[tuple[Any, ...], int]) -> bool:
+    if isinstance(record, PacketRecord):
+        record = record.to_dict()
     if record.get("protocol") != "TCP" or not record.get("payload_length"):
         return False
     key = (record["src_ip"], record["src_port"], record["dst_ip"], record["dst_port"])
@@ -265,6 +314,7 @@ def _detect_retransmission(record: dict[str, Any], sequence_ends: dict[tuple[Any
 
 
 def _port_scan_score(records: list[dict[str, Any]]) -> float:
+    records = [record.to_dict() if isinstance(record, PacketRecord) else record for record in records]
     syn_attempts = sum(bool((r.get("tcp_flags") or 0) & 0x02 and not (r.get("tcp_flags") or 0) & 0x10) for r in records)
     responses = sum(bool((r.get("tcp_flags") or 0) & 0x12) for r in records)
     unique_ports = len({r["dst_port"] for r in records if r.get("dst_port") is not None})
@@ -344,56 +394,135 @@ class _WindowAccumulator:
         return result
 
 
-def extract_packet_windows(pcap_path: str | Path, window_seconds: int = 60, max_packets: int | None = None, checkpoint_path: str | Path | None = None, progress_interval: int = 100_000) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    buckets: dict[int, _WindowAccumulator] = {}
-    finalized: list[dict[str, Any]] = []
-    retransmissions: defaultdict[int, int] = defaultdict(int)
-    sequence_ends: dict[tuple[Any, ...], int] = {}
-    quality: dict[str, Any] = {"packets_read": 0, "packets_parsed": 0, "malformed_packets": 0, "extraction_errors": [], "ttl_available_packets": 0, "tcp_window_available_packets": 0, "payload_available_packets": 0, "fragmented_packets": 0, "ipv4": 0, "ipv6": 0, "tcp": 0, "udp": 0, "icmp": 0}
-    previous_bucket: int | None = None
-    reader = PcapNgReader(str(pcap_path))
+def extract_canonical_capture(
+    pcap_path: str | Path,
+    window_seconds: int = 60,
+    max_packets: int | None = None,
+) -> tuple[tuple[PacketRecord, ...], tuple[TemporalWindow, ...], dict[str, Any]]:
+    capture_path = Path(pcap_path)
+    capture_id = capture_path.name
+    packets: list[PacketRecord] = []
+    malformed = 0
+    unsupported = 0
+    truncated = 0
+    truncation_unknown = 0
+    timestamp_anomalies = 0
+    timestamp_equal = 0
+    invalid_timestamp = 0
+    duplicate_count = 0
+    fingerprints: set[tuple[Any, ...]] = set()
+    first_fingerprint_index: dict[tuple[Any, ...], int] = {}
+    previous_timestamp: float | None = None
+    reader = PcapNgReader(str(capture_path))
     try:
-        for pkt in reader:
-            if max_packets is not None and quality["packets_read"] >= max_packets:
+        for packet_index, pkt in enumerate(reader):
+            if max_packets is not None and packet_index >= max_packets:
                 break
-            quality["packets_read"] += 1
             try:
-                record = packet_record_from_pkt(pkt)
-            except Exception as exc:
-                quality["malformed_packets"] += 1
-                quality["extraction_errors"].append(type(exc).__name__)
+                record = packet_record_from_pkt(pkt, packet_index=packet_index, capture_id=capture_id)
+            except Exception:
+                malformed += 1
                 continue
             if record is None:
-                quality["malformed_packets"] += 1
+                invalid_timestamp += 1
+                malformed += 1
                 continue
-            quality["packets_parsed"] += 1
-            quality["ipv4"] += record.get("ip_version") == 4
-            quality["ipv6"] += record.get("ip_version") == 6
-            quality[record["protocol"].lower()] = quality.get(record["protocol"].lower(), 0) + 1
-            quality["ttl_available_packets"] += record["ttl"] is not None
-            quality["tcp_window_available_packets"] += record["tcp_window"] is not None
-            quality["payload_available_packets"] += record["payload_length"] is not None
-            quality["fragmented_packets"] += bool(record["fragment_offset"] or record["more_fragments"])
-            bucket = _window_bucket(float(record["timestamp"]), window_seconds)
-            if previous_bucket is not None and bucket != previous_bucket:
-                finalized.append(buckets.pop(previous_bucket).finalize(previous_bucket * window_seconds, (previous_bucket + 1) * window_seconds))
-            retransmitted = _detect_retransmission(record, sequence_ends)
-            buckets.setdefault(bucket, _WindowAccumulator()).update(record, retransmitted)
-            if retransmitted:
-                retransmissions[bucket] += 1
-            previous_bucket = bucket
-            if checkpoint_path is not None and quality["packets_read"] % progress_interval == 0:
-                checkpoint = {**quality, "status": "RUNNING", "packet_windows_finalized": len(finalized), "input_path": str(pcap_path)}
-                Path(checkpoint_path).write_text(json.dumps(checkpoint, indent=2), encoding="utf-8")
-                print(f"progress packets_read={quality['packets_read']} packets_parsed={quality['packets_parsed']} windows={len(finalized)}", flush=True)
+            if previous_timestamp is not None and record.timestamp < previous_timestamp:
+                timestamp_anomalies += 1
+            elif previous_timestamp is not None and record.timestamp == previous_timestamp:
+                timestamp_equal += 1
+            previous_timestamp = record.timestamp
+            fingerprint = (record.timestamp, record.src_ip, record.dst_ip, record.protocol, record.src_port, record.dst_port, record.packet_length, record.tcp_seq)
+            if fingerprint in fingerprints:
+                duplicate_count += 1
+                record = replace(record, duplicate_of_index=first_fingerprint_index[fingerprint], parsing_status="duplicate")
+            else:
+                first_fingerprint_index[fingerprint] = packet_index
+            fingerprints.add(fingerprint)
+            if record.parsing_status == "unsupported" or record.unsupported_reason is not None:
+                unsupported += 1
+            if record.truncation_status == "TRUE":
+                truncated += 1
+            elif record.truncation_status == "UNKNOWN":
+                truncation_unknown += 1
+            packets.append(record)
     finally:
         reader.close()
-    for bucket, records in sorted(buckets.items()):
-        finalized.append(records.finalize(bucket * window_seconds, (bucket + 1) * window_seconds))
-    quality["packet_windows"] = len(finalized)
-    quality["window_seconds"] = window_seconds
-    quality["status"] = "COMPLETE"
-    return finalized, quality
+
+    retransmission_packet_indexes: set[int] = set()
+    sequence_ends: dict[tuple[Any, ...], int] = {}
+    for packet in packets:
+        if _detect_retransmission(packet, sequence_ends) and packet.packet_index is not None:
+            retransmission_packet_indexes.add(packet.packet_index)
+    flows = list(build_flows(packets, capture_id))
+    flows = [replace(flow, retransmission_count=sum(index in retransmission_packet_indexes for index in flow.provenance.packet_indexes)) for flow in flows]
+    incomplete_flow_count = sum(flow.protocol == "TCP" and flow.completeness != "COMPLETE" for flow in flows)
+    timestamps_reordered = any(
+        packet.timestamp < previous.timestamp
+        for packet, previous in zip(packets[1:], packets)
+    )
+    quality = make_capture_quality(
+        packets,
+        total_packets_observed=len(packets) + malformed,
+        malformed_packets=malformed,
+        unsupported_packets=unsupported,
+        truncated_packets=truncated,
+        truncation_unknown_count=truncation_unknown,
+        timestamp_anomalies=timestamp_anomalies,
+        timestamp_equal_count=timestamp_equal,
+        invalid_timestamp_count=invalid_timestamp,
+        duplicate_packets=duplicate_count,
+        timestamps_reordered=timestamps_reordered,
+        original_order_preserved=not timestamps_reordered,
+        incomplete_flow_count=incomplete_flow_count,
+        capture_id=capture_id,
+    )
+    windows = list(build_temporal_windows(packets, flows, quality, window_seconds=window_seconds))
+    enriched: list[TemporalWindow] = []
+    retransmissions_by_window: Counter[int] = Counter()
+    for packet in packets:
+        if packet.packet_index in retransmission_packet_indexes:
+            retransmissions_by_window[_window_bucket(packet.timestamp, window_seconds)] += 1
+    for window in windows:
+        rows = [packet.to_dict() for packet in window.packets]
+        features = compute_packet_window_stats(rows, retransmissions_by_window[window.start_timestamp // window_seconds])
+        features["port_scan_score"] = _port_scan_score(rows)
+        enriched.append(replace(window, aggregate_features=features, detection_features={"retransmission_count": retransmissions_by_window[window.start_timestamp // window_seconds]}))
+    legacy_quality = quality.to_dict()
+    legacy_quality.update({
+        "packets_read": quality.total_packets_observed,
+        "packets_parsed": quality.parsed_packets,
+        "packet_windows": len(enriched),
+        "window_seconds": window_seconds,
+        "extraction_errors": [],
+        "ttl_available_packets": sum(packet.ttl is not None for packet in packets),
+        "tcp_window_available_packets": sum(packet.tcp_window is not None for packet in packets),
+        "payload_available_packets": sum(packet.payload_length is not None for packet in packets),
+        "fragmented_packets": quality.fragmented_packet_count,
+        "truncated_packets": quality.truncated_packets,
+        "truncation_unknown_count": quality.truncation_unknown_count,
+        "timestamp_anomalies": quality.timestamp_anomalies,
+        "timestamp_equal_count": quality.timestamp_equal_count,
+        "timestamps_reordered": quality.timestamps_reordered,
+        "original_order_preserved": quality.original_order_preserved,
+        "duplicate_packets": quality.duplicate_packets,
+        "duplicate_ratio": quality.duplicate_ratio,
+        "ipv4": quality.ipv4_count,
+        "ipv6": quality.ipv6_count,
+        "tcp": quality.tcp_count,
+        "udp": quality.udp_count,
+        "icmp": quality.icmp_count,
+        "arp": quality.arp_count,
+        "vlan": quality.vlan_count,
+        "status": quality.status.value,
+    })
+    return tuple(packets), tuple(enriched), legacy_quality
+
+
+def extract_packet_windows(pcap_path: str | Path, window_seconds: int = 60, max_packets: int | None = None, checkpoint_path: str | Path | None = None, progress_interval: int = 100_000) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    del checkpoint_path, progress_interval
+    _packets, canonical_windows, quality = extract_canonical_capture(pcap_path, window_seconds, max_packets)
+    return [window.to_dict() for window in canonical_windows], quality
 
 
 def _write_parquet(rows: list[dict[str, Any]], path: Path) -> int:

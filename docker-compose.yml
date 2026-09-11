@@ -1,0 +1,59 @@
+﻿version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nexsolve-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nexsolve
+      POSTGRES_PASSWORD: nexsolve_secure_password
+      POSTGRES_DB: nexsolve_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexsolve -d nexsolve_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nexsolve-backend
+    restart: unless-stopped
+    environment:
+      NEXSOLVE_HOST: "0.0.0.0"
+      NEXSOLVE_PORT: 8001
+      NEXSOLVE_ENV: "production"
+      DATABASE_URL: "postgresql+psycopg://nexsolve:nexsolve_secure_password@postgres:5432/nexsolve_db"
+      NEXSOLVE_CORS_ORIGINS: "http://localhost:5173,http://localhost:80,http://127.0.0.1:5173"
+      NEXSOLVE_MAX_UPLOAD_BYTES: 67108864
+      NEXSOLVE_MAX_PACKETS: 100000
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nexsolve-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

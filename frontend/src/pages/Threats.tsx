@@ -1,5 +1,6 @@
 import { Search, SlidersHorizontal } from 'lucide-react'
 import { useState } from 'react'
+import { ForecastTrustPanel } from '../components/ForecastTrustPanel'
 import { ErrorState, EmptyState, LoadingState, Panel, SectionHeading, SeverityPill } from '../components/Ui'
 import { formatTimestamp } from '../utils/format'
 import { useProductionData } from '../hooks/useProductionData'
@@ -12,5 +13,41 @@ export function Threats() {
   if (error || !data) return <ErrorState message={error ?? 'No analysis has been loaded.'} onRetry={() => void reload()} />
   const normalizedQuery = query.trim().toLowerCase().replaceAll('_', ' ')
   const findings = data.results.detection.findings.filter((finding) => `${finding.attack_category.replaceAll('_', ' ')} ${finding.prediction.replaceAll('_', ' ')} ${finding.evidence.map((item) => `${item.rule_id ?? ''} ${item.type.replaceAll('_', ' ')} ${item.message}`).join(' ')}`.toLowerCase().includes(normalizedQuery) && (severity === 'all' || finding.severity === severity))
-  return <div className="page-stack page-enter"><SectionHeading eyebrow="Threats / Evidence" title="Detection findings" description={`Traffic-derived indicators from ${data.results.source?.name ?? 'the completed packet analysis'}.`} action={<span className="method-badge">TRAFFIC HEURISTICS</span>} /><Panel className="filter-panel"><div className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search findings or evidence" aria-label="Search findings" /></div><div className="select-wrap"><SlidersHorizontal size={15} /><select value={severity} onChange={(event) => setSeverity(event.target.value)} aria-label="Filter severity"><option value="all">All severity</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div><span className="filter-count">{findings.length} shown</span></Panel>{findings.length === 0 ? <Panel><EmptyState title={data.results.detection.findings.length === 0 ? 'No threats detected' : 'No matching findings'} message={data.results.detection.findings.length === 0 ? 'The completed analysis returned no evidence-based findings.' : 'Try a different search or severity filter.'} /></Panel> : <div className="threat-list">{findings.map((finding) => <Panel className="threat-card" key={finding.finding_id}><div className="threat-main"><div className="threat-title"><SeverityPill severity={finding.severity} /><h3>{finding.attack_category.replaceAll('_', ' ')}</h3><span className="threat-id">{finding.finding_id}</span></div><p>{finding.recommendation}</p><div className="evidence-list">{finding.evidence.map((item) => <div key={item.rule_id ?? item.type}><span>{item.rule_id ?? item.type.replaceAll('_', ' ')}</span><strong>{item.message}</strong><small>{item.metric ? `Metric: ${item.metric}` : ''}{item.metric && item.threshold !== undefined ? ` | Threshold: ${item.threshold}` : ''}</small></div>)}</div></div><div className="threat-meta"><span>Detection method</span><strong className="threat-method">{finding.detection_method ?? data.results.detection.detection_method ?? data.results.detection.detection_mode}</strong><span>Heuristic risk score</span><strong>{Number.isFinite(finding.risk_score) ? finding.risk_score.toFixed(1) : 'Unavailable'}</strong><small>{formatTimestamp(finding.timestamp)}</small></div></Panel>)}</div>}</div>
+  return (
+    <div className="page-stack page-enter">
+      <SectionHeading eyebrow="Threats / Evidence" title="Detection findings & Forecast Trust Layer" description={`Traffic-derived indicators, attack horizon, and deterministic evidence chain from ${data.results.source?.name ?? 'the completed packet analysis'}.`} action={<span className="method-badge">PREDICTIVE INTELLIGENCE</span>} />
+      <ForecastTrustPanel />
+      <Panel className="filter-panel">
+        <div className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search findings or evidence" aria-label="Search findings" /></div>
+        <div className="select-wrap"><SlidersHorizontal size={15} /><select value={severity} onChange={(event) => setSeverity(event.target.value)} aria-label="Filter severity"><option value="all">All severity</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>
+        <span className="filter-count">{findings.length} shown</span>
+      </Panel>
+      {findings.length === 0 ? (
+        <Panel><EmptyState title={data.results.detection.findings.length === 0 ? 'No threats detected' : 'No matching findings'} message={data.results.detection.findings.length === 0 ? 'The completed analysis returned no evidence-based findings.' : 'Try a different search or severity filter.'} /></Panel>
+      ) : (
+        <div className="threat-list">
+          {findings.map((finding) => (
+            <Panel className="threat-card" key={finding.finding_id}>
+              <div className="threat-main">
+                <div className="threat-title"><SeverityPill severity={finding.severity} /><h3>{finding.attack_category.replaceAll('_', ' ')}</h3><span className="threat-id">{finding.finding_id}</span></div>
+                <p>{finding.recommendation}</p>
+                <div className="evidence-list">
+                  {finding.evidence.map((item) => (
+                    <div key={item.rule_id ?? item.type}><span>{item.rule_id ?? item.type.replaceAll('_', ' ')}</span><strong>{item.message}</strong><small>{item.metric ? `Metric: ${item.metric}` : ''}{item.metric && item.threshold !== undefined ? ` | Threshold: ${item.threshold}` : ''}</small></div>
+                  ))}
+                </div>
+              </div>
+              <div className="threat-meta">
+                <span>Detection method</span>
+                <strong className="threat-method">{finding.detection_method ?? data.results.detection.detection_method ?? data.results.detection.detection_mode}</strong>
+                <span>Heuristic risk score</span>
+                <strong>{Number.isFinite(finding.risk_score) ? finding.risk_score.toFixed(1) : 'Unavailable'}</strong>
+                <small>{formatTimestamp(finding.timestamp)}</small>
+              </div>
+            </Panel>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }

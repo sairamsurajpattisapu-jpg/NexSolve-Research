@@ -6,6 +6,7 @@ import type {
   ReportResponse,
   TrafficSummary,
   UploadedAnalysisResponse,
+  JobStatusResponse,
 } from '../types/api'
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
@@ -50,6 +51,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   health: () => request<HealthResponse>('/health'),
+  ready: () => request<{ status: string; service: string; database: { status: string; mode: string; detail: string } }>('/ready'),
   startAnalysis: () => request<{ analysis_id: string; status: string }>('/api/analysis', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -66,4 +68,17 @@ export const api = {
     body.append('file', file)
     return request<UploadedAnalysisResponse>('/api/pcap/analyze', { method: 'POST', body })
   },
+  createJob: (file: File) => {
+    const body = new FormData()
+    body.append('file', file)
+    return request<JobStatusResponse>('/jobs', { method: 'POST', body })
+  },
+  getJobStatus: (jobId: string) => request<JobStatusResponse>(`/jobs/${jobId}`),
+  getJobResult: (jobId: string) => request<UploadedAnalysisResponse>(`/jobs/${jobId}/result`),
+  getReportJsonUrl: (jobId: string) => `${API_BASE}/jobs/${jobId}/report.json`,
+  getReportHtmlUrl: (jobId: string) => `${API_BASE}/jobs/${jobId}/report.html`,
+  getDemoScenarios: () => request<Array<{ id: string; name: string; badge: string; tone: string; description: string; expected_behavior: string }>>('/api/demo/scenarios'),
+  getDemoScenarioResult: (scenarioId: string) => request<UploadedAnalysisResponse>(`/api/demo/scenarios/${scenarioId}`),
+  getDemoReportJsonUrl: (scenarioId: string) => `${API_BASE}/api/demo/scenarios/${scenarioId}/report.json`,
+  getDemoReportHtmlUrl: (scenarioId: string) => `${API_BASE}/api/demo/scenarios/${scenarioId}/report.html`,
 }

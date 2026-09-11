@@ -1,0 +1,9 @@
+{
+  "production_eligible": false,
+  "status": "HOLD",
+  "reasons": [
+    "Test cases limited to single 13-case episode on UNSW-NB15",
+    "Fails to demonstrate cross-domain transfer to TON-IoT",
+    "Persistence baseline remains superior or competitive across test horizons"
+  ]
+}

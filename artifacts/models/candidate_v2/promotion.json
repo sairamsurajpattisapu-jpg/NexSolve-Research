@@ -1,0 +1,10 @@
+{
+  "production_eligible": false,
+  "status": "HOLD",
+  "reasons": [
+    "fewer than two eligible future evaluation episodes",
+    "existing LSTM does not consistently beat persistence",
+    "calibration unsupported by validation support",
+    "direct candidate evaluated on the same 13-case test episode; no independent-domain promotion evidence"
+  ]
+}

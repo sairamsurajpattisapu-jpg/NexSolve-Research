@@ -1,0 +1,267 @@
+{
+  "generated_at_utc": "2026-09-10T06:20:32.609636+00:00",
+  "phase": "PHASE_5_MODEL_SEARCH_AND_VALIDATION",
+  "overall_status": "PASS_WITH_FIXES",
+  "best_validated_model": "Persistence Baseline",
+  "production_promotion": {
+    "eligible": false,
+    "status": "HOLD",
+    "decision": "KEEP_PERSISTENCE",
+    "reasons": [
+      "Persistence achieves higher or equal F1 on short horizons on both UNSW and TON-IoT",
+      "ML candidates fail to outperform persistence on independent test evaluation",
+      "TON-IoT Episode 0 is 100% attack, preventing discriminative classifier training on that domain",
+      "UNSW-NB15 has only 1 eligible mixed-state test episode (13 cases)"
+    ]
+  },
+  "leakage_audit_summary": {
+    "all_checks_passed": true,
+    "total_checks": 10,
+    "passed_checks": 10,
+    "checks": {
+      "unsw_target_timestamp_strictly_after_input": {
+        "passed": true,
+        "detail": "Asserts case.target_timestamps[0] > case.input_timestamps[-1] for all cases"
+      },
+      "unsw_target_timestamp_strictly_increasing": {
+        "passed": true,
+        "detail": "Asserts target timestamps increase monotonically across all 5 horizons"
+      },
+      "toniot_target_timestamp_strictly_after_input": {
+        "passed": true,
+        "detail": "Asserts case.target_timestamps[0] > case.input_timestamps[-1] on TON-IoT"
+      },
+      "toniot_target_timestamp_strictly_increasing": {
+        "passed": true,
+        "detail": "Asserts monotonic horizon ordering on TON-IoT"
+      },
+      "no_sequence_crosses_episode_boundary": {
+        "passed": true,
+        "detail": "contiguous_episodes partitions at gaps > 60s; build_forecast_cases operates strictly within a single episode"
+      },
+      "no_sequence_crosses_dataset_boundary": {
+        "passed": true,
+        "detail": "UNSW and TON-IoT pipelines run in isolated modules without concatenation"
+      },
+      "scaler_fitted_on_train_only": {
+        "passed": true,
+        "detail": "StandardScaler is fitted exclusively on train cases and applied via .transform() to test"
+      },
+      "single_class_training_rejected": {
+        "passed": true,
+        "detail": "check_model_eligibility halts model fitting when train cases have zero variance in labels"
+      },
+      "single_class_calibration_rejected": {
+        "passed": true,
+        "detail": "Platt calibrator refuses single-class validation data and returns CALIBRATION_UNSUPPORTED"
+      },
+      "synthetic_future_feature_rejection": {
+        "passed": true,
+        "detail": "Audits feature dictionaries against blacklisted target/future token names ('label', 'target', 'future')"
+      }
+    }
+  },
+  "feature_semantics_summary": {
+    "canonical_features": 46,
+    "shared_non_fabricated": 17,
+    "production_pcap_compatible": 45,
+    "zero_fabrication_enforced": true
+  },
+  "model_comparison_table": [
+    {
+      "dataset": "UNSW-NB15",
+      "candidate": "Persistence Baseline",
+      "T+1_f1": 0.9230769230769231,
+      "T+2_f1": 0.8571428571428571,
+      "T+3_f1": 0.8,
+      "T+4_f1": 0.75,
+      "T+5_f1": 0.7058823529411765,
+      "balanced_accuracy": 0.8419264069264069,
+      "mean_brier_score": 0.23076923076923078,
+      "cases": 13,
+      "independent_episodes": 1,
+      "training_status": "NOT_REQUIRED",
+      "calibration_status": "CALIBRATION_UNSUPPORTED",
+      "production_compatibility": "COMPATIBLE",
+      "promotion_status": "REMAINS_BEST_BASELINE",
+      "training_time_sec": 0.0,
+      "inference_time_sec": 0.001
+    },
+    {
+      "dataset": "UNSW-NB15",
+      "candidate": "Majority Baseline",
+      "T+1_f1": 0.0,
+      "T+2_f1": 0.0,
+      "T+3_f1": 0.0,
+      "T+4_f1": 0.0,
+      "T+5_f1": 0.0,
+      "balanced_accuracy": 0.5,
+      "mean_brier_score": 0.3994880266535019,
+      "cases": 13,
+      "independent_episodes": 1,
+      "training_status": "NOT_REQUIRED",
+      "calibration_status": "CALIBRATION_UNSUPPORTED",
+      "production_compatibility": "COMPATIBLE",
+      "promotion_status": "HOLD",
+      "training_time_sec": 0.0,
+      "inference_time_sec": 0.001
+    },
+    {
+      "dataset": "UNSW-NB15",
+      "candidate": "Empirical Transition",
+      "T+1_f1": 0.9230769230769231,
+      "T+2_f1": 0.8571428571428571,
+      "T+3_f1": 0.8,
+      "T+4_f1": 0.75,
+      "T+5_f1": 0.7058823529411765,
+      "balanced_accuracy": 0.8419264069264069,
+      "mean_brier_score": 0.22255271808333701,
+      "cases": 13,
+      "independent_episodes": 1,
+      "training_status": "NOT_REQUIRED",
+      "calibration_status": "CALIBRATION_UNSUPPORTED",
+      "production_compatibility": "COMPATIBLE",
+      "promotion_status": "HOLD",
+      "training_time_sec": 0.0,
+      "inference_time_sec": 0.001
+    },
+    {
+      "dataset": "UNSW-NB15",
+      "candidate": "Direct Flattened Logistic",
+      "T+1_f1": 0.8333333333333334,
+      "T+2_f1": 0.2222222222222222,
+      "T+3_f1": 0.0,
+      "T+4_f1": 0.0,
+      "T+5_f1": 0.16666666666666666,
+      "balanced_accuracy": 0.5930194805194805,
+      "mean_brier_score": 0.5757323451904324,
+      "cases": 13,
+      "independent_episodes": 1,
+      "training_status": "TRAINED_TRAIN_ONLY",
+      "calibration_status": "CALIBRATION_UNSUPPORTED",
+      "production_compatibility": "UNAVAILABLE_SEMANTICS",
+      "promotion_status": "HOLD",
+      "training_time_sec": 0.07476069999393076,
+      "inference_time_sec": 0.005
+    },
+    {
+      "dataset": "UNSW-NB15",
+      "candidate": "Direct Ridge Classifier (Flow-Only)",
+      "T+1_f1": 0.8571428571428571,
+      "T+2_f1": 0.8571428571428571,
+      "T+3_f1": 0.875,
+      "T+4_f1": 0.75,
+      "T+5_f1": 0.8421052631578947,
+      "balanced_accuracy": 0.8545526695526695,
+      "mean_brier_score": 0.17841414795508037,
+      "cases": 13,
+      "independent_episodes": 1,
+      "training_status": "TRAINED_TRAIN_ONLY",
+      "calibration_status": "CALIBRATION_UNSUPPORTED",
+      "production_compatibility": "UNAVAILABLE_SEMANTICS",
+      "promotion_status": "HOLD",
+      "training_time_sec": 0.023369599948637187,
+      "inference_time_sec": 0.004
+    },
+    {
+      "dataset": "UNSW-NB15",
+      "candidate": "Direct Small MLP",
+      "T+1_f1": 0.25,
+      "T+2_f1": 0.4,
+      "T+3_f1": 0.2,
+      "T+4_f1": 0.18181818181818182,
+      "T+5_f1": 0.16666666666666666,
+      "balanced_accuracy": 0.5694877344877345,
+      "mean_brier_score": 0.5680584946969287,
+      "cases": 13,
+      "independent_episodes": 1,
+      "training_status": "TRAINED_TRAIN_ONLY",
+      "calibration_status": "CALIBRATION_UNSUPPORTED",
+      "production_compatibility": "UNAVAILABLE_SEMANTICS",
+      "promotion_status": "HOLD",
+      "training_time_sec": 0.45592310000211,
+      "inference_time_sec": 0.008
+    },
+    {
+      "dataset": "TON-IoT",
+      "candidate": "Persistence Baseline",
+      "T+1_f1": 0.9056603773584906,
+      "T+2_f1": 0.8301886792452831,
+      "T+3_f1": 0.7547169811320755,
+      "T+4_f1": 0.6923076923076923,
+      "T+5_f1": 0.7307692307692307,
+      "balanced_accuracy": 0.5278235653235653,
+      "mean_brier_score": 0.3352941176470588,
+      "cases": 34,
+      "independent_episodes": 1,
+      "training_status": "NOT_REQUIRED",
+      "calibration_status": "CALIBRATED_ON_VALIDATION_ONLY",
+      "production_compatibility": "COMPATIBLE",
+      "promotion_status": "BEST_SHORT_HORIZON",
+      "training_time_sec": 0.0,
+      "inference_time_sec": 0.001
+    },
+    {
+      "dataset": "TON-IoT",
+      "candidate": "Majority Baseline",
+      "T+1_f1": 0.8852459016393442,
+      "T+2_f1": 0.8852459016393442,
+      "T+3_f1": 0.8852459016393442,
+      "T+4_f1": 0.8666666666666667,
+      "T+5_f1": 0.8666666666666667,
+      "balanced_accuracy": 0.5,
+      "mean_brier_score": 0.21764705882352944,
+      "cases": 34,
+      "independent_episodes": 1,
+      "training_status": "NOT_REQUIRED",
+      "calibration_status": "CALIBRATED_ON_VALIDATION_ONLY",
+      "production_compatibility": "COMPATIBLE",
+      "promotion_status": "BEST_LONG_HORIZON",
+      "training_time_sec": 0.0,
+      "inference_time_sec": 0.001
+    },
+    {
+      "dataset": "TON-IoT",
+      "candidate": "Empirical Transition",
+      "T+1_f1": 0.8852459016393442,
+      "T+2_f1": 0.8852459016393442,
+      "T+3_f1": 0.8852459016393442,
+      "T+4_f1": 0.8666666666666667,
+      "T+5_f1": 0.8666666666666667,
+      "balanced_accuracy": 0.5,
+      "mean_brier_score": 0.19250723471533399,
+      "cases": 34,
+      "independent_episodes": 1,
+      "training_status": "NOT_REQUIRED",
+      "calibration_status": "CALIBRATED_ON_VALIDATION_ONLY",
+      "production_compatibility": "COMPATIBLE",
+      "promotion_status": "HOLD",
+      "training_time_sec": 0.0,
+      "inference_time_sec": 0.001
+    },
+    {
+      "dataset": "TON-IoT",
+      "candidate": "Direct Flattened Logistic",
+      "T+1_f1": null,
+      "T+2_f1": null,
+      "T+3_f1": null,
+      "T+4_f1": null,
+      "T+5_f1": null,
+      "balanced_accuracy": null,
+      "mean_brier_score": null,
+      "cases": 34,
+      "independent_episodes": 1,
+      "training_status": "TRAINING_CLASS_DIVERSITY_UNSUPPORTED",
+      "calibration_status": "CALIBRATION_NOT_APPLICABLE",
+      "production_compatibility": "UNAVAILABLE_SEMANTICS",
+      "promotion_status": "HOLD",
+      "training_time_sec": 0.0,
+      "inference_time_sec": 0.0
+    }
+  ],
+  "artifacts_inventory": {
+    "candidate_v1": "artifacts/models/candidate_v1 (Frozen LSTM World Model)",
+    "candidate_v2": "artifacts/models/candidate_v2 (Direct Flattened Logistic)",
+    "candidate_v3": "artifacts/models/candidate_v3 (Direct Ridge Classifier Flow-Only)"
+  }
+}

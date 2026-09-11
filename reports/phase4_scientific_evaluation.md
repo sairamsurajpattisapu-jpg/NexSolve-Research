@@ -1,0 +1,998 @@
+# Phase 4 Scientific Forecasting Evaluation
+
+```json
+{
+  "generated_at_utc": "2026-09-09T16:03:36.957722+00:00",
+  "task": {
+    "state": "X_t",
+    "target": "Y_(t+h) attack_state",
+    "horizons": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "window_seconds": 60,
+    "lookback": 8,
+    "attack_state": "UNSW Label != 0 within the target window",
+    "benign_state": "UNSW Label == 0 within the target window",
+    "unknown_state": "missing/untrusted target or feature evidence",
+    "unknown_semantics": "unknown is not benign or attack; it abstains"
+  },
+  "dataset": "UNSW-NB15",
+  "episode_construction": {
+    "episode_count": 5,
+    "episode_rule": "timestamp-contiguous 60-second runs; no capture or dataset boundary crossing",
+    "train_episodes": [
+      0
+    ],
+    "validation_episodes": [
+      1
+    ],
+    "test_episodes": [
+      2
+    ],
+    "eligible_test_episode_count": 1
+  },
+  "split": {
+    "train": {
+      "episodes": 1,
+      "windows": 453,
+      "start_timestamp": 1421927340,
+      "end_timestamp": 1421954460
+    },
+    "validation": {
+      "episodes": 1,
+      "windows": 291,
+      "start_timestamp": 1421955300,
+      "end_timestamp": 1421972700
+    },
+    "test": {
+      "episodes": 1,
+      "windows": 25,
+      "start_timestamp": 1424218980,
+      "end_timestamp": 1424220420
+    }
+  },
+  "target_alignment": {
+    "input_end_strictly_before_targets": true,
+    "horizon_order_enforced": true,
+    "future_targets_in_inputs": false,
+    "test_cases": 13
+  },
+  "leakage_audit": {
+    "feature_schema": {
+      "passed": true,
+      "target_features": [],
+      "future_named_features": []
+    },
+    "scaler_fit_scope": "Logistic Regression scaler fit on train source states only; LSTM uses frozen artifact preprocessing",
+    "test_threshold_selection": false,
+    "episode_boundaries_enforced": true
+  },
+  "candidate_results": {
+    "Persistence": {
+      "T+1": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.8571428571428571,
+        "f1": 0.9230769230769231,
+        "macro_f1": 0.9230769230769231,
+        "balanced_accuracy": 0.9285714285714286,
+        "confusion_matrix": [
+          [
+            6,
+            0
+          ],
+          [
+            1,
+            6
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 6,
+          "1": 7
+        },
+        "roc_auc": 0.9285714285714286,
+        "pr_auc": 0.9340659340659341,
+        "brier_score": 0.07692307692307693,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+2": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1": 0.8571428571428571,
+        "macro_f1": 0.8452380952380952,
+        "balanced_accuracy": 0.875,
+        "confusion_matrix": [
+          [
+            5,
+            0
+          ],
+          [
+            2,
+            6
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 5,
+          "1": 8
+        },
+        "roc_auc": 0.875,
+        "pr_auc": 0.9038461538461539,
+        "brier_score": 0.15384615384615385,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+3": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.6666666666666666,
+        "f1": 0.8,
+        "macro_f1": 0.7636363636363637,
+        "balanced_accuracy": 0.8333333333333333,
+        "confusion_matrix": [
+          [
+            4,
+            0
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 4,
+          "1": 9
+        },
+        "roc_auc": 0.8333333333333333,
+        "pr_auc": 0.8974358974358974,
+        "brier_score": 0.23076923076923078,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+4": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.6,
+        "f1": 0.75,
+        "macro_f1": 0.675,
+        "balanced_accuracy": 0.8,
+        "confusion_matrix": [
+          [
+            3,
+            0
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 3,
+          "1": 10
+        },
+        "roc_auc": 0.8,
+        "pr_auc": 0.9076923076923077,
+        "brier_score": 0.3076923076923077,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+5": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.5454545454545454,
+        "f1": 0.7058823529411765,
+        "macro_f1": 0.5751633986928104,
+        "balanced_accuracy": 0.7727272727272727,
+        "confusion_matrix": [
+          [
+            2,
+            0
+          ],
+          [
+            5,
+            6
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 2,
+          "1": 11
+        },
+        "roc_auc": 0.7727272727272727,
+        "pr_auc": 0.93006993006993,
+        "brier_score": 0.38461538461538464,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      }
+    },
+    "Majority": {
+      "T+1": {
+        "status": "computed",
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "macro_f1": 0.3157894736842105,
+        "balanced_accuracy": 0.5,
+        "confusion_matrix": [
+          [
+            6,
+            0
+          ],
+          [
+            7,
+            0
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 6,
+          "1": 7
+        },
+        "roc_auc": 0.5,
+        "pr_auc": 0.5384615384615384,
+        "brier_score": 0.32579130395015665,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+2": {
+        "status": "computed",
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "macro_f1": 0.2777777777777778,
+        "balanced_accuracy": 0.5,
+        "confusion_matrix": [
+          [
+            5,
+            0
+          ],
+          [
+            8,
+            0
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 5,
+          "1": 8
+        },
+        "roc_auc": 0.5,
+        "pr_auc": 0.6153846153846154,
+        "brier_score": 0.3626396653018293,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+3": {
+        "status": "computed",
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "macro_f1": 0.23529411764705882,
+        "balanced_accuracy": 0.5,
+        "confusion_matrix": [
+          [
+            4,
+            0
+          ],
+          [
+            9,
+            0
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 4,
+          "1": 9
+        },
+        "roc_auc": 0.5,
+        "pr_auc": 0.6923076923076923,
+        "brier_score": 0.39948802665350197,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+4": {
+        "status": "computed",
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "macro_f1": 0.1875,
+        "balanced_accuracy": 0.5,
+        "confusion_matrix": [
+          [
+            3,
+            0
+          ],
+          [
+            10,
+            0
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 3,
+          "1": 10
+        },
+        "roc_auc": 0.5,
+        "pr_auc": 0.7692307692307693,
+        "brier_score": 0.43633638800517455,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+5": {
+        "status": "computed",
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "macro_f1": 0.13333333333333333,
+        "balanced_accuracy": 0.5,
+        "confusion_matrix": [
+          [
+            2,
+            0
+          ],
+          [
+            11,
+            0
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 2,
+          "1": 11
+        },
+        "roc_auc": 0.5,
+        "pr_auc": 0.8461538461538461,
+        "brier_score": 0.4731847493568472,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      }
+    },
+    "Empirical Transition": {
+      "T+1": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.8571428571428571,
+        "f1": 0.9230769230769231,
+        "macro_f1": 0.9230769230769231,
+        "balanced_accuracy": 0.9285714285714286,
+        "confusion_matrix": [
+          [
+            6,
+            0
+          ],
+          [
+            1,
+            6
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 6,
+          "1": 7
+        },
+        "roc_auc": 0.9285714285714286,
+        "pr_auc": 0.9340659340659341,
+        "brier_score": 0.07615460927960929,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+2": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1": 0.8571428571428571,
+        "macro_f1": 0.8452380952380952,
+        "balanced_accuracy": 0.875,
+        "confusion_matrix": [
+          [
+            5,
+            0
+          ],
+          [
+            2,
+            6
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 5,
+          "1": 8
+        },
+        "roc_auc": 0.875,
+        "pr_auc": 0.9038461538461539,
+        "brier_score": 0.15080045982328882,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+3": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.6666666666666666,
+        "f1": 0.8,
+        "macro_f1": 0.7636363636363637,
+        "balanced_accuracy": 0.8333333333333333,
+        "confusion_matrix": [
+          [
+            4,
+            0
+          ],
+          [
+            3,
+            6
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 4,
+          "1": 9
+        },
+        "roc_auc": 0.8333333333333333,
+        "pr_auc": 0.8974358974358974,
+        "brier_score": 0.22397919192576682,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+4": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.6,
+        "f1": 0.75,
+        "macro_f1": 0.675,
+        "balanced_accuracy": 0.8,
+        "confusion_matrix": [
+          [
+            3,
+            0
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 3,
+          "1": 10
+        },
+        "roc_auc": 0.8,
+        "pr_auc": 0.9076923076923077,
+        "brier_score": 0.29573161552326765,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+5": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.5454545454545454,
+        "f1": 0.7058823529411765,
+        "macro_f1": 0.5751633986928104,
+        "balanced_accuracy": 0.7727272727272727,
+        "confusion_matrix": [
+          [
+            2,
+            0
+          ],
+          [
+            5,
+            6
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 2,
+          "1": 11
+        },
+        "roc_auc": 0.7727272727272727,
+        "pr_auc": 0.93006993006993,
+        "brier_score": 0.3660977138647523,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      }
+    },
+    "Logistic Regression": {
+      "T+1": {
+        "status": "computed",
+        "precision": 0.5714285714285714,
+        "recall": 0.5714285714285714,
+        "f1": 0.5714285714285714,
+        "macro_f1": 0.5357142857142857,
+        "balanced_accuracy": 0.5357142857142857,
+        "confusion_matrix": [
+          [
+            3,
+            3
+          ],
+          [
+            3,
+            4
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 6,
+          "1": 7
+        },
+        "roc_auc": 0.42857142857142855,
+        "pr_auc": 0.5042517006802721,
+        "brier_score": 0.4482530667968352,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+2": {
+        "status": "computed",
+        "precision": 0.7142857142857143,
+        "recall": 0.625,
+        "f1": 0.6666666666666666,
+        "macro_f1": 0.606060606060606,
+        "balanced_accuracy": 0.6125,
+        "confusion_matrix": [
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            5
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 5,
+          "1": 8
+        },
+        "roc_auc": 0.7000000000000001,
+        "pr_auc": 0.7805555555555556,
+        "brier_score": 0.33910321043422537,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+3": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.5555555555555556,
+        "f1": 0.7142857142857143,
+        "macro_f1": 0.6904761904761905,
+        "balanced_accuracy": 0.7777777777777778,
+        "confusion_matrix": [
+          [
+            4,
+            0
+          ],
+          [
+            4,
+            5
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 4,
+          "1": 9
+        },
+        "roc_auc": 0.75,
+        "pr_auc": 0.9030253696920365,
+        "brier_score": 0.30776865020310323,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+4": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.6,
+        "f1": 0.75,
+        "macro_f1": 0.675,
+        "balanced_accuracy": 0.8,
+        "confusion_matrix": [
+          [
+            3,
+            0
+          ],
+          [
+            4,
+            6
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 3,
+          "1": 10
+        },
+        "roc_auc": 0.9,
+        "pr_auc": 0.9769230769230769,
+        "brier_score": 0.308398682166947,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+5": {
+        "status": "computed",
+        "precision": 0.8571428571428571,
+        "recall": 0.5454545454545454,
+        "f1": 0.6666666666666666,
+        "macro_f1": 0.4583333333333333,
+        "balanced_accuracy": 0.5227272727272727,
+        "confusion_matrix": [
+          [
+            1,
+            1
+          ],
+          [
+            5,
+            6
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 2,
+          "1": 11
+        },
+        "roc_auc": 0.3181818181818182,
+        "pr_auc": 0.8165990575081484,
+        "brier_score": 0.4616477589351055,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      }
+    },
+    "Existing LSTM": {
+      "T+1": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.14285714285714285,
+        "f1": 0.25,
+        "macro_f1": 0.4583333333333333,
+        "balanced_accuracy": 0.5714285714285714,
+        "confusion_matrix": [
+          [
+            6,
+            0
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 6,
+          "1": 7
+        },
+        "roc_auc": 0.45238095238095233,
+        "pr_auc": 0.6533189033189033,
+        "brier_score": 0.36734472703921106,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+2": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.25,
+        "f1": 0.4,
+        "macro_f1": 0.5125,
+        "balanced_accuracy": 0.625,
+        "confusion_matrix": [
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            2
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 5,
+          "1": 8
+        },
+        "roc_auc": 0.575,
+        "pr_auc": 0.7362959956709956,
+        "brier_score": 0.4078660289424423,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+3": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.2222222222222222,
+        "f1": 0.36363636363636365,
+        "macro_f1": 0.4484848484848485,
+        "balanced_accuracy": 0.6111111111111112,
+        "confusion_matrix": [
+          [
+            4,
+            0
+          ],
+          [
+            7,
+            2
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 4,
+          "1": 9
+        },
+        "roc_auc": 0.8055555555555556,
+        "pr_auc": 0.8782627865961199,
+        "brier_score": 0.46240393463539764,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+4": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.2,
+        "f1": 0.3333333333333333,
+        "macro_f1": 0.38095238095238093,
+        "balanced_accuracy": 0.6,
+        "confusion_matrix": [
+          [
+            3,
+            0
+          ],
+          [
+            8,
+            2
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 3,
+          "1": 10
+        },
+        "roc_auc": 0.7333333333333334,
+        "pr_auc": 0.8813455988455987,
+        "brier_score": 0.5260295320099665,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      },
+      "T+5": {
+        "status": "computed",
+        "precision": 1.0,
+        "recall": 0.18181818181818182,
+        "f1": 0.3076923076923077,
+        "macro_f1": 0.3076923076923077,
+        "balanced_accuracy": 0.5909090909090909,
+        "confusion_matrix": [
+          [
+            2,
+            0
+          ],
+          [
+            9,
+            2
+          ]
+        ],
+        "coverage": 1.0,
+        "abstention_rate": 0.0,
+        "evaluated_cases": 13,
+        "forecast_cases": 13,
+        "class_distribution": {
+          "0": 2,
+          "1": 11
+        },
+        "roc_auc": 0.5454545454545454,
+        "pr_auc": 0.878146348600894,
+        "brier_score": 0.5955283315724026,
+        "confidence_intervals": {
+          "status": "not_available",
+          "reason": "fewer than 30 evaluated cases"
+        }
+      }
+    }
+  },
+  "calibration": {
+    "T+1": {
+      "status": "CALIBRATION_UNSUPPORTED",
+      "reason": "validation data lacks two classes or sufficient support"
+    },
+    "T+2": {
+      "status": "CALIBRATION_UNSUPPORTED",
+      "reason": "validation data lacks two classes or sufficient support"
+    },
+    "T+3": {
+      "status": "CALIBRATION_UNSUPPORTED",
+      "reason": "validation data lacks two classes or sufficient support"
+    },
+    "T+4": {
+      "status": "CALIBRATION_UNSUPPORTED",
+      "reason": "validation data lacks two classes or sufficient support"
+    },
+    "T+5": {
+      "status": "CALIBRATION_UNSUPPORTED",
+      "reason": "validation data lacks two classes or sufficient support"
+    }
+  },
+  "abstention": {
+    "status": "EXPLICIT_GATE",
+    "reasons": [
+      "insufficient history",
+      "missing future-compatible feature semantics",
+      "calibration unsupported",
+      "unknown labels"
+    ],
+    "probability_is_not_confidence": true
+  },
+  "promotion": {
+    "production_eligible": false,
+    "status": "HOLD",
+    "reasons": [
+      "fewer than two eligible future evaluation episodes",
+      "existing LSTM does not consistently beat persistence",
+      "calibration unsupported by validation support"
+    ]
+  },
+  "training": {
+    "status": "NOT_RUN",
+    "reason": "Phase 4 evaluated the frozen existing artifact; no retraining or overwrite was performed.",
+    "training_duration": "not recorded in the existing artifact metadata"
+  },
+  "inference": {
+    "model": "Existing LSTM",
+    "total_seconds": 0.038248,
+    "sequences": 13,
+    "seconds_per_sequence": 0.002942,
+    "model_size_bytes": 65404
+  },
+  "reproducibility": {
+    "seed": 7,
+    "artifact": "models\\nexsolve_world_model",
+    "artifact_files": {
+      "config.json": {
+        "sha256": "a085a5dba4eb11bd7bb32635ad2346ee594100257f41eab6b6d22998280a5da6",
+        "size_bytes": 185
+      },
+      "feature_schema.json": {
+        "sha256": "88fb378e94cbc6098814c0171794929e3b2993c0f9fa2e33a9564192bb75e639",
+        "size_bytes": 841
+      },
+      "metadata.json": {
+        "sha256": "0a864468934a0556aec347f69a9446c82fbacd43ab4a3aa6fd402e7fabb06f09",
+        "size_bytes": 418
+      },
+      "model.npz": {
+        "sha256": "07ce2d2d792b6e73304fbcb69cbfe93cefe6d13dcb515cad700ce0be80e0e8a9",
+        "size_bytes": 65404
+      },
+      "preprocessing.json": {
+        "sha256": "c613df55cb79da1bb594acf560ef4fd4d8d04d2f627a19cfa8936f26a2934d64",
+        "size_bytes": 237
+      },
+      "preprocessing.npz": {
+        "sha256": "ee6cc7b1ea16b2828c68f9f0e104c861d6e4a6ae589aec92a1dc4139e885df6d",
+        "size_bytes": 1240
+      }
+    },
+    "evaluation_seconds": 23.071205
+  },
+  "artifact_version": "candidate_v1_existing_lstm_evaluation_only",
+  "production_forecast_connected": false
+}
+```

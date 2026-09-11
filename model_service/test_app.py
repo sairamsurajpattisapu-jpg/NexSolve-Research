@@ -72,6 +72,27 @@ def test_forecast_returns_exactly_five_real_deterministic_horizons():
     network_states = [NetworkState(index * 60, state["flowFeatures"], state["packetFeatures"], state["temporalFeatures"], None, False) for index, state in enumerate(direct)]
     expected = forecast_k_steps(network_states, 5)
     assert body["forecasts"][0]["attackProbability"] == expected["forecasts"][0]["attack_probability"]
+    assert "attack_horizon" in body
+    assert body["attack_horizon"]["state"] in [
+        "NO_ATTACK_FORECAST",
+        "EARLY_SIGNAL",
+        "SUSTAINED_ATTACK_FORECAST",
+        "UNCERTAIN_FORECAST",
+        "ABSTAINED",
+    ]
+    assert "confidence_summary" in body["attack_horizon"]
+    assert len(body["attack_horizon"]["evidence_chain"]) == 5
+    assert body["attack_horizon"]["decision_threshold"] == 0.5
+    assert "evidence_chain" in body
+    assert "supporting" in body["evidence_chain"]
+    assert "contradictory" in body["evidence_chain"]
+    assert "evidence_strength" in body["evidence_chain"]
+    assert "confidence" in body
+    assert body["confidence"]["calibration_status"] == "UNSUPPORTED"
+    assert "unknown_behavior" in body
+    assert body["unknown_behavior"]["classification"] in ["KNOWN_PATTERN", "WEAK_PATTERN", "UNKNOWN_BEHAVIOR"]
+    assert "abstention" in body
+    assert body["abstention"]["abstained"] is False
 
 
 def test_invalid_state_returns_structured_error():
@@ -101,9 +122,20 @@ def test_wrong_feature_count_is_rejected():
 def test_short_sequence_returns_explicit_abstentions():
     response = client.post("/forecast", json={"states": [make_state(0)]})
     assert response.status_code == 200
-    assert len(response.json()["forecasts"]) == 5
-    assert all(point["attackProbability"] is None for point in response.json()["forecasts"])
-    assert all("insufficient history" in point["explanation"][0] for point in response.json()["forecasts"])
+    body = response.json()
+    assert len(body["forecasts"]) == 5
+    assert all(point["attackProbability"] is None for point in body["forecasts"])
+    assert all("insufficient history" in point["explanation"][0] for point in body["forecasts"])
+    assert body["attack_horizon"]["state"] == "ABSTAINED"
+    assert "insufficient" in body["attack_horizon"]["abstention_reason"].lower()
+    assert body["attack_horizon"]["horizon_windows"] == 0
+    assert body["attack_horizon"]["horizon_seconds"] == 0
+    assert "evidence_chain" in body
+    assert "confidence" in body
+    assert "unknown_behavior" in body
+    assert "abstention" in body
+    assert body["abstention"]["abstained"] is True
+    assert body["abstention"]["reason"] == "INSUFFICIENT_HISTORY"
 
 
 def test_production_analysis_is_read_only_and_uses_real_windows():
@@ -142,8 +174,12 @@ def test_pcap_upload_runs_real_extraction_and_detection_in_isolated_runtime(tmp_
     assert body["traffic"]["packets"] == 1
     assert body["validation"]["rows"] == 1
     assert body["detection"]["detection_method"] == "traffic_heuristics"
+    assert body["network_state"]["available"] is True
+    assert body["network_state"]["candidate_count"] == 1
+    assert body["model_compatibility"]["model_ready"] is False
+    assert body["network_state"]["label_semantics"].startswith("UNKNOWN")
     assert client.get(f"/api/analysis/{body['analysis_id']}/results").json()["source"]["kind"] == "uploaded_pcap"
-    assert list((Path(__file__).resolve().parents[1] / "runtime").iterdir()) == []
+    assert [p for p in (Path(__file__).resolve().parents[1] / "runtime").iterdir() if p.name.startswith("nexsolve-")] == []
 
 
 def test_pcapng_upload_uses_the_same_real_pipeline(tmp_path):

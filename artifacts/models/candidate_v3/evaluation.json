@@ -1,0 +1,167 @@
+{
+  "T+1": {
+    "status": "computed",
+    "precision": 0.8571428571428571,
+    "recall": 0.8571428571428571,
+    "f1": 0.8571428571428571,
+    "macro_f1": 0.8452380952380952,
+    "balanced_accuracy": 0.8452380952380952,
+    "confusion_matrix": [
+      [
+        5,
+        1
+      ],
+      [
+        1,
+        6
+      ]
+    ],
+    "coverage": 1.0,
+    "abstention_rate": 0.0,
+    "evaluated_cases": 13,
+    "forecast_cases": 13,
+    "class_distribution": {
+      "0": 6,
+      "1": 7
+    },
+    "roc_auc": 0.9761904761904763,
+    "pr_auc": 0.982142857142857,
+    "brier_score": 0.11195315640902335,
+    "confidence_intervals": {
+      "status": "not_available",
+      "reason": "fewer than 30 evaluated cases"
+    }
+  },
+  "T+2": {
+    "status": "computed",
+    "precision": 1.0,
+    "recall": 0.75,
+    "f1": 0.8571428571428571,
+    "macro_f1": 0.8452380952380952,
+    "balanced_accuracy": 0.875,
+    "confusion_matrix": [
+      [
+        5,
+        0
+      ],
+      [
+        2,
+        6
+      ]
+    ],
+    "coverage": 1.0,
+    "abstention_rate": 0.0,
+    "evaluated_cases": 13,
+    "forecast_cases": 13,
+    "class_distribution": {
+      "0": 5,
+      "1": 8
+    },
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "brier_score": 0.1533901620032581,
+    "confidence_intervals": {
+      "status": "not_available",
+      "reason": "fewer than 30 evaluated cases"
+    }
+  },
+  "T+3": {
+    "status": "computed",
+    "precision": 1.0,
+    "recall": 0.7777777777777778,
+    "f1": 0.875,
+    "macro_f1": 0.8375,
+    "balanced_accuracy": 0.8888888888888888,
+    "confusion_matrix": [
+      [
+        4,
+        0
+      ],
+      [
+        2,
+        7
+      ]
+    ],
+    "coverage": 1.0,
+    "abstention_rate": 0.0,
+    "evaluated_cases": 13,
+    "forecast_cases": 13,
+    "class_distribution": {
+      "0": 4,
+      "1": 9
+    },
+    "roc_auc": 1.0,
+    "pr_auc": 1.0000000000000002,
+    "brier_score": 0.17153893567922593,
+    "confidence_intervals": {
+      "status": "not_available",
+      "reason": "fewer than 30 evaluated cases"
+    }
+  },
+  "T+4": {
+    "status": "computed",
+    "precision": 1.0,
+    "recall": 0.6,
+    "f1": 0.75,
+    "macro_f1": 0.675,
+    "balanced_accuracy": 0.8,
+    "confusion_matrix": [
+      [
+        3,
+        0
+      ],
+      [
+        4,
+        6
+      ]
+    ],
+    "coverage": 1.0,
+    "abstention_rate": 0.0,
+    "evaluated_cases": 13,
+    "forecast_cases": 13,
+    "class_distribution": {
+      "0": 3,
+      "1": 10
+    },
+    "roc_auc": 1.0,
+    "pr_auc": 0.9999999999999999,
+    "brier_score": 0.2333537728273099,
+    "confidence_intervals": {
+      "status": "not_available",
+      "reason": "fewer than 30 evaluated cases"
+    }
+  },
+  "T+5": {
+    "status": "computed",
+    "precision": 1.0,
+    "recall": 0.7272727272727273,
+    "f1": 0.8421052631578947,
+    "macro_f1": 0.706766917293233,
+    "balanced_accuracy": 0.8636363636363636,
+    "confusion_matrix": [
+      [
+        2,
+        0
+      ],
+      [
+        3,
+        8
+      ]
+    ],
+    "coverage": 1.0,
+    "abstention_rate": 0.0,
+    "evaluated_cases": 13,
+    "forecast_cases": 13,
+    "class_distribution": {
+      "0": 2,
+      "1": 11
+    },
+    "roc_auc": 1.0,
+    "pr_auc": 1.0,
+    "brier_score": 0.2218347128565846,
+    "confidence_intervals": {
+      "status": "not_available",
+      "reason": "fewer than 30 evaluated cases"
+    }
+  }
+}

@@ -3,21 +3,25 @@ from __future__ import annotations
 
 import json
 import os
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field, FiniteFloat, field_validator
 
 from world_model import NetworkState, attack_stage_signals, explain, forecast_k_steps, load_model
 from ml.data.production_packet_dataset import load_packet_windows, validate_packet_dataset
 from ml.detection import analyze_packet_windows, traffic_summary
+from ml.forecasting import assemble_forecast_intelligence, compute_attack_horizon
 from model_service.database import DatabaseConfigurationError, DatabaseStorageError, delete_analysis
-from model_service.pcap_upload import ALLOWED_EXTENSIONS, MAX_UPLOAD_BYTES, analyze_uploaded_capture, get_uploaded_analysis
+from model_service.jobs import JOB_MANAGER
+from model_service.pcap_upload import ALLOWED_EXTENSIONS, MAX_UPLOAD_BYTES, PCAP_MAGICS, analyze_uploaded_capture, get_uploaded_analysis
+from nexsolve_core.config import ResourceLimitExceededError, sanitize_error_message, sanitize_filename
 
 ROOT = Path(__file__).resolve().parents[1]
 MODEL_DIR = ROOT / "models" / "nexsolve_world_model"
@@ -85,6 +89,14 @@ class ForecastPoint(BaseModel):
 class ForecastResponse(BaseModel):
     currentState: dict[str, Any]
     forecasts: list[ForecastPoint]
+    attack_horizon: dict[str, Any] | None = None
+    attackHorizon: dict[str, Any] | None = None
+    evidence_chain: dict[str, Any] | None = None
+    evidenceChain: dict[str, Any] | None = None
+    confidence: dict[str, Any] | None = None
+    unknown_behavior: dict[str, Any] | None = None
+    unknownBehavior: dict[str, Any] | None = None
+    abstention: dict[str, Any] | None = None
 
 
 class HealthResponse(BaseModel):
@@ -103,9 +115,28 @@ class AnalysisRequest(BaseModel):
     source: Literal["production"] = "production"
 
 
-app = FastAPI(title="NexSolve World Model V1", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        from model_service.database import init_db
+        init_db()
+    except Exception:
+        pass
+    yield
+
+
+app = FastAPI(title="NexSolve World Model V1", version="1.0.0", lifespan=lifespan)
 cors_origins = [origin.strip() for origin in os.getenv("NEXSOLVE_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",") if origin.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=cors_origins, allow_methods=["GET", "POST", "DELETE"], allow_headers=["Accept", "Content-Type"])
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
 PRODUCTION_ANALYSIS_ID = "production-cic-ids2017"
 
 
@@ -164,11 +195,248 @@ async def health() -> HealthResponse:
     return HealthResponse(service_status="ok", model_loaded=True, model_version=str(METADATA.get("model_status", "research prototype")), feature_count=FEATURE_COUNT, sequence_length=int(CONFIG["lookback"]), K=int(CONFIG["forecast_horizon"]), packet_features_available=bool(CONFIG["packet_features_available"]))
 
 
+@app.get("/ready")
+async def readiness() -> JSONResponse:
+    """Production readiness probe verifying system and dependency availability."""
+    from model_service.database import check_db_health
+    db_info = check_db_health()
+    is_ready = db_info["status"] in ("HEALTHY", "UNCONFIGURED")
+    status_code = 200 if is_ready else 503
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "status": "ready" if is_ready else "not_ready",
+            "service": "ok",
+            "database": db_info,
+            "model_loaded": True,
+            "version": "1.0.0",
+        },
+    )
+
+
 @app.post("/api/analysis")
 async def start_analysis(request: AnalysisRequest) -> dict[str, Any]:
     """Return the completed read-only production analysis; no PCAP work is started."""
     result = production_analysis()
     return {"analysis_id": result["analysis_id"], "status": result["status"], "source": result["source"]}
+
+
+@app.exception_handler(ResourceLimitExceededError)
+async def resource_limit_exception_handler(_request: Request, exc: ResourceLimitExceededError) -> JSONResponse:
+    status_code = 413 if exc.resource == "upload_bytes" else 422
+    return JSONResponse(status_code=status_code, content={"error": exc.to_dict()})
+
+
+@app.post("/jobs", status_code=202)
+async def create_processing_job(file: UploadFile = File(...)) -> dict[str, Any]:
+    """Asynchronously ingest and analyze an uploaded PCAP/PCAPNG capture."""
+    raw_filename = file.filename or "capture.pcap"
+    suffix = Path(raw_filename).suffix.lower()
+    
+    # Path traversal and extension validation
+    if Path(raw_filename).name != raw_filename or suffix not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=415, detail="Only .pcap and .pcapng captures are supported.")
+    
+    content = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail=f"Capture exceeds the {MAX_UPLOAD_BYTES // (1024 * 1024)} MB upload limit.")
+    if not content:
+        raise HTTPException(status_code=400, detail="The uploaded capture is empty.")
+    if content[:4] not in PCAP_MAGICS:
+        raise HTTPException(status_code=422, detail="The file could not be parsed as a supported PCAP/PCAPNG capture.")
+
+    job = JOB_MANAGER.create_job(raw_filename, content)
+    return job.to_status_dict()
+
+
+@app.get("/jobs/{job_id}")
+async def get_job_status(job_id: str) -> dict[str, Any]:
+    """Poll job status, progress, stage, and processing statistics."""
+    job = JOB_MANAGER.get_job(job_id)
+    if job is None:
+        try:
+            from model_service.database import get_analysis
+            persisted = get_analysis(job_id)
+            if persisted:
+                return {
+                    "job_id": job_id,
+                    "status": "COMPLETED",
+                    "progress": 1.0,
+                    "stage": "COMPLETE",
+                    "created_at": persisted.get("created_at", "2026-09-10T08:00:00Z"),
+                    "started_at": persisted.get("started_at", "2026-09-10T08:00:00Z"),
+                    "completed_at": persisted.get("completed_at", "2026-09-10T08:00:01Z"),
+                    "error": None,
+                    "processing_statistics": {
+                        "packets_processed": persisted.get("packet_count", 0),
+                        "flows_processed": persisted.get("traffic", {}).get("flows", 0),
+                        "windows_processed": persisted.get("window_count", 0),
+                        "processing_seconds": persisted.get("duration_seconds", 0),
+                    },
+                }
+        except Exception:
+            pass
+        if job_id.startswith("demo-"):
+            scenario_id = job_id[5:].upper()
+            try:
+                from demo.scenarios import get_demo_scenario
+                res = get_demo_scenario(scenario_id)
+                return {
+                    "job_id": job_id,
+                    "status": "COMPLETED",
+                    "progress": 1.0,
+                    "stage": "COMPLETE",
+                    "created_at": "2026-09-10T08:00:00Z",
+                    "started_at": "2026-09-10T08:00:00Z",
+                    "completed_at": "2026-09-10T08:00:01Z",
+                    "error": None,
+                    "processing_statistics": {
+                        "packets_processed": res["packet_count"],
+                        "flows_processed": res["traffic"].get("flows", 0),
+                        "windows_processed": res["window_count"],
+                        "processing_seconds": 0.081,
+                    },
+                }
+            except Exception:
+                pass
+        raise HTTPException(status_code=404, detail="Job not found.")
+    return job.to_status_dict()
+
+
+@app.get("/jobs/{job_id}/result")
+async def get_job_result(job_id: str) -> dict[str, Any]:
+    """Retrieve full completed analysis result for a completed job."""
+    job = JOB_MANAGER.get_job(job_id)
+    if job is None:
+        try:
+            from model_service.database import get_analysis
+            persisted = get_analysis(job_id)
+            if persisted:
+                return persisted
+        except Exception:
+            pass
+        if job_id.startswith("demo-"):
+            scenario_id = job_id[5:].upper()
+            try:
+                from demo.scenarios import get_demo_scenario
+                return get_demo_scenario(scenario_id)
+            except Exception:
+                raise HTTPException(status_code=404, detail="Demo scenario not found.")
+        raise HTTPException(status_code=404, detail="Job not found.")
+    if job.status in ("QUEUED", "PROCESSING"):
+        raise HTTPException(status_code=409, detail=f"Job is still {job.status.lower()}.")
+    if job.status == "RESOURCE_LIMIT_EXCEEDED":
+        raise HTTPException(status_code=422, detail={"status": "RESOURCE_LIMIT_EXCEEDED", "error": job.error})
+    if job.status != "COMPLETED" or job.result is None:
+        raise HTTPException(status_code=422, detail={"status": "FAILED", "error": job.error})
+    return job.result
+
+
+@app.get("/jobs/{job_id}/report.json")
+async def get_job_report_json(job_id: str) -> Response:
+    """Download structured JSON forensic & predictive intelligence report."""
+    job = JOB_MANAGER.get_job(job_id)
+    if job is None:
+        try:
+            from model_service.database import get_analysis
+            persisted = get_analysis(job_id)
+            if persisted:
+                from reporting.report_engine import assemble_report, generate_json_report
+                rep = assemble_report(persisted, job_id=job_id, capture_hash=persisted.get("capture_hash", f"sha256-{job_id}"))
+                return Response(
+                    content=generate_json_report(rep),
+                    media_type="application/json",
+                    headers={"Content-Disposition": f'attachment; filename="nexsolve-report-{job_id}.json"'},
+                )
+        except Exception:
+            pass
+        if job_id.startswith("demo-"):
+            scenario_id = job_id[5:].upper()
+            try:
+                from demo.scenarios import get_demo_report_json
+                return Response(
+                    content=get_demo_report_json(scenario_id),
+                    media_type="application/json",
+                    headers={"Content-Disposition": f'attachment; filename="nexsolve-demo-{scenario_id.lower()}-report.json"'},
+                )
+            except Exception:
+                raise HTTPException(status_code=404, detail="Demo scenario not found.")
+        raise HTTPException(status_code=404, detail="Job not found.")
+    if job.status != "COMPLETED" or job.report_json is None:
+        raise HTTPException(status_code=409, detail=f"Report is not ready (job is {job.status.lower()}).")
+    return Response(
+        content=job.report_json,
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="nexsolve-report-{job_id}.json"'},
+    )
+
+
+@app.get("/jobs/{job_id}/report.html")
+async def get_job_report_html(job_id: str) -> Response:
+    """View or download standalone printable HTML forensic & predictive intelligence report."""
+    job = JOB_MANAGER.get_job(job_id)
+    if job is None:
+        try:
+            from model_service.database import get_analysis
+            persisted = get_analysis(job_id)
+            if persisted:
+                from reporting.report_engine import assemble_report, generate_html_report
+                rep = assemble_report(persisted, job_id=job_id, capture_hash=persisted.get("capture_hash", f"sha256-{job_id}"))
+                return HTMLResponse(content=generate_html_report(rep), media_type="text/html")
+        except Exception:
+            pass
+        if job_id.startswith("demo-"):
+            scenario_id = job_id[5:].upper()
+            try:
+                from demo.scenarios import get_demo_report_html
+                return HTMLResponse(content=get_demo_report_html(scenario_id), media_type="text/html")
+            except Exception:
+                raise HTTPException(status_code=404, detail="Demo scenario not found.")
+        raise HTTPException(status_code=404, detail="Job not found.")
+    if job.status != "COMPLETED" or job.report_html is None:
+        raise HTTPException(status_code=409, detail=f"Report is not ready (job is {job.status.lower()}).")
+    return HTMLResponse(content=job.report_html, media_type="text/html")
+
+
+@app.get("/api/demo/scenarios")
+async def list_demo_scenarios() -> list[dict[str, Any]]:
+    """List all available deterministic SIH demo scenarios."""
+    from demo.scenarios import get_demo_scenarios_metadata
+    return get_demo_scenarios_metadata()
+
+
+@app.get("/api/demo/scenarios/{scenario_id}")
+async def get_demo_scenario_endpoint(scenario_id: str) -> dict[str, Any]:
+    """Retrieve full analysis result for a deterministic demo scenario."""
+    from demo.scenarios import get_demo_scenario
+    try:
+        return get_demo_scenario(scenario_id)
+    except ValueError as err:
+        raise HTTPException(status_code=404, detail=str(err))
+
+
+@app.get("/api/demo/scenarios/{scenario_id}/report.json")
+async def get_demo_scenario_report_json(scenario_id: str) -> Response:
+    """Download JSON report for a deterministic demo scenario."""
+    from demo.scenarios import get_demo_report_json
+    try:
+        return Response(
+            content=get_demo_report_json(scenario_id),
+            media_type="application/json",
+            headers={"Content-Disposition": f'attachment; filename="nexsolve-demo-{scenario_id.lower()}-report.json"'},
+        )
+    except ValueError as err:
+        raise HTTPException(status_code=404, detail=str(err))
+
+
+@app.get("/api/demo/scenarios/{scenario_id}/report.html")
+async def get_demo_scenario_report_html(scenario_id: str) -> Response:
+    """Download HTML report for a deterministic demo scenario."""
+    from demo.scenarios import get_demo_report_html
+    try:
+        return HTMLResponse(content=get_demo_report_html(scenario_id), media_type="text/html")
+    except ValueError as err:
+        raise HTTPException(status_code=404, detail=str(err))
 
 
 @app.post("/api/pcap/analyze")
@@ -247,4 +515,26 @@ async def forecast(request: ForecastRequest) -> ForecastResponse:
             continue
         predicted = NetworkState(states[-1].timestamp + point["horizon"] * 60, {name: predicted_state[name] for name in FLOW_FEATURES}, {name: predicted_state[name] for name in PACKET_FEATURES}, {name: predicted_state[name] for name in TEMPORAL_FEATURES}, None, states[-1].packet_features_available)
         forecasts.append(ForecastPoint(horizon=point["horizon"], attackProbability=probability, predictedStage=contextual_stage(predicted), confidence=confidence, uncertainty=None if confidence is None else 1.0 - confidence, explanation=explanations))
-    return ForecastResponse(currentState=current_state_payload(states[-1]), forecasts=forecasts)
+    intelligence = assemble_forecast_intelligence(
+        sequence=states,
+        forecast_points=forecasts,
+        capture_quality=None,
+        provenance_info={"source": "model_service.request"},
+        min_sequence_length=int(CONFIG["lookback"]),
+        required_features=FLOW_FEATURES,
+        calibration_status="UNSUPPORTED",
+        decision_threshold=0.5,
+        window_seconds=60,
+    )
+    return ForecastResponse(
+        currentState=current_state_payload(states[-1]),
+        forecasts=forecasts,
+        attack_horizon=intelligence.attack_horizon,
+        attackHorizon=intelligence.attack_horizon,
+        evidence_chain=intelligence.evidence_chain,
+        evidenceChain=intelligence.evidence_chain,
+        confidence=intelligence.confidence,
+        unknown_behavior=intelligence.unknown_behavior,
+        unknownBehavior=intelligence.unknown_behavior,
+        abstention=intelligence.abstention,
+    )

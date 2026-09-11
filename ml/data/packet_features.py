@@ -10,6 +10,8 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Any, Iterable, Sequence
 
+from nexsolve_core.schemas import PacketRecord
+
 PACKET_FEATURE_CATEGORIES = (
     "ttl",
     "ttl_variance",
@@ -22,26 +24,6 @@ PACKET_FEATURE_CATEGORIES = (
     "retransmissions",
     "scan_signatures",
 )
-
-
-@dataclass(frozen=True)
-class PacketRecord:
-    timestamp: float
-    src_ip: str | None
-    dst_ip: str | None
-    protocol: str | None
-    src_port: int | None = None
-    dst_port: int | None = None
-    packet_length: int | None = None
-    payload_length: int | None = None
-    ttl: int | None = None
-    tcp_flags: int | None = None
-    tcp_window: int | None = None
-    tcp_seq: int | None = None
-    tcp_ack: int | None = None
-    fragment_offset: int | None = None
-    more_fragments: bool | None = None
-    identification: int | None = None
 
 
 @dataclass(frozen=True)
@@ -91,6 +73,7 @@ def normalize_packet_record(record: dict[str, Any]) -> PacketRecord:
         timestamp=timestamp,
         src_ip=str(record["src_ip"]) if record.get("src_ip") is not None else None,
         dst_ip=str(record["dst_ip"]) if record.get("dst_ip") is not None else None,
+        ip_version=int(record["ip_version"]) if record.get("ip_version") is not None else None,
         protocol=protocol,
         src_port=int(src_port) if src_port is not None else None,
         dst_port=int(dst_port) if dst_port is not None else None,

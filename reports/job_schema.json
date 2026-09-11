@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NexSolveJobStatusSchema",
+  "description": "Schema for NexSolve asynchronous job status, progress, and execution statistics.",
+  "type": "object",
+  "required": [
+    "job_id",
+    "status",
+    "progress",
+    "stage",
+    "created_at"
+  ],
+  "properties": {
+    "job_id": {
+      "type": "string",
+      "pattern": "^job-[a-f0-9]{12}$"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "QUEUED",
+        "PROCESSING",
+        "COMPLETED",
+        "FAILED",
+        "ABORTED",
+        "RESOURCE_LIMIT_EXCEEDED"
+      ]
+    },
+    "progress": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "INGESTION",
+        "PARSING",
+        "FLOW_RECONSTRUCTION",
+        "WINDOWING",
+        "NETWORK_STATE",
+        "FORECAST",
+        "EVIDENCE",
+        "REPORT",
+        "COMPLETE"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "started_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "error": {
+      "type": ["object", "null"],
+      "properties": {
+        "status": { "type": "string" },
+        "resource": { "type": "string" },
+        "observed": { "type": "number" },
+        "limit": { "type": "number" },
+        "recoverable": { "type": "boolean" },
+        "explanation": { "type": "string" },
+        "code": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "processing_statistics": {
+      "type": "object",
+      "properties": {
+        "packets_processed": { "type": "integer", "minimum": 0 },
+        "flows_processed": { "type": "integer", "minimum": 0 },
+        "windows_processed": { "type": "integer", "minimum": 0 },
+        "processing_seconds": { "type": "number", "minimum": 0.0 }
+      }
+    }
+  }
+}

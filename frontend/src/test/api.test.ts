@@ -7,7 +7,7 @@ describe('api client', () => {
   it('returns JSON from a successful request', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ service_status: 'ok' }), { status: 200 }))
     await expect(api.health()).resolves.toEqual({ service_status: 'ok' })
-    expect(fetch).toHaveBeenCalledWith('/health', expect.objectContaining({ headers: { Accept: 'application/json' } }))
+    expect(fetch).toHaveBeenCalledWith(expect.stringMatching(/\/health$/), expect.objectContaining({ headers: { Accept: 'application/json' } }))
   })
 
   it('surfaces structured API errors', async () => {
@@ -23,5 +23,16 @@ describe('api client', () => {
   it('rejects malformed successful responses safely', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('not json', { status: 200 }))
     await expect(api.health()).rejects.toThrow('invalid JSON response')
+  })
+
+  it('supports the production readiness probe', async () => {
+    const readyPayload = {
+      status: 'ready',
+      service: 'nexsolve-backend',
+      database: { status: 'healthy', mode: 'database', detail: 'connected' },
+    }
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(readyPayload), { status: 200 }))
+    await expect(api.ready()).resolves.toEqual(readyPayload)
+    expect(fetch).toHaveBeenCalledWith(expect.stringMatching(/\/ready$/), expect.objectContaining({ headers: { Accept: 'application/json' } }))
   })
 })
