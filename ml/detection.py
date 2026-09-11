@@ -108,8 +108,29 @@ def analyze_packet_windows(windows: list[dict[str, Any]]) -> dict[str, Any]:
 
 def traffic_summary(windows: list[dict[str, Any]]) -> dict[str, Any]:
     protocols: Counter[str] = Counter()
+    tcp_flags: Counter[str] = Counter()
+    src_ips: set[str] = set()
+    dst_ips: set[str] = set()
+    dst_ports: set[int] = set()
+    flows_seen: set[str] = set()
+    total_window_flows = 0
+
     for window in windows:
         protocols.update({str(name): int(value or 0) for name, value in (window.get("protocol_counts") or {}).items()})
+        tcp_flags["SYN"] += int(window.get("syn_count", 0))
+        tcp_flags["ACK"] += int(window.get("ack_count", 0))
+        tcp_flags["FIN"] += int(window.get("fin_count", 0))
+        tcp_flags["RST"] += int(window.get("rst_count", 0))
+        tcp_flags["PSH"] += int(window.get("psh_count", 0))
+        tcp_flags["URG"] += int(window.get("urg_count", 0))
+        total_window_flows += int(window.get("flow_count", 0))
+        
+        # Provenance or direct set aggregation if available
+        prov = window.get("provenance", {})
+        if isinstance(prov, dict):
+            for fid in prov.get("flow_ids", []):
+                flows_seen.add(str(fid))
+
     return {
         "status": "completed" if windows else "empty",
         "windows": len(windows),
@@ -120,5 +141,7 @@ def traffic_summary(windows: list[dict[str, Any]]) -> dict[str, Any]:
         "retransmissions": sum(int(window.get("tcp_retransmission_count", 0)) for window in windows),
         "fragmented_packets": sum(int(window.get("fragment_count", 0)) for window in windows),
         "protocol_counts": dict(sorted(protocols.items())),
+        "tcp_flag_counts": dict(tcp_flags),
+        "flows": len(flows_seen) if flows_seen else total_window_flows,
         "windows_data": windows,
     }
