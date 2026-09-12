@@ -1,0 +1,10 @@
+{
+  "dataset": "UNSW-NB15",
+  "model_variant": "PCAP-compatible 45-feature world model",
+  "omitted_features": [
+    "mean_tcp_rtt"
+  ],
+  "status": "research prototype (HOLD - Persistence remains champion baseline)",
+  "input_size": 45,
+  "training_loss_final": 0.33262229988979203
+}

@@ -114,6 +114,11 @@ def build_network_activity(traffic: dict[str, Any], validation: dict[str, Any]) 
     window_coverage = float(traffic.get("duration_seconds") if traffic.get("duration_seconds") is not None else float(window_count * window_seconds))
     packet_span = float(traffic.get("packet_timestamp_span_seconds") if traffic.get("packet_timestamp_span_seconds") is not None else traffic.get("packet_span_seconds", 0.0))
     
+    windows_data = traffic.get("windows_data", [])
+    max_src_ips = max([int(w.get("unique_src_ips", 1)) for w in windows_data], default=1)
+    max_dst_ips = max([int(w.get("unique_dst_ips", 1)) for w in windows_data], default=1)
+    max_dst_ports = max([int(w.get("unique_dst_ports", 1)) for w in windows_data], default=1)
+
     return NetworkActivitySummarySection(
         packet_count=traffic.get("packets", 0),
         flow_count=traffic.get("flows", 0) or traffic.get("packets", 0),
@@ -123,9 +128,9 @@ def build_network_activity(traffic: dict[str, Any], validation: dict[str, Any]) 
         temporal_window_coverage_seconds=window_coverage,
         protocol_distribution=dict(protocol_counts),
         tcp_flag_counts=dict(tcp_flags),
-        unique_src_ips=traffic.get("unique_src_ips", 1),
-        unique_dst_ips=traffic.get("unique_dst_ips", 1),
-        unique_dst_ports=traffic.get("unique_dst_ports", 1),
+        unique_src_ips=traffic.get("unique_src_ips", max_src_ips),
+        unique_dst_ips=traffic.get("unique_dst_ips", max_dst_ips),
+        unique_dst_ports=traffic.get("unique_dst_ports", max_dst_ports),
     )
 
 

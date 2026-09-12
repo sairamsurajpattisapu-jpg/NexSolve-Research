@@ -1,0 +1,11 @@
+{
+  "model_format": "NumPy NPZ",
+  "architecture": "NumpyLSTM",
+  "input_size": 45,
+  "hidden_size": 24,
+  "lookback": 8,
+  "forecast_horizon": 5,
+  "window_seconds": 60,
+  "seed": 7,
+  "packet_features_available": false
+}

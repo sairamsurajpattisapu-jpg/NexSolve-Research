@@ -73,10 +73,14 @@ ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_DIR = ROOT / "runtime"
 RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
 MODEL_DIR = ROOT / "models" / "nexsolve_world_model"
+MODEL_DIR_45 = ROOT / "models" / "nexsolve_world_model_45"
 import json
 MODEL_SCHEMA = json.loads((MODEL_DIR / "feature_schema.json").read_text(encoding="utf-8"))
+MODEL_SCHEMA_45 = json.loads((MODEL_DIR / "feature_schema_45.json").read_text(encoding="utf-8")) if (MODEL_DIR / "feature_schema_45.json").exists() else json.loads((MODEL_DIR_45 / "feature_schema.json").read_text(encoding="utf-8"))
 CONFIG = json.loads((MODEL_DIR / "config.json").read_text(encoding="utf-8"))
+CONFIG_45 = json.loads((MODEL_DIR_45 / "config.json").read_text(encoding="utf-8")) if (MODEL_DIR_45 / "config.json").exists() else CONFIG
 FLOW_FEATURES = tuple(MODEL_SCHEMA["flow_features"])
+FLOW_FEATURES_45 = tuple(MODEL_SCHEMA_45["flow_features"])
 PACKET_FEATURES = tuple(MODEL_SCHEMA["packet_features"])
 TEMPORAL_FEATURES = tuple(MODEL_SCHEMA["temporal_features"])
 
@@ -149,10 +153,11 @@ def _validation(windows: list[dict[str, Any]], compatibility: dict[str, Any]) ->
 
 def validate_pcap_bytes(filename: str, content: bytes) -> tuple[str, str]:
     """Validate PCAP extension, size, and magic bytes. Returns (clean_filename, suffix)."""
+    raw_suffix = Path(filename).suffix.lower()
+    if raw_suffix not in ALLOWED_EXTENSIONS:
+        raise ValueError("Only .pcap and .pcapng captures are supported.")
     clean_filename = sanitize_filename(filename)
     suffix = Path(clean_filename).suffix.lower()
-    if suffix not in ALLOWED_EXTENSIONS:
-        raise ValueError("Only .pcap and .pcapng captures are supported.")
     if not content:
         raise ValueError("The uploaded capture is empty.")
     if len(content) > MAX_UPLOAD_BYTES:
@@ -283,6 +288,27 @@ class JobManager:
             candidates = build_network_state_candidates(canonical_windows, MODEL_SCHEMA)
             history = build_state_history(candidates)
             compatibility = evaluate_model_compatibility(candidates, MODEL_SCHEMA, history.status).to_dict()
+
+            active_schema = MODEL_SCHEMA
+            active_model_dir = MODEL_DIR
+            active_config = CONFIG
+            active_flow_features = FLOW_FEATURES
+            schema_variant = "46_feature_canonical"
+
+            # Check if 45-feature PCAP-compatible schema can be activated:
+            # Only when the primary 46-feature gate failed solely due to mean_tcp_rtt
+            if not compatibility.get("model_ready", False):
+                missing = compatibility.get("missing_features", [])
+                if set(missing) == {"flow_features.mean_tcp_rtt"}:
+                    compat_45 = evaluate_model_compatibility(candidates, MODEL_SCHEMA_45, history.status).to_dict()
+                    if compat_45.get("model_ready", False) and MODEL_DIR_45.exists():
+                        compatibility = compat_45
+                        active_schema = MODEL_SCHEMA_45
+                        active_model_dir = MODEL_DIR_45
+                        active_config = CONFIG_45
+                        active_flow_features = FLOW_FEATURES_45
+                        schema_variant = "45_feature_pcap_compatible"
+
             traffic = traffic_summary(windows)
             detection = analyze_packet_windows(windows)
             duration_seconds = max(0, int(windows[-1]["window_end"]) - int(windows[0]["window_start"]))
@@ -292,6 +318,14 @@ class JobManager:
             traffic["packet_timestamp_span_seconds"] = packet_span_seconds
             traffic["temporal_window_coverage_seconds"] = duration_seconds
             traffic["packet_span_seconds"] = packet_span_seconds
+            if packets:
+                traffic["unique_src_ips"] = len({p.src_ip for p in packets if p.src_ip})
+                traffic["unique_dst_ips"] = len({p.dst_ip for p in packets if p.dst_ip})
+                traffic["unique_dst_ports"] = len({p.dst_port for p in packets if p.dst_port is not None})
+            if canonical_windows:
+                all_flow_ids = {flow.flow_id for cw in canonical_windows for flow in cw.flows}
+                if all_flow_ids:
+                    traffic["flows"] = len(all_flow_ids)
             network_state_extraction_ms = round((time.perf_counter() - t_state_start) * 1000, 2)
 
             # 4. FORECAST
@@ -302,9 +336,9 @@ class JobManager:
             if compatibility.get("model_ready", False):
                 try:
                     from world_model import explain, forecast_k_steps, load_model
-                    states = candidates_to_network_states(candidates, MODEL_SCHEMA, history.status)
-                    model, mean, scale = load_model(MODEL_DIR)
-                    forecast_res = forecast_k_steps(states, int(CONFIG["forecast_horizon"]), MODEL_DIR)
+                    states = candidates_to_network_states(candidates, active_schema, history.status)
+                    model, mean, scale = load_model(active_model_dir)
+                    forecast_res = forecast_k_steps(states, int(active_config["forecast_horizon"]), active_model_dir)
                     explanation_rows = explain(states, model, mean, scale)
                     exps = [f"{r['feature']} contributed ({r['contribution']:+.6f})" for r in explanation_rows]
                     for pt in forecast_res.get("forecasts", []):
@@ -358,9 +392,9 @@ class JobManager:
                 sequence=state_dicts,
                 forecast_points=forecast_points,
                 capture_quality=quality,
-                provenance_info={"capture_id": job_id, "source": clean_name},
+                provenance_info={"capture_id": job_id, "source": clean_name, "schema_variant": schema_variant},
                 min_sequence_length=8,
-                required_features=FLOW_FEATURES,
+                required_features=active_flow_features,
                 calibration_status="UNSUPPORTED",
                 decision_threshold=0.5,
                 window_seconds=60,

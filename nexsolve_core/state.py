@@ -124,6 +124,7 @@ FLOW_NAMES = (
     "mean_dwin", "mean_iat", "mean_tcp_rtt", "unique_src_ports", "unique_dst_ports",
     "proto_tcp_count", "proto_udp_count", "proto_other_count",
 )
+FLOW_NAMES_45 = tuple(n for n in FLOW_NAMES if n != "mean_tcp_rtt")
 PACKET_NAMES = (
     "packet_count", "mean_packet_size", "std_packet_size", "min_packet_size", "max_packet_size",
     "mean_ttl", "std_ttl", "min_ttl", "max_ttl", "tcp_syn_count", "tcp_ack_count",
@@ -132,6 +133,12 @@ PACKET_NAMES = (
 )
 TEMPORAL_NAMES = ("delta_flow_count", "delta_total_bytes", "delta_total_packets", "delta_ports", "delta_iat", "rolling_total_bytes")
 MODEL_NAMES = FLOW_NAMES + PACKET_NAMES + TEMPORAL_NAMES
+MODEL_NAMES_45 = FLOW_NAMES_45 + PACKET_NAMES + TEMPORAL_NAMES
+MODEL_SCHEMA_45 = {
+    "flow_features": list(FLOW_NAMES_45),
+    "packet_features": list(PACKET_NAMES),
+    "temporal_features": list(TEMPORAL_NAMES),
+}
 
 
 def feature_registry() -> dict[str, FeatureSpec]:
@@ -220,14 +227,31 @@ def _flow_prefix(flow: FlowRecord, packets: Mapping[int, PacketRecord]) -> list[
 def _flow_values(flow: FlowRecord, prefix: list[PacketRecord]) -> dict[str, float]:
     if not prefix:
         return {}
-    start = min(packet.timestamp for packet in prefix)
-    end = max(packet.timestamp for packet in prefix)
-    forward = [packet for packet in prefix if (packet.src_ip, packet.src_port) == (flow.src_ip, flow.src_port)]
-    reverse = [packet for packet in prefix if packet not in forward]
-    all_lengths = [packet.packet_length for packet in prefix if packet.packet_length is not None]
+    origin = (flow.src_ip, flow.src_port)
+    start = prefix[0].timestamp
+    end = prefix[0].timestamp
+    forward: list[PacketRecord] = []
+    reverse: list[PacketRecord] = []
+    timestamps: list[float] = []
+    all_lengths: list[int] = []
+
+    for packet in prefix:
+        ts = packet.timestamp
+        if ts < start:
+            start = ts
+        if ts > end:
+            end = ts
+        timestamps.append(ts)
+        if packet.packet_length is not None:
+            all_lengths.append(packet.packet_length)
+        if (packet.src_ip, packet.src_port) == origin:
+            forward.append(packet)
+        else:
+            reverse.append(packet)
+
     forward_lengths = [packet.packet_length for packet in forward if packet.packet_length is not None]
     reverse_lengths = [packet.packet_length for packet in reverse if packet.packet_length is not None]
-    timestamps = sorted(packet.timestamp for packet in prefix)
+    timestamps.sort()
     iats = [right - left for left, right in zip(timestamps, timestamps[1:])]
     forward_ttl = [packet.ttl for packet in forward if packet.ttl is not None]
     reverse_ttl = [packet.ttl for packet in reverse if packet.ttl is not None]
@@ -351,11 +375,12 @@ def build_network_state_candidates(windows: Iterable[TemporalWindow], feature_sc
 
 def evaluate_model_compatibility(candidates: Iterable[NetworkStateCandidate], feature_schema: Mapping[str, list[str]] | None = None, history_status: str | None = None) -> ModelCompatibilityReport:
     sequence = tuple(candidates)
+    eval_seq = sequence[1:] if len(sequence) > 1 else sequence
     required = _model_schema(feature_schema)
     required_keys = _model_feature_keys(feature_schema)
-    available = tuple(key for key in required_keys if sequence and all(key in candidate.feature_status and candidate.feature_status[key] not in {FeatureAvailability.UNAVAILABLE, FeatureAvailability.UNRELIABLE} for candidate in sequence))
+    available = tuple(key for key in required_keys if eval_seq and all(key in candidate.feature_status and candidate.feature_status[key] not in {FeatureAvailability.UNAVAILABLE, FeatureAvailability.UNRELIABLE} for candidate in eval_seq))
     unavailable = tuple(key for key in required_keys if key not in available)
-    unreliable = tuple(key for key in required_keys if any(candidate.feature_status.get(key) == FeatureAvailability.UNRELIABLE for candidate in sequence))
+    unreliable = tuple(key for key in required_keys if any(candidate.feature_status.get(key) == FeatureAvailability.UNRELIABLE for candidate in eval_seq))
     quality_blockers = tuple(sorted({candidate.capture_quality.reason for candidate in sequence if candidate.capture_quality.status == QualityStatus.INSUFFICIENT}))
     history_blockers = () if history_status in {None, "READY"} else (history_status,)
     reasons = []
@@ -369,7 +394,10 @@ def evaluate_model_compatibility(candidates: Iterable[NetworkStateCandidate], fe
         reasons.append("Capture quality is insufficient for model preparation.")
     if history_blockers:
         reasons.append(f"Temporal history is not ready: {history_status}.")
-    return ModelCompatibilityReport(not unavailable and not unreliable and not quality_blockers and not history_blockers and len(required) == 46, len(required), required_keys, available, unavailable, unreliable, () if len(required) == 46 else (f"expected 46 features, found {len(required)}",), quality_blockers, history_blockers, tuple(reasons))
+    expected_dim = len(required)
+    dim_ok = len(required) in (45, 46) if feature_schema is None else (len(required) == len(required_keys))
+    dim_incompat = () if dim_ok else (f"expected {len(required_keys)} features, found {len(required)}",)
+    return ModelCompatibilityReport(not unavailable and not unreliable and not quality_blockers and not history_blockers and dim_ok, len(required), required_keys, available, unavailable, unreliable, dim_incompat, quality_blockers, history_blockers, tuple(reasons))
 
 
 def candidates_to_network_states(candidates: Iterable[NetworkStateCandidate], feature_schema: Mapping[str, list[str]] | None = None, history_status: str | None = "READY") -> tuple[Any, ...]:
@@ -381,7 +409,10 @@ def candidates_to_network_states(candidates: Iterable[NetworkStateCandidate], fe
 
     schema = feature_schema or {"flow_features": list(FLOW_NAMES), "packet_features": list(PACKET_NAMES), "temporal_features": list(TEMPORAL_NAMES)}
     states = []
-    for candidate in sequence:
+    # If the first candidate has no temporal features, only convert candidates from index 1 onward
+    # (which all have observed temporal features derived from their predecessor)
+    conv_seq = sequence[1:] if (len(sequence) > 1 and not sequence[0].temporal_features) else sequence
+    for candidate in conv_seq:
         states.append(NetworkState(
             candidate.start_timestamp,
             {name: float(candidate.flow_features[name]) for name in schema["flow_features"]},

@@ -26,6 +26,7 @@ FLOW_NAMES = [
     "mean_dwin", "mean_iat", "mean_tcp_rtt", "unique_src_ports", "unique_dst_ports",
     "proto_tcp_count", "proto_udp_count", "proto_other_count",
 ]
+FLOW_NAMES_45 = [n for n in FLOW_NAMES if n != "mean_tcp_rtt"]
 PACKET_NAMES = [
     "packet_count", "mean_packet_size", "std_packet_size", "min_packet_size", "max_packet_size",
     "mean_ttl", "std_ttl", "min_ttl", "max_ttl", "tcp_syn_count", "tcp_ack_count",
@@ -34,6 +35,7 @@ PACKET_NAMES = [
 ]
 TEMPORAL_NAMES = ["delta_flow_count", "delta_total_bytes", "delta_total_packets", "delta_ports", "delta_iat", "rolling_total_bytes"]
 FEATURE_NAMES = FLOW_NAMES + PACKET_NAMES + TEMPORAL_NAMES
+FEATURE_NAMES_45 = FLOW_NAMES_45 + PACKET_NAMES + TEMPORAL_NAMES
 
 
 @dataclass
@@ -45,11 +47,31 @@ class NetworkState:
     attack_state: int | None = None
     packet_features_available: bool = False
 
-    def encode(self) -> np.ndarray:
+    def encode(self, feature_names: list[str] | None = None) -> np.ndarray:
         """Encode only observable numeric state; attack_state is never encoded."""
-        return np.asarray([self.flow_features.get(n, 0.0) for n in FLOW_NAMES]
-                          + [self.packet_features.get(n, 0.0) for n in PACKET_NAMES]
-                          + [self.temporal_features.get(n, 0.0) for n in TEMPORAL_NAMES], dtype=np.float64)
+        if feature_names is None or feature_names == FEATURE_NAMES:
+            return np.asarray([self.flow_features.get(n, 0.0) for n in FLOW_NAMES]
+                              + [self.packet_features.get(n, 0.0) for n in PACKET_NAMES]
+                              + [self.temporal_features.get(n, 0.0) for n in TEMPORAL_NAMES], dtype=np.float64)
+        if feature_names == FEATURE_NAMES_45 or len(feature_names) == 45:
+            return np.asarray([self.flow_features.get(n, 0.0) for n in FLOW_NAMES_45]
+                              + [self.packet_features.get(n, 0.0) for n in PACKET_NAMES]
+                              + [self.temporal_features.get(n, 0.0) for n in TEMPORAL_NAMES], dtype=np.float64)
+        # General case preserving exact partition
+        flow_set = set(FLOW_NAMES)
+        temporal_set = set(TEMPORAL_NAMES)
+        values = []
+        for n in feature_names:
+            if n in temporal_set:
+                values.append(self.temporal_features.get(n, 0.0))
+            elif n in flow_set and n not in self.packet_features:
+                values.append(self.flow_features.get(n, 0.0))
+            else:
+                values.append(self.packet_features.get(n, self.flow_features.get(n, 0.0)))
+        return np.asarray(values, dtype=np.float64)
+
+    def encode_45(self) -> np.ndarray:
+        return self.encode(FEATURE_NAMES_45)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -124,9 +146,10 @@ def chronological_split(states: list[NetworkState]) -> dict[str, list[NetworkSta
             "test": [by_bucket[b] for b in runs[first_mixed]]}
 
 
-def make_sequences(states: list[NetworkState], lookback: int = LOOKBACK) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    if len(states) <= lookback: return np.empty((0, lookback, len(FEATURE_NAMES))), np.empty((0, len(FEATURE_NAMES))), np.empty(0)
-    x = np.asarray([state.encode() for state in states]); y = np.asarray([state.attack_state for state in states[lookback:]], dtype=np.float64)
+def make_sequences(states: list[NetworkState], lookback: int = LOOKBACK, feature_names: list[str] | None = None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    names = feature_names if feature_names is not None else FEATURE_NAMES
+    if len(states) <= lookback: return np.empty((0, lookback, len(names))), np.empty((0, len(names))), np.empty(0)
+    x = np.asarray([state.encode(names) for state in states]); y = np.asarray([state.attack_state for state in states[lookback:]], dtype=np.float64)
     return np.asarray([x[i - lookback:i] for i in range(lookback, len(states))]), x[lookback:], y
 
 
@@ -177,17 +200,21 @@ class NumpyLSTM:
         data = np.load(path); model = cls(int(data["input_size"]), int(data["hidden_size"])); model.W = data["W"]; model.b = data["b"]; model.Wy = data["Wy"]; model.by = data["by"]; return model
 
 
-def infer(sequence: list[NetworkState], model: NumpyLSTM, scaler_mean: np.ndarray, scaler_scale: np.ndarray, k: int = K) -> dict:
+def infer(sequence: list[NetworkState], model: NumpyLSTM, scaler_mean: np.ndarray, scaler_scale: np.ndarray, k: int = K, feature_names: list[str] | None = None) -> dict:
+    feat_names = feature_names if feature_names is not None else (FEATURE_NAMES_45 if len(scaler_mean) == len(FEATURE_NAMES_45) else FEATURE_NAMES)
     current = sequence[-1].to_dict() if sequence else None; forecasts = []
     if len(sequence) < LOOKBACK:
         return {"current_state": current, "forecasts": [{"horizon": step, "attack_probability": None, "predicted_state": None, "confidence": 0.0, "abstained": True, "reason": "insufficient history"} for step in range(1, k + 1)]}
     rolling = list(sequence[-LOOKBACK:])
+    flow_names = [n for n in feat_names if n in set(FLOW_NAMES)]
+    packet_names = [n for n in feat_names if n in set(PACKET_NAMES)]
+    temporal_names = [n for n in feat_names if n in set(TEMPORAL_NAMES)]
     for step in range(1, k + 1):
-        matrix = np.asarray([state.encode() for state in rolling[-LOOKBACK:]])
+        matrix = np.asarray([state.encode(feat_names) for state in rolling[-LOOKBACK:]])
         scaled = (matrix - scaler_mean) / scaler_scale; predicted_scaled, probability = model.predict(scaled); vector = predicted_scaled * scaler_scale + scaler_mean
-        confidence = float(abs(probability - 0.5) * 2); predicted = {name: float(value) for name, value in zip(FEATURE_NAMES, vector)}
+        confidence = float(abs(probability - 0.5) * 2); predicted = {name: float(value) for name, value in zip(feat_names, vector)}
         forecasts.append({"horizon": step, "attack_probability": probability, "predicted_state": predicted, "confidence": confidence, "abstained": False})
-        rolling.append(NetworkState(rolling[-1].timestamp + WINDOW_SECONDS, {n: predicted[n] for n in FLOW_NAMES}, {n: predicted[n] for n in PACKET_NAMES}, {n: predicted[n] for n in TEMPORAL_NAMES}, int(probability >= 0.5), rolling[-1].packet_features_available))
+        rolling.append(NetworkState(rolling[-1].timestamp + WINDOW_SECONDS, {n: predicted.get(n, 0.0) for n in flow_names}, {n: predicted.get(n, 0.0) for n in packet_names}, {n: predicted.get(n, 0.0) for n in temporal_names}, int(probability >= 0.5), rolling[-1].packet_features_available))
     return {"current_state": current, "forecasts": forecasts}
 
 
@@ -202,11 +229,12 @@ def attack_stage_signals(state: NetworkState) -> dict:
     return {"status": "contextual_inference", "signals": signals, "ground_truth": False}
 
 
-def explain(sequence: list[NetworkState], model: NumpyLSTM, mean: np.ndarray, scale: np.ndarray) -> list[dict]:
+def explain(sequence: list[NetworkState], model: NumpyLSTM, mean: np.ndarray, scale: np.ndarray, feature_names: list[str] | None = None) -> list[dict]:
     if len(sequence) < LOOKBACK: return []
-    baseline = infer(sequence, model, mean, scale, 1)["forecasts"][0]["attack_probability"]; values = []
-    matrix = np.asarray([state.encode() for state in sequence[-LOOKBACK:]])
-    for index, name in enumerate(FEATURE_NAMES):
+    feat_names = feature_names if feature_names is not None else (FEATURE_NAMES_45 if len(mean) == len(FEATURE_NAMES_45) else FEATURE_NAMES)
+    baseline = infer(sequence, model, mean, scale, 1, feat_names)["forecasts"][0]["attack_probability"]; values = []
+    matrix = np.asarray([state.encode(feat_names) for state in sequence[-LOOKBACK:]])
+    for index, name in enumerate(feat_names):
         changed = matrix.copy(); changed[-1, index] = mean[index]; probability = model.predict((changed - mean) / scale)[1]; values.append({"feature": name, "contribution": float(baseline - probability), "language": "contributed to the model forecast; not causal"})
     return sorted(values, key=lambda item: abs(item["contribution"]), reverse=True)[:8]
 

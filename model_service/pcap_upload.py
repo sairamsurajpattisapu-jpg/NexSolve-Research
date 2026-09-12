@@ -20,7 +20,12 @@ PCAP_MAGICS = {
 }
 RUNTIME_DIR = Path(__file__).resolve().parents[1] / "runtime"
 RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
-MODEL_SCHEMA = json.loads((Path(__file__).resolve().parents[1] / "models" / "nexsolve_world_model" / "feature_schema.json").read_text(encoding="utf-8"))
+MODEL_DIR = Path(__file__).resolve().parents[1] / "models" / "nexsolve_world_model"
+MODEL_DIR_45 = Path(__file__).resolve().parents[1] / "models" / "nexsolve_world_model_45"
+MODEL_SCHEMA = json.loads((MODEL_DIR / "feature_schema.json").read_text(encoding="utf-8"))
+MODEL_SCHEMA_45 = json.loads((MODEL_DIR / "feature_schema_45.json").read_text(encoding="utf-8")) if (MODEL_DIR / "feature_schema_45.json").exists() else json.loads((MODEL_DIR_45 / "feature_schema.json").read_text(encoding="utf-8"))
+CONFIG = json.loads((MODEL_DIR / "config.json").read_text(encoding="utf-8"))
+CONFIG_45 = json.loads((MODEL_DIR_45 / "config.json").read_text(encoding="utf-8")) if (MODEL_DIR_45 / "config.json").exists() else CONFIG
 
 
 def _validation(windows: list[dict[str, Any]], compatibility: dict[str, Any]) -> dict[str, Any]:
@@ -93,21 +98,78 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
     traffic["packet_timestamp_span_seconds"] = packet_span_seconds
     traffic["temporal_window_coverage_seconds"] = duration_seconds
     traffic["packet_span_seconds"] = packet_span_seconds
+    if _packets:
+        traffic["unique_src_ips"] = len({p.src_ip for p in _packets if p.src_ip})
+        traffic["unique_dst_ips"] = len({p.dst_ip for p in _packets if p.dst_ip})
+        traffic["unique_dst_ports"] = len({p.dst_port for p in _packets if p.dst_port is not None})
+    if canonical_windows:
+        all_flow_ids = {flow.flow_id for cw in canonical_windows for flow in cw.flows}
+        if all_flow_ids:
+            traffic["flows"] = len(all_flow_ids)
+
+    active_schema = MODEL_SCHEMA
+    active_model_dir = MODEL_DIR
+    active_config = CONFIG
+    active_flow_features = tuple(MODEL_SCHEMA.get("flow_features", ()))
+    schema_variant = "46_feature_canonical"
+
+    # Check if 45-feature PCAP-compatible schema can be activated:
+    if not compatibility.get("model_ready", False):
+        missing = compatibility.get("missing_features", [])
+        if set(missing) == {"flow_features.mean_tcp_rtt"}:
+            compat_45 = evaluate_model_compatibility(candidates, MODEL_SCHEMA_45, history.status).to_dict()
+            if compat_45.get("model_ready", False) and MODEL_DIR_45.exists():
+                compatibility = compat_45
+                active_schema = MODEL_SCHEMA_45
+                active_model_dir = MODEL_DIR_45
+                active_config = CONFIG_45
+                active_flow_features = tuple(MODEL_SCHEMA_45.get("flow_features", ()))
+                schema_variant = "45_feature_pcap_compatible"
 
     # Trust Layer integration
     from ml.forecasting import assemble_forecast_intelligence
-    flow_features = tuple(MODEL_SCHEMA.get("flow_features", ()))
     forecast_points: list[dict[str, Any]] = []
-    reason = compatibility.get("reason", "Incompatible feature contract for world model.")
-    for h in range(1, 6):
-        forecast_points.append({
-            "horizon": h,
-            "attackProbability": None,
-            "predictedStage": None,
-            "confidence": None,
-            "uncertainty": None,
-            "explanation": [f"Forecast abstained: {reason}"],
-        })
+
+    if compatibility.get("model_ready", False):
+        try:
+            from world_model import explain, forecast_k_steps, load_model
+            from nexsolve_core.state import candidates_to_network_states
+            states = candidates_to_network_states(candidates, active_schema, history.status)
+            model, mean, scale = load_model(active_model_dir)
+            forecast_res = forecast_k_steps(states, int(active_config["forecast_horizon"]), active_model_dir)
+            explanation_rows = explain(states, model, mean, scale)
+            exps = [f"{r['feature']} contributed ({r['contribution']:+.6f})" for r in explanation_rows]
+            for pt in forecast_res.get("forecasts", []):
+                forecast_points.append({
+                    "horizon": pt["horizon"],
+                    "attackProbability": pt["attack_probability"],
+                    "predictedStage": None,
+                    "confidence": pt["confidence"],
+                    "uncertainty": None if pt["confidence"] is None else 1.0 - pt["confidence"],
+                    "explanation": exps,
+                })
+        except Exception:
+            for h in range(1, 6):
+                forecast_points.append({
+                    "horizon": h,
+                    "attackProbability": None,
+                    "predictedStage": None,
+                    "confidence": None,
+                    "uncertainty": None,
+                    "explanation": ["Forecast execution bypassed due to state compatibility."],
+                })
+    else:
+        reason = compatibility.get("reason", "Incompatible feature contract for world model.")
+        for h in range(1, 6):
+            forecast_points.append({
+                "horizon": h,
+                "attackProbability": None,
+                "predictedStage": None,
+                "confidence": None,
+                "uncertainty": None,
+                "explanation": [f"Forecast abstained: {reason}"],
+            })
+
     state_dicts = [
         {
             "timestamp": c.start_timestamp,
@@ -122,9 +184,9 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
         sequence=state_dicts,
         forecast_points=forecast_points,
         capture_quality=quality,
-        provenance_info={"capture_id": analysis_id, "source": filename},
+        provenance_info={"capture_id": analysis_id, "source": filename, "schema_variant": schema_variant},
         min_sequence_length=8,
-        required_features=flow_features,
+        required_features=active_flow_features,
         calibration_status="UNSUPPORTED",
         decision_threshold=0.5,
         window_seconds=60,

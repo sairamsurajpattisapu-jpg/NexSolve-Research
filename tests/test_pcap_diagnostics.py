@@ -166,3 +166,48 @@ def test_ipv6_udp_canonical_extraction():
         assert len(windows) == 1
     finally:
         temp_path.unlink(missing_ok=True)
+
+
+def test_packet_features_min_max_and_bidirectional_gate_regression():
+    """Verify that packet_size_min/max and iat_max are extracted and mean_tcp_rtt remains strictly gated."""
+    base_epoch = 1700000000.0
+    packets = []
+    # 8 contiguous windows with bidirectional TCP packets
+    for w in range(8):
+        for p in range(4):
+            # Forward packet
+            pkt1 = Ether(src="00:11:22:33:44:55", dst="66:77:88:99:aa:bb") / IP(src="10.0.1.1", dst="10.0.2.1") / TCP(sport=5000 + w, dport=80, flags="S", window=64240) / b"data"
+            pkt1.time = base_epoch + w * 60.0 + p * 1.0
+            packets.append(pkt1)
+            # Reverse packet
+            pkt2 = Ether(src="66:77:88:99:aa:bb", dst="00:11:22:33:44:55") / IP(src="10.0.2.1", dst="10.0.1.1") / TCP(sport=80, dport=5000 + w, flags="SA", window=32768) / b"resp"
+            pkt2.time = base_epoch + w * 60.0 + p * 1.0 + 0.05
+            packets.append(pkt2)
+
+    with tempfile.NamedTemporaryFile(suffix=".pcap", delete=False) as tf:
+        temp_path = Path(tf.name)
+    try:
+        wrpcap(str(temp_path), packets)
+        pkts, windows, quality = extract_canonical_capture(temp_path, window_seconds=60)
+        candidates = build_network_state_candidates(windows)
+        history = build_state_history(candidates)
+
+        assert len(windows) == 8
+        assert history.status == "READY"
+        
+        # Verify min/max packet features are extracted
+        c = candidates[1]
+        assert "min_packet_size" in c.packet_features
+        assert "max_packet_size" in c.packet_features
+        assert "max_iat" in c.packet_features
+        
+        # Verify bidirectional reverse-flow features are populated
+        assert c.flow_features.get("mean_dttl") is not None
+        assert c.flow_features.get("mean_dwin") is not None
+        
+        # Verify mean_tcp_rtt remains deliberately unavailable without zero-filling
+        report = evaluate_model_compatibility(candidates, history_status="READY")
+        assert report.model_ready is False
+        assert "flow_features.mean_tcp_rtt" in report.unavailable_features
+    finally:
+        temp_path.unlink(missing_ok=True)
