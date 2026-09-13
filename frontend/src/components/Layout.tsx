@@ -1,35 +1,17 @@
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import {
-  Activity,
-  Compass,
-  FileText,
-  GitCommit,
-  Menu,
-  Moon,
-  Radar,
-  Settings,
-  Sparkles,
-  Sun,
-  TrendingUp,
-  X,
-} from 'lucide-react'
+import { Menu, Moon, Sun, X } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 
 const navigation = [
-  { to: '/', label: 'Overview', icon: Compass },
-  { to: '/analyze', label: 'Analyze', icon: Radar },
-  { to: '/forecast', label: 'Forecast', icon: TrendingUp },
-  { to: '/evidence', label: 'Evidence', icon: GitCommit },
-  { to: '/traffic', label: 'Traffic', icon: Activity },
-  { to: '/reports', label: 'Reports', icon: FileText },
-  { to: '/demo', label: 'Demo', icon: Sparkles },
-  { to: '/settings', label: 'Settings', icon: Settings },
+  { to: '/analyze', label: 'Analyze' },
+  { to: '/forecast', label: 'Forecast' },
+  { to: '/evidence', label: 'Evidence' },
+  { to: '/reports', label: 'Reports' },
 ]
 
 export function Layout({
   status,
-  source = 'production',
   provenance,
 }: {
   status: string
@@ -40,38 +22,36 @@ export function Layout({
   const { isDark, toggleTheme } = useTheme()
   const statusTone = status === 'API unavailable' ? 'danger' : status === 'Syncing data' ? 'warning' : 'success'
   const isDemo = provenance === 'demo'
-  const isUploaded = !isDemo && (provenance === 'uploaded' || (source === 'uploaded' && provenance !== 'reference'))
+  const isUploaded = !isDemo && provenance === 'uploaded'
 
   return (
     <div className="app-shell">
       <header className="navbar-shell">
         <div className="navbar-inner">
-          <NavLink className="brand-block" to="/" aria-label="NexSolve home">
-            <div className="brand-mark"><Radar size={17} /></div>
+          <NavLink className="brand-block" to="/analyze" aria-label="NexSolve">
             <span className="brand-label">NexSolve</span>
           </NavLink>
-          <nav className="desktop-nav" aria-label="Main navigation">
-            {navigation.map(({ to, label, icon: Icon }) => (
+
+          <nav className="desktop-nav" aria-label="Primary navigation">
+            {navigation.map(({ to, label }) => (
               <NavLink
                 key={to}
                 to={to}
-                end={to === '/'}
                 onClick={() => setOpen(false)}
                 className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
               >
-                <Icon size={14} strokeWidth={1.8} />
                 <span>{label}</span>
               </NavLink>
             ))}
           </nav>
+
           <div className="navbar-right">
+            <div className="source-tag">
+              {isDemo ? 'Demo' : isUploaded ? 'Live capture' : 'Reference'}
+            </div>
             <div className="navbar-status">
               <span className={`status-dot status-${statusTone}`} aria-hidden="true" />
               <span className="status-text">{status}</span>
-            </div>
-            <div className="source-indicator">
-              <span>{isDemo ? 'DEMO DATA' : isUploaded ? 'LIVE PCAP ANALYSIS' : 'VERIFIED REFERENCE'}</span>
-              <small>{isDemo ? 'Scenario evaluation' : isUploaded ? 'User uploaded capture' : 'CIC-IDS2017 (No PCAP)'}</small>
             </div>
             <button
               type="button"
@@ -81,44 +61,29 @@ export function Layout({
               title={`Switch to ${isDark ? 'light' : 'dark'} theme`}
             >
               {isDark ? <Sun size={14} /> : <Moon size={14} />}
-              <span className="theme-toggle-label">{isDark ? 'LIGHT' : 'DARK'}</span>
             </button>
             <button
               className="menu-button"
               onClick={() => setOpen(!open)}
               aria-label={open ? 'Close navigation' : 'Open navigation'}
             >
-              {open ? <X size={19} /> : <Menu size={19} />}
+              {open ? <X size={18} /> : <Menu size={18} />}
             </button>
           </div>
         </div>
+
         {open && (
           <nav className="mobile-nav" aria-label="Mobile navigation">
-            {navigation.map(({ to, label, icon: Icon }) => (
+            {navigation.map(({ to, label }) => (
               <NavLink
                 key={to}
                 to={to}
-                end={to === '/'}
                 onClick={() => setOpen(false)}
                 className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
               >
-                <Icon size={15} />
                 <span>{label}</span>
               </NavLink>
             ))}
-            <button
-              type="button"
-              className="theme-toggle-btn"
-              onClick={() => {
-                toggleTheme()
-                setOpen(false)
-              }}
-              style={{ marginTop: '8px', alignSelf: 'flex-start' }}
-              aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-            >
-              {isDark ? <Sun size={14} /> : <Moon size={14} />}
-              <span>{isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}</span>
-            </button>
           </nav>
         )}
       </header>

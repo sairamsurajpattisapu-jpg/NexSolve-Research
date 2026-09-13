@@ -150,8 +150,7 @@ describe('NexSolve Theme System & Controls', () => {
         </Routes>
       </MemoryRouter>
     )
-    expect(screen.getByText('VERIFIED REFERENCE')).toBeInTheDocument()
-    expect(screen.getByText('CIC-IDS2017 (No PCAP)')).toBeInTheDocument()
+    expect(screen.getByText('Reference')).toBeInTheDocument()
 
     rerender(
       <MemoryRouter initialEntries={['/dashboard']}>
@@ -162,8 +161,7 @@ describe('NexSolve Theme System & Controls', () => {
         </Routes>
       </MemoryRouter>
     )
-    expect(screen.getByText('LIVE PCAP ANALYSIS')).toBeInTheDocument()
-    expect(screen.getByText('User uploaded capture')).toBeInTheDocument()
+    expect(screen.getByText('Live capture')).toBeInTheDocument()
 
     rerender(
       <MemoryRouter initialEntries={['/dashboard']}>
@@ -174,7 +172,6 @@ describe('NexSolve Theme System & Controls', () => {
         </Routes>
       </MemoryRouter>
     )
-    expect(screen.getByText('DEMO DATA')).toBeInTheDocument()
-    expect(screen.getByText('Scenario evaluation')).toBeInTheDocument()
+    expect(screen.getByText('Demo')).toBeInTheDocument()
   })
 })

@@ -5,7 +5,6 @@ import { Dashboard } from './pages/Dashboard'
 import { Demo } from './pages/Demo'
 import { Evidence } from './pages/Evidence'
 import { Forecast } from './pages/Forecast'
-import { Landing } from './pages/Landing'
 import { Reports } from './pages/Reports'
 import { Settings } from './pages/Settings'
 import { Threats } from './pages/Threats'
@@ -25,8 +24,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout status={status} source={analysisSource} provenance={provenance} />}>
-          <Route path="/" element={<Landing />} />
-          <Route path="/overview" element={<Landing />} />
+          <Route path="/" element={<Navigate to="/analyze" replace />} />
+          <Route path="/overview" element={<Navigate to="/analyze" replace />} />
           <Route path="/analyze" element={<Dashboard />} />
           <Route path="/dashboard" element={<Navigate to="/analyze" replace />} />
           <Route path="/forecast" element={<Forecast />} />
@@ -36,7 +35,7 @@ function App() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/demo" element={<Demo />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/analyze" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

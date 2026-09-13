@@ -63,6 +63,7 @@ export function ReportActions({ jobId, onReset }: ReportActionsProps) {
         <button
           type="button"
           onClick={onReset}
+          aria-label="Upload Another / Return to reference dataset"
           className="button button-quiet"
           style={{
             display: 'inline-flex',

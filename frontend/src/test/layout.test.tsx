@@ -12,10 +12,10 @@ describe('application navigation', () => {
   it('renders the navigation and supports keyboard-usable route links', async () => {
     const user = userEvent.setup()
     renderLayout('/analyze')
-    expect(screen.getByRole('link', { name: 'Overview' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Analyze' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Forecast' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Evidence' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Demo' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Reports' })).toBeInTheDocument()
     await user.click(screen.getByRole('link', { name: 'Analyze' }))
     expect(screen.getByRole('link', { name: 'Analyze' })).toHaveClass('active')
   })

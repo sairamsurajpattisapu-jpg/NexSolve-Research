@@ -1,4 +1,4 @@
-import { ShieldAlert, Sparkles } from 'lucide-react'
+import { ShieldAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AttackHorizonCard } from '../components/AttackHorizonCard'
 import { ForecastConfidence } from '../components/ForecastConfidence'
@@ -47,9 +47,6 @@ export function Forecast() {
           <div className="heading-actions">
             <Link to="/analyze" className="button button-quiet">
               Analyze PCAP
-            </Link>
-            <Link to="/demo" className="button button-quiet">
-              <Sparkles size={14} color="var(--accent)" /> Judge Demo
             </Link>
           </div>
         }
