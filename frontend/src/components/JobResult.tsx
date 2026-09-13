@@ -39,8 +39,9 @@ export function JobResult({ result, onReset }: JobResultProps) {
                 <>
                   <span
                     style={{
-                      background: 'rgba(104, 225, 216, 0.15)',
-                      color: 'var(--teal)',
+                      background: 'var(--accent-muted)',
+                      color: 'var(--accent)',
+                      border: '1px solid var(--accent)',
                       padding: '2px 8px',
                       borderRadius: '4px',
                       fontSize: '10px',
@@ -52,8 +53,9 @@ export function JobResult({ result, onReset }: JobResultProps) {
                   </span>
                   <span
                     style={{
-                      background: 'rgba(104, 225, 216, 0.15)',
-                      color: 'var(--teal)',
+                      background: 'var(--accent-muted)',
+                      color: 'var(--accent)',
+                      border: '1px solid var(--accent)',
                       padding: '2px 8px',
                       borderRadius: '4px',
                       fontSize: '10px',
@@ -66,7 +68,8 @@ export function JobResult({ result, onReset }: JobResultProps) {
                   <span
                     style={{
                       background: 'rgba(242, 187, 113, 0.15)',
-                      color: 'var(--amber)',
+                      color: 'var(--warning)',
+                      border: '1px solid var(--warning)',
                       padding: '2px 8px',
                       borderRadius: '4px',
                       fontSize: '10px',
@@ -80,8 +83,9 @@ export function JobResult({ result, onReset }: JobResultProps) {
               ) : (
                 <span
                   style={{
-                    background: 'rgba(104, 225, 216, 0.15)',
-                    color: 'var(--teal)',
+                    background: 'var(--accent-muted)',
+                    color: 'var(--accent)',
+                    border: '1px solid var(--accent)',
                     padding: '2px 8px',
                     borderRadius: '4px',
                     fontSize: '10px',
@@ -93,12 +97,12 @@ export function JobResult({ result, onReset }: JobResultProps) {
                 </span>
               )}
             </div>
-            <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', color: 'var(--white)' }}>
+            <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', color: 'var(--text-primary)' }}>
               {result.is_demo
                 ? `SIH Demo: ${result.demo_scenario_name ?? result.source?.name}`
                 : 'Network Forensic & Predictive Assessment'}
             </h3>
-            <p style={{ margin: 0, fontSize: '12px', color: 'var(--muted)' }}>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>
               Source: <strong>{result.source?.name || 'Uploaded PCAP'}</strong> &middot; ID: {jobId}
             </p>
           </div>
@@ -111,20 +115,20 @@ export function JobResult({ result, onReset }: JobResultProps) {
             style={{
               marginTop: '12px',
               padding: '10px 12px',
-              background: 'rgba(104, 225, 216, 0.05)',
-              borderLeft: '3px solid var(--teal)',
+              background: 'var(--accent-muted)',
+              borderLeft: '3px solid var(--accent)',
               borderRadius: '4px',
               fontSize: '11px',
             }}
           >
-            <strong style={{ color: 'var(--teal)', display: 'block', marginBottom: '2px' }}>
+            <strong style={{ color: 'var(--accent)', display: 'block', marginBottom: '2px' }}>
               Scenario Context & Evaluation Guidance:
             </strong>
-            <p style={{ margin: '0 0 4px 0', color: 'var(--subtle)' }}>
+            <p style={{ margin: '0 0 4px 0', color: 'var(--text-secondary)' }}>
               {result.demo_scenario_description}
             </p>
             {result.demo_expected_behavior && (
-              <small style={{ display: 'block', color: 'var(--white)', fontFamily: 'var(--mono)', fontSize: '10px' }}>
+              <small style={{ display: 'block', color: 'var(--text-primary)', fontFamily: 'var(--mono)', fontSize: '10px' }}>
                 Key Observation: {result.demo_expected_behavior}
               </small>
             )}
@@ -141,14 +145,14 @@ export function JobResult({ result, onReset }: JobResultProps) {
               gap: '12px',
               marginTop: '10px',
               paddingTop: '8px',
-              borderTop: '1px solid var(--line)',
+              borderTop: '1px solid var(--border)',
               fontSize: '10px',
               fontFamily: 'var(--mono)',
-              color: 'var(--muted)',
+              color: 'var(--text-muted)',
             }}
           >
             <span>
-              Total Pipeline: <strong style={{ color: 'var(--white)' }}>{result.processing_metrics.total_processing_ms ?? 0} ms</strong>
+              Total Pipeline: <strong style={{ color: 'var(--text-primary)' }}>{result.processing_metrics.total_processing_ms ?? 0} ms</strong>
             </span>
             <span>Parsing: {result.processing_metrics.pcap_parsing_ms ?? 0} ms</span>
             <span>State Extraction: {result.processing_metrics.network_state_extraction_ms ?? 0} ms</span>
@@ -169,30 +173,30 @@ export function JobResult({ result, onReset }: JobResultProps) {
       >
         <Panel className="metric-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Activity size={15} color="var(--teal)" />
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--muted)', textTransform: 'uppercase' }}>
+            <Activity size={15} color="var(--accent)" />
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Observed Traffic
             </span>
           </div>
-          <div style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'var(--mono)', color: 'var(--white)', marginTop: '4px' }}>
+          <div style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'var(--mono)', color: 'var(--text-primary)', marginTop: '4px' }}>
             {traffic?.packets?.toLocaleString() ?? 0} pkts
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
             {result.window_count ?? traffic?.windows ?? 1} temporal windows (60s)
           </div>
         </Panel>
 
         <Panel className="metric-card">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Wifi size={15} color="var(--cyan)" />
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--muted)', textTransform: 'uppercase' }}>
+            <Wifi size={15} color="var(--accent)" />
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
               Reconstructed Flows
             </span>
           </div>
-          <div style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'var(--mono)', color: 'var(--white)', marginTop: '4px' }}>
+          <div style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'var(--mono)', color: 'var(--text-primary)', marginTop: '4px' }}>
             {(traffic?.flows ?? result.packet_count ?? 0).toLocaleString()} flows
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
             Protocols: {Object.keys(traffic?.protocol_counts ?? {}).join(', ') || 'TCP/UDP'}
           </div>
         </Panel>

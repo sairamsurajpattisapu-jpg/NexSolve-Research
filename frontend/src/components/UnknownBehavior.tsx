@@ -30,26 +30,26 @@ export function UnknownBehavior({ unknownBehavior }: UnknownBehaviorProps) {
           alignItems: 'flex-start',
           gap: '12px',
           padding: '12px 14px',
-          background: isUnknown ? 'rgba(242, 187, 113, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-          borderLeft: `3px solid ${isKnown ? 'var(--teal)' : isWeak ? 'var(--muted)' : 'var(--amber)'}`,
+          background: isUnknown ? 'rgba(242, 187, 113, 0.12)' : 'var(--bg-secondary)',
+          borderLeft: `3px solid ${isKnown ? 'var(--accent)' : isWeak ? 'var(--text-muted)' : 'var(--warning)'}`,
           borderRadius: '4px',
           marginBottom: '12px',
         }}
       >
         <div style={{ marginTop: '2px' }}>
           {isKnown ? (
-            <CheckCheck size={16} color="var(--teal)" />
+            <CheckCheck size={16} color="var(--accent)" />
           ) : isWeak ? (
-            <HelpCircle size={16} color="var(--muted)" />
+            <HelpCircle size={16} color="var(--text-muted)" />
           ) : (
-            <ShieldAlert size={16} color="var(--amber)" />
+            <ShieldAlert size={16} color="var(--warning)" />
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <strong style={{ display: 'block', fontSize: '12px', color: 'var(--white)', marginBottom: '4px' }}>
+          <strong style={{ display: 'block', fontSize: '12px', color: 'var(--text-primary)', marginBottom: '4px' }}>
             {unknownBehavior.reason}
           </strong>
-          <p style={{ fontSize: '11px', color: 'var(--subtle)', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
             {isUnknown && (
               <span>
                 <strong>Operational Notice: </strong>
@@ -61,10 +61,10 @@ export function UnknownBehavior({ unknownBehavior }: UnknownBehaviorProps) {
           </p>
         </div>
         <div style={{ textAlign: 'right', minWidth: '75px' }}>
-          <span style={{ display: 'block', fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--muted)' }}>
+          <span style={{ display: 'block', fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
             Coverage
           </span>
-          <strong style={{ fontSize: '15px', fontFamily: 'var(--mono)', color: 'var(--white)' }}>
+          <strong style={{ fontSize: '15px', fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>
             {(unknownBehavior.coverage * 100).toFixed(0)}%
           </strong>
         </div>
@@ -74,12 +74,12 @@ export function UnknownBehavior({ unknownBehavior }: UnknownBehaviorProps) {
         <div
           style={{
             padding: '8px 12px',
-            background: 'rgba(237, 128, 111, 0.08)',
-            border: '1px solid rgba(237, 128, 111, 0.3)',
+            background: 'rgba(237, 128, 111, 0.12)',
+            border: '1px solid var(--danger)',
             borderRadius: '4px',
             fontSize: '10px',
             fontFamily: 'var(--mono)',
-            color: 'var(--red)',
+            color: 'var(--danger)',
           }}
         >
           Abstention Recommended: Traffic contains unmappable semantic anomalies.

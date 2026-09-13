@@ -7,9 +7,9 @@ export function ActivityChart({ windows }: { windows: WindowRow[] }) {
   const points = sample.map((window, index) => `${(index / Math.max(sample.length - 1, 1)) * 100},${92 - (window.packet_count / max) * 82}`).join(' ')
   return <div className="chart-wrap">
     <svg className="activity-chart" viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Packets per analysis window">
-      <defs><linearGradient id="activity-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#4ed8d0" stopOpacity=".3" /><stop offset="1" stopColor="#4ed8d0" stopOpacity="0" /></linearGradient></defs>
+      <defs><linearGradient id="activity-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="var(--accent)" stopOpacity=".3" /><stop offset="1" stopColor="var(--accent)" stopOpacity="0" /></linearGradient></defs>
       <polygon points={`0,100 ${points} 100,100`} fill="url(#activity-fill)" />
-      <polyline points={points} fill="none" stroke="#68e1d8" strokeWidth=".9" vectorEffect="non-scaling-stroke" />
+      <polyline points={points} fill="none" stroke="var(--accent)" strokeWidth=".9" vectorEffect="non-scaling-stroke" />
     </svg>
     <div className="chart-axis"><span>{sample[0] ? formatNumber(sample[0].packet_count) : '0'} packets</span><span>{sample.at(-1) ? formatNumber(sample.at(-1)!.packet_count) : '0'} packets</span></div>
   </div>

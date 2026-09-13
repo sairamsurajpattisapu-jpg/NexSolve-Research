@@ -43,11 +43,12 @@ export function DemoModeSelector({ onSelectScenario, onClose }: DemoModeSelector
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
-                padding: '3px 8px',
+                gap: '5px',
+                padding: '4px 10px',
                 borderRadius: '4px',
-                background: 'rgba(104, 225, 216, 0.15)',
-                color: 'var(--teal)',
+                background: 'var(--accent-muted)',
+                color: 'var(--accent)',
+                border: '1px solid var(--accent)',
                 fontSize: '10px',
                 fontFamily: 'var(--mono)',
                 fontWeight: 700,
@@ -60,7 +61,7 @@ export function DemoModeSelector({ onSelectScenario, onClose }: DemoModeSelector
               <button
                 type="button"
                 className="button button-quiet"
-                style={{ padding: '4px 8px', fontSize: '11px' }}
+                style={{ padding: '5px 10px', fontSize: '11px' }}
                 onClick={onClose}
                 aria-label="Exit Demo Mode"
               >
@@ -77,7 +78,7 @@ export function DemoModeSelector({ onSelectScenario, onClose }: DemoModeSelector
         aria-label="Demo scenarios"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))',
           gap: '8px',
           marginTop: '12px',
           marginBottom: '16px',
@@ -99,9 +100,10 @@ export function DemoModeSelector({ onSelectScenario, onClose }: DemoModeSelector
                 alignItems: 'flex-start',
                 gap: '4px',
                 textAlign: 'left',
-                borderRadius: '5px',
-                borderColor: isSelected ? 'var(--teal)' : 'var(--line)',
-                background: isSelected ? 'rgba(104, 225, 216, 0.08)' : 'rgba(255, 255, 255, 0.01)',
+                borderRadius: '6px',
+                borderColor: isSelected ? 'var(--accent)' : 'var(--border)',
+                background: isSelected ? 'var(--accent-muted)' : 'var(--button-secondary-bg)',
+                color: isSelected ? 'var(--accent)' : 'var(--text-primary)',
               }}
               onClick={() => {
                 setSelectedId(scenario.id)
@@ -113,18 +115,21 @@ export function DemoModeSelector({ onSelectScenario, onClose }: DemoModeSelector
                   style={{
                     fontSize: '9px',
                     fontFamily: 'var(--mono)',
-                    color: isSelected ? 'var(--teal)' : 'var(--muted)',
+                    fontWeight: 700,
+                    letterSpacing: '0.04em',
+                    color: isSelected ? 'var(--accent)' : 'var(--text-muted)',
                   }}
                 >
                   {scenario.badge}
                 </span>
-                {isSelected && <CheckCircle2 size={12} color="var(--teal)" />}
+                {isSelected && <CheckCircle2 size={12} color="var(--accent)" />}
               </div>
               <strong
                 style={{
                   fontSize: '11px',
-                  color: isSelected ? 'var(--white)' : 'var(--subtle)',
-                  lineHeight: 1.2,
+                  fontWeight: 700,
+                  color: isSelected ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  lineHeight: 1.25,
                 }}
               >
                 {scenario.name}
@@ -140,38 +145,38 @@ export function DemoModeSelector({ onSelectScenario, onClose }: DemoModeSelector
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '14px',
-          padding: '12px 14px',
-          background: 'rgba(0, 0, 0, 0.25)',
-          border: '1px solid var(--line)',
-          borderRadius: '4px',
+          padding: '14px 16px',
+          background: 'var(--bg-secondary)',
+          border: '1px solid var(--border)',
+          borderRadius: '6px',
         }}
       >
         <div>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--muted)', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
             Scenario Context
           </span>
-          <h4 style={{ margin: '4px 0 6px 0', fontSize: '13px', color: 'var(--white)' }}>
+          <h4 style={{ margin: '4px 0 6px 0', fontSize: '13px', color: 'var(--text-primary)' }}>
             {selectedMeta.name}
           </h4>
-          <p style={{ margin: 0, fontSize: '11px', color: 'var(--subtle)', lineHeight: 1.5 }}>
+          <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             {selectedMeta.description}
           </p>
         </div>
 
         <div>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--teal)', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase' }}>
             Expected Evaluation Behavior
           </span>
           <p
             style={{
               margin: '4px 0 0 0',
               fontSize: '11px',
-              color: 'var(--white)',
+              color: 'var(--text-primary)',
               lineHeight: 1.5,
-              background: 'rgba(104, 225, 216, 0.04)',
-              padding: '6px 8px',
-              borderRadius: '3px',
-              borderLeft: '2px solid var(--teal)',
+              background: 'var(--accent-muted)',
+              padding: '8px 10px',
+              borderRadius: '4px',
+              borderLeft: '3px solid var(--accent)',
             }}
           >
             {selectedMeta.expected_behavior}
@@ -179,13 +184,13 @@ export function DemoModeSelector({ onSelectScenario, onClose }: DemoModeSelector
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '14px' }}>
         <button
           type="button"
           className="button"
           disabled={loading}
           onClick={() => void handleRunScenario(selectedId)}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
           <Play size={13} /> {loading ? 'Loading scenario...' : `Load ${selectedMeta.name}`}
         </button>

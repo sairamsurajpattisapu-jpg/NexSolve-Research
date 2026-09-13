@@ -78,8 +78,9 @@ export function AttackHorizonCard({
                       padding: '4px 8px',
                       fontSize: '9px',
                       fontFamily: 'var(--mono)',
-                      borderColor: selectedFixtureKey === key ? 'var(--teal)' : 'var(--line)',
-                      color: selectedFixtureKey === key ? 'var(--teal)' : 'var(--muted)',
+                      borderColor: selectedFixtureKey === key ? 'var(--accent)' : 'var(--border)',
+                      color: selectedFixtureKey === key ? 'var(--accent)' : 'var(--text-secondary)',
+                      background: selectedFixtureKey === key ? 'var(--accent-muted)' : 'var(--button-secondary-bg)',
                     }}
                     onClick={() => setSelectedFixtureKey(key)}
                   >
@@ -225,12 +226,12 @@ export function AttackHorizonCard({
               <div
                 key={point.horizon}
                 style={{
-                  border: `1px solid ${isWithinHorizon ? 'rgba(237, 128, 111, 0.6)' : isAttack ? 'rgba(237, 128, 111, 0.3)' : 'var(--line)'}`,
+                  border: `1px solid ${isWithinHorizon ? 'rgba(237, 128, 111, 0.6)' : isAttack ? 'rgba(237, 128, 111, 0.3)' : 'var(--border)'}`,
                   background: isWithinHorizon
                     ? 'rgba(237, 128, 111, 0.12)'
                     : isAttack
                     ? 'rgba(237, 128, 111, 0.05)'
-                    : 'rgba(10, 22, 24, 0.6)',
+                    : 'var(--bg-secondary)',
                   borderRadius: '5px',
                   padding: '10px 8px',
                   textAlign: 'center',

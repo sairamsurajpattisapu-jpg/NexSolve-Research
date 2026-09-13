@@ -93,11 +93,10 @@ export function Dashboard() {
               </button>
             )}
             <button
-              className="button button-quiet"
-              style={{ color: showDemoMode ? 'var(--teal)' : undefined, borderColor: showDemoMode ? 'var(--teal)' : undefined }}
+              className={`button button-quiet ${showDemoMode ? 'active' : ''}`}
               onClick={() => setShowDemoMode(!showDemoMode)}
             >
-              <Sparkles size={14} color="var(--teal)" /> {showDemoMode ? 'Close Demo Mode' : 'Demo Mode'}
+              <Sparkles size={14} color="var(--accent)" /> {showDemoMode ? 'Close Demo Mode' : 'Demo Mode'}
             </button>
             <button className="button button-quiet" onClick={() => void reload()}>
               <TimerReset size={15} /> Refresh data
@@ -167,7 +166,7 @@ export function Dashboard() {
                 onClick={() => setShowDemoMode(true)}
                 style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
               >
-                <Sparkles size={14} color="var(--teal)" /> Try Demo
+                <Sparkles size={14} color="var(--accent)" /> Try Demo
               </button>
             </div>
             {(uploadError || selectionError) && <p className="upload-error">{uploadError ?? selectionError}</p>}

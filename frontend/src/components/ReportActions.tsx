@@ -21,17 +21,19 @@ export function ReportActions({ jobId, onReset }: ReportActionsProps) {
           display: 'inline-flex',
           alignItems: 'center',
           gap: '6px',
-          padding: '6px 12px',
+          padding: '7px 13px',
           fontSize: '11px',
           fontFamily: 'var(--mono)',
+          fontWeight: 700,
           textDecoration: 'none',
-          color: 'var(--white)',
-          borderColor: 'var(--teal)',
+          color: 'var(--text-primary)',
+          borderColor: 'var(--accent)',
+          background: 'var(--accent-muted)',
         }}
       >
-        <FileText size={14} color="var(--teal)" />
+        <FileText size={14} color="var(--accent)" />
         <span>Open HTML Report</span>
-        <ExternalLink size={12} color="var(--muted)" />
+        <ExternalLink size={12} color="var(--text-muted)" />
       </a>
 
       <a
@@ -42,17 +44,19 @@ export function ReportActions({ jobId, onReset }: ReportActionsProps) {
           display: 'inline-flex',
           alignItems: 'center',
           gap: '6px',
-          padding: '6px 12px',
+          padding: '7px 13px',
           fontSize: '11px',
           fontFamily: 'var(--mono)',
+          fontWeight: 700,
           textDecoration: 'none',
-          color: 'var(--white)',
-          borderColor: 'var(--line)',
+          color: 'var(--text-primary)',
+          borderColor: 'var(--border)',
+          background: 'var(--button-secondary-bg)',
         }}
       >
-        <FileJson size={14} color="var(--cyan)" />
+        <FileJson size={14} color="var(--accent)" />
         <span>Download JSON</span>
-        <Download size={12} color="var(--muted)" />
+        <Download size={12} color="var(--text-muted)" />
       </a>
 
       {onReset && (
@@ -64,11 +68,13 @@ export function ReportActions({ jobId, onReset }: ReportActionsProps) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '6px 12px',
+            padding: '7px 13px',
             fontSize: '11px',
             fontFamily: 'var(--mono)',
-            borderColor: 'var(--line)',
-            color: 'var(--muted)',
+            fontWeight: 700,
+            borderColor: 'var(--border)',
+            background: 'var(--button-secondary-bg)',
+            color: 'var(--text-primary)',
           }}
         >
           <RotateCcw size={12} />

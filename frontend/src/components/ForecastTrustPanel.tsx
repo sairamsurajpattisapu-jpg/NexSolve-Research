@@ -38,7 +38,7 @@ export function ForecastTrustPanel({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <SlidersHorizontal size={14} color="var(--teal)" />
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--white)', fontWeight: 600 }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', fontWeight: 600 }}>
                 Interactive Trust Layer Scenario Fixtures (11 Scenarios):
               </span>
             </div>
@@ -49,11 +49,12 @@ export function ForecastTrustPanel({
                   type="button"
                   className={`button button-quiet ${selectedFixtureId === fix.id ? 'active' : ''}`}
                   style={{
-                    padding: '3px 7px',
+                    padding: '4px 8px',
                     fontSize: '9px',
                     fontFamily: 'var(--mono)',
-                    borderColor: selectedFixtureId === fix.id ? 'var(--teal)' : 'var(--line)',
-                    color: selectedFixtureId === fix.id ? 'var(--teal)' : 'var(--muted)',
+                    borderColor: selectedFixtureId === fix.id ? 'var(--accent)' : 'var(--border)',
+                    color: selectedFixtureId === fix.id ? 'var(--accent)' : 'var(--text-secondary)',
+                    background: selectedFixtureId === fix.id ? 'var(--accent-muted)' : 'var(--button-secondary-bg)',
                   }}
                   onClick={() => setSelectedFixtureId(fix.id)}
                 >

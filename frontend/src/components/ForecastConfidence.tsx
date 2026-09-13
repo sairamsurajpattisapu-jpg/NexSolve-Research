@@ -75,7 +75,7 @@ export function ForecastConfidence({ confidence }: ForecastConfidenceProps) {
             style={{
               fontSize: '18px',
               marginTop: '8px',
-              color: isHighUncertainty ? 'var(--red)' : 'var(--white)',
+              color: isHighUncertainty ? 'var(--danger)' : 'var(--text-primary)',
             }}
           >
             {confidence.uncertainty_level}
@@ -87,11 +87,11 @@ export function ForecastConfidence({ confidence }: ForecastConfidenceProps) {
       <div
         style={{
           padding: '10px 12px',
-          background: 'rgba(255, 255, 255, 0.02)',
-          borderLeft: '2px solid var(--line)',
-          borderRadius: '3px',
+          background: 'var(--bg-secondary)',
+          borderLeft: '2px solid var(--border)',
+          borderRadius: '4px',
           fontSize: '11px',
-          color: 'var(--subtle)',
+          color: 'var(--text-secondary)',
           lineHeight: 1.5,
         }}
       >

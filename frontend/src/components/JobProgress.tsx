@@ -31,7 +31,7 @@ const STAGES_ORDER: JobStageType[] = [
   'COMPLETE',
 ]
 
-export function JobProgress({ job }: JobProgressProps) {
+export function JobProgress({ job, onCancel }: JobProgressProps) {
   const isFailed = job.status === 'FAILED'
   const isLimitExceeded = job.status === 'RESOURCE_LIMIT_EXCEEDED'
   const isComplete = job.status === 'COMPLETED'
@@ -41,10 +41,10 @@ export function JobProgress({ job }: JobProgressProps) {
     <Panel className="job-progress-panel">
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
           <div>
-            <span className="eyebrow" style={{ color: 'var(--teal)' }}>Asynchronous PCAP Engine</span>
-            <h4 style={{ margin: '2px 0 0 0', fontSize: '15px', color: 'var(--white)' }}>
+            <span className="eyebrow" style={{ color: 'var(--accent)' }}>Asynchronous PCAP Engine</span>
+            <h4 style={{ margin: '2px 0 0 0', fontSize: '15px', color: 'var(--text-primary)' }}>
               {isLimitExceeded
                 ? 'Resource Limit Exceeded'
                 : isFailed
@@ -54,16 +54,29 @@ export function JobProgress({ job }: JobProgressProps) {
                 : STAGE_LABELS[job.stage] || 'Processing Capture'}
             </h4>
           </div>
-          <div style={{ textAlign: 'right', fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--muted)' }}>
-            <div>JOB ID: {job.job_id}</div>
-            <div style={{ color: isLimitExceeded ? '#f59e0b' : isFailed ? 'var(--red)' : isComplete ? '#10b981' : 'var(--teal)' }}>
-              {job.status}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ textAlign: 'right', fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
+              <div>JOB ID: {job.job_id}</div>
+              <div style={{ color: isLimitExceeded ? 'var(--warning)' : isFailed ? 'var(--danger)' : isComplete ? 'var(--success)' : 'var(--accent)' }}>
+                {job.status}
+              </div>
             </div>
+            {onCancel && (
+              <button
+                type="button"
+                className="button button-quiet"
+                onClick={onCancel}
+                style={{ padding: '4px 8px', fontSize: '11px' }}
+                aria-label="Cancel job"
+              >
+                Cancel
+              </button>
+            )}
           </div>
         </div>
 
         {/* Deterministic Progress Bar */}
-        <div style={{ width: '100%', background: 'rgba(255, 255, 255, 0.06)', borderRadius: '4px', height: '8px', overflow: 'hidden' }}>
+        <div style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '4px', height: '8px', overflow: 'hidden' }}>
           <div
             style={{
               height: '100%',
@@ -80,7 +93,7 @@ export function JobProgress({ job }: JobProgressProps) {
           />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--muted)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
           <span>Stage: {job.stage}</span>
           <span>{percent}% Deterministic Progress</span>
         </div>
@@ -100,20 +113,20 @@ export function JobProgress({ job }: JobProgressProps) {
                   padding: '2px 6px',
                   borderRadius: '3px',
                   background: isCurrent
-                    ? 'rgba(13, 148, 136, 0.25)'
+                    ? 'var(--accent-muted)'
                     : isPast
                     ? 'rgba(16, 185, 129, 0.12)'
-                    : 'rgba(255, 255, 255, 0.03)',
+                    : 'var(--button-secondary-bg)',
                   color: isCurrent
-                    ? 'var(--teal)'
+                    ? 'var(--accent)'
                     : isPast
-                    ? '#34d399'
-                    : 'var(--muted)',
+                    ? 'var(--success)'
+                    : 'var(--text-muted)',
                   border: isCurrent
-                    ? '1px solid var(--teal)'
+                    ? '1px solid var(--accent)'
                     : isPast
-                    ? '1px solid rgba(52, 211, 153, 0.3)'
-                    : '1px solid rgba(255, 255, 255, 0.05)',
+                    ? '1px solid rgba(16, 185, 129, 0.35)'
+                    : '1px solid var(--border)',
                 }}
               >
                 {stageName}
@@ -179,33 +192,33 @@ export function JobProgress({ job }: JobProgressProps) {
               gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
               gap: '8px',
               marginTop: '6px',
-              background: 'rgba(15, 23, 42, 0.4)',
-              border: '1px solid var(--line)',
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border)',
               borderRadius: '4px',
               padding: '8px 12px',
             }}
           >
             {job.processing_statistics.packets_processed !== undefined && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px' }}>
-                <Cpu size={12} color="var(--teal)" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                <Cpu size={12} color="var(--accent)" />
                 <span>{job.processing_statistics.packets_processed.toLocaleString()} pkts</span>
               </div>
             )}
             {job.processing_statistics.windows_processed !== undefined && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px' }}>
-                <HardDrive size={12} color="var(--teal)" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                <HardDrive size={12} color="var(--accent)" />
                 <span>{job.processing_statistics.windows_processed} windows</span>
               </div>
             )}
             {job.processing_statistics.processing_seconds !== undefined && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px' }}>
-                <Clock size={12} color="var(--teal)" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                <Clock size={12} color="var(--accent)" />
                 <span>{job.processing_statistics.processing_seconds}s runtime</span>
               </div>
             )}
             {isComplete && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#34d399' }}>
-                <CheckCircle2 size={12} color="#34d399" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--success)' }}>
+                <CheckCircle2 size={12} color="var(--success)" />
                 <span>Verified</span>
               </div>
             )}

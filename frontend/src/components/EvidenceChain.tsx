@@ -101,31 +101,31 @@ export function EvidenceChain({ evidenceChain }: EvidenceChainProps) {
                   flexWrap: 'wrap',
                   gap: '8px',
                   padding: '8px 10px',
-                  background: 'rgba(104, 225, 216, 0.05)',
-                  borderLeft: '3px solid var(--teal)',
-                  borderRadius: '3px',
+                  background: 'var(--accent-muted)',
+                  borderLeft: '3px solid var(--accent)',
+                  borderRadius: '4px',
                   fontSize: '11px',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
-                  <span style={{ fontFamily: 'var(--mono)', fontSize: '9px', color: 'var(--teal)', fontWeight: 700 }}>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: '9px', color: 'var(--accent)', fontWeight: 700 }}>
                     [{item.evidence_type}]
                   </span>
-                  <span style={{ color: 'var(--white)', fontWeight: 600 }}>{item.feature_name}</span>
+                  <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{item.feature_name}</span>
                 </div>
-                <div style={{ flex: 1, color: 'var(--subtle)', fontSize: '11px' }}>
+                <div style={{ flex: 1, color: 'var(--text-secondary)', fontSize: '11px' }}>
                   {item.explanation}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--mono)', fontSize: '10px' }}>
-                  <span style={{ color: 'var(--muted)' }}>
-                    Observed: <strong style={{ color: 'var(--white)' }}>{item.observed_value}</strong> (base: {item.baseline_value})
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    Observed: <strong style={{ color: 'var(--text-primary)' }}>{item.observed_value}</strong> (base: {item.baseline_value})
                   </span>
                   {item.relative_change !== null && (
-                    <span style={{ color: 'var(--teal)', fontWeight: 700 }}>
+                    <span style={{ color: 'var(--accent)', fontWeight: 700 }}>
                       +{Math.abs(item.relative_change * 100).toFixed(1)}%
                     </span>
                   )}
-                  <span style={{ color: 'var(--muted)', fontSize: '9px' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '9px' }}>
                     rel: {(item.reliability ?? 1.0).toFixed(1)}
                   </span>
                 </div>
@@ -138,13 +138,13 @@ export function EvidenceChain({ evidenceChain }: EvidenceChainProps) {
       {/* Contradictory Evidence List */}
       <div style={{ marginBottom: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-          <HelpCircle size={13} color="var(--amber)" />
-          <strong style={{ fontSize: '11px', fontFamily: 'var(--mono)', textTransform: 'uppercase', color: 'var(--amber)', letterSpacing: '0.05em' }}>
+          <HelpCircle size={13} color="var(--warning)" />
+          <strong style={{ fontSize: '11px', fontFamily: 'var(--mono)', textTransform: 'uppercase', color: 'var(--warning)', letterSpacing: '0.05em' }}>
             Contradictory Evidence & Capture Limitations ({evidenceChain.contradictory.length})
           </strong>
         </div>
         {evidenceChain.contradictory.length === 0 ? (
-          <p style={{ fontSize: '11px', color: 'var(--muted)', fontStyle: 'italic', margin: '4px 0 0 16px' }}>
+          <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', margin: '4px 0 0 16px' }}>
             None detected; observed signals are directionally consistent.
           </p>
         ) : (
@@ -159,26 +159,26 @@ export function EvidenceChain({ evidenceChain }: EvidenceChainProps) {
                   flexWrap: 'wrap',
                   gap: '8px',
                   padding: '8px 10px',
-                  background: 'rgba(237, 128, 111, 0.06)',
-                  borderLeft: '3px solid var(--red)',
-                  borderRadius: '3px',
+                  background: 'rgba(237, 128, 111, 0.12)',
+                  borderLeft: '3px solid var(--danger)',
+                  borderRadius: '4px',
                   fontSize: '11px',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '180px' }}>
-                  <span style={{ fontFamily: 'var(--mono)', fontSize: '9px', color: 'var(--red)', fontWeight: 700 }}>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: '9px', color: 'var(--danger)', fontWeight: 700 }}>
                     [{item.evidence_type}]
                   </span>
-                  <span style={{ color: 'var(--white)', fontWeight: 600 }}>{item.feature_name}</span>
+                  <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{item.feature_name}</span>
                 </div>
-                <div style={{ flex: 1, color: 'var(--subtle)', fontSize: '11px' }}>
+                <div style={{ flex: 1, color: 'var(--text-secondary)', fontSize: '11px' }}>
                   {item.explanation}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--mono)', fontSize: '10px' }}>
-                  <span style={{ color: 'var(--muted)' }}>
-                    Observed: <strong style={{ color: 'var(--white)' }}>{item.observed_value}</strong> (base: {item.baseline_value})
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    Observed: <strong style={{ color: 'var(--text-primary)' }}>{item.observed_value}</strong> (base: {item.baseline_value})
                   </span>
-                  <span style={{ color: 'var(--red)', fontWeight: 700 }}>
+                  <span style={{ color: 'var(--danger)', fontWeight: 700 }}>
                     CONFLICT
                   </span>
                 </div>
@@ -213,16 +213,16 @@ export function EvidenceChain({ evidenceChain }: EvidenceChainProps) {
                     alignItems: 'center',
                     gap: '8px',
                     padding: '6px 8px',
-                    background: 'rgba(255, 255, 255, 0.02)',
-                    border: '1px solid var(--line)',
-                    borderRadius: '3px',
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '4px',
                     fontSize: '10px',
                     fontFamily: 'var(--mono)',
                   }}
                 >
-                  <span style={{ color: 'var(--amber)', minWidth: '110px' }}>[{limType}]</span>
-                  <span style={{ color: 'var(--subtle)', flex: 1 }}>{limDesc}</span>
-                  {limImpact && <span style={{ color: 'var(--muted)' }}>Impact: {limImpact}</span>}
+                  <span style={{ color: 'var(--warning)', minWidth: '110px' }}>[{limType}]</span>
+                  <span style={{ color: 'var(--text-secondary)', flex: 1 }}>{limDesc}</span>
+                  {limImpact && <span style={{ color: 'var(--text-muted)' }}>Impact: {limImpact}</span>}
                 </div>
               )
             })}

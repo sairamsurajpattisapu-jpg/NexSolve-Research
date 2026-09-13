@@ -30,29 +30,29 @@ export function ForecastStatus({ abstention }: ForecastStatusProps) {
           alignItems: 'flex-start',
           gap: '12px',
           padding: '14px 16px',
-          background: isAbstained ? 'rgba(245, 158, 11, 0.06)' : 'rgba(255, 255, 255, 0.02)',
-          borderLeft: `3px solid ${isAvailable ? 'var(--teal)' : isUncalibrated ? 'var(--subtle)' : 'var(--amber)'}`,
+          background: isAbstained ? 'rgba(242, 187, 113, 0.1)' : 'var(--bg-secondary)',
+          borderLeft: `3px solid ${isAvailable ? 'var(--accent)' : isUncalibrated ? 'var(--text-secondary)' : 'var(--warning)'}`,
           borderRadius: '4px',
         }}
       >
         <div style={{ marginTop: '2px' }}>
           {isAbstained ? (
-            <ShieldOff size={18} color="var(--amber)" />
+            <ShieldOff size={18} color="var(--warning)" />
           ) : isUncalibrated ? (
-            <Info size={18} color="var(--subtle)" />
+            <Info size={18} color="var(--text-secondary)" />
           ) : (
-            <CheckCircle2 size={18} color="var(--teal)" />
+            <CheckCircle2 size={18} color="var(--accent)" />
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <strong style={{ display: 'block', fontSize: '13px', color: isAbstained ? 'var(--amber)' : 'var(--white)', marginBottom: '4px' }}>
+          <strong style={{ display: 'block', fontSize: '13px', color: isAbstained ? 'var(--warning)' : 'var(--text-primary)', marginBottom: '4px' }}>
             {isAbstained
               ? `Forecast Abstained: ${abstention.reason} (Deliberate Safety Decision)`
               : isUncalibrated
               ? 'Forecast Available (Uncalibrated Baseline)'
               : 'Forecast Fully Available'}
           </strong>
-          <p style={{ fontSize: '12px', color: 'var(--white)', margin: 0, lineHeight: 1.5 }}>
+          <p style={{ fontSize: '12px', color: 'var(--text-primary)', margin: 0, lineHeight: 1.5 }}>
             {isAbstained
               ? 'FORECAST WITHHELD: NexSolve does not have enough reliable evidence to forecast the next network state.'
               : abstention.explanation}
@@ -76,15 +76,15 @@ export function ForecastStatus({ abstention }: ForecastStatusProps) {
               <div
                 style={{
                   padding: '8px 10px',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '1px solid var(--line)',
-                  borderRadius: '3px',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '4px',
                 }}
               >
-                <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--amber)', textTransform: 'uppercase', display: 'block' }}>
+                <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--warning)', textTransform: 'uppercase', display: 'block' }}>
                   Abstention Reason
                 </span>
-                <strong style={{ fontSize: '11px', color: 'var(--white)' }}>
+                <strong style={{ fontSize: '11px', color: 'var(--text-primary)' }}>
                   {abstention.reason === 'INSUFFICIENT_HISTORY'
                     ? 'Insufficient Temporal History'
                     : abstention.reason === 'GAPPED_HISTORY'
@@ -96,15 +96,15 @@ export function ForecastStatus({ abstention }: ForecastStatusProps) {
               <div
                 style={{
                   padding: '8px 10px',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '1px solid var(--line)',
-                  borderRadius: '3px',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '4px',
                 }}
               >
-                <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: '#38bdf8', textTransform: 'uppercase', display: 'block' }}>
+                <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--accent)', textTransform: 'uppercase', display: 'block' }}>
                   Observed Windows
                 </span>
-                <strong style={{ fontSize: '11px', color: 'var(--white)' }}>
+                <strong style={{ fontSize: '11px', color: 'var(--text-primary)' }}>
                   {abstention.observed_windows != null
                     ? `${abstention.observed_windows} window${abstention.observed_windows === 1 ? '' : 's'}${abstention.capture_duration_seconds ? ` (${Math.round(abstention.capture_duration_seconds)}s)` : ''}`
                     : '1 window (60s)'}
@@ -114,15 +114,15 @@ export function ForecastStatus({ abstention }: ForecastStatusProps) {
               <div
                 style={{
                   padding: '8px 10px',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '1px solid var(--line)',
-                  borderRadius: '3px',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '4px',
                 }}
               >
-                <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--muted)', textTransform: 'uppercase', display: 'block' }}>
+                <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block' }}>
                   {abstention.gap_seconds ? 'Gap Detected' : 'Required Minimum'}
                 </span>
-                <strong style={{ fontSize: '11px', color: 'var(--white)' }}>
+                <strong style={{ fontSize: '11px', color: 'var(--text-primary)' }}>
                   {abstention.gap_seconds
                     ? `${abstention.gap_seconds}s non-contiguous gap`
                     : `${abstention.required_windows ?? 8} contiguous windows (480s)`}
@@ -132,15 +132,15 @@ export function ForecastStatus({ abstention }: ForecastStatusProps) {
               <div
                 style={{
                   padding: '8px 10px',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '1px solid var(--line)',
-                  borderRadius: '3px',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '4px',
                 }}
               >
-                <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--teal)', textTransform: 'uppercase', display: 'block' }}>
+                <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--accent)', textTransform: 'uppercase', display: 'block' }}>
                   Recommended Action
                 </span>
-                <span style={{ fontSize: '11px', color: 'var(--subtle)' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
                   {abstention.reason === 'INSUFFICIENT_HISTORY'
                     ? 'Upload a longer capture containing continuous traffic history (at least 8 min).'
                     : abstention.reason === 'GAPPED_HISTORY'
