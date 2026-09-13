@@ -56,8 +56,54 @@ describe('Dashboard', () => {
     expect(screen.getByText('Choose a .pcap or .pcapng capture.')).toBeInTheDocument()
     hookState = { data: fixture, loading: false, error: null, analysisSource: 'uploaded' }
     renderPage(<Dashboard />)
-    fireEvent.click(screen.getByRole('button', { name: 'Return to production' }))
+    fireEvent.click(screen.getByRole('button', { name: /Return to (reference dataset|production)/i }))
     expect(clearUploadedAnalysis).toHaveBeenCalled()
+  })
+
+  it('renders reference dataset provenance labels when no PCAP is uploaded', () => {
+    hookState = { data: fixture, loading: false, error: null, analysisSource: 'production' }
+    renderPage(<Dashboard />)
+    expect(screen.getByTestId('provenance-banner-reference')).toBeInTheDocument()
+    expect(screen.getAllByText('VERIFIED REFERENCE DATASET').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('CIC-IDS2017').length).toBeGreaterThan(0)
+    expect(screen.getByText('No PCAP analyzed yet')).toBeInTheDocument()
+    expect(screen.getByText(/CIC-IDS2017 REFERENCE BENCHMARK METRICS/i)).toBeInTheDocument()
+  })
+
+  it('renders live PCAP analysis provenance when an uploaded capture is active', () => {
+    const uploadedFixture = {
+      ...fixture,
+      results: {
+        ...fixture.results,
+        is_demo: false,
+        source: { name: 'sample_capture.pcap', kind: 'uploaded_pcap' },
+        analysis_id: 'job-987654321',
+      },
+    }
+    hookState = { data: uploadedFixture, loading: false, error: null, analysisSource: 'uploaded' }
+    renderPage(<Dashboard />)
+    expect(screen.getByTestId('provenance-banner-live')).toBeInTheDocument()
+    expect(screen.getAllByText('LIVE PCAP ANALYSIS').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('sample_capture.pcap').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/job-987654321/i).length).toBeGreaterThan(0)
+  })
+
+  it('renders demo data and verified reference dataset labels in demo mode', () => {
+    const demoFixture = {
+      ...fixture,
+      results: {
+        ...fixture.results,
+        is_demo: true,
+        demo_scenario_name: 'Port Scan Progression',
+        analysis_id: 'demo-port_scan_progression',
+      },
+    }
+    hookState = { data: demoFixture, loading: false, error: null, analysisSource: 'uploaded' }
+    renderPage(<Dashboard />)
+    expect(screen.getByTestId('provenance-banner-demo')).toBeInTheDocument()
+    expect(screen.getAllByText('DEMO DATA').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('VERIFIED REFERENCE DATASET').length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Port Scan Progression/i).length).toBeGreaterThan(0)
   })
 })
 

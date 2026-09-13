@@ -25,6 +25,22 @@ describe('api client', () => {
     await expect(api.health()).rejects.toThrow('invalid JSON response')
   })
 
+  it('detects HTML responses from misconfigured endpoints', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response('<!doctype html><html><body>Error</body></html>', {
+        status: 200,
+        headers: { 'Content-Type': 'text/html' },
+      }),
+    )
+    await expect(api.health()).rejects.toThrow('API endpoint returned HTML instead of JSON')
+  })
+
+  it('handles request timeout gracefully', async () => {
+    const abortErr = new DOMException('The operation was aborted due to timeout', 'AbortError')
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(abortErr)
+    await expect(api.health()).rejects.toThrow('Backend connection timed out')
+  })
+
   it('supports the production readiness probe', async () => {
     const readyPayload = {
       status: 'ready',

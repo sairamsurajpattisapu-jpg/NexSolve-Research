@@ -1,5 +1,5 @@
 import { api, ApiError } from '../services/api'
-import type { AnalysisData, UploadedAnalysisResponse } from '../types/api'
+import type { AnalysisData, AnalysisProvenance, UploadedAnalysisResponse } from '../types/api'
 
 export const ANALYSIS_ID = 'production-cic-ids2017'
 const UPLOAD_ID_KEY = 'nexsolve-upload-analysis-id'
@@ -10,10 +10,18 @@ type StoreState = {
   loading: boolean
   error: string | null
   analysisSource: 'production' | 'uploaded'
+  provenance: AnalysisProvenance
   uploadError: string | null
 }
 
-let state: StoreState = { data: null, loading: true, error: null, analysisSource: 'production', uploadError: null }
+let state: StoreState = {
+  data: null,
+  loading: true,
+  error: null,
+  analysisSource: 'production',
+  provenance: 'reference',
+  uploadError: null,
+}
 let request: Promise<void> | null = null
 const listeners = new Set<() => void>()
 
@@ -32,8 +40,18 @@ async function fetchData(targetAnalysisId?: string) {
         if (currentMeta?.analysis_id) {
           resolvedId = currentMeta.analysis_id
         }
-      } catch {
-        // If current analysis endpoint fails (e.g. offline/mock), use stored cache
+      } catch (cause) {
+        // If it's a network unreachable error, timeout, or HTML mismatch, don't cascade 4 more doomed requests
+        if (
+          cause instanceof ApiError &&
+          (cause.status === 0 ||
+            cause.status === 408 ||
+            cause.message.includes('HTML instead of JSON') ||
+            cause.message.includes('Vercel deployment detected'))
+        ) {
+          throw cause
+        }
+        // If current analysis endpoint fails (e.g. 404 or backend returns mock), use stored cache
         resolvedId = sessionStorage.getItem(UPLOAD_ID_KEY) ?? localStorage.getItem(STORAGE_ACTIVE_KEY) ?? ANALYSIS_ID
       }
     }
@@ -56,11 +74,18 @@ async function fetchData(targetAnalysisId?: string) {
       localStorage.removeItem(STORAGE_ACTIVE_KEY)
     }
 
+    const provenance: AnalysisProvenance = results.is_demo
+      ? 'demo'
+      : isProd
+      ? 'reference'
+      : 'uploaded'
+
     state = {
       data: { results: { ...results, traffic }, status, report, health },
       loading: false,
       error: null,
       analysisSource: isProd ? 'production' : 'uploaded',
+      provenance,
       uploadError: null,
     }
   } catch (cause) {
@@ -120,6 +145,12 @@ export async function setUploadedAnalysis(uploaded: UploadedAnalysisResponse): P
     }),
   ])
 
+  const provenance: AnalysisProvenance = uploaded.is_demo
+    ? 'demo'
+    : isProd
+    ? 'reference'
+    : 'uploaded'
+
   state = {
     data: {
       results: {
@@ -150,6 +181,7 @@ export async function setUploadedAnalysis(uploaded: UploadedAnalysisResponse): P
     loading: false,
     error: null,
     analysisSource: isProd ? 'production' : 'uploaded',
+    provenance,
     uploadError: null,
   }
   emit()
@@ -187,7 +219,14 @@ export async function clearUploadedAnalysis() {
   } catch {
     // Best effort reset
   }
-  state = { data: null, loading: true, error: null, analysisSource: 'production', uploadError: null }
+  state = {
+    data: null,
+    loading: true,
+    error: null,
+    analysisSource: 'production',
+    provenance: 'reference',
+    uploadError: null,
+  }
   emit()
   return fetchData(ANALYSIS_ID)
 }

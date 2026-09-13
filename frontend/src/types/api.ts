@@ -1,4 +1,5 @@
 export type Severity = 'high' | 'medium' | 'low'
+export type AnalysisProvenance = 'reference' | 'uploaded' | 'demo'
 
 export interface HealthResponse {
   service_status: string

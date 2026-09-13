@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import type { Severity } from '../types/api'
 
 export function Panel({ children, className = '', as = 'section' }: { children: ReactNode; className?: string; as?: 'section' | 'div' }) {
@@ -30,7 +30,24 @@ export function SectionHeading({ eyebrow, title, description, action }: { eyebro
 }
 
 export function LoadingState({ message = 'Loading production analysis' }: { message?: string }) {
-  return <div className="state-card"><span className="spinner" aria-hidden="true" /><strong>{message}</strong><span>Reading verified backend data...</span></div>
+  const [slow, setSlow] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSlow(true), 4000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  return (
+    <div className="state-card">
+      <span className="spinner" aria-hidden="true" />
+      <strong>{message}</strong>
+      <span>
+        {slow
+          ? 'Connecting to backend service... (Cold starts on hosted platforms may take up to 30 seconds)'
+          : 'Reading verified backend data...'}
+      </span>
+    </div>
+  )
 }
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {

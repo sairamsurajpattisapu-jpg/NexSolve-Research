@@ -30,12 +30,54 @@ export function JobResult({ result, onReset }: JobResultProps) {
       <Panel className="job-result-header">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <CheckCircle size={18} color="#10b981" />
               <span className="eyebrow" style={{ color: '#10b981', margin: 0 }}>
-                {result.is_demo ? 'Deterministic Demo Assessment' : 'Forensic Analysis Complete'}
+                {result.is_demo ? 'Deterministic Demo Assessment' : 'Live PCAP Forensic Analysis Complete'}
               </span>
-              {result.is_demo && (
+              {result.is_demo ? (
+                <>
+                  <span
+                    style={{
+                      background: 'rgba(104, 225, 216, 0.15)',
+                      color: 'var(--teal)',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      fontFamily: 'var(--mono)',
+                      fontWeight: 700,
+                    }}
+                  >
+                    DEMO MODE
+                  </span>
+                  <span
+                    style={{
+                      background: 'rgba(104, 225, 216, 0.15)',
+                      color: 'var(--teal)',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      fontFamily: 'var(--mono)',
+                      fontWeight: 700,
+                    }}
+                  >
+                    DEMO DATA
+                  </span>
+                  <span
+                    style={{
+                      background: 'rgba(242, 187, 113, 0.15)',
+                      color: 'var(--amber)',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '10px',
+                      fontFamily: 'var(--mono)',
+                      fontWeight: 700,
+                    }}
+                  >
+                    VERIFIED REFERENCE DATASET
+                  </span>
+                </>
+              ) : (
                 <span
                   style={{
                     background: 'rgba(104, 225, 216, 0.15)',
@@ -47,7 +89,7 @@ export function JobResult({ result, onReset }: JobResultProps) {
                     fontWeight: 700,
                   }}
                 >
-                  DEMO MODE
+                  LIVE PCAP ANALYSIS
                 </span>
               )}
             </div>

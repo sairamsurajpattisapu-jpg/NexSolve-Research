@@ -9,11 +9,11 @@ import { Threats } from './pages/Threats'
 import { Traffic } from './pages/Traffic'
 
 function App() {
-  const { data, loading, error, analysisSource } = useProductionData()
+  const { data, loading, error, analysisSource, provenance } = useProductionData()
   const status = loading ? 'Syncing data' : error ? 'API unavailable' : data?.status.status === 'completed' ? 'API connected' : 'Awaiting analysis'
 
   return <BrowserRouter><Routes>
-    <Route element={<Layout status={status} source={analysisSource} />}>
+    <Route element={<Layout status={status} source={analysisSource} provenance={provenance} />}>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/analysis" element={<Analysis />} />

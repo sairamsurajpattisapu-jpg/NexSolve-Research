@@ -23,13 +23,44 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response
+  const timeoutMs = 15000
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+
   try {
+    let signal = controller.signal
+    if (init?.signal) {
+      if ('any' in AbortSignal && typeof AbortSignal.any === 'function') {
+        signal = AbortSignal.any([init.signal, controller.signal])
+      } else {
+        init.signal.addEventListener('abort', () => controller.abort(), { once: true })
+      }
+    }
+
     response = await fetch(`${API_BASE}${path}`, {
       ...init,
+      signal,
       headers: { Accept: 'application/json', ...(init?.headers ?? {}) },
     })
-  } catch {
-    throw new ApiError('Backend unavailable. Start the FastAPI service and try again.')
+  } catch (err: unknown) {
+    clearTimeout(timer)
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new ApiError('Backend connection timed out after 15s. The service may be cold-starting or unavailable.', 408)
+    }
+    if (!API_BASE && typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app')) {
+      throw new ApiError('Vercel deployment detected without VITE_API_BASE_URL. Configure VITE_API_BASE_URL in your Vercel project settings to connect to the backend.', 0)
+    }
+    throw new ApiError('Backend unavailable. Start the FastAPI service and try again.', 0)
+  } finally {
+    clearTimeout(timer)
+  }
+
+  const contentType = response.headers.get('content-type') ?? ''
+  if (contentType.includes('text/html')) {
+    if (!API_BASE && typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app')) {
+      throw new ApiError('Vercel deployment detected without VITE_API_BASE_URL. API requests returned HTML fallback. Configure VITE_API_BASE_URL in your Vercel project settings to connect to the backend.', response.status)
+    }
+    throw new ApiError('API endpoint returned HTML instead of JSON. Check your backend URL configuration.', response.status)
   }
 
   if (!response.ok) {

@@ -234,3 +234,82 @@ body { background: radial-gradient(circle at 78% 20%, rgba(239, 207, 142, .34), 
   .brand-mark { background: var(--white); color: var(--bg); }.desktop-nav .nav-link, .mobile-nav .nav-link { color: var(--subtle); }.desktop-nav .nav-link:hover, .desktop-nav .nav-link:focus-visible, .desktop-nav .nav-link.active, .mobile-nav .nav-link:hover, .mobile-nav .nav-link.active { color: var(--bg); background: var(--white); }.mobile-nav { background: rgba(10, 10, 10, .96); border-color: var(--line); }
   .panel, .metric-card, .threat-card, .analysis-banner, .report-header { background: rgba(17, 17, 17, .82); }.capture-upload { background: linear-gradient(120deg, rgba(16, 39, 40, .82), rgba(17, 17, 17, .92)); }.indicator-grid > div, .boundary-card, .evidence-list > div { background: rgba(255, 255, 255, .025); }.filter-panel { background: rgba(17, 17, 17, .72); }.search-field, .select-wrap, .method-code { background: rgba(0, 0, 0, .32); }.activity-chart { background: repeating-linear-gradient(to bottom, transparent 0, transparent 52px, rgba(80, 119, 119, .1) 53px); }.bar-track { background: #1a3031; }
 }
+
+/* Provenance Banners & Badges */
+.provenance-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: rgba(17, 17, 17, 0.75);
+}
+.provenance-banner.reference-mode {
+  border-color: rgba(242, 187, 113, 0.35);
+  background: linear-gradient(135deg, rgba(35, 26, 12, 0.7) 0%, rgba(17, 17, 17, 0.85) 100%);
+}
+.provenance-banner.live-mode {
+  border-color: rgba(104, 225, 216, 0.4);
+  background: linear-gradient(135deg, rgba(12, 38, 40, 0.7) 0%, rgba(17, 17, 17, 0.85) 100%);
+}
+.provenance-banner.demo-mode {
+  border-color: rgba(104, 225, 216, 0.3);
+  background: linear-gradient(135deg, rgba(16, 30, 36, 0.7) 0%, rgba(17, 17, 17, 0.85) 100%);
+}
+.provenance-badge-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.provenance-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font: 700 0.65rem var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.provenance-pill.reference-pill {
+  color: var(--amber);
+  background: rgba(242, 187, 113, 0.14);
+  border: 1px solid rgba(242, 187, 113, 0.4);
+}
+.provenance-pill.dataset-pill {
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
+}
+.provenance-pill.status-pill {
+  color: var(--subtle);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.provenance-pill.live-pill {
+  color: var(--teal);
+  background: rgba(104, 225, 216, 0.15);
+  border: 1px solid rgba(104, 225, 216, 0.45);
+}
+.provenance-pill.demo-pill {
+  color: var(--teal);
+  background: rgba(104, 225, 216, 0.12);
+  border: 1px solid rgba(104, 225, 216, 0.3);
+}
+.provenance-details p {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.55;
+  margin: 0;
+}
+.provenance-details strong {
+  color: var(--white);
+}
+.reference-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}

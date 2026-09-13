@@ -126,8 +126,16 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="NexSolve World Model V1", version="1.0.0", lifespan=lifespan)
-cors_origins = [origin.strip() for origin in os.getenv("NEXSOLVE_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",") if origin.strip()]
-app.add_middleware(CORSMiddleware, allow_origins=cors_origins, allow_methods=["GET", "POST", "DELETE"], allow_headers=["Accept", "Content-Type"])
+default_cors = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000"
+cors_origins = [origin.strip() for origin in os.getenv("NEXSOLVE_CORS_ORIGINS", default_cors).split(",") if origin.strip()]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_origin_regex=r"^https://.*\.vercel\.app$",
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_headers=["Accept", "Content-Type", "Authorization"],
+)
 
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
