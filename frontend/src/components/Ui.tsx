@@ -1,9 +1,35 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type CSSProperties, type DragEvent, type ReactNode } from 'react'
 import type { Severity } from '../types/api'
 
-export function Panel({ children, className = '', as = 'section' }: { children: ReactNode; className?: string; as?: 'section' | 'div' }) {
+export function Panel({
+  children,
+  className = '',
+  as = 'section',
+  style,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+}: {
+  children: ReactNode
+  className?: string
+  as?: 'section' | 'div'
+  style?: CSSProperties
+  onDragOver?: (e: DragEvent<HTMLElement>) => void
+  onDragLeave?: (e: DragEvent<HTMLElement>) => void
+  onDrop?: (e: DragEvent<HTMLElement>) => void
+}) {
   const Tag = as
-  return <Tag className={`panel ${className}`}>{children}</Tag>
+  return (
+    <Tag
+      className={`panel ${className}`}
+      style={style}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
+      {children}
+    </Tag>
+  )
 }
 
 export function MetricCard({ label, value, detail, tone = 'neutral', icon }: { label: string; value: string | number; detail?: string; tone?: 'neutral' | 'accent' | 'warning' | 'danger'; icon?: ReactNode }) {

@@ -1,5 +1,17 @@
-import { ArrowUpRight, FileUp, Gauge, Radio, ShieldAlert, Sparkles, TimerReset } from 'lucide-react'
-import { useState } from 'react'
+import { useState, type DragEvent } from 'react'
+import { Link } from 'react-router-dom'
+import {
+  ArrowUpRight,
+  FileCheck,
+  FileUp,
+  Gauge,
+  GitCommit,
+  Radio,
+  ShieldAlert,
+  Sparkles,
+  TimerReset,
+  TrendingUp,
+} from 'lucide-react'
 import { ActivityChart, ProtocolBars, RiskDistribution } from '../components/Charts'
 import { DemoModeSelector } from '../components/DemoModeSelector'
 import { JobProgress } from '../components/JobProgress'
@@ -18,12 +30,29 @@ export function Dashboard() {
   const [activeJob, setActiveJob] = useState<JobStatusResponse | null>(null)
   const [jobResult, setJobResult] = useState<UploadedAnalysisResponse | null>(null)
   const [showDemoMode, setShowDemoMode] = useState<boolean>(false)
+  const [isDragging, setIsDragging] = useState<boolean>(false)
 
   if (loading && !data) return <LoadingState />
   if (error || !data) return <ErrorState message={error ?? 'No analysis has been loaded.'} onRetry={() => void reload()} />
   const { traffic, detection } = data.results
   const windows = traffic.windows_data ?? []
   const effectiveResult = jobResult ?? (analysisSource === 'uploaded' ? (data.results as unknown as UploadedAnalysisResponse) : null)
+
+  const handleFileSelect = (selected: File | null) => {
+    if (!selected) {
+      setFile(null)
+      return
+    }
+    const ext = selected.name.slice(selected.name.lastIndexOf('.')).toLowerCase()
+    const supported = ['.pcap', '.pcapng'].includes(ext)
+    if (!supported) {
+      setSelectionError('Choose a .pcap or .pcapng capture.')
+      setFile(null)
+    } else {
+      setSelectionError(null)
+      setFile(selected)
+    }
+  }
 
   const submitCapture = async () => {
     if (!file) return
@@ -69,17 +98,15 @@ export function Dashboard() {
             ? 'DEMO DATA / EVALUATION SCENARIO'
             : effectiveResult
             ? 'LIVE PCAP ANALYSIS / FORENSIC INTELLIGENCE'
-            : 'VERIFIED REFERENCE DATASET / BENCHMARK BASELINE'
+            : 'NETWORK THREAT FORECASTING & CAPTURE AUDIT'
         }
-        title="Network Security Posture & Forecast"
+        title="PCAP Forensic Analysis & Forecast Engine"
         description={
           effectiveResult?.is_demo
             ? `SIH Demo Evaluation: ${effectiveResult.demo_scenario_name}. Deterministic forward assessment without live capture dependency.`
             : effectiveResult
             ? `Forensic analysis complete for: ${effectiveResult.source?.name || 'Uploaded PCAP'}. All indicators derived from live capture.`
-            : analysisSource === 'uploaded'
-            ? `Live read of uploaded capture: ${data.results.source?.name ?? 'temporary analysis'}.`
-            : 'A live read of the verified CIC-IDS2017 packet-window reference benchmark. No PCAP analyzed yet.'
+            : 'Upload an authorized .pcap or .pcapng capture to reconstruct temporal windows, project attack horizon, and compile explainable causal chains.'
         }
         action={
           <div className="heading-actions">
@@ -117,66 +144,81 @@ export function Dashboard() {
         />
       )}
 
-      {/* 1. PCAP Upload Panel */}
+      {/* 1. HERO PCAP Upload Panel (Primary Hero Workflow when no active result) */}
       {!effectiveResult && !activeJob && (
-        <>
-          <div className="provenance-banner reference-mode" data-testid="provenance-banner-reference">
-            <div className="provenance-badge-group">
-              <span className="provenance-pill reference-pill">VERIFIED REFERENCE DATASET</span>
-              <span className="provenance-pill dataset-pill">CIC-IDS2017</span>
-              <span className="provenance-pill status-pill">No PCAP analyzed yet</span>
-            </div>
-            <div className="provenance-details">
-              <p>
-                The telemetry, metric cards, and charts below reflect the verified <strong>CIC-IDS2017</strong> benchmark reference dataset for baseline exploration. <strong>No PCAP has been analyzed yet.</strong> Upload an authorized <code>.pcap</code> or <code>.pcapng</code> capture to run live analysis, or select Demo Mode.
-              </p>
-            </div>
+        <Panel
+          className={`capture-upload ${isDragging ? 'drag-over' : ''}`}
+          style={{
+            border: isDragging ? '2px dashed var(--accent)' : '1px solid var(--border-strong)',
+            background: isDragging ? 'var(--accent-muted)' : 'var(--bg-surface)',
+            padding: '28px',
+            transition: 'all 0.2s ease',
+          }}
+          onDragOver={(e: DragEvent<HTMLElement>) => {
+            e.preventDefault()
+            setIsDragging(true)
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(e: DragEvent<HTMLElement>) => {
+            e.preventDefault()
+            setIsDragging(false)
+            const droppedFile = e.dataTransfer.files?.[0] ?? null
+            handleFileSelect(droppedFile)
+          }}
+        >
+          <div style={{ maxWidth: '650px' }}>
+            <span className="eyebrow" style={{ color: 'var(--accent)' }}>HERO WORKFLOW · LIVE CAPTURE INGESTION</span>
+            <h3 style={{ fontSize: '20px', margin: '6px 0 8px 0', color: 'var(--text-primary)' }}>
+              Analyze a PCAP or PCAPNG capture
+            </h3>
+            <p style={{ margin: '0 0 10px 0', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+              Drag and drop an authorized capture file here, or select from your filesystem.
+              The pipeline executes full 5-tuple flow reconstruction, sliding 60-second temporal windows,
+              45-feature state vector assembly, and multi-horizon attack forecasting.
+            </p>
+            <small style={{ fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+              Supported: .pcap, .pcapng &middot; Maximum size: 64 MB &middot; Magic-byte verified &middot; Zero RTT fabrication
+            </small>
           </div>
 
-          <Panel className="capture-upload">
-            <div>
-              <span className="eyebrow">Network capture audit</span>
-              <h3>Analyze a PCAP or PCAPNG capture</h3>
-              <p>Upload an authorized capture to run full canonical reconstruction, attack horizon, and forensic reporting.</p>
-              <small>Supported: .pcap, .pcapng &middot; Maximum size: 64 MB &middot; Magic byte validated</small>
-            </div>
-            <div className="capture-actions">
-              <label className="button button-quiet">
-                <FileUp size={15} /> {file ? file.name : 'Choose capture'}
-                <input
-                  aria-label="Choose PCAP capture"
-                  type="file"
-                  accept=".pcap,.pcapng"
-                  onChange={(event) => {
-                    const selected = event.target.files?.[0] ?? null
-                    const supported =
-                      selected &&
-                      ['.pcap', '.pcapng'].includes(selected.name.slice(selected.name.lastIndexOf('.')).toLowerCase())
-                    setSelectionError(selected && !supported ? 'Choose a .pcap or .pcapng capture.' : null)
-                    setFile(supported ? selected : null)
-                  }}
-                />
-              </label>
-              <button className="button" disabled={!file || uploading} onClick={() => void submitCapture()}>
-                {uploading ? 'Processing capture...' : 'Analyze PCAP'}
-              </button>
-              <button
-                type="button"
-                className="button button-quiet"
-                onClick={() => setShowDemoMode(true)}
-                style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
-              >
-                <Sparkles size={14} color="var(--accent)" /> Try Demo
-              </button>
-            </div>
-            {(uploadError || selectionError) && <p className="upload-error">{uploadError ?? selectionError}</p>}
-            {uploading && !activeJob && (
-              <p className="upload-status" role="status">
-                Uploading capture, building packet windows, and running detection rules...
-              </p>
-            )}
-          </Panel>
-        </>
+          <div className="capture-actions" style={{ marginTop: '14px' }}>
+            <label className="button button-quiet" style={{ cursor: 'pointer' }}>
+              <FileUp size={15} /> {file ? file.name : 'Choose capture'}
+              <input
+                aria-label="Choose PCAP capture"
+                type="file"
+                accept=".pcap,.pcapng"
+                style={{ display: 'none' }}
+                onChange={(event) => {
+                  const selected = event.target.files?.[0] ?? null
+                  handleFileSelect(selected)
+                }}
+              />
+            </label>
+            <button
+              className="button"
+              disabled={!file || uploading}
+              onClick={() => void submitCapture()}
+            >
+              {uploading ? 'Processing capture...' : 'Analyze PCAP'}
+            </button>
+            <button
+              type="button"
+              className="button button-quiet"
+              onClick={() => setShowDemoMode(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
+            >
+              <Sparkles size={14} color="var(--accent)" /> Try Demo
+            </button>
+          </div>
+
+          {(uploadError || selectionError) && <p className="upload-error" style={{ color: 'var(--danger)', marginTop: '8px' }}>{uploadError ?? selectionError}</p>}
+          {uploading && !activeJob && (
+            <p className="upload-status" role="status" style={{ color: 'var(--accent)', marginTop: '8px' }}>
+              Uploading capture, building packet windows, and running detection rules...
+            </p>
+          )}
+        </Panel>
       )}
 
       {/* 2. Active Asynchronous Job Progress */}
@@ -186,48 +228,93 @@ export function Dashboard() {
 
       {/* 3. Completed Job Full Result View */}
       {effectiveResult && !effectiveResult.is_demo && (
-        <div className="provenance-banner live-mode" data-testid="provenance-banner-live">
-          <div className="provenance-badge-group">
-            <span className="provenance-pill live-pill">LIVE PCAP ANALYSIS</span>
-            <span className="provenance-pill dataset-pill">{effectiveResult.source?.name || 'Uploaded Capture'}</span>
-            <span className="provenance-pill status-pill">ID: {effectiveResult.analysis_id}</span>
+        <>
+          <div className="provenance-banner live-mode" data-testid="provenance-banner-live">
+            <div className="provenance-badge-group">
+              <span className="provenance-pill live-pill">LIVE PCAP ANALYSIS</span>
+              <span className="provenance-pill dataset-pill">{effectiveResult.source?.name || 'Uploaded Capture'}</span>
+              <span className="provenance-pill status-pill">ID: {effectiveResult.analysis_id}</span>
+            </div>
+            <div className="provenance-details">
+              <p>
+                Active forensic inspection of uploaded capture: <strong>{effectiveResult.source?.name || 'Uploaded Capture'}</strong>.
+                All extracted features, packet windows, and predictive assessments are derived directly from this capture.
+              </p>
+            </div>
           </div>
-          <div className="provenance-details">
-            <p>
-              Active forensic inspection of uploaded capture: <strong>{effectiveResult.source?.name || 'Uploaded Capture'}</strong>.
-              All extracted features, packet windows, and predictive assessments are derived directly from this capture.
-            </p>
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+            <Link to="/forecast" className="button button-quiet">
+              <TrendingUp size={14} /> Full Forecast Rollout (T+1..T+5)
+            </Link>
+            <Link to="/evidence" className="button button-quiet">
+              <GitCommit size={14} /> Full Evidence Attribution Graph
+            </Link>
+            <Link to="/traffic" className="button button-quiet">
+              <Radio size={14} /> Traffic Telemetry Evolution
+            </Link>
+            <Link to="/reports" className="button button-quiet">
+              <FileCheck size={14} /> View Signed Forensic Report
+            </Link>
           </div>
-        </div>
+        </>
       )}
 
       {effectiveResult && effectiveResult.is_demo && (
-        <div className="provenance-banner demo-mode" data-testid="provenance-banner-demo">
-          <div className="provenance-badge-group">
-            <span className="provenance-pill demo-pill">DEMO DATA</span>
-            <span className="provenance-pill reference-pill">VERIFIED REFERENCE DATASET</span>
-            <span className="provenance-pill dataset-pill">{effectiveResult.demo_scenario_name || 'SIH Demo Scenario'}</span>
+        <>
+          <div className="provenance-banner demo-mode" data-testid="provenance-banner-demo">
+            <div className="provenance-badge-group">
+              <span className="provenance-pill demo-pill">DEMO DATA</span>
+              <span className="provenance-pill reference-pill">VERIFIED REFERENCE DATASET</span>
+              <span className="provenance-pill dataset-pill">{effectiveResult.demo_scenario_name || 'SIH Demo Scenario'}</span>
+            </div>
+            <div className="provenance-details">
+              <p>
+                Deterministic evaluation sandbox: <strong>{effectiveResult.demo_scenario_name}</strong>. Validating forward horizon trajectories without live capture dependency.
+              </p>
+            </div>
           </div>
-          <div className="provenance-details">
-            <p>
-              Deterministic evaluation sandbox: <strong>{effectiveResult.demo_scenario_name}</strong>. Validating forward horizon trajectories without live capture dependency.
-            </p>
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+            <Link to="/forecast" className="button button-quiet">
+              <TrendingUp size={14} /> Full Forecast Rollout (T+1..T+5)
+            </Link>
+            <Link to="/evidence" className="button button-quiet">
+              <GitCommit size={14} /> Full Evidence Attribution Graph
+            </Link>
+            <Link to="/reports" className="button button-quiet">
+              <FileCheck size={14} /> View Signed Forensic Report
+            </Link>
           </div>
-        </div>
+        </>
       )}
 
       {effectiveResult && (
         <JobResult result={effectiveResult} onReset={resetJobView} />
       )}
 
-      {/* 4. Production Reference Dashboard Panels (visible when not viewing completed job result) */}
+      {/* 4. Production Reference Benchmark Panels (Clearly separated at the bottom when no PCAP analyzed) */}
       {!effectiveResult && (
-        <>
-          <div className="reference-section-header">
+        <div style={{ marginTop: '16px' }}>
+          <div className="provenance-banner reference-mode" data-testid="provenance-banner-reference">
+            <div className="provenance-badge-group">
+              <span className="provenance-pill reference-pill">VERIFIED REFERENCE DATASET</span>
+              <span className="provenance-pill dataset-pill">CIC-IDS2017</span>
+              <span className="provenance-pill status-pill">No PCAP analyzed yet</span>
+            </div>
+            <div className="provenance-details">
+              <p>
+                The telemetry, metric cards, and charts below reflect the verified <strong>CIC-IDS2017</strong> benchmark reference dataset for baseline exploration. <strong>No PCAP has been analyzed yet.</strong> Upload an authorized <code>.pcap</code> or <code>.pcapng</code> capture above to run live analysis, or select Demo Mode.
+              </p>
+            </div>
+          </div>
+
+          <div className="reference-section-header" style={{ marginTop: '12px', marginBottom: '12px' }}>
             <span className="eyebrow" style={{ color: 'var(--amber)' }}>
-              CIC-IDS2017 REFERENCE BENCHMARK METRICS
+              CIC-IDS2017 REFERENCE BENCHMARK METRICS (FOR COMPARISON ONLY)
             </span>
           </div>
+
           <div className="metric-grid">
             <MetricCard
               label="Heuristic risk"
@@ -292,9 +379,9 @@ export function Dashboard() {
                 title="Recent findings"
                 description="Reference findings from the CIC-IDS2017 benchmark dataset."
                 action={
-                  <a className="text-link" href="/threats">
+                  <Link className="text-link" to="/threats">
                     View all <ArrowUpRight size={14} />
-                  </a>
+                  </Link>
                 }
               />
               {detection.findings.length === 0 ? (
@@ -318,7 +405,7 @@ export function Dashboard() {
               )}
             </Panel>
           </div>
-        </>
+        </div>
       )}
     </div>
   )

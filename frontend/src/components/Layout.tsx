@@ -1,14 +1,29 @@
-import { NavLink, Outlet } from 'react-router-dom'
-import { Activity, FileText, LayoutDashboard, Menu, Moon, Radar, Settings, ShieldCheck, Sun, X } from 'lucide-react'
 import { useState } from 'react'
+import { NavLink, Outlet } from 'react-router-dom'
+import {
+  Activity,
+  Compass,
+  FileText,
+  GitCommit,
+  Menu,
+  Moon,
+  Radar,
+  Settings,
+  Sparkles,
+  Sun,
+  TrendingUp,
+  X,
+} from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 
 const navigation = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/analysis', label: 'Analysis', icon: Radar },
-  { to: '/threats', label: 'Threats', icon: ShieldCheck },
+  { to: '/', label: 'Overview', icon: Compass },
+  { to: '/analyze', label: 'Analyze', icon: Radar },
+  { to: '/forecast', label: 'Forecast', icon: TrendingUp },
+  { to: '/evidence', label: 'Evidence', icon: GitCommit },
   { to: '/traffic', label: 'Traffic', icon: Activity },
   { to: '/reports', label: 'Reports', icon: FileText },
+  { to: '/demo', label: 'Demo', icon: Sparkles },
   { to: '/settings', label: 'Settings', icon: Settings },
 ]
 
@@ -31,7 +46,7 @@ export function Layout({
     <div className="app-shell">
       <header className="navbar-shell">
         <div className="navbar-inner">
-          <NavLink className="brand-block" to="/dashboard" aria-label="NexSolve home">
+          <NavLink className="brand-block" to="/" aria-label="NexSolve home">
             <div className="brand-mark"><Radar size={17} /></div>
             <span className="brand-label">NexSolve</span>
           </NavLink>
@@ -40,8 +55,9 @@ export function Layout({
               <NavLink
                 key={to}
                 to={to}
+                end={to === '/'}
                 onClick={() => setOpen(false)}
-                className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+                className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
               >
                 <Icon size={14} strokeWidth={1.8} />
                 <span>{label}</span>
@@ -82,8 +98,9 @@ export function Layout({
               <NavLink
                 key={to}
                 to={to}
+                end={to === '/'}
                 onClick={() => setOpen(false)}
-                className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+                className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
               >
                 <Icon size={15} />
                 <span>{label}</span>

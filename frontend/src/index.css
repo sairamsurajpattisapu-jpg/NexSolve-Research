@@ -1536,3 +1536,459 @@ h3, h4 {
   .theme-toggle-label { display: none; }
   .theme-toggle-btn { padding: 6px 8px; }
 }
+
+/* =============================================================================
+   LANDING PAGE & PRODUCT TOUR STYLES
+   ============================================================================= */
+
+.landing-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  gap: 48px;
+}
+
+.landing-hero {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 36px;
+  align-items: center;
+  padding: 24px 0 12px;
+}
+
+.landing-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.landing-title {
+  font-family: var(--display);
+  font-size: clamp(2.2rem, 3.8vw, 3.4rem);
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.text-gradient {
+  color: var(--accent);
+}
+
+.landing-tagline {
+  font-size: clamp(1.15rem, 1.8vw, 1.45rem);
+  line-height: 1.35;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.highlight-tag {
+  color: var(--accent);
+  font-weight: 600;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 2px;
+}
+
+.landing-lead {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  max-width: 600px;
+}
+
+.landing-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.landing-primary-btn {
+  padding: 12px 22px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  gap: 8px;
+}
+
+.landing-demo-btn,
+.landing-tour-btn {
+  padding: 12px 18px;
+  font-size: 0.95rem;
+  gap: 8px;
+}
+
+/* Engine Card / Interactive Flow */
+.engine-card {
+  padding: 22px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--card-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.engine-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.engine-status-pulse {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.engine-status-text {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--success);
+}
+
+.engine-ver {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.flow-nodes-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.flow-node {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 11px;
+  font-family: var(--mono);
+  font-weight: 600;
+}
+
+.flow-node:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: var(--button-hover);
+}
+
+.flow-node.active {
+  background: var(--accent-muted);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 12px rgba(104, 225, 216, 0.25);
+}
+
+.flow-arrow {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 14px;
+  user-select: none;
+}
+
+.engine-preview-box {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  min-height: 140px;
+}
+
+.preview-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.preview-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 6px 0;
+}
+
+.preview-desc {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0 0 10px 0;
+}
+
+.preview-tech {
+  font-size: 11.5px;
+  font-family: var(--mono);
+  color: var(--text-muted);
+}
+
+.preview-tech strong {
+  color: var(--text-secondary);
+}
+
+.engine-card-footer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.engine-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.engine-stat-label {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.engine-stat-val {
+  font-size: 12px;
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Scientific Principles */
+.landing-principles {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.section-title-wrap {
+  text-align: left;
+  max-width: 760px;
+}
+
+.section-title-wrap h2 {
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 8px 0;
+}
+
+.section-title-wrap p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.principles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.principle-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.principle-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.principle-card p {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* 8-Stage Interactive Tour */
+.landing-pipeline-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.pipeline-tour-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.tour-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tour-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.tour-nav-item:hover {
+  border-color: var(--accent);
+  background: var(--button-hover);
+}
+
+.tour-nav-item.active {
+  background: var(--accent-muted);
+  border-color: var(--accent);
+  box-shadow: 0 0 14px rgba(104, 225, 216, 0.16);
+}
+
+.tour-step-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 4px 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.tour-nav-text strong {
+  display: block;
+  font-size: 13.5px;
+  color: var(--text-primary);
+}
+
+.tour-nav-text small {
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.tour-detail-card .panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 32px;
+  gap: 20px;
+}
+
+.tour-detail-header h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 6px 0 0 0;
+}
+
+.tour-detail-body {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.tour-tech-callout {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.tour-tech-callout p {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--text-primary);
+  margin: 6px 0 0 0;
+}
+
+.tour-actions-row {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* SIH Judge Banner */
+.judge-callout-section {
+  margin-top: 12px;
+}
+
+.judge-banner {
+  padding: 36px;
+  border: 1px solid var(--accent);
+  background: radial-gradient(circle at right top, var(--accent-muted), var(--bg-surface) 60%);
+  border-radius: 12px;
+}
+
+.judge-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.judge-banner h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px 0;
+}
+
+.judge-banner p {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 760px;
+  margin: 0 0 20px 0;
+}
+
+.judge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 1024px) {
+  .landing-hero {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .pipeline-tour-grid {
+    grid-template-columns: 1fr;
+  }
+  .principles-grid {
+    grid-template-columns: 1fr;
+  }
+}

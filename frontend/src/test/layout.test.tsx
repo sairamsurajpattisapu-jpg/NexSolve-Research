@@ -11,9 +11,13 @@ function renderLayout(path = '/dashboard') {
 describe('application navigation', () => {
   it('renders the navigation and supports keyboard-usable route links', async () => {
     const user = userEvent.setup()
-    renderLayout()
-    await user.click(screen.getByRole('link', { name: 'Threats' }))
-    expect(screen.getByRole('link', { name: 'Threats' })).toHaveClass('active')
+    renderLayout('/analyze')
+    expect(screen.getByRole('link', { name: 'Overview' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Forecast' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Evidence' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Demo' })).toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name: 'Analyze' }))
+    expect(screen.getByRole('link', { name: 'Analyze' })).toHaveClass('active')
   })
 
   it('opens and closes mobile navigation', async () => {
