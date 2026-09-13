@@ -194,7 +194,9 @@ def _sha256(path: Path) -> str:
 
 def evaluate(artifact_dir: Path | None = None) -> dict:
     started = time.perf_counter()
-    artifact_dir = artifact_dir or ROOT / "models" / "nexsolve_world_model"
+    artifact_dir = Path(artifact_dir).resolve() if artifact_dir else (ROOT / "models" / "nexsolve_world_model_45").resolve()
+    if not artifact_dir.exists():
+        artifact_dir = (ROOT / "models" / "nexsolve_world_model").resolve()
     states, _labels = build_network_states()
     episodes = contiguous_episodes(states)
     splits = chronological_episode_split(episodes)
@@ -217,6 +219,10 @@ def evaluate(artifact_dir: Path | None = None) -> dict:
     schema = json.loads((artifact_dir / "feature_schema.json").read_text(encoding="utf-8"))
     feature_names = [name for group in ("flow_features", "packet_features", "temporal_features") for name in schema.get(group, [])]
     feature_audit = audit_features(feature_names)
+    try:
+        art_rel = str(artifact_dir.relative_to(ROOT.resolve()))
+    except ValueError:
+        art_rel = str(artifact_dir)
     report = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "task": {"state": "X_t", "target": "Y_(t+h) attack_state", "horizons": list(HORIZONS), "window_seconds": WINDOW_SECONDS, "lookback": LOOKBACK, "attack_state": "UNSW Label != 0 within the target window", "benign_state": "UNSW Label == 0 within the target window", "unknown_state": "missing/untrusted target or feature evidence", "unknown_semantics": "unknown is not benign or attack; it abstains"},
@@ -231,7 +237,7 @@ def evaluate(artifact_dir: Path | None = None) -> dict:
         "promotion": promotion_report(results, 1, calibration),
         "training": {"status": "NOT_RUN", "reason": "Phase 4 evaluated the frozen existing artifact; no retraining or overwrite was performed.", "training_duration": "not recorded in the existing artifact metadata"},
         "inference": {"model": "Existing LSTM", "total_seconds": round(lstm_seconds, 6), "sequences": len(test_cases), "seconds_per_sequence": round(lstm_seconds / max(len(test_cases), 1), 6), "model_size_bytes": (artifact_dir / "model.npz").stat().st_size},
-        "reproducibility": {"seed": 7, "artifact": str(artifact_dir.relative_to(ROOT)), "artifact_files": {path.name: {"sha256": _sha256(path), "size_bytes": path.stat().st_size} for path in artifact_dir.iterdir() if path.is_file()}, "evaluation_seconds": round(time.perf_counter() - started, 6)},
+        "reproducibility": {"seed": 7, "artifact": art_rel, "artifact_files": {path.name: {"sha256": _sha256(path), "size_bytes": path.stat().st_size} for path in artifact_dir.iterdir() if path.is_file()}, "evaluation_seconds": round(time.perf_counter() - started, 6)},
         "artifact_version": "candidate_v1_existing_lstm_evaluation_only",
         "production_forecast_connected": False,
     }
@@ -241,12 +247,20 @@ def evaluate(artifact_dir: Path | None = None) -> dict:
 def write_report(report: dict, output_dir: Path | None = None) -> None:
     output_dir = output_dir or ROOT / "reports"
     output_dir.mkdir(parents=True, exist_ok=True)
+    # Write Phase 4 legacy filenames
     (output_dir / "phase4_scientific_evaluation.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     (output_dir / "phase4_scientific_evaluation.md").write_text("# Phase 4 Scientific Forecasting Evaluation\n\n```json\n" + json.dumps(report, indent=2) + "\n```\n", encoding="utf-8")
+    # Write canonical Phase 1 scientific forecasting evaluation filenames
+    (output_dir / "scientific_forecasting_evaluation.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    (output_dir / "scientific_forecasting_evaluation.md").write_text("# Scientific Forecasting Evaluation Report\n\n```json\n" + json.dumps(report, indent=2) + "\n```\n", encoding="utf-8")
     artifact_dir = ROOT / "artifacts" / "models" / "candidate_v1"
     artifact_dir.mkdir(parents=True, exist_ok=True)
+    model_src = ROOT / "models" / "nexsolve_world_model_45"
+    if not model_src.exists():
+        model_src = ROOT / "models" / "nexsolve_world_model"
     for name in ("model.npz", "preprocessing.npz", "feature_schema.json", "config.json", "metadata.json"):
-        shutil.copy2(ROOT / "models" / "nexsolve_world_model" / name, artifact_dir / name)
+        if (model_src / name).exists():
+            shutil.copy2(model_src / name, artifact_dir / name)
     (artifact_dir / "evaluation.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     (artifact_dir / "promotion.json").write_text(json.dumps(report["promotion"], indent=2), encoding="utf-8")
 

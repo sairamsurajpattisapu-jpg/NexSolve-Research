@@ -140,8 +140,53 @@ MODEL_SCHEMA_45 = {
     "temporal_features": list(TEMPORAL_NAMES),
 }
 
+# Phase 3 & 12: Candidate Extended Feature Set (72 features target: 30 flow + 32 packet + 10 temporal)
+# Evaluated from NFStream and CICFlowMeter high-value deterministic metrics
+FLOW_NAMES_EXTENDED = (
+    # 13 high-value deterministic flow metrics (17 + 13 = 30 flow features)
+    "flow_duration_variance",
+    "byte_ratio_src_dst",
+    "packet_ratio_src_dst",
+    "single_packet_flow_ratio",
+    "active_flow_rate",
+    "flow_iat_variance",
+    "flow_iat_max",
+    "flow_iat_min",
+    "tcp_syn_ack_ratio",
+    "tcp_rst_ack_ratio",
+    "udp_flow_ratio",
+    "port_entropy",
+    "mean_payload_bytes",
+)
+PACKET_NAMES_EXTENDED = (
+    # 10 deterministic L3/L4 packet distribution metrics (22 + 10 = 32 packet features)
+    "packet_size_skewness",
+    "packet_rate_peak",
+    "tcp_window_zero_count",
+    "tcp_cwr_count",
+    "tcp_ece_count",
+    "udp_packet_ratio",
+    "icmp_packet_ratio",
+    "mean_tcp_payload_size",
+    "max_tcp_payload_size",
+    "payload_rate_bytes_sec",
+)
+TEMPORAL_NAMES_EXTENDED = (
+    # 4 temporal velocity extensions (6 + 4 = 10 temporal features)
+    "delta_src_bytes",
+    "delta_dst_bytes",
+    "delta_syn_count",
+    "rolling_flow_rate",
+)
+CANDIDATE_EXTENDED_FEATURES_72 = FLOW_NAMES_45 + FLOW_NAMES_EXTENDED + PACKET_NAMES + PACKET_NAMES_EXTENDED + TEMPORAL_NAMES + TEMPORAL_NAMES_EXTENDED
+EXTENDED_MODEL_SCHEMA_72 = {
+    "flow_features": list(FLOW_NAMES_45 + FLOW_NAMES_EXTENDED),
+    "packet_features": list(PACKET_NAMES + PACKET_NAMES_EXTENDED),
+    "temporal_features": list(TEMPORAL_NAMES + TEMPORAL_NAMES_EXTENDED),
+}
 
-def feature_registry() -> dict[str, FeatureSpec]:
+
+def feature_registry(include_candidate_extended: bool = False) -> dict[str, FeatureSpec]:
     registry: dict[str, FeatureSpec] = {}
     def register(group: str, name: str, source: str, computation: str, units: str, aggregation: str, minimum_evidence: str, availability: FeatureAvailability) -> None:
         registry[f"{group}.{name}"] = FeatureSpec(group, name, source, computation, units, aggregation, minimum_evidence, availability)
@@ -195,7 +240,48 @@ def feature_registry() -> dict[str, FeatureSpec]:
     register("flow_features", "mean_tcp_rtt", "PacketRecord", "TCP RTT is not observed by the canonical packet contract", "seconds", "unavailable", "TCP timestamp/options plus validated ACK pairing", FeatureAvailability.UNAVAILABLE)
     for name in TEMPORAL_NAMES:
         register("temporal_features", name, "NetworkStateCandidate sequence", "past-only comparison with prior candidate", "feature units", "temporal delta or rolling mean", "current and immediately prior contiguous candidate", FeatureAvailability.TEMPORAL)
+
+    if include_candidate_extended:
+        flow_extended = {
+            "flow_duration_variance": ("variance of active flow durations", "seconds^2", "population variance", FeatureAvailability.CANONICAL_FLOW),
+            "byte_ratio_src_dst": ("ratio of source bytes to destination bytes", "ratio", "ratio", FeatureAvailability.CANONICAL_FLOW),
+            "packet_ratio_src_dst": ("ratio of forward packets to reverse packets", "ratio", "ratio", FeatureAvailability.CANONICAL_FLOW),
+            "single_packet_flow_ratio": ("ratio of flows with exactly 1 packet", "ratio", "ratio", FeatureAvailability.CANONICAL_FLOW),
+            "active_flow_rate": ("active flows per window second", "flows/sec", "rate", FeatureAvailability.CANONICAL_FLOW),
+            "flow_iat_variance": ("variance of intra-flow IAT", "seconds^2", "variance", FeatureAvailability.CANONICAL_FLOW),
+            "flow_iat_max": ("maximum observed intra-flow IAT", "seconds", "maximum", FeatureAvailability.CANONICAL_FLOW),
+            "flow_iat_min": ("minimum observed intra-flow IAT", "seconds", "minimum", FeatureAvailability.CANONICAL_FLOW),
+            "tcp_syn_ack_ratio": ("ratio of SYN packets to ACK packets", "ratio", "ratio", FeatureAvailability.CANONICAL_FLOW),
+            "tcp_rst_ack_ratio": ("ratio of RST packets to ACK packets", "ratio", "ratio", FeatureAvailability.CANONICAL_FLOW),
+            "udp_flow_ratio": ("ratio of UDP flows to total flows", "ratio", "ratio", FeatureAvailability.CANONICAL_FLOW),
+            "port_entropy": ("Shannon entropy of active destination ports", "bits", "entropy", FeatureAvailability.CANONICAL_FLOW),
+            "mean_payload_bytes": ("mean payload bytes per active flow", "bytes", "mean", FeatureAvailability.CANONICAL_FLOW),
+        }
+        for name, (computation, units, aggregation, avail) in flow_extended.items():
+            register("flow_features", name, "FlowRecord/PacketRecord", computation, units, aggregation, "candidate extended flow evidence", avail)
+        packet_extended = {
+            "packet_size_skewness": ("skewness of observed packet sizes", "dimensionless", "skewness", FeatureAvailability.PCAP),
+            "packet_rate_peak": ("peak observed packet rate in sub-window", "packets/sec", "peak", FeatureAvailability.PCAP),
+            "tcp_window_zero_count": ("count of TCP zero-window advertisements", "packets", "count", FeatureAvailability.PCAP),
+            "tcp_cwr_count": ("count of TCP CWR flags", "packets", "count", FeatureAvailability.PCAP),
+            "tcp_ece_count": ("count of TCP ECE flags", "packets", "count", FeatureAvailability.PCAP),
+            "udp_packet_ratio": ("ratio of UDP packets to total packets", "ratio", "ratio", FeatureAvailability.PCAP),
+            "icmp_packet_ratio": ("ratio of ICMP packets to total packets", "ratio", "ratio", FeatureAvailability.PCAP),
+            "mean_tcp_payload_size": ("mean payload length of TCP segments", "bytes", "mean", FeatureAvailability.PCAP),
+            "max_tcp_payload_size": ("maximum payload length of TCP segments", "bytes", "maximum", FeatureAvailability.PCAP),
+            "payload_rate_bytes_sec": ("payload throughput rate", "bytes/sec", "rate", FeatureAvailability.PCAP),
+        }
+        for name, (computation, units, aggregation, avail) in packet_extended.items():
+            register("packet_features", name, "PacketRecord/TemporalWindow", computation, units, aggregation, "candidate extended packet evidence", avail)
+        for name in TEMPORAL_NAMES_EXTENDED:
+            register("temporal_features", name, "NetworkStateCandidate sequence", "past-only delta/rate", "units", "temporal delta", "contiguous sequence", FeatureAvailability.TEMPORAL)
+
     return registry
+
+
+def extended_feature_registry() -> dict[str, FeatureSpec]:
+    """Return feature specifications for the 72-candidate extended feature set."""
+    return feature_registry(include_candidate_extended=True)
 
 
 def _model_schema(feature_schema: Mapping[str, list[str]] | None) -> tuple[str, ...]:
@@ -251,6 +337,8 @@ def _flow_values(flow: FlowRecord, prefix: list[PacketRecord]) -> dict[str, floa
 
     forward_lengths = [packet.packet_length for packet in forward if packet.packet_length is not None]
     reverse_lengths = [packet.packet_length for packet in reverse if packet.packet_length is not None]
+    forward_payloads = [packet.payload_length for packet in forward if packet.payload_length is not None]
+    reverse_payloads = [packet.payload_length for packet in reverse if packet.payload_length is not None]
     timestamps.sort()
     iats = [right - left for left, right in zip(timestamps, timestamps[1:])]
     forward_ttl = [packet.ttl for packet in forward if packet.ttl is not None]
@@ -269,6 +357,9 @@ def _flow_values(flow: FlowRecord, prefix: list[PacketRecord]) -> dict[str, floa
         "mean_swin": sum(forward_windows) / len(forward_windows) if forward_windows else None,
         "mean_dwin": sum(reverse_windows) / len(reverse_windows) if reverse_windows else None,
         "mean_iat": sum(iats) / len(iats) if iats else None,
+        "payload_bytes": float(sum(forward_payloads) + sum(reverse_payloads)),
+        "forward_packets": float(len(forward)),
+        "reverse_packets": float(len(reverse)),
     }
 
 
@@ -276,7 +367,15 @@ def _aggregate_flow_features(window: TemporalWindow, seen_packets: Mapping[int, 
     values = [_flow_values(flow, _flow_prefix(flow, seen_packets)) for flow in window.flows]
     values = [value for value in values if value]
     if not values:
-        return {"flow_count": 0.0, "total_src_bytes": 0.0, "total_dst_bytes": 0.0, "total_packets": 0.0, "unique_src_ports": 0.0, "unique_dst_ports": 0.0, "proto_tcp_count": 0.0, "proto_udp_count": 0.0, "proto_other_count": 0.0}, {"active_flow_ids": (), "new_flow_ids": (), "ended_flow_ids": ()}
+        empty_flow: dict[str, float] = {
+            "flow_count": 0.0, "total_src_bytes": 0.0, "total_dst_bytes": 0.0, "total_packets": 0.0,
+            "unique_src_ports": 0.0, "unique_dst_ports": 0.0, "proto_tcp_count": 0.0, "proto_udp_count": 0.0, "proto_other_count": 0.0,
+            "flow_duration_variance": 0.0, "byte_ratio_src_dst": 0.0, "packet_ratio_src_dst": 0.0,
+            "single_packet_flow_ratio": 0.0, "active_flow_rate": 0.0, "flow_iat_variance": 0.0,
+            "flow_iat_max": 0.0, "flow_iat_min": 0.0, "tcp_syn_ack_ratio": 0.0, "tcp_rst_ack_ratio": 0.0,
+            "udp_flow_ratio": 0.0, "port_entropy": 0.0, "mean_payload_bytes": 0.0,
+        }
+        return empty_flow, {"active_flow_ids": (), "new_flow_ids": (), "ended_flow_ids": ()}
     numeric: dict[str, float] = {"flow_count": float(len(values))}
     for name in ("total_src_bytes", "total_dst_bytes", "total_packets"):
         numeric[name] = sum(value[name] for value in values)
@@ -289,6 +388,75 @@ def _aggregate_flow_features(window: TemporalWindow, seen_packets: Mapping[int, 
     numeric["proto_tcp_count"] = float(sum(flow.protocol == "TCP" for flow in window.flows))
     numeric["proto_udp_count"] = float(sum(flow.protocol == "UDP" for flow in window.flows))
     numeric["proto_other_count"] = float(len(window.flows) - numeric["proto_tcp_count"] - numeric["proto_udp_count"])
+
+    # --- 13 Candidate Extended Flow Features ---
+    # 1. flow_duration_variance: sample variance of flow durations (s^2) across active flows (0.0 if <= 1 flow)
+    durations = [v["mean_duration"] for v in values if "mean_duration" in v]
+    if len(durations) > 1:
+        mean_dur = sum(durations) / len(durations)
+        numeric["flow_duration_variance"] = sum((d - mean_dur) ** 2 for d in durations) / (len(durations) - 1)
+    else:
+        numeric["flow_duration_variance"] = 0.0
+
+    # 2. byte_ratio_src_dst: total_src_bytes / total_dst_bytes (0.0 if dst == 0)
+    dst_bytes = numeric["total_dst_bytes"]
+    numeric["byte_ratio_src_dst"] = numeric["total_src_bytes"] / dst_bytes if dst_bytes > 0.0 else 0.0
+
+    # 3. packet_ratio_src_dst: forward packets / reverse packets across all flows (0.0 if reverse == 0)
+    tot_fwd_pkts = sum(v["forward_packets"] for v in values)
+    tot_rev_pkts = sum(v["reverse_packets"] for v in values)
+    numeric["packet_ratio_src_dst"] = tot_fwd_pkts / tot_rev_pkts if tot_rev_pkts > 0.0 else 0.0
+
+    # 4. single_packet_flow_ratio: ratio of active flows with exactly 1 prefix packet
+    numeric["single_packet_flow_ratio"] = sum(1.0 for v in values if v["total_packets"] == 1.0) / float(len(values))
+
+    # 5. active_flow_rate: active flows per window second
+    w_seconds = max(1.0, float(window.end_timestamp - window.start_timestamp))
+    numeric["active_flow_rate"] = float(len(values)) / w_seconds
+
+    # 6, 7, 8: Flow start IAT stats (variance, max, min)
+    start_times = sorted(flow.start_timestamp for flow in window.flows if flow.start_timestamp is not None)
+    flow_start_iats = [r - l for l, r in zip(start_times, start_times[1:])] if len(start_times) > 1 else []
+    if len(flow_start_iats) > 1:
+        mean_fiat = sum(flow_start_iats) / len(flow_start_iats)
+        numeric["flow_iat_variance"] = sum((iat - mean_fiat) ** 2 for iat in flow_start_iats) / (len(flow_start_iats) - 1)
+    else:
+        numeric["flow_iat_variance"] = 0.0
+    numeric["flow_iat_max"] = max(flow_start_iats) if flow_start_iats else 0.0
+    numeric["flow_iat_min"] = min(flow_start_iats) if flow_start_iats else 0.0
+
+    # 9. tcp_syn_ack_ratio: sum(flow.syn_count) / sum(flow.ack_count) (0.0 if ack == 0)
+    total_syn = float(sum(flow.syn_count for flow in window.flows))
+    total_ack = float(sum(flow.ack_count for flow in window.flows))
+    numeric["tcp_syn_ack_ratio"] = total_syn / total_ack if total_ack > 0.0 else 0.0
+
+    # 10. tcp_rst_ack_ratio: sum(flow.rst_count) / sum(flow.ack_count) (0.0 if ack == 0)
+    total_rst = float(sum(flow.rst_count for flow in window.flows))
+    numeric["tcp_rst_ack_ratio"] = total_rst / total_ack if total_ack > 0.0 else 0.0
+
+    # 11. udp_flow_ratio: UDP flows / total active flows
+    numeric["udp_flow_ratio"] = numeric["proto_udp_count"] / float(len(values))
+
+    # 12. port_entropy: Shannon entropy H = -sum(p * log2(p)) over destination ports across active flows
+    dst_ports = [flow.dst_port for flow in window.flows if flow.dst_port is not None]
+    if len(dst_ports) > 1:
+        port_counts: dict[int, int] = {}
+        for p in dst_ports:
+            port_counts[p] = port_counts.get(p, 0) + 1
+        n_ports = float(len(dst_ports))
+        h = 0.0
+        for count in port_counts.values():
+            prob = count / n_ports
+            if prob > 0.0:
+                h -= prob * math.log2(prob)
+        numeric["port_entropy"] = float(h)
+    else:
+        numeric["port_entropy"] = 0.0
+
+    # 13. mean_payload_bytes: mean total payload bytes per active flow
+    total_payloads = [v["payload_bytes"] for v in values]
+    numeric["mean_payload_bytes"] = sum(total_payloads) / float(len(total_payloads))
+
     return numeric, {"active_flow_ids": tuple(flow.flow_id for flow in window.flows)}
 
 
@@ -299,6 +467,17 @@ def _packet_features(window: TemporalWindow) -> dict[str, float]:
         "mean_ttl": "ttl_mean", "min_ttl": "ttl_min", "max_ttl": "ttl_max", "tcp_syn_count": "syn_count", "tcp_ack_count": "ack_count",
         "tcp_fin_count": "fin_count", "tcp_rst_count": "rst_count", "tcp_psh_count": "psh_count", "tcp_urg_count": "urg_count", "mean_tcp_window": "tcp_window_mean",
         "fragment_count": "fragment_count", "retransmission_count": "tcp_retransmission_count", "mean_iat": "iat_mean", "max_iat": "iat_max",
+        # 10 candidate extended packet features
+        "packet_size_skewness": "packet_size_skewness",
+        "packet_rate_peak": "packet_rate_peak",
+        "tcp_window_zero_count": "tcp_window_zero_count",
+        "tcp_cwr_count": "cwr_count",
+        "tcp_ece_count": "ece_count",
+        "udp_packet_ratio": "udp_packet_ratio",
+        "icmp_packet_ratio": "icmp_packet_ratio",
+        "mean_tcp_payload_size": "mean_tcp_payload_size",
+        "max_tcp_payload_size": "max_tcp_payload_size",
+        "payload_rate_bytes_sec": "payload_rate_bytes_sec",
     }
     result = {name: value for name, source in mapping.items() if (value := _value(row, source)) is not None}
     variance_mapping = {"std_packet_size": "packet_size_variance", "std_ttl": "ttl_variance", "std_tcp_window": "tcp_window_variance", "std_iat": "iat_variance"}
@@ -314,7 +493,7 @@ def build_network_state_candidates(windows: Iterable[TemporalWindow], feature_sc
     previous: NetworkStateCandidate | None = None
     seen_packets: dict[int, PacketRecord] = {}
     candidates: list[NetworkStateCandidate] = []
-    registry = feature_registry()
+    registry = feature_registry(include_candidate_extended=True)
     for window in ordered:
         seen_packets.update({packet.packet_index: packet for packet in window.packets if packet.packet_index is not None})
         flow_features, lifecycle = _aggregate_flow_features(window, seen_packets)
@@ -342,6 +521,11 @@ def build_network_state_candidates(windows: Iterable[TemporalWindow], feature_sc
                 "delta_total_packets": flow_features["total_packets"] - previous.flow_features["total_packets"],
                 "delta_ports": flow_features["unique_src_ports"] + flow_features["unique_dst_ports"] - previous.flow_features["unique_src_ports"] - previous.flow_features["unique_dst_ports"],
                 "rolling_total_bytes": (sum(c.flow_features["total_src_bytes"] + c.flow_features["total_dst_bytes"] for c in candidates[-3:]) + flow_features["total_src_bytes"] + flow_features["total_dst_bytes"]) / min(len(candidates) + 1, 4),
+                # 4 extended temporal features
+                "delta_src_bytes": flow_features["total_src_bytes"] - previous.flow_features["total_src_bytes"],
+                "delta_dst_bytes": flow_features["total_dst_bytes"] - previous.flow_features["total_dst_bytes"],
+                "delta_syn_count": packet_features.get("tcp_syn_count", 0.0) - previous.packet_features.get("tcp_syn_count", 0.0),
+                "rolling_flow_rate": (sum(c.flow_features["flow_count"] for c in candidates[-3:]) + flow_features["flow_count"]) / min(len(candidates) + 1, 4),
             }
             if current_iat is not None and previous_iat is not None:
                 temporal_features["delta_iat"] = current_iat - previous_iat
@@ -349,10 +533,14 @@ def build_network_state_candidates(windows: Iterable[TemporalWindow], feature_sc
                 unavailable["temporal_features.delta_iat"] = "Flow IAT is unavailable in the current or prior window."
             feature_status.update({f"temporal_features.{name}": registry[f"temporal_features.{name}"].availability for name in temporal_features})
         else:
-            for name in TEMPORAL_NAMES:
-                unavailable[name] = "No prior observed window exists for a past-only temporal derivation."
-                feature_status[name] = FeatureAvailability.UNAVAILABLE
-        for group, names in (("flow_features", FLOW_NAMES), ("packet_features", PACKET_NAMES), ("temporal_features", TEMPORAL_NAMES)):
+            for name in TEMPORAL_NAMES + TEMPORAL_NAMES_EXTENDED:
+                unavailable[f"temporal_features.{name}"] = "No prior observed window exists for a past-only temporal derivation."
+                feature_status[f"temporal_features.{name}"] = FeatureAvailability.UNAVAILABLE
+        for group, names in (
+            ("flow_features", FLOW_NAMES + FLOW_NAMES_EXTENDED),
+            ("packet_features", PACKET_NAMES + PACKET_NAMES_EXTENDED),
+            ("temporal_features", TEMPORAL_NAMES + TEMPORAL_NAMES_EXTENDED),
+        ):
             for name in names:
                 key = f"{group}.{name}"
                 if key in feature_status:

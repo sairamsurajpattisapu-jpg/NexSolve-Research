@@ -192,6 +192,21 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
         window_seconds=60,
     )
 
+    # Behavioral Intelligence, Session Investigation, & Evidence Fusion (Phases 6, 7, 9, 10)
+    from nexsolve_core.behavior import analyze_behavioral_intelligence
+    from nexsolve_core.investigation import build_session_investigation_records
+    from nexsolve_core.fusion import fuse_threat_assessment
+
+    all_flows = [flow for cw in canonical_windows for flow in cw.flows]
+    behavioral_report = analyze_behavioral_intelligence(all_flows, _packets)
+    investigation_records = build_session_investigation_records(all_flows, behavioral_report.beaconing_signals)
+    threat_assessment = fuse_threat_assessment(
+        observed_findings=detection.get("findings", []),
+        behavioral_report=behavioral_report,
+        forecast_points=forecast_points,
+        attack_horizon=intelligence.attack_horizon,
+    )
+
     result = {
         "analysis_id": analysis_id,
         "status": "completed",
@@ -215,6 +230,10 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
         "protocol_summary": traffic["protocol_counts"],
         "findings": detection["findings"],
         "summary": {"packet_count": traffic["packets"], "window_count": traffic["windows"], "finding_count": detection["detected_events"], "threat_level": detection["threat_level"]},
+        # Behavioral & Investigation Upgrades (Phases 6, 7, 9, 10)
+        "behavioral_intelligence": behavioral_report.to_dict(),
+        "investigation_sessions": [s.to_dict() for s in investigation_records[:100]],
+        "threat_assessment": threat_assessment.to_dict(),
         # Trust Layer & Forecast Intelligence
         "forecasts": forecast_points,
         "attack_horizon": intelligence.attack_horizon,
@@ -225,6 +244,30 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
         "unknown_behavior": intelligence.unknown_behavior,
         "unknownBehavior": intelligence.unknown_behavior,
         "abstention": intelligence.abstention,
+        "analysis_state": (
+            "ANALYSIS_COMPLETE_FORECAST_READY"
+            if compatibility.get("model_ready", False)
+            else "ANALYSIS_COMPLETE_FORECAST_UNAVAILABLE"
+        ),
+        "forecast_summary": {
+            "available": bool(compatibility.get("model_ready", False)),
+            "status": (
+                "READY"
+                if compatibility.get("model_ready", False)
+                else ("INSUFFICIENT_HISTORY" if len(windows) < 8 else "INCOMPATIBLE_FEATURES")
+            ),
+            "required_windows": 8,
+            "available_windows": len(windows),
+            "required_window_seconds": 60,
+            "message": (
+                "Forecast rollouts generated successfully."
+                if compatibility.get("model_ready", False)
+                else (
+                    "Forecasting requires at least 8 continuous 60-second windows. "
+                    "Static traffic analysis completed successfully."
+                )
+            ),
+        },
     }
     return persist_analysis(result)
 

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { forecastTrustFixtures } from '../fixtures/forecastTrustFixtures'
 import type { ForecastResponse } from '../types/api'
 import { AttackHorizonCard } from './AttackHorizonCard'
+import { AttackProgressionCard } from './AttackProgressionCard'
 import { EvidenceChain } from './EvidenceChain'
 import { ForecastConfidence } from './ForecastConfidence'
 import { ForecastStatus } from './ForecastStatus'
@@ -24,6 +25,7 @@ export function ForecastTrustPanel({
   const currentResponse: ForecastResponse = initialResponse ?? activeFixture.response
 
   const attackHorizon = currentResponse.attack_horizon ?? currentResponse.attackHorizon
+  const attackProgression = currentResponse.attack_progression ?? currentResponse.attackProgression
   const evidenceChain = currentResponse.evidence_chain ?? currentResponse.evidenceChain
   const confidence = currentResponse.confidence
   const unknownBehavior = currentResponse.unknown_behavior ?? currentResponse.unknownBehavior
@@ -73,6 +75,11 @@ export function ForecastTrustPanel({
       {/* 1. Attack Horizon Card */}
       {attackHorizon && (
         <AttackHorizonCard initialPayload={attackHorizon} allowStateSwitching={false} />
+      )}
+
+      {/* 1b. Attack-Stage Progression Card */}
+      {attackProgression && (
+        <AttackProgressionCard progression={attackProgression} />
       )}
 
       {/* 2. Evidence Chain (Why This Forecast) */}

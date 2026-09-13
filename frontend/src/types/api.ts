@@ -107,14 +107,35 @@ export interface DetectionSummary {
   risk_method: string
 }
 
+export type AnalysisStateType =
+  | 'ANALYSIS_COMPLETE_FORECAST_READY'
+  | 'ANALYSIS_COMPLETE_FORECAST_UNAVAILABLE'
+  | 'ANALYSIS_REJECTED_INVALID_INPUT'
+
+export interface ForecastSummaryContract {
+  available: boolean
+  status: string
+  required_windows: number
+  available_windows: number
+  required_window_seconds: number
+  message: string
+}
+
 export interface AnalysisResults {
   analysis_id: string
   status: string
+  analysis_state?: AnalysisStateType
+  forecast_summary?: ForecastSummaryContract
   source?: AnalysisSource
   upload?: { filename: string; size_bytes: number; format: string }
   validation: ValidationReport
   traffic: TrafficSummary
   detection: DetectionSummary
+  behavioral_intelligence?: Record<string, unknown>
+  investigation_sessions?: Record<string, unknown>[]
+  threat_assessment?: Record<string, unknown>
+  attack_progression?: AttackProgressionForecast | null
+  attackProgression?: AttackProgressionForecast | null
   forecasts?: ForecastPoint[]
   attack_horizon?: AttackHorizonPayload | null
   attackHorizon?: AttackHorizonPayload | null
@@ -164,6 +185,8 @@ export interface AnalysisData {
 export interface UploadedAnalysisResponse {
   analysis_id: string
   status: string
+  analysis_state?: AnalysisStateType
+  forecast_summary?: ForecastSummaryContract
   source: AnalysisSource
   upload: { filename: string; size_bytes: number; format: string }
   validation: ValidationReport
@@ -176,6 +199,11 @@ export interface UploadedAnalysisResponse {
   protocol_summary: Record<string, number>
   findings: Finding[]
   summary: { packet_count: number; window_count: number; finding_count: number; threat_level: Severity }
+  behavioral_intelligence?: Record<string, unknown>
+  investigation_sessions?: Record<string, unknown>[]
+  threat_assessment?: Record<string, unknown>
+  attack_progression?: AttackProgressionForecast | null
+  attackProgression?: AttackProgressionForecast | null
   forecasts?: ForecastPoint[]
   attack_horizon?: AttackHorizonPayload | null
   attackHorizon?: AttackHorizonPayload | null
@@ -244,6 +272,32 @@ export interface ForecastPoint {
   confidence: number | null
   uncertainty: number | null
   explanation: string[]
+}
+
+export type PredictionType = 'STATE_PERSISTENCE' | 'DOWNSTREAM_PROGRESSION' | 'ABSTAINED'
+
+export interface StageForecastPoint {
+  horizon_minutes: number
+  predicted_state: string
+  predicted_technique?: string | null
+  forecast_techniques: string[]
+  prediction_type: PredictionType
+  transition_probability: number | null
+  baseline_probability?: number | null
+  lead_time_seconds: number
+  abstained: boolean
+  abstention_reason?: string | null
+  supporting_evidence: string[]
+}
+
+export interface AttackProgressionForecast {
+  observed_state: string
+  observed_techniques: string[]
+  forecast_points: StageForecastPoint[]
+  supported_horizons: number[]
+  unsupported_horizons: number[]
+  verdict: 'PARTIALLY_SUPPORTED' | 'SUPPORTED' | 'ABSTAINED'
+  summary: string
 }
 
 export interface EvidenceItemPayload {
@@ -323,6 +377,8 @@ export interface ForecastResponse {
   unknown_behavior?: UnknownBehaviorPayload | null
   unknownBehavior?: UnknownBehaviorPayload | null
   abstention?: ForecastAbstentionPayload | null
+  attack_progression?: AttackProgressionForecast | null
+  attackProgression?: AttackProgressionForecast | null
 }
 
 export type JobStatusType =

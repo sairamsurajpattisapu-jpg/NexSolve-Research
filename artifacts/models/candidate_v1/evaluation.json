@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-09T16:03:36.957722+00:00",
+  "generated_at_utc": "2026-09-13T14:00:18.420008+00:00",
   "task": {
     "state": "X_t",
     "target": "Y_(t+h) attack_state",
@@ -740,19 +740,19 @@
     "Existing LSTM": {
       "T+1": {
         "status": "computed",
-        "precision": 1.0,
-        "recall": 0.14285714285714285,
-        "f1": 0.25,
-        "macro_f1": 0.4583333333333333,
-        "balanced_accuracy": 0.5714285714285714,
+        "precision": 0.45454545454545453,
+        "recall": 0.7142857142857143,
+        "f1": 0.5555555555555556,
+        "macro_f1": 0.2777777777777778,
+        "balanced_accuracy": 0.35714285714285715,
         "confusion_matrix": [
           [
-            6,
-            0
+            0,
+            6
           ],
           [
-            6,
-            1
+            2,
+            5
           ]
         ],
         "coverage": 1.0,
@@ -763,9 +763,9 @@
           "0": 6,
           "1": 7
         },
-        "roc_auc": 0.45238095238095233,
-        "pr_auc": 0.6533189033189033,
-        "brier_score": 0.36734472703921106,
+        "roc_auc": 0.40476190476190477,
+        "pr_auc": 0.5473003187288901,
+        "brier_score": 0.338960664713322,
         "confidence_intervals": {
           "status": "not_available",
           "reason": "fewer than 30 evaluated cases"
@@ -773,19 +773,19 @@
       },
       "T+2": {
         "status": "computed",
-        "precision": 1.0,
-        "recall": 0.25,
-        "f1": 0.4,
-        "macro_f1": 0.5125,
-        "balanced_accuracy": 0.625,
+        "precision": 0.6666666666666666,
+        "recall": 0.75,
+        "f1": 0.7058823529411765,
+        "macro_f1": 0.5751633986928104,
+        "balanced_accuracy": 0.575,
         "confusion_matrix": [
           [
-            5,
-            0
+            2,
+            3
           ],
           [
-            6,
-            2
+            2,
+            6
           ]
         ],
         "coverage": 1.0,
@@ -796,9 +796,9 @@
           "0": 5,
           "1": 8
         },
-        "roc_auc": 0.575,
-        "pr_auc": 0.7362959956709956,
-        "brier_score": 0.4078660289424423,
+        "roc_auc": 0.475,
+        "pr_auc": 0.666599025974026,
+        "brier_score": 0.29755557831538704,
         "confidence_intervals": {
           "status": "not_available",
           "reason": "fewer than 30 evaluated cases"
@@ -806,19 +806,19 @@
       },
       "T+3": {
         "status": "computed",
-        "precision": 1.0,
-        "recall": 0.2222222222222222,
-        "f1": 0.36363636363636365,
-        "macro_f1": 0.4484848484848485,
-        "balanced_accuracy": 0.6111111111111112,
+        "precision": 0.7777777777777778,
+        "recall": 0.7777777777777778,
+        "f1": 0.7777777777777778,
+        "macro_f1": 0.6388888888888888,
+        "balanced_accuracy": 0.6388888888888888,
         "confusion_matrix": [
           [
-            4,
-            0
+            2,
+            2
           ],
           [
-            7,
-            2
+            2,
+            7
           ]
         ],
         "coverage": 1.0,
@@ -829,9 +829,9 @@
           "0": 4,
           "1": 9
         },
-        "roc_auc": 0.8055555555555556,
-        "pr_auc": 0.8782627865961199,
-        "brier_score": 0.46240393463539764,
+        "roc_auc": 0.7222222222222222,
+        "pr_auc": 0.8733605900272567,
+        "brier_score": 0.2100037568934895,
         "confidence_intervals": {
           "status": "not_available",
           "reason": "fewer than 30 evaluated cases"
@@ -839,19 +839,19 @@
       },
       "T+4": {
         "status": "computed",
-        "precision": 1.0,
-        "recall": 0.2,
-        "f1": 0.3333333333333333,
-        "macro_f1": 0.38095238095238093,
-        "balanced_accuracy": 0.6,
+        "precision": 0.8888888888888888,
+        "recall": 0.8,
+        "f1": 0.8421052631578947,
+        "macro_f1": 0.706766917293233,
+        "balanced_accuracy": 0.7333333333333334,
         "confusion_matrix": [
           [
-            3,
-            0
+            2,
+            1
           ],
           [
-            8,
-            2
+            2,
+            8
           ]
         ],
         "coverage": 1.0,
@@ -862,9 +862,9 @@
           "0": 3,
           "1": 10
         },
-        "roc_auc": 0.7333333333333334,
-        "pr_auc": 0.8813455988455987,
-        "brier_score": 0.5260295320099665,
+        "roc_auc": 0.8,
+        "pr_auc": 0.9263455988455987,
+        "brier_score": 0.14670282237403615,
         "confidence_intervals": {
           "status": "not_available",
           "reason": "fewer than 30 evaluated cases"
@@ -872,19 +872,19 @@
       },
       "T+5": {
         "status": "computed",
-        "precision": 1.0,
-        "recall": 0.18181818181818182,
-        "f1": 0.3076923076923077,
-        "macro_f1": 0.3076923076923077,
-        "balanced_accuracy": 0.5909090909090909,
+        "precision": 0.8888888888888888,
+        "recall": 0.7272727272727273,
+        "f1": 0.8,
+        "macro_f1": 0.5666666666666667,
+        "balanced_accuracy": 0.6136363636363636,
         "confusion_matrix": [
           [
-            2,
-            0
+            1,
+            1
           ],
           [
-            9,
-            2
+            3,
+            8
           ]
         ],
         "coverage": 1.0,
@@ -895,9 +895,9 @@
           "0": 2,
           "1": 11
         },
-        "roc_auc": 0.5454545454545454,
-        "pr_auc": 0.878146348600894,
-        "brier_score": 0.5955283315724026,
+        "roc_auc": 0.7272727272727273,
+        "pr_auc": 0.9406172110717566,
+        "brier_score": 0.21439154392623683,
         "confidence_intervals": {
           "status": "not_available",
           "reason": "fewer than 30 evaluated cases"
@@ -953,41 +953,37 @@
   },
   "inference": {
     "model": "Existing LSTM",
-    "total_seconds": 0.038248,
+    "total_seconds": 0.085018,
     "sequences": 13,
-    "seconds_per_sequence": 0.002942,
-    "model_size_bytes": 65404
+    "seconds_per_sequence": 0.00654,
+    "model_size_bytes": 64436
   },
   "reproducibility": {
     "seed": 7,
-    "artifact": "models\\nexsolve_world_model",
+    "artifact": "models\\nexsolve_world_model_45",
     "artifact_files": {
       "config.json": {
-        "sha256": "a085a5dba4eb11bd7bb32635ad2346ee594100257f41eab6b6d22998280a5da6",
-        "size_bytes": 185
+        "sha256": "cec3e606ffd8aa8c565e41b19d8ec586525378af61cb258c4401921caae297e0",
+        "size_bytes": 232
       },
       "feature_schema.json": {
-        "sha256": "88fb378e94cbc6098814c0171794929e3b2993c0f9fa2e33a9564192bb75e639",
-        "size_bytes": 841
+        "sha256": "fb08f2001b6ab97b36bcfe6db2baa9779366e93fdadfd49531db3ab5d52eced3",
+        "size_bytes": 1130
       },
       "metadata.json": {
-        "sha256": "0a864468934a0556aec347f69a9446c82fbacd43ab4a3aa6fd402e7fabb06f09",
-        "size_bytes": 418
+        "sha256": "9dd58a3fb7c1f6908ac2a411a0a0c6c586dc9e8ef0361513acce716a3e7980c9",
+        "size_bytes": 293
       },
       "model.npz": {
-        "sha256": "07ce2d2d792b6e73304fbcb69cbfe93cefe6d13dcb515cad700ce0be80e0e8a9",
-        "size_bytes": 65404
-      },
-      "preprocessing.json": {
-        "sha256": "c613df55cb79da1bb594acf560ef4fd4d8d04d2f627a19cfa8936f26a2934d64",
-        "size_bytes": 237
+        "sha256": "06efeb709d40b835183ca03160cc697e95be95166bc8fdc296eab48ffb8377a7",
+        "size_bytes": 64436
       },
       "preprocessing.npz": {
-        "sha256": "ee6cc7b1ea16b2828c68f9f0e104c861d6e4a6ae589aec92a1dc4139e885df6d",
-        "size_bytes": 1240
+        "sha256": "d8845285d336e39b0cd6b91c47ec7168eb555a6408994748022af7c441fa25a9",
+        "size_bytes": 1224
       }
     },
-    "evaluation_seconds": 23.071205
+    "evaluation_seconds": 53.116044
   },
   "artifact_version": "candidate_v1_existing_lstm_evaluation_only",
   "production_forecast_connected": false

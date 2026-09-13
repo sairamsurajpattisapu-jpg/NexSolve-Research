@@ -42,3 +42,9 @@ scratch/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local open-source research checkouts
+research/
+
+# Frontend generated test artifacts
+frontend/test-artifacts/

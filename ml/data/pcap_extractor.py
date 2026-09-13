@@ -238,6 +238,7 @@ def compute_packet_window_stats(records: list[dict[str, Any]], retransmission_co
 
     protocol_counts = Counter(record.get("protocol") for record in records if record.get("protocol") is not None)
     flags = Counter()
+    tcp_window_zero_count = 0
     for record in records:
         value = int(record.get("tcp_flags") or 0)
         if value & 0x02:
@@ -252,9 +253,41 @@ def compute_packet_window_stats(records: list[dict[str, Any]], retransmission_co
             flags["psh_count"] += 1
         if value & 0x20:
             flags["urg_count"] += 1
+        if value & 0x80:
+            flags["cwr_count"] += 1
+        if value & 0x40:
+            flags["ece_count"] += 1
+        if record.get("protocol") == "TCP" and record.get("tcp_window") is not None and int(record.get("tcp_window") or 0) == 0:
+            tcp_window_zero_count += 1
 
     fragment_count = sum(1 for record in records if (record.get("fragment_offset") is not None and int(record.get("fragment_offset") or 0) > 0) or (record.get("more_fragments") is True))
     fragment_ratio = fragment_count / len(records) if records else 0.0
+
+    # 1-second binned peak packet rate
+    second_bins = Counter(int(ts) for ts in timestamps)
+    packet_rate_peak = float(max(second_bins.values())) if second_bins else 0.0
+
+    # Skewness
+    def skewness(values: list[float]) -> float:
+        n = len(values)
+        if n < 3:
+            return 0.0
+        mu = mean(values)
+        m2 = sum((v - mu) ** 2 for v in values) / n
+        if m2 < 1e-12:
+            return 0.0
+        m3 = sum((v - mu) ** 3 for v in values) / n
+        std = math.sqrt(m2)
+        factor = math.sqrt(n * (n - 1)) / (n - 2)
+        return float(factor * (m3 / (std ** 3)))
+
+    tcp_payloads = [
+        float(record["payload_length"])
+        for record in records
+        if record.get("protocol") == "TCP" and record.get("payload_length") is not None
+    ]
+    obs_duration = (timestamps[-1] - timestamps[0]) if (timestamps and timestamps[-1] > timestamps[0]) else 60.0
+    payload_rate_bytes_sec = float(sum(payload_values) / obs_duration) if payload_values and obs_duration > 0 else 0.0
 
     return {
         "packet_count": len(records),
@@ -289,6 +322,8 @@ def compute_packet_window_stats(records: list[dict[str, Any]], retransmission_co
         "rst_count": flags.get("rst_count", 0),
         "psh_count": flags.get("psh_count", 0),
         "urg_count": flags.get("urg_count", 0),
+        "cwr_count": flags.get("cwr_count", 0),
+        "ece_count": flags.get("ece_count", 0),
         "fragment_count": fragment_count,
         "fragment_ratio": fragment_ratio,
         "tcp_count": protocol_counts.get("TCP", 0),
@@ -301,6 +336,14 @@ def compute_packet_window_stats(records: list[dict[str, Any]], retransmission_co
         "tcp_retransmission_rate": retransmission_count / max(sum(record.get("protocol") == "TCP" and record.get("payload_length") is not None and record.get("payload_length") > 0 for record in records), 1),
         "port_scan_score": None,
         "protocol_counts": dict(sorted(protocol_counts.items())),
+        "packet_size_skewness": skewness(packet_sizes),
+        "packet_rate_peak": packet_rate_peak,
+        "tcp_window_zero_count": tcp_window_zero_count,
+        "udp_packet_ratio": float(protocol_counts.get("UDP", 0) / len(records)) if records else 0.0,
+        "icmp_packet_ratio": float(protocol_counts.get("ICMP", 0) / len(records)) if records else 0.0,
+        "mean_tcp_payload_size": mean(tcp_payloads) if tcp_payloads else 0.0,
+        "max_tcp_payload_size": float(max(tcp_payloads)) if tcp_payloads else 0.0,
+        "payload_rate_bytes_sec": payload_rate_bytes_sec,
     }
 
 

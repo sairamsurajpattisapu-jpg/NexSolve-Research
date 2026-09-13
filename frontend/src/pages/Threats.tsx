@@ -14,7 +14,7 @@ export function Threats() {
   const normalizedQuery = query.trim().toLowerCase().replaceAll('_', ' ')
   const findings = data.results.detection.findings.filter((finding) => `${finding.attack_category.replaceAll('_', ' ')} ${finding.prediction.replaceAll('_', ' ')} ${finding.evidence.map((item) => `${item.rule_id ?? ''} ${item.type.replaceAll('_', ' ')} ${item.message}`).join(' ')}`.toLowerCase().includes(normalizedQuery) && (severity === 'all' || finding.severity === severity))
 
-  const trustResponse = (data.results.attack_horizon || data.results.abstention || data.results.evidence_chain || data.results.forecasts)
+  const trustResponse = (data.results.attack_horizon || data.results.abstention || data.results.evidence_chain || data.results.forecasts || data.results.attack_progression || data.results.attackProgression)
     ? {
         currentState: {
           timestamp: new Date().toISOString(),
@@ -26,6 +26,7 @@ export function Threats() {
         },
         forecasts: data.results.forecasts ?? [],
         attack_horizon: data.results.attack_horizon ?? data.results.attackHorizon,
+        attack_progression: data.results.attack_progression ?? data.results.attackProgression,
         evidence_chain: data.results.evidence_chain ?? data.results.evidenceChain,
         confidence: data.results.confidence,
         unknown_behavior: data.results.unknown_behavior ?? data.results.unknownBehavior,

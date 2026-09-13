@@ -1,6 +1,7 @@
 import { ShieldAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AttackHorizonCard } from '../components/AttackHorizonCard'
+import { AttackProgressionCard } from '../components/AttackProgressionCard'
 import { ForecastConfidence } from '../components/ForecastConfidence'
 import { EmptyState, ErrorState, LoadingState, Panel, SectionHeading } from '../components/Ui'
 import { UnknownBehavior } from '../components/UnknownBehavior'
@@ -16,6 +17,7 @@ export function Forecast() {
   // Extract analysis context (uploaded result, demo result, or current analysis)
   const results = data.results as unknown as UploadedAnalysisResponse
   const attackHorizon = results.attack_horizon ?? results.attackHorizon
+  const attackProgression = results.attack_progression ?? results.attackProgression
   const forecasts = results.forecasts ?? []
   const confidence = results.confidence
   const unknownBehavior = results.unknown_behavior ?? results.unknownBehavior
@@ -113,6 +115,11 @@ export function Forecast() {
       {/* Attack Horizon Card */}
       {attackHorizon && (
         <AttackHorizonCard initialPayload={attackHorizon} />
+      )}
+
+      {/* Attack Progression Card */}
+      {attackProgression && (
+        <AttackProgressionCard progression={attackProgression} />
       )}
 
       {/* Forecast Horizons Rollout Table */}

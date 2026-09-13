@@ -147,6 +147,21 @@ def _variance(values: Sequence[float]) -> float:
     return float(sum((v - mu) ** 2 for v in values) / len(values))
 
 
+def _skewness(values: Sequence[float]) -> float | None:
+    n = len(values)
+    if n < 3:
+        return 0.0
+    mu = _mean(values)
+    m2 = sum((v - mu) ** 2 for v in values) / n
+    if m2 < 1e-12:
+        return 0.0
+    m3 = sum((v - mu) ** 3 for v in values) / n
+    std = math.sqrt(m2)
+    # Fisher-Pearson adjusted sample skewness: [sqrt(n*(n-1))/(n-2)] * (m3 / std^3)
+    factor = math.sqrt(n * (n - 1)) / (n - 2)
+    return float(factor * (m3 / (std ** 3)))
+
+
 def aggregate_window_features(window: Sequence[PacketRecord] | dict[str, Any], window_start: int | None = None) -> dict[str, Any]:
     if isinstance(window, dict):
         observations = window.get("observations", ())
@@ -186,6 +201,8 @@ def aggregate_window_features(window: Sequence[PacketRecord] | dict[str, Any], w
             "rst_count": 0,
             "psh_count": 0,
             "urg_count": 0,
+            "cwr_count": 0,
+            "ece_count": 0,
             "fragment_count": 0,
             "fragment_ratio": 0.0,
             "tcp_count": 0,
@@ -196,12 +213,25 @@ def aggregate_window_features(window: Sequence[PacketRecord] | dict[str, Any], w
             "unique_dst_ports": 0,
             "protocol_counts": {},
             "window_start": window_start,
+            "packet_size_skewness": 0.0,
+            "packet_rate_peak": 0.0,
+            "tcp_window_zero_count": 0,
+            "udp_packet_ratio": 0.0,
+            "icmp_packet_ratio": 0.0,
+            "mean_tcp_payload_size": 0.0,
+            "max_tcp_payload_size": 0.0,
+            "payload_rate_bytes_sec": 0.0,
         }
 
     ttl_values = [float(record.ttl) for record in records if record.ttl is not None]
     tcp_window_values = [float(record.tcp_window) for record in records if record.tcp_window is not None]
     packet_sizes = [float(record.packet_length) for record in records if record.packet_length is not None]
     payload_values = [float(record.payload_length) for record in records if record.payload_length is not None]
+    tcp_payload_values = [
+        float(record.payload_length)
+        for record in records
+        if record.protocol == "TCP" and record.payload_length is not None
+    ]
     timestamps = sorted(float(record.timestamp) for record in records)
     iats = []
     for current, previous in zip(timestamps[1:], timestamps):
@@ -209,6 +239,7 @@ def aggregate_window_features(window: Sequence[PacketRecord] | dict[str, Any], w
 
     protocol_counts = Counter(record.protocol for record in records if record.protocol is not None)
     flags = Counter()
+    tcp_window_zero_count = 0
     for record in records:
         if record.tcp_flags is not None:
             flags_value = int(record.tcp_flags)
@@ -224,6 +255,12 @@ def aggregate_window_features(window: Sequence[PacketRecord] | dict[str, Any], w
                 flags["psh_count"] += 1
             if flags_value & 0x20:
                 flags["urg_count"] += 1
+            if flags_value & 0x80:
+                flags["cwr_count"] += 1
+            if flags_value & 0x40:
+                flags["ece_count"] += 1
+        if record.protocol == "TCP" and record.tcp_window is not None and int(record.tcp_window) == 0:
+            tcp_window_zero_count += 1
 
     fragment_count = sum(
         1
@@ -232,6 +269,14 @@ def aggregate_window_features(window: Sequence[PacketRecord] | dict[str, Any], w
         or (record.more_fragments is not None and bool(record.more_fragments))
     )
     fragment_ratio = float(fragment_count / len(records)) if records else 0.0
+
+    # 1-second binned peak packet rate inside the current window
+    second_bins = Counter(int(ts) for ts in timestamps)
+    packet_rate_peak = float(max(second_bins.values())) if second_bins else 0.0
+
+    # Observation duration and payload rate
+    obs_duration = (timestamps[-1] - timestamps[0]) if (timestamps and timestamps[-1] > timestamps[0]) else 60.0
+    payload_rate_bytes_sec = float(sum(payload_values) / obs_duration) if payload_values and obs_duration > 0 else 0.0
 
     features = {
         "packet_count": len(records),
@@ -266,6 +311,8 @@ def aggregate_window_features(window: Sequence[PacketRecord] | dict[str, Any], w
         "rst_count": flags.get("rst_count", 0),
         "psh_count": flags.get("psh_count", 0),
         "urg_count": flags.get("urg_count", 0),
+        "cwr_count": flags.get("cwr_count", 0),
+        "ece_count": flags.get("ece_count", 0),
         "fragment_count": fragment_count,
         "fragment_ratio": fragment_ratio,
         "tcp_count": protocol_counts.get("TCP", 0),
@@ -276,6 +323,14 @@ def aggregate_window_features(window: Sequence[PacketRecord] | dict[str, Any], w
         "unique_dst_ports": len({record.dst_port for record in records if record.dst_port is not None}),
         "protocol_counts": dict(sorted(protocol_counts.items())),
         "window_start": window_start if window_start is not None else min(float(record.timestamp) for record in records) // 60 * 60,
+        "packet_size_skewness": _skewness(packet_sizes),
+        "packet_rate_peak": packet_rate_peak,
+        "tcp_window_zero_count": tcp_window_zero_count,
+        "udp_packet_ratio": float(protocol_counts.get("UDP", 0) / len(records)) if records else 0.0,
+        "icmp_packet_ratio": float(protocol_counts.get("ICMP", 0) / len(records)) if records else 0.0,
+        "mean_tcp_payload_size": _mean(tcp_payload_values) if tcp_payload_values else 0.0,
+        "max_tcp_payload_size": float(max(tcp_payload_values)) if tcp_payload_values else 0.0,
+        "payload_rate_bytes_sec": payload_rate_bytes_sec,
     }
     return features
 
