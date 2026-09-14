@@ -237,6 +237,29 @@ describe('JobResult Component', () => {
         missing_requirements: [],
         explanation: 'All requirements met.',
       },
+      attackProgression: {
+        observed_state: 'BENIGN_OBSERVATION',
+        observed_techniques: [],
+        forecast_points: [
+          {
+            horizon_minutes: 1,
+            predicted_state: 'BENIGN_OBSERVATION',
+            predicted_technique: null,
+            forecast_techniques: [],
+            prediction_type: 'STATE_PERSISTENCE',
+            transition_probability: 0.992,
+            baseline_probability: 0.85,
+            lead_time_seconds: 60,
+            abstained: false,
+            abstention_reason: null,
+            supporting_evidence: ['Ongoing benign baseline network telemetry.'],
+          },
+        ],
+        supported_horizons: [1],
+        unsupported_horizons: [10, 15],
+        verdict: 'SUPPORTED',
+        summary: 'Benign baseline traffic continues across T+1.',
+      },
     }
 
     render(<JobResult result={mockResult} />)
@@ -247,5 +270,8 @@ describe('JobResult Component', () => {
     expect(screen.getByText('45 flows')).toBeInTheDocument()
     expect(screen.getByText('HIGH QUALITY')).toBeInTheDocument()
     expect(screen.getByText('KNOWN PATTERN')).toBeInTheDocument()
+    expect(screen.getByText('Attack-Stage Progression Forecaster')).toBeInTheDocument()
+    expect(screen.getByText('STATE PERSISTENCE')).toBeInTheDocument()
+    expect(screen.getByText('99.2%')).toBeInTheDocument()
   })
 })

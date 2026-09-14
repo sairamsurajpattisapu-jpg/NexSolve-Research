@@ -126,6 +126,9 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
                 active_flow_features = tuple(MODEL_SCHEMA_45.get("flow_features", ()))
                 schema_variant = "45_feature_pcap_compatible"
 
+    compatibility["schema_variant"] = schema_variant
+    compatibility["active_schema"] = "MODEL_SCHEMA_45" if schema_variant == "45_feature_pcap_compatible" else "MODEL_SCHEMA_46"
+
     # Trust Layer integration
     from ml.forecasting import assemble_forecast_intelligence
     forecast_points: list[dict[str, Any]] = []
@@ -192,20 +195,349 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
         window_seconds=60,
     )
 
-    # Behavioral Intelligence, Session Investigation, & Evidence Fusion (Phases 6, 7, 9, 10)
+    # Behavioral Intelligence, Session Investigation, & Evidence Fusion (Phases 6, 7, 9, 10, Open-Source Sprint)
     from nexsolve_core.behavior import analyze_behavioral_intelligence
     from nexsolve_core.investigation import build_session_investigation_records
+    from nexsolve_core.network import aggregate_tcp_session_metrics, track_tcp_sessions
+    from nexsolve_core.flow import aggregate_flow_statistics_summary
+    from nexsolve_core.evidence import parse_suricata_eve_json
     from nexsolve_core.fusion import fuse_threat_assessment
 
     all_flows = [flow for cw in canonical_windows for flow in cw.flows]
     behavioral_report = analyze_behavioral_intelligence(all_flows, _packets)
     investigation_records = build_session_investigation_records(all_flows, behavioral_report.beaconing_signals)
+    tcp_sessions = track_tcp_sessions(_packets)
+    tcp_session_metrics = aggregate_tcp_session_metrics(tcp_sessions)
+    flow_statistics = aggregate_flow_statistics_summary(all_flows)
+    suricata_report = parse_suricata_eve_json(None)  # No external EVE JSON uploaded in standard PCAP analysis
+
+    from ml.forecasting.attack_progression import forecast_attack_progression
+    from nexsolve_core.graph import build_evidence_intelligence_graph
+    from nexsolve_core.behavior import build_behavioral_episodes, detect_behavior_changes
+    from nexsolve_core.temporal import build_temporal_entity_histories
+    from nexsolve_core.intelligence import infer_attack_states, build_threat_centric_views, build_network_world_state
+
+    progression_forecast = forecast_attack_progression(
+        observed_findings=detection.get("findings", []),
+        behavioral_report=behavioral_report,
+        history_window_count=len(windows),
+    )
     threat_assessment = fuse_threat_assessment(
         observed_findings=detection.get("findings", []),
         behavioral_report=behavioral_report,
         forecast_points=forecast_points,
         attack_horizon=intelligence.attack_horizon,
+        attack_progression=progression_forecast,
+        tcp_session_records=tcp_sessions,
+        flow_summary=flow_statistics,
+        suricata_report=suricata_report,
     )
+
+    # Core Intelligence Extensions: Episodes, Changes, Entity History & Attack States
+    episodes = build_behavioral_episodes(
+        observed_findings=detection.get("findings", []),
+        tcp_sessions=tcp_sessions,
+        behavioral_report=behavioral_report,
+        attack_progression=progression_forecast,
+    )
+    change_signals = detect_behavior_changes(
+        tcp_sessions=tcp_sessions,
+        observed_findings=detection.get("findings", []),
+    )
+    entity_histories = build_temporal_entity_histories(
+        flows=all_flows,
+        tcp_sessions=tcp_sessions,
+        observed_findings=detection.get("findings", []),
+    )
+    attack_states = infer_attack_states(
+        observed_findings=detection.get("findings", []),
+        tcp_sessions=tcp_sessions,
+        behavioral_report=behavioral_report,
+        change_signals=change_signals,
+    )
+    threat_views = build_threat_centric_views(
+        entity_histories=entity_histories,
+        attack_states=attack_states,
+        episodes=episodes,
+        observed_findings=detection.get("findings", []),
+        forecast_points=forecast_points,
+    )
+
+    # Advanced Threat Intelligence Engines (Sprint #NEXT)
+    from nexsolve_core.behavior import compute_entity_baselines
+    from nexsolve_core.intelligence import (
+        analyze_attack_kinematics,
+        build_entity_behavior_profiles,
+        detect_attack_patterns,
+        correlate_attack_campaigns,
+        generate_threat_stories,
+        prioritize_threats,
+        assemble_forecast_context,
+    )
+
+    baselines = compute_entity_baselines(
+        entity_histories=entity_histories,
+        tcp_sessions=tcp_sessions,
+    )
+    attack_kinematics = analyze_attack_kinematics(
+        entity_histories=entity_histories,
+        observed_findings=detection.get("findings", []),
+        tcp_sessions=tcp_sessions,
+        change_signals=change_signals,
+        beaconing_signals=behavioral_report.beaconing_signals,
+        forecast_points=forecast_points,
+    )
+    patterns = detect_attack_patterns(
+        tcp_sessions=tcp_sessions,
+        observed_findings=detection.get("findings", []),
+        beaconing_signals=behavioral_report.beaconing_signals,
+        change_signals=change_signals,
+    )
+    entity_profiles = build_entity_behavior_profiles(
+        entity_histories=entity_histories,
+        tcp_sessions=tcp_sessions,
+        observed_findings=detection.get("findings", []),
+        episodes=episodes,
+        beaconing_signals=behavioral_report.beaconing_signals,
+    )
+    campaigns = correlate_attack_campaigns(
+        episodes=episodes,
+        patterns=patterns,
+        attack_states=attack_states,
+    )
+    threat_stories = generate_threat_stories(
+        entity_profiles=entity_profiles,
+        attack_kinematics=attack_kinematics,
+        campaigns=campaigns,
+        patterns=patterns,
+        change_signals=change_signals,
+        forecast_points=forecast_points,
+        progression_forecast=progression_forecast,
+    )
+    prioritized_threats = prioritize_threats(
+        entity_profiles=entity_profiles,
+        attack_kinematics=attack_kinematics,
+        campaigns=campaigns,
+        patterns=patterns,
+        change_signals=change_signals,
+    )
+    forecast_context = assemble_forecast_context(
+        entity_profiles=entity_profiles,
+        attack_kinematics=attack_kinematics,
+        campaigns=campaigns,
+        change_signals=change_signals,
+        attack_progression=progression_forecast,
+    )
+
+    # Security Investigation Workspace Generation
+    from nexsolve_core.intelligence import (
+        investigate_entity,
+        investigate_campaign,
+        decompose_threat_risk,
+        build_incident_investigation,
+        generate_mitigation_recommendations,
+    )
+
+    all_deviations = [dev for b in baselines.values() for dev in b.deviations]
+    entity_investigations = {}
+    incident_investigations = []
+    mitigation_recommendations = []
+
+    for p_threat in prioritized_threats[:10]:
+        ent = p_threat.entity
+        inv_ctx = investigate_entity(
+            entity=ent,
+            entity_profiles=entity_profiles,
+            attack_kinematics=attack_kinematics,
+            change_signals=change_signals,
+            baseline_deviations=all_deviations,
+            episodes=episodes,
+            campaigns=campaigns,
+            patterns=patterns,
+            tcp_sessions=tcp_sessions,
+            beaconing_signals=behavioral_report.beaconing_signals,
+            observed_findings=detection.get("findings", []),
+            forecast_points=forecast_points,
+            progression_forecast=progression_forecast,
+            window_count=len(windows),
+        )
+        entity_investigations[ent] = inv_ctx.to_dict()
+
+        # Build Incident-Level Investigation Dossier
+        rb = decompose_threat_risk(
+            entity=ent,
+            entity_profiles=entity_profiles,
+            attack_kinematics=attack_kinematics,
+            campaigns=campaigns,
+            change_signals=change_signals,
+        )
+        inc_inv = build_incident_investigation(
+            primary_entity=ent,
+            entity_investigation=inv_ctx,
+            entity_profiles=entity_profiles,
+            attack_kinematics=attack_kinematics,
+            campaigns=campaigns,
+            patterns=patterns,
+            beaconing_signals=behavioral_report.beaconing_signals,
+            risk_breakdown=rb,
+            window_count=len(windows),
+        )
+        incident_investigations.append(inc_inv.to_dict())
+
+        # Generate Mitigations
+        recs = generate_mitigation_recommendations(
+            entity=ent,
+            entity_profile=entity_profiles.get(ent),
+            attack_kinematics=attack_kinematics,
+            campaigns=campaigns,
+            beaconing_signals=behavioral_report.beaconing_signals,
+            window_count=len(windows),
+        )
+        mitigation_recommendations.extend([r.to_dict() for r in recs])
+
+    campaign_investigations = {}
+    for cmp in campaigns[:10]:
+        c_inv = investigate_campaign(
+            campaign=cmp,
+            all_episodes=episodes,
+            patterns=patterns,
+        )
+        campaign_investigations[cmp.campaign_id] = c_inv.to_dict()
+
+    threat_risk_breakdowns = {}
+    for p_threat in prioritized_threats:
+        ent = p_threat.entity
+        rb = decompose_threat_risk(
+            entity=ent,
+            entity_profiles=entity_profiles,
+            attack_kinematics=attack_kinematics,
+            campaigns=campaigns,
+            change_signals=change_signals,
+        )
+        threat_risk_breakdowns[ent] = rb.to_dict()
+
+    # Security Analyst Decision Engine Synthesis
+    from nexsolve_core.intelligence import build_analyst_decisions
+
+    analyst_decisions = build_analyst_decisions(
+        entity_investigations=entity_investigations,
+        campaign_investigations=campaign_investigations,
+        incident_investigations=incident_investigations,
+        prioritized_threats=prioritized_threats,
+        entity_profiles=entity_profiles,
+        attack_kinematics=attack_kinematics,
+        campaigns=campaigns,
+        patterns=patterns,
+        change_signals=change_signals,
+        baseline_deviations=all_deviations,
+        tcp_sessions=tcp_sessions,
+        beaconing_signals=behavioral_report.beaconing_signals,
+        observed_findings=detection.get("findings", []),
+        forecast_points=forecast_points,
+        window_count=len(windows),
+    )
+
+    # Incident Reconstruction and Attack Story Engine
+    from nexsolve_core.intelligence import build_incident_story
+
+    incident_story = build_incident_story(
+        windows=windows,
+        all_flows=all_flows,
+        tcp_sessions=tcp_sessions,
+        observed_findings=detection.get("findings", []),
+        episodes=episodes,
+        change_signals=change_signals,
+        attack_kinematics=attack_kinematics,
+        campaigns=campaigns,
+        patterns=patterns,
+        entity_profiles=entity_profiles,
+        prioritized_threats=prioritized_threats,
+        contradictions=threat_assessment.evidence,
+        attack_progression=progression_forecast,
+        forecast_points=forecast_points,
+        analyst_decisions=analyst_decisions,
+        window_count=len(windows),
+    )
+
+    # Cross-Incident Campaign Correlation Engine & Threat Hunting
+    from nexsolve_core.intelligence import (
+        extract_incident_fingerprint,
+        correlate_incident_set,
+        build_campaign_clusters,
+        get_hunt_templates,
+        list_registered_fields,
+    )
+
+    current_fingerprint = extract_incident_fingerprint(
+        incident_id=incident_story.story_id if incident_story else analysis_id,
+        capture_id=analysis_id,
+        incident_story=incident_story,
+        entity_profiles=entity_profiles,
+        tcp_sessions=tcp_sessions,
+        observed_findings=detection.get("findings", []),
+        episodes=episodes,
+        traffic_summary=traffic,
+        window_count=len(windows),
+    )
+
+    # Correlate across currently available incident fingerprints
+    active_fingerprints = [current_fingerprint]
+    incident_correlations = correlate_incident_set(active_fingerprints)
+    campaign_clusters = build_campaign_clusters(active_fingerprints, incident_correlations)
+
+
+    evidence_graph = build_evidence_intelligence_graph(
+        flows=all_flows,
+        tcp_sessions=tcp_sessions,
+        behavioral_report=behavioral_report,
+        flow_statistics=flow_statistics,
+        suricata_report=suricata_report,
+        observed_findings=detection.get("findings", []),
+        forecast_points=forecast_points,
+        attack_progression=progression_forecast,
+        episodes=episodes,
+        change_signals=change_signals,
+        campaigns=campaigns,
+        patterns=patterns,
+        attack_kinematics=attack_kinematics,
+        baselines=baselines,
+    )
+
+    world_state = build_network_world_state(
+        capture_id=analysis_id,
+        total_packets=traffic["packets"],
+        total_flows=traffic["flows"],
+        total_windows=traffic["windows"],
+        duration_seconds=duration_seconds,
+        entity_histories=entity_histories,
+        episodes=episodes,
+        attack_states=attack_states,
+        threat_views=threat_views,
+        change_signals=change_signals,
+        forecast_points=forecast_points,
+        evidence_graph=evidence_graph,
+        windows=windows,
+        flows=all_flows,
+        tcp_sessions=tcp_sessions,
+        entity_profiles=entity_profiles,
+        threat_assessment=threat_assessment,
+        incident_story=incident_story,
+        campaign_clusters=campaign_clusters,
+    )
+
+    # Coherent Network Intelligence container
+    network_intelligence = {
+        "session_state": tcp_session_metrics.to_dict(),
+        "periodicity": behavioral_report.periodicity_summary.to_dict() if getattr(behavioral_report, "periodicity_summary", None) else None,
+        "flow_statistics": flow_statistics.to_dict(),
+        "signature_evidence": suricata_report.to_dict(),
+        "evidence_summary": {
+            "total_evidence_items": len(threat_assessment.evidence),
+            "observed_modalities": sorted(list({e.modality.value for e in threat_assessment.evidence if e.temporal_scope.value == "OBSERVED"})),
+            "observed_techniques": list(threat_assessment.observed_techniques),
+            "forecast_techniques": list(threat_assessment.forecast_techniques),
+        },
+    }
 
     result = {
         "analysis_id": analysis_id,
@@ -230,14 +562,53 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
         "protocol_summary": traffic["protocol_counts"],
         "findings": detection["findings"],
         "summary": {"packet_count": traffic["packets"], "window_count": traffic["windows"], "finding_count": detection["detected_events"], "threat_level": detection["threat_level"]},
-        # Behavioral & Investigation Upgrades (Phases 6, 7, 9, 10)
+        # Open-Source Intelligence & Behavioral Telemetry
+        "network_intelligence": network_intelligence,
+        "evidence_graph": evidence_graph.to_dict(),
+        "network_world_state": world_state.to_dict(),
+        "episodes": [e.to_dict() for e in episodes],
+        "attack_states": [s.to_dict() for s in attack_states],
+        "threat_views": [t.to_dict() for t in threat_views],
+        "change_signals": [c.to_dict() for c in change_signals],
         "behavioral_intelligence": behavioral_report.to_dict(),
         "investigation_sessions": [s.to_dict() for s in investigation_records[:100]],
+        "tcp_session_metrics": tcp_session_metrics.to_dict(),
+        "flow_statistics": flow_statistics.to_dict(),
+        "signature_evidence": suricata_report.to_dict(),
         "threat_assessment": threat_assessment.to_dict(),
+        # Advanced Threat Intelligence Engines (Sprint #NEXT)
+        "attack_kinematics": {k: v.to_dict() for k, v in attack_kinematics.items()},
+        "entity_profiles": {k: v.to_dict() for k, v in entity_profiles.items()},
+        "patterns": [p.to_dict() for p in patterns],
+        "campaigns": [c.to_dict() for c in campaigns],
+        "threat_stories": [s.to_dict() for s in threat_stories],
+        "prioritized_threats": [p.to_dict() for p in prioritized_threats],
+        "forecast_context": {k: v.to_dict() for k, v in forecast_context.items()},
+        "baseline_deviations": [dev.to_dict() for b in baselines.values() for dev in b.deviations],
+        # End-to-End Security Investigation Dossiers & Risk Breakdowns
+        "entity_investigations": entity_investigations,
+        "campaign_investigations": campaign_investigations,
+        "threat_risk_breakdowns": threat_risk_breakdowns,
+        "incident_investigations": incident_investigations,
+        "mitigation_recommendations": mitigation_recommendations,
+        # Security Analyst Decision Engine
+        "analyst_decisions": [d.to_dict() for d in analyst_decisions],
+        # Deterministic Incident Reconstruction & Attack Story Engine
+        "incident_story": incident_story.to_dict() if incident_story else None,
+        # Cross-Incident Campaign Correlation Engine
+        "incident_fingerprint": current_fingerprint.to_dict(),
+        "incident_correlations": [c.to_dict() for c in incident_correlations],
+        "campaign_clusters": [cl.to_dict() for cl in campaign_clusters],
+        # Threat Hunting & Intelligence Query Engine (Templates & Schema)
+        "hunt_templates": get_hunt_templates(),
+        "query_predicates": list_registered_fields(),
         # Trust Layer & Forecast Intelligence
+
         "forecasts": forecast_points,
         "attack_horizon": intelligence.attack_horizon,
         "attackHorizon": intelligence.attack_horizon,
+        "attack_progression": progression_forecast.to_dict(),
+        "attackProgression": progression_forecast.to_dict(),
         "evidence_chain": intelligence.evidence_chain,
         "evidenceChain": intelligence.evidence_chain,
         "confidence": intelligence.confidence,

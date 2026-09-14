@@ -82,10 +82,18 @@ def fuse_threat_assessment(
     behavioral_report: Any = None,
     forecast_points: Sequence[dict[str, Any]] = (),
     attack_horizon: Any = None,
+    attack_progression: Any = None,
+    tcp_session_records: Sequence[Any] = (),
+    flow_summary: Any = None,
+    suricata_report: Any = None,
 ) -> ThreatAssessment:
     """Deterministically synthesize threat assessment from evidence sources.
 
     Strictly separates OBSERVED evidence from FORECAST predictions.
+    Combines independent modalities without arbitrary score averaging:
+    - Modality corroboration: count of independent observed modalities
+    - Temporal alignment and entity overlap tracking
+    - Zero score averaging or arbitrary confidence multipliers
     """
     evidence_items: list[FusedEvidenceItem] = []
     observed_techniques: set[str] = set()
@@ -131,16 +139,58 @@ def fuse_threat_assessment(
                     mitre_technique_id="T1071",
                 ))
 
-    # 3. Ingest FORECAST Intelligence (Strictly FORECAST scope)
+    # 3. Ingest OBSERVED Protocol Session Evidence (Zeek-inspired TCP state tracking)
+    if tcp_session_records:
+        from nexsolve_core.network.session_state import build_tcp_session_evidence
+        proto_evidence = build_tcp_session_evidence(tcp_session_records)
+        for pe in proto_evidence:
+            evidence_items.append(pe)
+            if pe.mitre_technique_id:
+                observed_techniques.add(pe.mitre_technique_id)
+
+    # 4. Ingest OBSERVED Flow Statistical Evidence (NFStream-inspired flow intelligence)
+    if flow_summary:
+        from nexsolve_core.flow.statistics import build_flow_statistical_evidence
+        flow_evidence = build_flow_statistical_evidence(flow_summary)
+        for fe in flow_evidence:
+            evidence_items.append(fe)
+            if fe.mitre_technique_id:
+                observed_techniques.add(fe.mitre_technique_id)
+
+    # 5. Ingest OBSERVED Suricata Signature Evidence (Suricata EVE JSON)
+    if suricata_report:
+        from nexsolve_core.evidence.suricata import build_suricata_evidence_items
+        suricata_evidence = build_suricata_evidence_items(suricata_report)
+        for se in suricata_evidence:
+            evidence_items.append(se)
+            if se.mitre_technique_id:
+                observed_techniques.add(se.mitre_technique_id)
+
+    # 6. Ingest FORECAST Intelligence (Strictly FORECAST scope)
     lead_time = None
     if attack_horizon and isinstance(attack_horizon, dict):
         lead_time = attack_horizon.get("lead_time_seconds")
+
+    # If attack_progression is provided, harvest verified downstream forecast techniques
+    if attack_progression is not None:
+        pts = getattr(attack_progression, "forecast_points", [])
+        for pt in pts:
+            pred_type = getattr(pt, "prediction_type", None)
+            pred_val = pred_type.value if hasattr(pred_type, "value") else str(pred_type)
+            if pred_val == "DOWNSTREAM_PROGRESSION":
+                for tech in getattr(pt, "forecast_techniques", ()):
+                    forecast_techniques.add(tech)
+    elif forecast_points:
+        # Fallback when attack progression is not computed directly
+        for pt in forecast_points:
+            prob = pt.get("attackProbability") or pt.get("attack_probability")
+            if prob is not None and prob >= 0.5:
+                forecast_techniques.add("T1071 - Potential Progression")
 
     for pt in forecast_points:
         h = pt.get("horizon", 1)
         prob = pt.get("attackProbability") or pt.get("attack_probability")
         if prob is not None and prob >= 0.5:
-            forecast_techniques.add("T1071 - Potential Progression")
             evidence_items.append(FusedEvidenceItem(
                 id=f"forecast-rollout-T+{h}",
                 timestamp=f"T+{h * 60}s",

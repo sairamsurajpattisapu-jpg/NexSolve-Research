@@ -113,3 +113,84 @@ Using `c:\Users\saira\Downloads\Friday-WorkingHours.pcap` (8.23 GB, 9.99M packet
 
 ## 7. Recommended Next Milestone
 **Milestone**: Clean-room implementation of **Zeek Connection State Kinematics** and **RITA Bowley/MAD Beacon Score** directly into NexSolve's native `nexsolve_core/behavior/` engine, verified against slice captures of `Friday-WorkingHours.pcap`.
+
+---
+
+## 8. Zeek TCP Session-State Clean-Room Extraction (Completed)
+
+### 8.1 Source Files Inspected in `research/open_source/zeek/`
+1. **`research/open_source/zeek/zeek-master/scripts/base/protocols/conn/main.zeek`**:
+   - Analyzed lines 30–240: Definition of `conn_state` enum and `set_conn_state` event semantics.
+   - Formally documented all 11 Zeek connection states: `S0` (SYN with no reply), `S1` (established, not terminated), `SF` (normal SYN->ACK->FIN/RST termination), `REJ` (SYN answered with RST), `S2` (established, close attempt by orig), `S3` (established, close attempt by resp), `RSTO` (reset by orig), `RSTR` (reset by resp), `RSTOS0` (SYN followed immediately by RST from orig), `RSTRH` (SYN-ACK followed by RST from resp), `SH` (SYN from orig, FIN-ACK from orig without resp), `SHR` (SYN-ACK from resp, FIN from resp), `OTH` (midstream traffic without SYN or partial handshake).
+2. **`research/open_source/zeek/zeek-master/src/analyzer/protocol/tcp/TCP_Endpoint.h`**:
+   - Inspected `EndpointState` enum: `TCP_ENDPOINT_INACTIVE`, `SYN_SENT`, `SYN_ACK_SENT`, `PARTIAL`, `ESTABLISHED`, `CLOSED`, `RESET`.
+   - Analyzed flag tracking and history string representations (`S`, `h`, `A`, `F`, `R`).
+3. **`research/open_source/zeek/zeek-master/COPYING`**:
+   - Verified BSD 3-Clause permissive license allowing clean-room reimplementation with proper attribution.
+
+### 8.2 Concepts Extracted vs. Clean-Room Architecture
+- **Extracted Concepts**:
+  - Connection lifecycle classification (`conn_state` mapping).
+  - Bidirectional packet, byte, and TCP flag kinematics.
+  - History string encoding indicating handshake ordering.
+- **Clean-Room Reimplementation in `nexsolve_core.network.session_state`**:
+  - Entirely native Python implementation with zero C++ or runtime dependencies on the Zeek binary.
+  - Added explicit distinction between `OBSERVED_STATE` and `INFERRED_STATE`.
+  - Added `ObservationBoundaryStatus` (`COMPLETE_LIFECYCLE`, `TRUNCATED_AT_END`, `MIDSTREAM_JOIN`, `ISOLATED_WINDOW`) to eliminate false `S0` assertions for pre-existing or window-boundary truncated sessions.
+  - Pure deterministic single-pass conversation tracking: tracks 193 sessions over 2,277 packets in **7 ms**.
+
+### 8.3 Scientific Safety and Model Contract Invariance
+- **Untouched 45-Feature Model Contract**:
+  - TCP session-state metrics (`tcp_session_metrics`) are **EVIDENCE ONLY**.
+  - Emitted exclusively as `EvidenceModality.PROTOCOL` with `TemporalScope.OBSERVED`.
+  - Strictly excluded from the canonical 45-feature model input vector (`MODEL_SCHEMA_45`).
+  - No `mean_tcp_rtt` is added; no RTT is fabricated; zero-fill safety gates remain 100% intact.
+
+---
+
+## 9. RITA Behavioral Periodicity Clean-Room Extraction (Completed)
+
+### 9.1 Source Files Inspected in `research/open_source/rita_clean/`
+1. **`analysis/beacons.go`**:
+   - `getTimestampScore(entry.TSList)` (lines 140–192)
+   - `calculateStatisticalScore(values, defaultMadScore)` (lines 223–246)
+   - `calculateBowleySkewness(data)` (lines 339–376): $B = \frac{Q_3 + Q_1 - 2 Q_2}{Q_3 - Q_1}$, score $= 1 - |B|$.
+   - `calculateMedianAbsoluteDeviation(data, defaultScore)` (lines 378–418): $\text{score} = \frac{\text{median} - \text{MAD}}{\text{median}}$.
+2. **`LICENSE` / `COPYING`**:
+   - Verified GPLv3 license: strict clean-room implementation maintained; zero source code copied.
+
+### 9.2 Native Implementation (`nexsolve_core.behavior.periodicity`)
+- Implemented pure Python statistical functions: `_calculate_median`, `_calculate_quartiles` (Tukey's hinges), `calculate_bowley_skewness`, `calculate_mad`, `calculate_interval_entropy`.
+- Implemented `analyze_periodicity_groups(flows, min_connections=4)` emitting `PeriodicitySummary` with strict categorical classifications:
+  `INSUFFICIENT_OBSERVATIONS`, `IRREGULAR`, `WEAKLY_PERIODIC`, `PERIODIC`, `HIGHLY_PERIODIC`.
+- All outputs categorized as `EvidenceModality.BEHAVIOR` with `TemporalScope.OBSERVED`.
+
+---
+
+## 10. NFStream Directional Flow Intelligence Extraction (Completed)
+
+### 10.1 Source Files Inspected in `research/open_source/nfstream/`
+1. **`nfstream/flow.py`**:
+   - `NFlow` slots (lines 119–214): `src2dst_packets`, `dst2src_packets`, `src2dst_bytes`, `dst2src_bytes`, `bidirectional_duration_ms`, `bidirectional_min_piat_ms`, `bidirectional_mean_piat_ms`.
+2. **`LICENSE`**:
+   - Verified LGPLv3 license: zero runtime CFFI/C library dependencies imported.
+
+### 10.2 Native Implementation (`nexsolve_core.flow.statistics`)
+- Consumes canonical `FlowRecord` objects directly from Scapy extraction without competing flow engines.
+- Computes `packet_asymmetry_ratio` and `byte_asymmetry_ratio` in $[-1.0, 1.0]$.
+- Computes window-wide aggregation: `single_packet_flow_ratio`, `mean_packet_rate`, `mean_byte_rate`, `bursty_flow_count`.
+- Emits `build_flow_statistical_evidence()` as `EvidenceModality.ANOMALY` with `TemporalScope.OBSERVED`.
+
+---
+
+## 11. Suricata Signature Telemetry Extraction (Completed)
+
+### 11.1 Source Files Inspected in `research/open_source/suricata/`
+1. **`src/output-json-alert.c`**:
+   - `AlertJsonHeader` (lines 211–288): gid, signature_id, rev, signature, category, severity, metadata (`mitre_technique_id`).
+2. **`COPYING`**:
+   - Verified GPLv2 license: decoupled telemetry provider interface only.
+
+### 11.2 Native Implementation (`nexsolve_core.evidence.suricata`)
+- Implemented `parse_suricata_eve_json()`: parses external EVE JSON lines when available; safely returns `NO_SURICATA_EVIDENCE_AVAILABLE` when absent without fabricating alerts.
+- Emits `build_suricata_evidence_items()` as `EvidenceModality.SIGNATURE` with `TemporalScope.OBSERVED`.

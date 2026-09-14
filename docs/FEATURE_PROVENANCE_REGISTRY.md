@@ -67,3 +67,70 @@
 | **Canonical 45 Features** | Yes | Yes (adapted) | Yes (adapted) | Yes (adapted) | Yes | **YES** | **YES (Ready)** |
 | **Legacy 46 Features (`mean_tcp_rtt`)** | Yes | No | No | No | **NO** | Research Only | **NO (Refused)** |
 | **Extended 72 Features** | Partial (requires PCAP replay)| Yes (via canonical PCAP)| Yes (via canonical PCAP)| Partial | **YES** | Candidate Stage | **YES (Ready)** |
+
+---
+
+## 3. Protocol Session State Metrics (Zeek-Inspired Clean-Room Extraction)
+
+The following metrics are derived via clean-room protocol analysis in `nexsolve_core.network.session_state`.
+**CRITICAL ARCHITECTURAL GUARANTEE**: These metrics are **EVIDENCE ONLY** (`EVIDENCE_ONLY (UNTOUCHED_45)`). They enrich deterministic behavioral intelligence and protocol evidence fusion (`EvidenceModality.PROTOCOL`, `TemporalScope.OBSERVED`) but are **STRICTLY EXCLUDED** from the 45-feature model input tensor.
+
+| Metric Name | Type | Packet Source | Missing Data Semantics | Observation Boundary Requirements | Attack Relevance | External Inspiration | License / Risk | Model Status |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **tcp_connection_attempts** | Protocol Count | TCP Flags (SYN without ACK/FIN/RST response) | 0 (if no sessions) | Truncated-at-end qualified | Critical (Port scanning, host sweeping, half-open attacks) | Zeek `S0` state (`conn_state`) | Clean-room / BSD-3 | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **tcp_established_connections** | Protocol Count | TCP 3-Way Handshake (SYN -> SYN-ACK -> ACK) | 0 (if no sessions) | Complete handshake required | High (Legitimate sessions, C2 channels, data exfiltration) | Zeek `S1` / `SF` | Clean-room / BSD-3 | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **tcp_rejected_connections** | Protocol Count | TCP SYN answered with immediate RST | 0 (if no sessions) | Originator SYN + Responder RST observed | High (Closed port probing, defensive reset drops) | Zeek `REJ` | Clean-room / BSD-3 | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **tcp_reset_connections** | Protocol Count | TCP RST observed in established session | 0 (if no sessions) | Handshake completed prior to RST | Medium (Abrupt teardown, scanner evasion, IDS reset) | Zeek `RSTO` / `RSTR` | Clean-room / BSD-3 | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **tcp_incomplete_connections** | Protocol Count | Midstream join or window-boundary truncation | 0 (if no sessions) | Identified via `MIDSTREAM_JOIN` / `ISOLATED_WINDOW` | High (Capture boundary awareness, tunnel tracking) | Zeek `OTH` | Clean-room / BSD-3 | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **syn_only_sessions** | Protocol Count | SYN seen with 0 payload and 0 response | 0 (if no sessions) | Isolated SYN with no reverse traffic | Critical (Stealth SYN scan / T1046) | Zeek `S0` kinematics | Clean-room / BSD-3 | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **failed_connection_ratio** | Protocol Ratio | (attempts + rejected) / total_sessions | 0.0 (safe zero-denominator) | Normalized over observed window | Critical (Reconnaissance density trigger for T1046) | Clean-room formulation | Clean-room / BSD-3 | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **establishment_ratio** | Protocol Ratio | established / total_sessions | 0.0 (safe zero-denominator) | Normalized over observed window | High (Baseline normal traffic verification) | Clean-room formulation | Clean-room / BSD-3 | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **reset_ratio** | Protocol Ratio | reset / total_sessions | 0.0 (safe zero-denominator) | Normalized over observed window | Medium (Anomalous teardown density) | Clean-room formulation | Clean-room / BSD-3 | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **incomplete_ratio** | Protocol Ratio | incomplete / total_sessions | 0.0 (safe zero-denominator) | Normalized over observed window | High (Capture quality and boundary qualification) | Clean-room formulation | Clean-room / BSD-3 | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+
+---
+
+## 4. Behavioral Periodicity Metrics (RITA-Inspired Clean-Room Extraction)
+
+Implemented in `nexsolve_core.behavior.periodicity`.
+**STATUS**: Strictly `EVIDENCE_ONLY (UNTOUCHED_45)`. These metrics produce behavioral observation records (`EvidenceModality.BEHAVIOR`, `TemporalScope.OBSERVED`) and are **STRICTLY EXCLUDED** from the model input vector.
+
+| Metric Name | Type | Packet Source | Missing Data Semantics | Observation Boundary Requirements | Attack Relevance | External Inspiration | License / Risk | Model Status |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **median_interval_seconds** | Float (s) | Flow start timestamps | None (<4 conns) | Ordered time sequence | High (C2 beacon periodicity, heartbeat cadence) | RITA `analysis/beacons.go` | Clean-room / GPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **mad_interval_seconds** | Float (s) | Flow intervals | None (<4 conns) | Median Absolute Deviation | High (Jitter measurement, anti-analysis detection) | RITA `calculateMedianAbsoluteDeviation` | Clean-room / GPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **bowley_skewness** | Float [-1, 1] | Flow intervals | None (<4 intervals or IQR=0) | Tukey quartiles | High (Interval distribution asymmetry) | RITA `calculateBowleySkewness` | Clean-room / GPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **coefficient_of_variation**| Float | Flow intervals | None (<4 conns) | std / mean (zero-safe) | Critical (Metronomic robotics indicator) | RITA / Academic baseline | Clean-room / GPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **jitter_seconds** | Float (s) | Consecutive intervals | None (<2 intervals) | Consecutive interval absolute delta | Medium (Connection stability) | Clean-room formulation | Clean-room / GPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **interval_entropy** | Float (bits) | Binned intervals | 0.0 (<2 intervals or 0 span) | Shannon entropy over 10 bins | High (Interval dispersion randomness) | Clean-room formulation | Clean-room / GPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **regularity_score** | Float [0, 1] | Statistical composite | 0.0 (<4 conns) | Bounded composite of CV, MAD, Skew | Critical (Objective regularity quantification) | RITA composite scoring | Clean-room / GPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **destination_consistency**| Float [0, 1] | Host pair frequencies | 0.0 | Normalized over source activity | High (Targeted persistence vs broad scan) | Clean-room formulation | Clean-room / GPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+
+---
+
+## 5. Directional Flow Intelligence Metrics (NFStream-Inspired Clean-Room Extraction)
+
+Implemented in `nexsolve_core.flow.statistics`.
+**STATUS**: Strictly `EVIDENCE_ONLY (UNTOUCHED_45)`. These metrics enrich forensic investigation and volumetric anomaly detection (`EvidenceModality.ANOMALY`, `TemporalScope.OBSERVED`).
+
+| Metric Name | Type | Packet Source | Missing Data Semantics | Observation Boundary Requirements | Attack Relevance | External Inspiration | License / Risk | Model Status |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **packet_asymmetry_ratio** | Float [-1, 1] | FlowRecord forward/reverse pkts | 0.0 (if total pkts=0) | Bidirectional flow | Critical (Exfiltration vs flood vs scan) | NFStream bidirectional flow | Clean-room / LGPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **byte_asymmetry_ratio** | Float [-1, 1] | FlowRecord forward/reverse bytes| 0.0 (if total bytes=0)| Bidirectional flow | Critical (Data staging, exfiltration payload) | NFStream bidirectional flow | Clean-room / LGPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **single_packet_flow_ratio**| Float [0, 1] | Aggregate flow packet counts | 0.0 (if 0 flows) | Window-wide aggregation | Critical (Horizontal / vertical sweep scanning) | NFStream flow meter | Clean-room / LGPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **mean_packet_rate** | Float (pkt/s)| Total packets / duration | 0.0 (if 0 duration) | Window duration | High (Volumetric spikes, micro-bursts) | NFStream rate accounting | Clean-room / LGPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **high_asymmetry_flow_count**| Integer | Count where \|asym\| >= 0.90 | 0 | Window-wide aggregation | High (Asymmetric connection density) | Clean-room formulation | Clean-room / LGPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **bursty_flow_count** | Integer | Count where rate >= 100 & pkts>=10| 0 | Flow rate thresholding | Critical (DoS / DDoS onset indication) | Clean-room formulation | Clean-room / LGPLv3 boundary | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+
+---
+
+## 6. Signature Intelligence Telemetry (Suricata EVE JSON Extraction)
+
+Implemented in `nexsolve_core.evidence.suricata`.
+**STATUS**: Strictly `EVIDENCE_ONLY (UNTOUCHED_45)`. Maps external signature alerts to `EvidenceModality.SIGNATURE` and strictly `TemporalScope.OBSERVED`.
+
+| Field / Metric Name | Type | Telemetry Source | Missing Data Semantics | Observation Boundary Requirements | Attack Relevance | External Inspiration | License / Risk | Model Status |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **suricata_alert_count** | Integer | EVE JSON `event_type="alert"` | 0 | External log ingestion | Critical (Known exploit & malware signature match)| Suricata `output-json-alert.c` | Decoupled EVE parser / GPLv2 | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **suricata_high_severity_count**| Integer | EVE JSON `alert.severity=1` | 0 | Alert severity tag | Critical (Immediate high-priority compromise alerts)| Suricata alert priority | Decoupled EVE parser / GPLv2 | **EVIDENCE_ONLY (UNTOUCHED_45)** |
+| **mitre_technique_id** | String | EVE JSON `metadata.mitre_technique_id`| None | Signature rule metadata | Critical (Defensible MITRE grounding) | Suricata rule metadata | Decoupled EVE parser / GPLv2 | **EVIDENCE_ONLY (UNTOUCHED_45)** |

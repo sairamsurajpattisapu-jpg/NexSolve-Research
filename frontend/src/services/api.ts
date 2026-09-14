@@ -131,4 +131,63 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ analysis_id: analysisId }),
     }),
+  getHuntTemplates: () =>
+    request<{ status: string; count: number; templates: import('../types/api').HuntTemplatePayload[] }>(
+      '/api/intelligence/query/templates'
+    ),
+  getQueryPredicates: () =>
+    request<{ status: string; count: number; predicates: import('../types/api').FieldDescriptorPayload[] }>(
+      '/api/intelligence/query/predicates'
+    ),
+  runIntelligenceQuery: (queryRequest: import('../types/api').QueryRequestPayload) =>
+    request<import('../types/api').QueryResultPayload>('/api/intelligence/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(queryRequest),
+    }),
+  getSavedHunts: () =>
+    request<{ status: string; count: number; hunts: Array<Record<string, unknown>> }>(
+      '/api/intelligence/query/saved'
+    ),
+  saveHunt: (hunt: Record<string, unknown>) =>
+    request<{ status: string; hunt_id: string; entry: Record<string, unknown> }>(
+      '/api/intelligence/query/saved',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(hunt),
+      }
+    ),
+  getTemporalWorldState: (analysisId = 'current') =>
+    request<{ status: string; world_state: import('../types/api').TemporalNetworkWorldStatePayload }>(
+      `/api/intelligence/world?analysis_id=${encodeURIComponent(analysisId)}`
+    ),
+  getTemporalWindows: (analysisId = 'current') =>
+    request<{
+      status: string
+      capture_id: string
+      total_windows: number
+      windows: import('../types/api').TemporalNetworkWindowPayload[]
+    }>(`/api/intelligence/world/windows?analysis_id=${encodeURIComponent(analysisId)}`),
+  getTemporalWindowSnapshot: (windowId: string, analysisId = 'current') =>
+    request<{ status: string; snapshot: import('../types/api').WorldStateSnapshotPayload }>(
+      `/api/intelligence/world/window/${encodeURIComponent(windowId)}?analysis_id=${encodeURIComponent(analysisId)}`
+    ),
+  getTemporalWindowDiff: (windowA: number, windowB: number, analysisId = 'current') =>
+    request<{ status: string; diff: import('../types/api').WorldStateDiffPayload }>(
+      `/api/intelligence/world/diff?window_a=${windowA}&window_b=${windowB}&analysis_id=${encodeURIComponent(analysisId)}`
+    ),
+  getEntityWorldTimeline: (entityId: string, analysisId = 'current') =>
+    request<{
+      status: string
+      entity_id: string
+      active_windows: number[]
+      timeline: Array<{
+        window_index: number
+        window_id?: string
+        state?: import('../types/api').EntityTemporalStatePayload
+        presence?: string
+      }>
+      relationships: Record<string, number[]>
+    }>(`/api/intelligence/world/entity/${encodeURIComponent(entityId)}/timeline?analysis_id=${encodeURIComponent(analysisId)}`),
 }

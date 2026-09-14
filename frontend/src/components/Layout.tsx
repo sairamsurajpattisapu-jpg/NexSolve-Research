@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { Menu, Moon, Sun, X } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
+import { NexSolveBackground } from './background/NexSolveBackground'
 
 const navigation = [
   { to: '/analyze', label: 'Analyze' },
@@ -26,6 +27,7 @@ export function Layout({
 
   return (
     <div className="app-shell">
+      <NexSolveBackground />
       <header className="navbar-shell">
         <div className="navbar-inner">
           <NavLink className="brand-block" to="/analyze" aria-label="NexSolve">

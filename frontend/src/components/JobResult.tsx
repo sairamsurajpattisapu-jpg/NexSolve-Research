@@ -2,12 +2,26 @@ import { useState } from 'react'
 import { ChevronDown, ChevronUp, FileText, ShieldAlert } from 'lucide-react'
 import type { UploadedAnalysisResponse } from '../types/api'
 import { AttackHorizonCard } from './AttackHorizonCard'
+import { AttackProgressionCard } from './AttackProgressionCard'
 import { EvidenceChain } from './EvidenceChain'
+import { EvidenceIntelligenceGraphCard } from './EvidenceIntelligenceGraphCard'
+import { ThreatCentricInvestigationCard } from './ThreatCentricInvestigationCard'
+import { AttackStoryPanel } from './AttackStoryPanel'
+import { EntityBehaviorProfileCard } from './EntityBehaviorProfileCard'
+import { CampaignInvestigationPanel } from './CampaignInvestigationPanel'
 import { ForecastConfidence } from './ForecastConfidence'
 import { ForecastStatus } from './ForecastStatus'
+import { NetworkIntelligenceCard } from './NetworkIntelligenceCard'
 import { ReportActions } from './ReportActions'
 import { Panel } from './Ui'
 import { UnknownBehavior } from './UnknownBehavior'
+import { InvestigationWorkspace } from './investigation/InvestigationWorkspace'
+import { AnalystCommandCenter } from './investigation/AnalystCommandCenter'
+import { IncidentStoryPanel } from './investigation/IncidentStoryPanel'
+import { CampaignCorrelationPanel } from './investigation/CampaignCorrelationPanel'
+import { ThreatHuntingWorkspace } from './investigation/ThreatHuntingWorkspace'
+import { TemporalWorldView } from './investigation/TemporalWorldView'
+
 
 interface JobResultProps {
   result: UploadedAnalysisResponse
@@ -21,6 +35,7 @@ export function JobResult({ result, onReset }: JobResultProps) {
   const detection = result.detection
   const quality = result.quality
   const attackHorizon = result.attack_horizon ?? result.attackHorizon
+  const attackProgression = result.attack_progression ?? result.attackProgression
   const evidenceChain = result.evidence_chain ?? result.evidenceChain
   const confidence = result.confidence
   const unknownBehavior = result.unknown_behavior ?? result.unknownBehavior
@@ -152,9 +167,89 @@ export function JobResult({ result, onReset }: JobResultProps) {
         </div>
       </div>
 
+      {/* 2b. Multi-Modal Network Intelligence (Zeek + RITA + NFStream + Suricata) */}
+      <NetworkIntelligenceCard
+        sessionState={result.network_intelligence?.session_state ?? result.tcp_session_metrics}
+        periodicity={result.network_intelligence?.periodicity ?? (result.behavioral_intelligence as any)?.periodicity_summary}
+        flowStatistics={result.network_intelligence?.flow_statistics ?? result.flow_statistics}
+        signatureEvidence={result.network_intelligence?.signature_evidence ?? result.signature_evidence}
+      />
+
+      {/* 2b-ii. Deterministic Incident Reconstruction & Attack Story Engine */}
+      {result.incident_story && (
+        <IncidentStoryPanel incidentStory={result.incident_story} />
+      )}
+
+      {/* 2b-ii. Temporal Network World Model & Intelligence State Engine */}
+      {result.network_world_state?.temporal_world_state && (
+        <TemporalWorldView worldState={result.network_world_state.temporal_world_state} analysisId={jobId} />
+      )}
+
+      {/* 2c. Evidence Intelligence Graph (Deterministic Cross-Modal Property Graph) */}
+      {result.evidence_graph && (
+        <EvidenceIntelligenceGraphCard graph={result.evidence_graph} />
+      )}
+
+      {/* 2d. Threat-Centric Investigation View */}
+      {result.threat_views && result.threat_views.length > 0 && (
+        <ThreatCentricInvestigationCard threatViews={result.threat_views} episodes={result.episodes} />
+      )}
+
+      {/* 2e. Machine-Generated Threat Investigation Story */}
+      {result.threat_stories && result.threat_stories.length > 0 && (
+        <AttackStoryPanel threatStories={result.threat_stories} />
+      )}
+
+      {/* 2e-0. Security Analyst Decision Engine (Command Center) */}
+      {result.analyst_decisions && result.analyst_decisions.length > 0 && (
+        <AnalystCommandCenter decisions={result.analyst_decisions} />
+      )}
+
+      {/* 2e-ii. Security Investigation Workspace (Unified Entity, Campaign, Incident & Mitigation Dossiers) */}
+      {result.entity_investigations && Object.keys(result.entity_investigations).length > 0 && (
+        <InvestigationWorkspace
+          investigations={result.entity_investigations}
+          prioritizedThreats={result.prioritized_threats}
+          riskBreakdowns={result.threat_risk_breakdowns}
+          incidentInvestigations={result.incident_investigations}
+          mitigationRecommendations={result.mitigation_recommendations}
+        />
+      )}
+
+
+      {/* 2f. Entity Behavioral Profiles & Campaign Investigation */}
+      {result.entity_profiles && Object.keys(result.entity_profiles).length > 0 && (
+        <EntityBehaviorProfileCard profiles={result.entity_profiles} />
+      )}
+
+      {result.campaigns && result.campaigns.length > 0 && (
+        <CampaignInvestigationPanel campaigns={result.campaigns} />
+      )}
+
+      {/* 2f-i. Threat Hunting & Intelligence Query Engine Workspace */}
+      <ThreatHuntingWorkspace
+        analysisId={jobId}
+        templates={result.hunt_templates}
+        predicates={result.query_predicates}
+      />
+
+      {/* 2f-ii. Cross-Incident Campaign Correlation Engine */}
+      {(result.incident_fingerprint || (result.incident_correlations && result.incident_correlations.length > 0) || (result.campaign_clusters && result.campaign_clusters.length > 0)) && (
+        <CampaignCorrelationPanel
+          fingerprint={result.incident_fingerprint}
+          correlations={result.incident_correlations}
+          clusters={result.campaign_clusters}
+        />
+      )}
+
       {/* 3. Attack Horizon Timeline */}
       {attackHorizon && (
         <AttackHorizonCard initialPayload={attackHorizon} allowStateSwitching={false} />
+      )}
+
+      {/* 3b. Attack-Stage Progression Forecaster */}
+      {attackProgression && (
+        <AttackProgressionCard progression={attackProgression} />
       )}
 
       {/* 4. Evidence Attribution */}

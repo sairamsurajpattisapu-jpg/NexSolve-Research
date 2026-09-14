@@ -61,15 +61,21 @@ class BehavioralIntelligenceReport:
     long_lived_flow_count: int
     high_risk_beacons_detected: int
     summary_score: float  # [0.0, 100.0]
+    periodicity_summary: Any = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        res = {
             "beaconing_signals": [s.to_dict() for s in self.beaconing_signals],
             "dns_entropy_signals": [s.to_dict() for s in self.dns_entropy_signals],
             "long_lived_flow_count": self.long_lived_flow_count,
             "high_risk_beacons_detected": self.high_risk_beacons_detected,
             "summary_score": self.summary_score,
         }
+        if self.periodicity_summary is not None and hasattr(self.periodicity_summary, "to_dict"):
+            res["periodicity_summary"] = self.periodicity_summary.to_dict()
+        elif self.periodicity_summary is not None:
+            res["periodicity_summary"] = self.periodicity_summary
+        return res
 
 
 def compute_shannon_entropy(text: str) -> float:
@@ -185,10 +191,14 @@ def analyze_behavioral_intelligence(
 
     summary_score = min(100.0, base_score)
 
+    from nexsolve_core.behavior.periodicity import analyze_periodicity_groups
+    periodicity_summary = analyze_periodicity_groups(flow_list)
+
     return BehavioralIntelligenceReport(
         beaconing_signals=beaconing_signals,
         dns_entropy_signals=dns_signals,
         long_lived_flow_count=long_lived_flows,
         high_risk_beacons_detected=high_risk_beacons,
         summary_score=round(summary_score, 2),
+        periodicity_summary=periodicity_summary,
     )

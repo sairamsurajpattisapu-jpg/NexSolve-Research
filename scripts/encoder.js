@@ -1,0 +1,1 @@
+const fs = require(" fs\); const file = process.argv[2]; const out = process.argv[3]; const b64 = fs.readFileSync(file).toString(\base64\); fs.writeFileSync(out, b64); console.log(\encoded \ + file);

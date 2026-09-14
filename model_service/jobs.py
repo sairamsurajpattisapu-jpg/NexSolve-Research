@@ -309,6 +309,9 @@ class JobManager:
                         active_flow_features = FLOW_FEATURES_45
                         schema_variant = "45_feature_pcap_compatible"
 
+            compatibility["schema_variant"] = schema_variant
+            compatibility["active_schema"] = "MODEL_SCHEMA_45" if schema_variant == "45_feature_pcap_compatible" else "MODEL_SCHEMA_46"
+
             traffic = traffic_summary(windows)
             detection = analyze_packet_windows(windows)
             duration_seconds = max(0, int(windows[-1]["window_end"]) - int(windows[0]["window_start"]))
@@ -401,20 +404,114 @@ class JobManager:
             )
             evidence_generation_ms = round((time.perf_counter() - t_evidence_start) * 1000, 2)
 
-            # Behavioral Intelligence, Session Investigation, & Evidence Fusion (Phases 6, 7, 9, 10)
+            # Behavioral Intelligence, Session Investigation, & Evidence Fusion (Phases 6, 7, 9, 10, Open-Source Sprint)
             from nexsolve_core.behavior import analyze_behavioral_intelligence
             from nexsolve_core.investigation import build_session_investigation_records
+            from nexsolve_core.network import aggregate_tcp_session_metrics, track_tcp_sessions
+            from nexsolve_core.flow import aggregate_flow_statistics_summary
+            from nexsolve_core.evidence import parse_suricata_eve_json
             from nexsolve_core.fusion import fuse_threat_assessment
 
             all_flows = [flow for cw in canonical_windows for flow in cw.flows]
             behavioral_report = analyze_behavioral_intelligence(all_flows, packets)
             investigation_records = build_session_investigation_records(all_flows, behavioral_report.beaconing_signals)
+            tcp_sessions = track_tcp_sessions(packets)
+            tcp_session_metrics = aggregate_tcp_session_metrics(tcp_sessions)
+            flow_statistics = aggregate_flow_statistics_summary(all_flows)
+            suricata_report = parse_suricata_eve_json(None)
+
+            from ml.forecasting.attack_progression import forecast_attack_progression
+            from nexsolve_core.graph import build_evidence_intelligence_graph
+            from nexsolve_core.behavior import build_behavioral_episodes, detect_behavior_changes
+            from nexsolve_core.temporal import build_temporal_entity_histories
+            from nexsolve_core.intelligence import infer_attack_states, build_threat_centric_views, build_network_world_state
+
+            progression_forecast = forecast_attack_progression(
+                observed_findings=detection.get("findings", []),
+                behavioral_report=behavioral_report,
+                history_window_count=len(windows),
+            )
             threat_assessment = fuse_threat_assessment(
                 observed_findings=detection.get("findings", []),
                 behavioral_report=behavioral_report,
                 forecast_points=forecast_points,
                 attack_horizon=intelligence.attack_horizon,
+                attack_progression=progression_forecast,
+                tcp_session_records=tcp_sessions,
+                flow_summary=flow_statistics,
+                suricata_report=suricata_report,
             )
+
+            # Core Intelligence Extensions
+            episodes = build_behavioral_episodes(
+                observed_findings=detection.get("findings", []),
+                tcp_sessions=tcp_sessions,
+                behavioral_report=behavioral_report,
+                attack_progression=progression_forecast,
+            )
+            change_signals = detect_behavior_changes(
+                tcp_sessions=tcp_sessions,
+                observed_findings=detection.get("findings", []),
+            )
+            entity_histories = build_temporal_entity_histories(
+                flows=all_flows,
+                tcp_sessions=tcp_sessions,
+                observed_findings=detection.get("findings", []),
+            )
+            attack_states = infer_attack_states(
+                observed_findings=detection.get("findings", []),
+                tcp_sessions=tcp_sessions,
+                behavioral_report=behavioral_report,
+                change_signals=change_signals,
+            )
+            threat_views = build_threat_centric_views(
+                entity_histories=entity_histories,
+                attack_states=attack_states,
+                episodes=episodes,
+                observed_findings=detection.get("findings", []),
+                forecast_points=forecast_points,
+            )
+
+            evidence_graph = build_evidence_intelligence_graph(
+                flows=all_flows,
+                tcp_sessions=tcp_sessions,
+                behavioral_report=behavioral_report,
+                flow_statistics=flow_statistics,
+                suricata_report=suricata_report,
+                observed_findings=detection.get("findings", []),
+                forecast_points=forecast_points,
+                attack_progression=progression_forecast,
+                episodes=episodes,
+                change_signals=change_signals,
+            )
+
+            world_state = build_network_world_state(
+                capture_id=job_id,
+                total_packets=traffic["packets"],
+                total_flows=traffic["flows"],
+                total_windows=traffic["windows"],
+                duration_seconds=duration_seconds,
+                entity_histories=entity_histories,
+                episodes=episodes,
+                attack_states=attack_states,
+                threat_views=threat_views,
+                change_signals=change_signals,
+                forecast_points=forecast_points,
+                evidence_graph=evidence_graph,
+            )
+
+            network_intelligence = {
+                "session_state": tcp_session_metrics.to_dict(),
+                "periodicity": behavioral_report.periodicity_summary.to_dict() if getattr(behavioral_report, "periodicity_summary", None) else None,
+                "flow_statistics": flow_statistics.to_dict(),
+                "signature_evidence": suricata_report.to_dict(),
+                "evidence_summary": {
+                    "total_evidence_items": len(threat_assessment.evidence),
+                    "observed_modalities": sorted(list({e.modality.value for e in threat_assessment.evidence if e.temporal_scope.value == "OBSERVED"})),
+                    "observed_techniques": list(threat_assessment.observed_techniques),
+                    "forecast_techniques": list(threat_assessment.forecast_techniques),
+                },
+            }
 
             # Combine full analysis result
             stage_timings = {
@@ -450,14 +547,26 @@ class JobManager:
                 "protocol_summary": traffic["protocol_counts"],
                 "findings": detection["findings"],
                 "summary": {"packet_count": traffic["packets"], "window_count": traffic["windows"], "finding_count": detection["detected_events"], "threat_level": detection["threat_level"]},
-                # Behavioral & Investigation Upgrades (Phases 6, 7, 9, 10)
+                # Open-Source Intelligence & Behavioral Telemetry
+                "network_intelligence": network_intelligence,
+                "evidence_graph": evidence_graph.to_dict(),
+                "network_world_state": world_state.to_dict(),
+                "episodes": [e.to_dict() for e in episodes],
+                "attack_states": [s.to_dict() for s in attack_states],
+                "threat_views": [t.to_dict() for t in threat_views],
+                "change_signals": [c.to_dict() for c in change_signals],
                 "behavioral_intelligence": behavioral_report.to_dict(),
                 "investigation_sessions": [s.to_dict() for s in investigation_records[:100]],
+                "tcp_session_metrics": tcp_session_metrics.to_dict(),
+                "flow_statistics": flow_statistics.to_dict(),
+                "signature_evidence": suricata_report.to_dict(),
                 "threat_assessment": threat_assessment.to_dict(),
                 # Trust Layer
                 "forecasts": forecast_points,
                 "attack_horizon": intelligence.attack_horizon,
                 "attackHorizon": intelligence.attack_horizon,
+                "attack_progression": progression_forecast.to_dict(),
+                "attackProgression": progression_forecast.to_dict(),
                 "evidence_chain": intelligence.evidence_chain,
                 "evidenceChain": intelligence.evidence_chain,
                 "confidence": intelligence.confidence,

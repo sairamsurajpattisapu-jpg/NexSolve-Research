@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -626,3 +627,383 @@ async def forecast(request: ForecastRequest) -> ForecastResponse:
         unknownBehavior=intelligence.unknown_behavior,
         abstention=intelligence.abstention,
     )
+
+
+# ---------------------------------------------------------------------------
+# Threat Hunting & Intelligence Query Engine Endpoints
+# ---------------------------------------------------------------------------
+
+SAVED_HUNTS: list[dict[str, Any]] = []
+
+
+class QueryPredicateModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    field: str
+    operator: str
+    value: Any = None
+    value_to: Any = None
+
+
+class TemporalScopeModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    relation: str = "ANY"
+    start_time: float | str | None = None
+    end_time: float | str | None = None
+    window_range: list[int] | None = None
+    reference_event_id: str | None = None
+    reference_window: int | None = None
+    window_delta: int | None = None
+
+
+class GraphScopeModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    start_node_id: str | None = None
+    entity_key: str | None = None
+    max_depth: int = 2
+    edge_types: list[str] = []
+    target_node_types: list[str] = []
+
+
+class IntelligenceQueryRequestModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    query_id: str | None = None
+    analysis_id: str | None = None
+    target: str = "ENTITY"
+    predicates: list[QueryPredicateModel] = []
+    temporal: TemporalScopeModel | None = None
+    graph: GraphScopeModel | None = None
+    epistemic_scope: str = "OBSERVED_ONLY"
+    sort_by: str | None = None
+    sort_descending: bool = True
+    limit: int = 50
+    offset: int = 0
+    explain: bool = True
+
+
+@app.get("/api/intelligence/query/templates")
+async def get_query_templates() -> dict[str, Any]:
+    from nexsolve_core.intelligence.hunt_packs import get_hunt_templates
+    templates = get_hunt_templates()
+    return {"status": "success", "count": len(templates), "templates": templates}
+
+
+@app.get("/api/intelligence/query/predicates")
+async def get_query_predicates() -> dict[str, Any]:
+    from nexsolve_core.intelligence.query_registry import list_registered_fields
+    predicates = list_registered_fields()
+    return {"status": "success", "count": len(predicates), "predicates": predicates}
+
+
+@app.post("/api/intelligence/query")
+async def execute_intelligence_query(req: IntelligenceQueryRequestModel) -> dict[str, Any]:
+    from nexsolve_core.intelligence.query_engine import IntelligenceQueryEngine
+    from nexsolve_core.intelligence.query_model import (
+        EpistemicScope,
+        GraphTraversalScope,
+        QueryOperator,
+        QueryPredicate,
+        QueryRequest,
+        QueryTarget,
+        TemporalRelation,
+        TemporalScope,
+    )
+
+    analysis_id = req.analysis_id or get_current_analysis_id()
+    try:
+        analysis_data = analysis_for_id(analysis_id)
+    except HTTPException:
+        analysis_data = production_analysis()
+
+    # Parse target
+    try:
+        target = QueryTarget(req.target.upper())
+    except ValueError:
+        target = QueryTarget.ENTITY
+
+    # Parse epistemic scope
+    try:
+        epistemic = EpistemicScope(req.epistemic_scope.upper())
+    except ValueError:
+        epistemic = EpistemicScope.OBSERVED_ONLY
+
+    # Parse predicates
+    parsed_preds: list[QueryPredicate] = []
+    for p in req.predicates:
+        try:
+            op = QueryOperator(p.operator)
+        except ValueError:
+            op = QueryOperator.EQUALS
+        parsed_preds.append(
+            QueryPredicate(
+                field=p.field,
+                operator=op,
+                value=p.value,
+                value_to=p.value_to,
+            )
+        )
+
+    # Parse temporal
+    temporal_scope = TemporalScope()
+    if req.temporal:
+        try:
+            rel = TemporalRelation(req.temporal.relation.upper())
+        except ValueError:
+            rel = TemporalRelation.ANY
+        w_range = tuple(req.temporal.window_range) if req.temporal.window_range and len(req.temporal.window_range) == 2 else None
+        temporal_scope = TemporalScope(
+            relation=rel,
+            start_time=req.temporal.start_time,
+            end_time=req.temporal.end_time,
+            window_range=w_range,
+            reference_event_id=req.temporal.reference_event_id,
+            reference_window=req.temporal.reference_window,
+            window_delta=req.temporal.window_delta,
+        )
+
+    # Parse graph
+    graph_scope = GraphTraversalScope()
+    if req.graph:
+        graph_scope = GraphTraversalScope(
+            start_node_id=req.graph.start_node_id,
+            entity_key=req.graph.entity_key,
+            max_depth=req.graph.max_depth,
+            edge_types=tuple(req.graph.edge_types),
+            target_node_types=tuple(req.graph.target_node_types),
+        )
+
+    query_req = QueryRequest(
+        query_id=req.query_id or f"q_{int(time.time() * 1000)}",
+        target=target,
+        predicates=tuple(parsed_preds),
+        temporal=temporal_scope,
+        graph=graph_scope,
+        epistemic_scope=epistemic,
+        sort_by=req.sort_by,
+        sort_descending=req.sort_descending,
+        limit=min(max(req.limit, 1), 500),
+        offset=max(req.offset, 0),
+        explain=req.explain,
+    )
+
+    engine = IntelligenceQueryEngine(analysis_data)
+    result = engine.execute_query(query_req)
+    return result.to_dict()
+
+
+@app.get("/api/intelligence/query/saved")
+async def get_saved_hunts() -> dict[str, Any]:
+    return {"status": "success", "count": len(SAVED_HUNTS), "hunts": SAVED_HUNTS}
+
+
+@app.post("/api/intelligence/query/saved")
+async def save_hunt(hunt: dict[str, Any]) -> dict[str, Any]:
+    hunt_id = hunt.get("hunt_id") or f"saved_{int(time.time() * 1000)}"
+    entry = {**hunt, "hunt_id": hunt_id, "saved_at": datetime.now(timezone.utc).isoformat()}
+    SAVED_HUNTS.append(entry)
+    return {"status": "success", "hunt_id": hunt_id, "entry": entry}
+
+
+# ============================================================================
+# TEMPORAL NETWORK WORLD MODEL + INTELLIGENCE STATE API ENDPOINTS
+# ============================================================================
+
+@app.get("/api/intelligence/world")
+async def get_temporal_world_state(analysis_id: str = "current") -> dict[str, Any]:
+    """Retrieve the unified Temporal Network World State summary for the given analysis."""
+    analysis = analysis_for_id(analysis_id)
+    nws = analysis.get("network_world_state")
+    if not nws:
+        raise HTTPException(status_code=404, detail="Network World State not available for this analysis")
+
+    tws = nws.get("temporal_world_state")
+    if not tws:
+        # Construct fallback representation if older analysis format
+        tws = {
+            "capture_id": nws.get("capture_id", analysis_id),
+            "total_windows": nws.get("total_windows", 0),
+            "total_packets": nws.get("total_packets", 0),
+            "total_flows": nws.get("total_flows", 0),
+            "duration_seconds": nws.get("duration_seconds", 0.0),
+            "windows": [],
+            "snapshots": {},
+            "entity_trajectories": {},
+            "relationship_trajectories": {},
+            "episodes": nws.get("episodes", []),
+            "attack_states": nws.get("attack_states", []),
+            "threat_views": nws.get("threat_views", []),
+            "change_signals": nws.get("change_signals", []),
+            "forecast_points": nws.get("forecast_points", []),
+            "graph_summary": nws.get("graph_summary", {}),
+        }
+    return {"status": "success", "world_state": tws}
+
+
+@app.get("/api/intelligence/world/windows")
+async def get_temporal_windows(analysis_id: str = "current") -> dict[str, Any]:
+    """List all temporal network windows with active entity, relationship, and change counts."""
+    analysis = analysis_for_id(analysis_id)
+    nws = analysis.get("network_world_state", {})
+    tws = nws.get("temporal_world_state", {})
+    windows = tws.get("windows", [])
+    return {
+        "status": "success",
+        "capture_id": tws.get("capture_id", analysis_id),
+        "total_windows": len(windows),
+        "windows": windows,
+    }
+
+
+@app.get("/api/intelligence/world/window/{window_id}")
+async def get_temporal_window_snapshot(window_id: str, analysis_id: str = "current") -> dict[str, Any]:
+    """Retrieve full deterministic state snapshot for a specific window index or ID."""
+    analysis = analysis_for_id(analysis_id)
+    nws = analysis.get("network_world_state", {})
+    tws = nws.get("temporal_world_state", {})
+    snapshots = tws.get("snapshots", {})
+
+    # Match by key or by window_id
+    snap = snapshots.get(window_id)
+    if not snap and window_id.isdigit():
+        snap = snapshots.get(str(int(window_id)))
+    if not snap:
+        for s in snapshots.values():
+            if s.get("window_id") == window_id:
+                snap = s
+                break
+
+    if not snap:
+        raise HTTPException(status_code=404, detail=f"Window snapshot '{window_id}' not found")
+
+    return {"status": "success", "snapshot": snap}
+
+
+@app.get("/api/intelligence/world/diff")
+async def get_temporal_window_diff(
+    window_a: int = 0,
+    window_b: int = 1,
+    analysis_id: str = "current",
+) -> dict[str, Any]:
+    """Compute and return deterministic diff between window A and window B."""
+    analysis = analysis_for_id(analysis_id)
+    nws = analysis.get("network_world_state", {})
+    tws = nws.get("temporal_world_state", {})
+    snapshots = tws.get("snapshots", {})
+
+    snap_a = snapshots.get(str(window_a))
+    snap_b = snapshots.get(str(window_b))
+
+    from nexsolve_core.temporal.world_state import diff_snapshots, WorldStateSnapshot, EntityTemporalState, RelationshipTemporalState, EntityWindowPresence, RelationshipStatus
+
+    def hydrate_snapshot(data: dict[str, Any] | None) -> WorldStateSnapshot | None:
+        if not data:
+            return None
+        ents = {}
+        for k, v in data.get("entities", {}).items():
+            pres_str = v.get("presence", "ACTIVE")
+            try:
+                pres = EntityWindowPresence(pres_str)
+            except Exception:
+                pres = EntityWindowPresence.ACTIVE
+            ents[k] = EntityTemporalState(
+                entity_key=v.get("entity_key", k),
+                entity_type=v.get("entity_type", "IP"),
+                presence=pres,
+                window_index=v.get("window_index", 0),
+                attack_state=v.get("attack_state", "BENIGN"),
+                fanout=v.get("fanout", 0),
+                port_diversity=v.get("port_diversity", 0),
+                bytes_sent=v.get("bytes_sent", 0),
+                bytes_recv=v.get("bytes_recv", 0),
+                packets=v.get("packets", 0),
+                failure_ratio=v.get("failure_ratio", 0.0),
+                active_peers=tuple(v.get("active_peers", ())),
+                active_ports=tuple(v.get("active_ports", ())),
+                is_expanding_peers=v.get("is_expanding_peers", False),
+                is_expanding_ports=v.get("is_expanding_ports", False),
+                associated_findings_count=v.get("associated_findings_count", 0),
+                composite_risk_score=v.get("composite_risk_score", 0.0),
+            )
+        rels = {}
+        for k, v in data.get("relationships", {}).items():
+            st_str = v.get("status", "PERSISTED")
+            try:
+                rel_st = RelationshipStatus(st_str)
+            except Exception:
+                rel_st = RelationshipStatus.PERSISTED
+            rels[k] = RelationshipTemporalState(
+                relationship_id=v.get("relationship_id", k),
+                src_entity=v.get("src_entity", ""),
+                dst_entity=v.get("dst_entity", ""),
+                dst_port=v.get("dst_port"),
+                protocol=v.get("protocol", "TCP"),
+                status=rel_st,
+                first_seen_window=v.get("first_seen_window", 0),
+                last_seen_window=v.get("last_seen_window", 0),
+                window_index=v.get("window_index", 0),
+                packet_count=v.get("packet_count", 0),
+                byte_count=v.get("byte_count", 0),
+                connection_count=v.get("connection_count", 0),
+                failed_attempts=v.get("failed_attempts", 0),
+            )
+        return WorldStateSnapshot(
+            window_index=data.get("window_index", 0),
+            window_id=data.get("window_id", ""),
+            start_time=data.get("start_time", 0.0),
+            end_time=data.get("end_time", 0.0),
+            duration_seconds=data.get("duration_seconds", 60.0),
+            packet_count=data.get("packet_count", 0),
+            flow_count=data.get("flow_count", 0),
+            entities=ents,
+            relationships=rels,
+            behavior_changes=tuple(data.get("behavior_changes", ())),
+            attack_states=tuple(data.get("attack_states", ())),
+            evidence_keys=tuple(data.get("evidence_keys", ())),
+            is_capture_boundary=data.get("is_capture_boundary", False),
+        )
+
+    diff = diff_snapshots(hydrate_snapshot(snap_a), hydrate_snapshot(snap_b), window_a, window_b)
+    return {"status": "success", "diff": diff.to_dict()}
+
+
+@app.get("/api/intelligence/world/entity/{entity_id}/timeline")
+async def get_entity_world_timeline(entity_id: str, analysis_id: str = "current") -> dict[str, Any]:
+    """Retrieve temporal trajectory and window states for an entity across the capture."""
+    analysis = analysis_for_id(analysis_id)
+    nws = analysis.get("network_world_state", {})
+    tws = nws.get("temporal_world_state", {})
+    snapshots = tws.get("snapshots", {})
+    trajectories = tws.get("entity_trajectories", {})
+
+    active_windows = trajectories.get(entity_id, [])
+    window_states = []
+    for w_idx_str, snap in sorted(snapshots.items(), key=lambda x: int(x[0])):
+        w_idx = int(w_idx_str)
+        ent = snap.get("entities", {}).get(entity_id)
+        if ent:
+            window_states.append({
+                "window_index": w_idx,
+                "window_id": snap.get("window_id"),
+                "state": ent,
+            })
+        else:
+            window_states.append({
+                "window_index": w_idx,
+                "window_id": snap.get("window_id"),
+                "presence": "NOT_OBSERVED_IN_WINDOW",
+            })
+
+    # Relationships involving this entity
+    rel_trajectories = tws.get("relationship_trajectories", {})
+    entity_rels = {}
+    for rel_id, rel_windows in rel_trajectories.items():
+        if entity_id in rel_id:
+            entity_rels[rel_id] = rel_windows
+
+    return {
+        "status": "success",
+        "entity_id": entity_id,
+        "active_windows": active_windows,
+        "timeline": window_states,
+        "relationships": entity_rels,
+    }
+
