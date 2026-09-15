@@ -683,6 +683,61 @@ export function ForecastConsole({ analysis, onAnalyzeNew }: ForecastConsoleProps
         </div>
       </div>
 
+      {/* Dynamic Network Graph Fusion Structural Signals (Mode B) */}
+      {analysis.graphFusion && (
+        <div
+          style={{
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+            padding: '18px 20px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Workflow size={16} color="var(--text-primary)" />
+              <div>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  GRAPH STRUCTURAL ATTRIBUTION &middot; {analysis.graphFusion.active_mode}
+                </span>
+                <h3 style={{ margin: '2px 0 0 0', fontSize: '16px', color: 'var(--text-primary)' }}>
+                  Interaction Graph State Fusion
+                </h3>
+              </div>
+            </div>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: '4px' }}>
+              16-DIM STRUCTURAL VECTOR ACTIVE
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px', fontSize: '12px' }}>
+            <div style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+              <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>Top Structural Drivers</div>
+              <ul style={{ margin: 0, paddingLeft: '16px', color: 'var(--text-secondary)' }}>
+                {analysis.graphFusion.top_structural_drivers.map((drv, i) => (
+                  <li key={i} style={{ marginBottom: '4px' }}>{drv}</li>
+                ))}
+              </ul>
+            </div>
+
+            {analysis.graphFusion.mitre_structural_attributions.length > 0 && (
+              <div style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>Structural MITRE Correlates</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {analysis.graphFusion.mitre_structural_attributions.map((att, i) => (
+                    <div key={i} style={{ fontSize: '11px', fontFamily: 'var(--mono)' }}>
+                      <strong>{att.technique_id} ({att.technique_name})</strong> &middot; {att.node_ip}
+                      <div style={{ color: 'var(--text-muted)' }}>{att.evidence}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+
       {/* 6. Explainability ("Why this forecast?") (Section 13) */}
       <div
         style={{

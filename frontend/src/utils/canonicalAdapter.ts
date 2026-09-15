@@ -511,5 +511,8 @@ export function adaptToCanonical(
         ? `${apiBase}/api/demo/scenarios/${raw.demo_scenario_id || 'NORMAL_TRAFFIC'}/report.html`
         : `${apiBase}/jobs/${analysisId}/report.html`,
     },
+
+    temporalGraph: (raw as any).temporal_graph || (raw as any).temporalGraph,
+    graphFusion: (raw as any).graph_fusion || (raw as any).graphFusion,
   }
 }

@@ -198,4 +198,8 @@ export interface CanonicalAnalysis {
     jsonUrl: string
     htmlUrl: string
   }
+
+  temporalGraph?: import('./api').TemporalGraphSequencePayload
+  graphFusion?: import('./api').GraphFusionPayload
 }
+

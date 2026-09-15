@@ -1659,3 +1659,150 @@ export interface ReplayStreamPayload {
   lead_time_seconds: number
   frames: ReplayFramePayload[]
 }
+
+// Dynamic Network Graph Intelligence & Attack Propagation Types
+export type GraphTemporalScope = 'OBSERVED' | 'FORECAST'
+
+export type NodeRoleTag =
+  | 'HIGH_ACTIVITY_NODE'
+  | 'STRUCTURAL_CHANGE_NODE'
+  | 'LATERAL_SOURCE'
+  | 'SCAN_TARGET'
+  | 'PERSISTENT_ENDPOINT'
+  | 'NOMINAL_HOST'
+
+export type GraphChangeType =
+  | 'NEW_NODE'
+  | 'NEW_EDGE'
+  | 'SUDDEN_FAN_OUT'
+  | 'PROTOCOL_SHIFT'
+  | 'VOLUME_SPIKE'
+  | 'CONNECTION_BURST'
+
+export interface TemporalGraphNodePayload {
+  node_id: string
+  ip: string
+  in_degree: number
+  out_degree: number
+  total_degree: number
+  bytes_sent: number
+  bytes_recv: number
+  packets_sent: number
+  packets_recv: number
+  fan_out: number
+  fan_in: number
+  port_diversity: number
+  active_ports: number[]
+  peer_ips: string[]
+  role_tags: NodeRoleTag[]
+  activity_score: number
+  structural_change_score: number
+  is_external: boolean
+  temporal_scope: GraphTemporalScope
+}
+
+export interface TemporalGraphEdgePayload {
+  edge_id: string
+  source_ip: string
+  target_ip: string
+  protocol: string
+  target_port: number
+  flow_count: number
+  packet_count: number
+  byte_count: number
+  syn_count: number
+  rst_count: number
+  duration_seconds: number
+  is_new_in_snapshot: boolean
+  weight: number
+  temporal_scope: GraphTemporalScope
+}
+
+export interface GraphChangeSignalPayload {
+  change_type: GraphChangeType
+  source_entity: string
+  target_entity: string | null
+  description: string
+  severity: 'HIGH' | 'MEDIUM' | 'LOW'
+  metric_delta: number
+}
+
+export interface GraphSnapshotMetricsPayload {
+  node_count: number
+  edge_count: number
+  density: number
+  max_fan_out: number
+  max_fan_in: number
+  mean_degree: number
+  total_volume_bytes: number
+  total_packets: number
+  unique_subnets: number
+  bipartite_ratio: number
+}
+
+export interface TemporalGraphSnapshotPayload {
+  snapshot_index: number
+  window_id: number
+  timestamp_start: number
+  timestamp_end: number
+  scope: GraphTemporalScope
+  metrics: GraphSnapshotMetricsPayload
+  nodes: TemporalGraphNodePayload[]
+  edges: TemporalGraphEdgePayload[]
+  changes: GraphChangeSignalPayload[]
+}
+
+export interface ForecastGraphProjectionPayload {
+  horizon_step: number
+  horizon_seconds: number
+  predicted_node_count: number
+  predicted_edge_count: number
+  predicted_density: number
+  predicted_fanout_expansion: number
+  active_threat_nodes: string[]
+  potential_propagation_targets: string[]
+  structural_indicators: string[]
+  propagation_confidence: number
+}
+
+export interface TemporalGraphSequencePayload {
+  status: string
+  snapshot_count: number
+  observed_snapshots: TemporalGraphSnapshotPayload[]
+  forecast_projections: ForecastGraphProjectionPayload[]
+  top_high_activity_nodes: TemporalGraphNodePayload[]
+  top_structural_change_nodes: TemporalGraphNodePayload[]
+  cumulative_nodes_count: number
+  cumulative_edges_count: number
+  graph_feature_vector: number[]
+}
+
+export interface FusedHorizonPointPayload {
+  horizon: number
+  step_attack_probability: number
+  cumulative_risk: number
+  risk_level: string
+  predicted_stage: string
+  confidence: number
+  structural_indicators: string[]
+  graph_density_trend: number
+  fanout_expansion: number
+  mode: string
+}
+
+export interface GraphFusionPayload {
+  status: string
+  active_mode: string
+  graph_context_available: boolean
+  fused_points: FusedHorizonPointPayload[]
+  top_structural_drivers: string[]
+  mitre_structural_attributions: Array<{
+    technique_id: string
+    technique_name: string
+    tactic: string
+    node_ip: string
+    evidence: string
+    confidence: number
+  }>
+}
+

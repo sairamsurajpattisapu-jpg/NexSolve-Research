@@ -217,9 +217,22 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
 
     from ml.forecasting.attack_progression import forecast_attack_progression
     from nexsolve_core.graph import build_evidence_intelligence_graph
+    from nexsolve_core.temporal_graph import build_temporal_graph_sequence
+    from ml.forecasting.graph_fusion import fuse_forecast_with_temporal_graph
     from nexsolve_core.behavior import build_behavioral_episodes, detect_behavior_changes
     from nexsolve_core.temporal import build_temporal_entity_histories
     from nexsolve_core.intelligence import infer_attack_states, build_threat_centric_views, build_network_world_state
+
+    temporal_graph = build_temporal_graph_sequence(
+        windows=canonical_windows,
+        all_flows=all_flows,
+        history_window_count=len(windows),
+    )
+    graph_fusion = fuse_forecast_with_temporal_graph(
+        baseline_forecast_points=forecast_points,
+        temporal_graph=temporal_graph,
+        mode="MODE_B",
+    )
 
     progression_forecast = forecast_attack_progression(
         observed_findings=detection.get("findings", []),
@@ -606,6 +619,11 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
         # Threat Hunting & Intelligence Query Engine (Templates & Schema)
         "hunt_templates": get_hunt_templates(),
         "query_predicates": list_registered_fields(),
+        # Dynamic Network Graph Intelligence & Attack Propagation
+        "temporal_graph": temporal_graph.to_dict(),
+        "temporalGraph": temporal_graph.to_dict(),
+        "graph_fusion": graph_fusion.to_dict(),
+        "graphFusion": graph_fusion.to_dict(),
         # Trust Layer & Forecast Intelligence
         "forecasts": forecast_points,
         "forecast_trajectory": trajectory_result.to_dict() if trajectory_result else None,

@@ -385,7 +385,66 @@ export function Evidence() {
         )}
       </Panel>
 
+      {/* Dynamic Graph Structural Attribution Panel */}
+      {analysis.temporalGraph && (
+        <Panel>
+          <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  GRAPH STRUCTURAL ATTRIBUTION &middot; TOPOLOGICAL EVIDENCE
+                </span>
+                <h3 style={{ margin: '2px 0', fontSize: '16px', color: 'var(--text-primary)' }}>
+                  Network Graph Structural Signals ({analysis.temporalGraph.observed_snapshots.length} Snapshots)
+                </h3>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                  Structural evidence extracted from graph interaction dynamics across 60s windows.
+                </span>
+              </div>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: '4px' }}>
+                STATUS: {analysis.temporalGraph.status}
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+              <div style={{ background: 'var(--bg-secondary)', padding: '14px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                  Dominant High-Activity Nodes
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {analysis.temporalGraph.top_high_activity_nodes.slice(0, 5).map((node) => (
+                    <div key={node.node_id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--mono)' }}>
+                      <span>{node.ip}</span>
+                      <span style={{ color: 'var(--text-muted)' }}>
+                        Fan-out: {node.fan_out} | Score: {(node.activity_score * 100).toFixed(0)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--bg-secondary)', padding: '14px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                  Top Structural Change Nodes
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {analysis.temporalGraph.top_structural_change_nodes.slice(0, 5).map((node) => (
+                    <div key={node.node_id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--mono)' }}>
+                      <span>{node.ip}</span>
+                      <span style={{ color: 'var(--text-muted)' }}>
+                        &Delta; {(node.structural_change_score * 100).toFixed(0)}% | Links: {node.total_degree}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </Panel>
+      )}
+
       {/* 3. SCIENTIFIC LIMITATIONS & MEASUREMENT BOUNDARIES */}
+
       <Panel>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
           <Info size={16} color="var(--accent)" />
