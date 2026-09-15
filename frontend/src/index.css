@@ -360,7 +360,8 @@ h3, h4 {
 }
 
 .desktop-nav .nav-link,
-.mobile-nav .nav-link {
+.mobile-nav .nav-link,
+.workflow-nav-btn {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -369,21 +370,32 @@ h3, h4 {
   border: 1px solid transparent;
   border-radius: 6px;
   color: var(--text-secondary);
-  font: 700 0.72rem var(--mono);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-family: var(--display);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
   transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
+.workflow-nav-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 .desktop-nav .nav-link:hover,
-.mobile-nav .nav-link:hover {
+.mobile-nav .nav-link:hover,
+.workflow-nav-btn:hover {
   color: var(--text-primary);
   background: var(--button-hover);
   border-color: var(--border);
 }
 
 .desktop-nav .nav-link.active,
-.mobile-nav .nav-link.active {
+.mobile-nav .nav-link.active,
+.workflow-nav-btn.active {
   color: var(--accent);
   background: var(--accent-muted);
   border-color: var(--accent);

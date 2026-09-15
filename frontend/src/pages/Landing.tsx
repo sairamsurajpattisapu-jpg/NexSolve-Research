@@ -1,16 +1,5 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  Activity,
-  ArrowRight,
-  CheckCircle2,
-  Layers,
-  Radar,
-  ShieldAlert,
-  ShieldCheck,
-  Sparkles,
-  TrendingUp,
-} from 'lucide-react'
 import { Panel } from '../components/Ui'
 
 const PIPELINE_STEPS = [
@@ -90,43 +79,68 @@ const PIPELINE_STEPS = [
 
 export function Landing() {
   const [activeStep, setActiveStep] = useState(0)
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
   const currentStep = PIPELINE_STEPS[activeStep]
+
+  const faqs = [
+    {
+      q: 'What does NexSolve forecast?',
+      a: 'NexSolve models continuous network behavior from passive packet telemetry and predicts future attack probabilities and stage transitions across multiple discrete forward horizons (T+1 through T+5).',
+    },
+    {
+      q: 'What data does NexSolve accept?',
+      a: 'NexSolve ingests raw standard PCAP and PCAPNG capture files, as well as 60-second windowed flow telemetry CSV files.',
+    },
+    {
+      q: 'What is the 45-feature contract?',
+      a: 'A canonical schema comprising 17 flow behavior metrics, 22 packet distribution statistics, and 6 temporal derivatives. Unobservable metrics like mean_tcp_rtt are strictly excluded under a zero-fabrication contract.',
+    },
+    {
+      q: 'What are T+1 through T+5?',
+      a: 'Discrete 60-second forward lookahead horizons, representing projected network risk states at +60s, +120s, +180s, +240s, and +300s into the future.',
+    },
+    {
+      q: 'How does NexSolve explain a forecast?',
+      a: 'Predictions are decomposed into supporting vs contradictory telemetry indicators using Feature Perturbation Attribution, revealing exact state drivers without black-box opacity.',
+    },
+    {
+      q: 'What does lead time mean?',
+      a: 'The temporal delta in seconds between forecast detection and projected threat onset. For individual captures, lead time is computed directly from packet arrival timestamps.',
+    },
+    {
+      q: 'Is the counterfactual simulation a guarantee of attack prevention?',
+      a: 'No. Simulation is a Modelled Counterfactual that evaluates future rollout sensitivity under synthetic feature perturbations to provide decision support.',
+    },
+    {
+      q: 'What happens when input data is insufficient?',
+      a: 'If a capture contains fewer than 8 temporal windows (< 8 minutes of context) or severe packet loss, NexSolve enforces calibrated abstention and withholds the forecast.',
+    },
+  ]
 
   return (
     <div className="page-stack page-enter landing-container">
       {/* Hero Section */}
       <section className="landing-hero">
         <div className="landing-hero-content">
-          <div className="landing-badge-row">
-            <span className="provenance-pill status-pill">SIH PROBLEM STATEMENT 26153</span>
-            <span className="provenance-pill reference-pill">ENTERPRISE TELEMETRY ENGINE</span>
-            <span className="provenance-pill live-pill">PCAP & PCAPNG COMPATIBLE</span>
-          </div>
+          <span className="provenance-pill status-pill" style={{ alignSelf: 'flex-start' }}>
+            SIH PROBLEM STATEMENT 26153
+          </span>
 
           <h1 className="landing-title">
             NEXSOLVE <span className="text-gradient">— Network Attack Forecasting</span>
           </h1>
 
-          <p className="landing-tagline">
-            See where the network is heading — <span className="highlight-tag">not just where it has been.</span>
-          </p>
-
           <p className="landing-lead">
-            NexSolve transforms raw network packet captures into multi-step temporal state trajectories.
-            By projecting attack probabilities across <strong>T+1 to T+5</strong> horizons, estimating an <strong>Attack Horizon</strong>,
-            and analyzing forecast drivers through <strong>Feature Perturbation Attribution</strong> and evidence analysis, security teams gain predictive decision support before threats escalate.
+            Forecast how network attack-state behavior may evolve across multiple future horizons.
           </p>
 
           <div className="landing-cta-row">
             <Link to="/analyze" className="button landing-primary-btn">
-              <Radar size={16} /> Analyze a PCAP Capture
+              Analyze PCAP
             </Link>
-            <Link to="/demo" className="button button-quiet landing-demo-btn">
-              <Sparkles size={16} color="var(--accent)" /> Explore Judge Demo
+            <Link to="/workflow" className="button button-quiet landing-tour-btn">
+              Explore Workflow
             </Link>
-            <a href="#pipeline-tour" className="button button-quiet landing-tour-btn">
-              How it works <ArrowRight size={14} />
-            </a>
           </div>
         </div>
 
@@ -138,7 +152,7 @@ export function Landing() {
                 <span className="status-dot status-success" />
                 <span className="engine-status-text">PIPELINE CORE ACTIVE</span>
               </div>
-              <span className="engine-ver">v2.4.1 · 45-DIM CONTRACT</span>
+              <span className="engine-ver">45-FEATURE CANONICAL CONTRACT</span>
             </div>
 
             <div className="engine-flow-diagram" aria-label="Interactive pipeline stages">
@@ -147,9 +161,7 @@ export function Landing() {
                   type="button"
                   className={`flow-node ${activeStep === 0 || activeStep === 1 ? 'active' : ''}`}
                   onClick={() => setActiveStep(0)}
-                  title="Step 1: Capture & Ingestion"
                 >
-                  <Activity size={18} />
                   <span>Packets</span>
                 </button>
                 <div className="flow-arrow">→</div>
@@ -157,9 +169,7 @@ export function Landing() {
                   type="button"
                   className={`flow-node ${activeStep === 2 || activeStep === 3 ? 'active' : ''}`}
                   onClick={() => setActiveStep(2)}
-                  title="Step 2: 60s Windows & 45-Feature State"
                 >
-                  <Layers size={18} />
                   <span>Windows</span>
                 </button>
                 <div className="flow-arrow">→</div>
@@ -167,9 +177,7 @@ export function Landing() {
                   type="button"
                   className={`flow-node ${activeStep === 4 ? 'active' : ''}`}
                   onClick={() => setActiveStep(4)}
-                  title="Step 3: Multi-Step Forecasting (T+1..T+5)"
                 >
-                  <TrendingUp size={18} />
                   <span>Forecast</span>
                 </button>
                 <div className="flow-arrow">→</div>
@@ -177,9 +185,7 @@ export function Landing() {
                   type="button"
                   className={`flow-node ${activeStep === 5 || activeStep === 6 ? 'active' : ''}`}
                   onClick={() => setActiveStep(5)}
-                  title="Step 4: Attack Horizon & Evidence"
                 >
-                  <ShieldAlert size={18} />
                   <span>Horizon</span>
                 </button>
               </div>
@@ -188,9 +194,6 @@ export function Landing() {
                 <div className="preview-eyebrow">STAGE {currentStep.step} / 08 · {currentStep.eyebrow}</div>
                 <h4 className="preview-title">{currentStep.title}</h4>
                 <p className="preview-desc">{currentStep.description}</p>
-                <div className="preview-tech">
-                  <strong>Mechanisms:</strong> {currentStep.tech}
-                </div>
               </div>
 
               <div className="engine-card-footer">
@@ -215,45 +218,30 @@ export function Landing() {
       {/* Scientific Principles & Guarantees */}
       <section className="landing-principles">
         <div className="section-title-wrap">
-          <span className="eyebrow" style={{ color: 'var(--accent)' }}>SCIENTIFIC HONESTY & DEFENSIVE GUARANTEES</span>
-          <h2>Built for Real Security Operations, Not Benchmark Theater</h2>
-          <p>
-            Unlike black-box detectors that output arbitrary future guesses, NexSolve adheres to verifiable statistical contracts
-            and transparent defense principles.
-          </p>
+          <span className="eyebrow" style={{ color: 'var(--accent)' }}>SCIENTIFIC INTEGRITY</span>
+          <h2>Built for Defensive Security Operations</h2>
+          <p>Adheres to verifiable statistical contracts and transparent defense principles.</p>
         </div>
 
         <div className="principles-grid">
           <Panel className="principle-card">
-            <div className="principle-icon-wrap" style={{ color: 'var(--accent)' }}>
-              <CheckCircle2 size={22} />
-            </div>
-            <h3>Zero-Fabrication Feature Contract</h3>
+            <h3>Zero-Fabrication Contract</h3>
             <p>
-              Passive PCAPs cannot observe TCP round-trip times without client-side assumptions.
-              NexSolve eliminates <code>mean_tcp_rtt</code> from the PCAP model schema, strictly refusing to zero-fill or fabricate missing physical metrics.
+              Eliminates <code>mean_tcp_rtt</code> from the PCAP model schema, strictly refusing to zero-fill or fabricate missing physical metrics.
             </p>
           </Panel>
 
           <Panel className="principle-card">
-            <div className="principle-icon-wrap" style={{ color: 'var(--warning)' }}>
-              <TrendingUp size={22} />
-            </div>
             <h3>Persistence Champion Baseline</h3>
             <p>
-              All ML candidates must empirically outperform a strict temporal Persistence baseline without temporal leakage.
-              When our research LSTM45 candidate failed to beat Persistence across all 5 horizons, it was placed on scientific <code>HOLD</code>.
+              All ML candidates must empirically outperform a strict temporal Persistence baseline without data leakage.
             </p>
           </Panel>
 
           <Panel className="principle-card">
-            <div className="principle-icon-wrap" style={{ color: 'var(--danger)' }}>
-              <ShieldCheck size={22} />
-            </div>
             <h3>Calibrated Forecast Abstention</h3>
             <p>
-              If a capture has fewer than 8 temporal windows ($&lt; 8$ minutes of history) or degraded capture quality,
-              NexSolve explicitly withholds its forecast rather than hallucinating unreliable future risk.
+              If a capture has fewer than 8 temporal windows (&lt; 8 minutes of history), NexSolve explicitly withholds its forecast.
             </p>
           </Panel>
         </div>
@@ -262,11 +250,9 @@ export function Landing() {
       {/* 8-Stage Interactive Product Tour */}
       <section id="pipeline-tour" className="landing-pipeline-section">
         <div className="section-title-wrap">
-          <span className="eyebrow" style={{ color: 'var(--accent)' }}>INTERACTIVE PRODUCT TOUR</span>
-          <h2>From Packets to Prediction: The 8-Stage Pipeline</h2>
-          <p>
-            Follow how NexSolve processes raw network traffic deterministically from the wire to actionable foresight.
-          </p>
+          <span className="eyebrow" style={{ color: 'var(--accent)' }}>PIPELINE ARCHITECTURE</span>
+          <h2>8-Stage Processing Pipeline</h2>
+          <p>How NexSolve processes raw network traffic from the wire to multi-horizon forecasts.</p>
         </div>
 
         <div className="pipeline-tour-grid">
@@ -283,7 +269,6 @@ export function Landing() {
                 <span className="tour-step-num">{s.step}</span>
                 <div className="tour-nav-text">
                   <strong>{s.title}</strong>
-                  <small>{s.eyebrow}</small>
                 </div>
               </button>
             ))}
@@ -301,7 +286,7 @@ export function Landing() {
               <p className="tour-detail-body">{currentStep.description}</p>
 
               <div className="tour-tech-callout">
-                <span className="eyebrow">VERIFIED SPECIFICATIONS</span>
+                <span className="eyebrow">MECHANISMS</span>
                 <p>{currentStep.tech}</p>
               </div>
 
@@ -320,7 +305,7 @@ export function Landing() {
                   disabled={activeStep === PIPELINE_STEPS.length - 1}
                   onClick={() => setActiveStep(Math.min(PIPELINE_STEPS.length - 1, activeStep + 1))}
                 >
-                  Next Stage <ArrowRight size={14} />
+                  Next Stage
                 </button>
               </div>
             </Panel>
@@ -328,24 +313,48 @@ export function Landing() {
         </div>
       </section>
 
+      {/* FAQ Accordion Section */}
+      <section className="faq-section" style={{ marginTop: '24px' }}>
+        <div className="section-title-wrap">
+          <span className="eyebrow" style={{ color: 'var(--accent)' }}>FREQUENTLY ASKED QUESTIONS</span>
+          <h2>System Operations & Methodology</h2>
+        </div>
+
+        <div className="faq-accordion" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>
+          {faqs.map((faq, idx) => {
+            const isOpen = openFaq === idx
+            return (
+              <div key={idx} className="panel" style={{ padding: '16px 20px', cursor: 'pointer' }} onClick={() => setOpenFaq(isOpen ? null : idx)}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{faq.q}</h4>
+                  <span style={{ fontFamily: 'var(--mono)', fontSize: '14px', color: 'var(--text-muted)' }}>{isOpen ? '-' : '+'}</span>
+                </div>
+                {isOpen && (
+                  <p style={{ marginTop: '10px', fontSize: '13px', lineHeight: '1.55', color: 'var(--text-secondary)', marginBottom: 0 }}>
+                    {faq.a}
+                  </p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
       {/* SIH Judge Callout */}
       <section className="judge-callout-section">
         <Panel className="judge-banner">
           <div className="judge-banner-content">
-            <div className="judge-badge-wrap">
-              <Sparkles size={20} color="var(--accent)" />
-              <span className="eyebrow" style={{ color: 'var(--accent)', margin: 0 }}>
-                EVALUATION READY · SIH JURY QUICK START
-              </span>
-            </div>
-            <h2>Evaluate NexSolve in 60 Seconds</h2>
+            <span className="eyebrow" style={{ color: 'var(--accent)', margin: 0 }}>
+              SIH JURY QUICK START
+            </span>
+            <h2>Evaluate NexSolve Scenarios</h2>
             <p>
-              Explore our 7 deterministic evaluation scenarios covering normal traffic baselines, early attack signals,
-              sustained attack forecasts, contradictory indicators, unknown protocol shifts, abstention guardrails, and poor capture quality.
+              Explore pre-computed deterministic evaluation scenarios covering normal traffic baselines, early attack signals,
+              sustained attack forecasts, and abstention guardrails.
             </p>
             <div className="judge-actions">
               <Link to="/demo" className="button">
-                Open Judge Demo Explorer <ArrowRight size={15} />
+                Open Judge Demo
               </Link>
               <Link to="/analyze" className="button button-quiet">
                 Inspect Real PCAP Pipeline

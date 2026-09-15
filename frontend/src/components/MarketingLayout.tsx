@@ -1,16 +1,8 @@
 import { useState } from 'react'
 import { NavLink, Link, Outlet } from 'react-router-dom'
-import { Menu, Moon, Sun, X, Terminal, Shield } from 'lucide-react'
+import { Menu, Moon, Sun, X, Shield } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { NexSolveBackground } from './background/NexSolveBackground'
-
-const marketingNav = [
-  { to: '/', label: 'Product', end: true },
-  { to: '/workflow', label: 'Workflow' },
-  { to: '/security', label: 'Security' },
-  { to: '/research', label: 'Research' },
-  { to: '/about', label: 'About' },
-]
 
 export function MarketingLayout() {
   const [open, setOpen] = useState(false)
@@ -27,20 +19,15 @@ export function MarketingLayout() {
           </Link>
 
           <nav className="desktop-nav" aria-label="Product navigation">
-            {marketingNav.map(({ to, label, end }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                onClick={() => setOpen(false)}
-                className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
-              >
-                <span>{label}</span>
-              </NavLink>
-            ))}
+            <NavLink to="/" end onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Product</NavLink>
+            <NavLink to="/security" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Security</NavLink>
+            <NavLink to="/research" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Research</NavLink>
+            <NavLink to="/about" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>About</NavLink>
           </nav>
 
           <div className="navbar-right">
+            <NavLink to="/workflow" className={({ isActive }) => (isActive ? 'nav-link workflow-nav-btn active' : 'nav-link workflow-nav-btn')}>Workflow</NavLink>
+
             <button
               type="button"
               className="theme-toggle-btn"
@@ -52,14 +39,14 @@ export function MarketingLayout() {
             </button>
 
             <Link to="/analyze" className="button button-primary header-cta-btn">
-              <Terminal size={14} />
               <span>Launch Console</span>
             </Link>
 
             <button
               className="menu-button"
               onClick={() => setOpen(!open)}
-              aria-label={open ? 'Close navigation' : 'Open navigation'}
+              aria-label={open ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={open}
             >
               {open ? <X size={18} /> : <Menu size={18} />}
             </button>
@@ -68,25 +55,19 @@ export function MarketingLayout() {
 
         {open && (
           <nav className="mobile-nav" aria-label="Mobile product navigation">
-            {marketingNav.map(({ to, label, end }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                onClick={() => setOpen(false)}
-                className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
-              >
-                <span>{label}</span>
-              </NavLink>
-            ))}
-            <div style={{ padding: '12px 16px' }}>
+            <NavLink to="/" end onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Product</NavLink>
+            <NavLink to="/workflow" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Workflow</NavLink>
+            <NavLink to="/security" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Security</NavLink>
+            <NavLink to="/research" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Research</NavLink>
+            <NavLink to="/about" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>About</NavLink>
+            <div style={{ padding: '12px 0 4px' }}>
               <Link
                 to="/analyze"
                 onClick={() => setOpen(false)}
                 className="button button-primary"
                 style={{ width: '100%', justifyContent: 'center' }}
               >
-                <Terminal size={14} /> Launch Console
+                Launch Console
               </Link>
             </div>
           </nav>
