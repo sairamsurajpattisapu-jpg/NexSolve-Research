@@ -1,134 +1,103 @@
 import { Link } from 'react-router-dom'
-import {
-  Cpu,
-  Eye,
-  Shield,
-  Sparkles,
-  Target,
-  Terminal,
-} from 'lucide-react'
-import { Panel } from '../components/Ui'
 
 export function About() {
   return (
-    <div className="page-stack page-enter about-page">
-      {/* Hero */}
-      <section className="about-hero">
-        <div className="about-hero-tag">
-          <span className="provenance-pill status-pill">MISSION & ETHOS</span>
-          <span className="provenance-pill live-pill">SIH 2026 #26153</span>
+    <div className="page-stack page-enter about-editorial-container">
+      {/* Editorial Header */}
+      <section className="editorial-page-header">
+        <div className="editorial-meta-tag">
+          MISSION & SCIENTIFIC PRINCIPLES
         </div>
-        <h1 className="about-title">Anticipation Over Reaction</h1>
-        <p className="about-subtitle">
-          NexSolve was engineered to solve a fundamental deficiency in computer security: modern SOCs respond only after breach indicators appear. We build world models that anticipate trajectories before attacks materialize.
+        <h1 className="editorial-display-heading">
+          About NexSolve
+        </h1>
+        <p className="editorial-lead-text">
+          Anticipating adversarial network progression through temporal state modeling rather than retrospective signature triage.
         </p>
       </section>
 
-      {/* The Core Mission */}
-      <Panel className="about-mission-panel">
-        <div className="panel-header-simple">
-          <div>
-            <span className="panel-eyebrow">PURPOSE</span>
-            <h2 className="panel-title">Why We Built NexSolve</h2>
+      <div className="editorial-hr" />
+
+      {/* Editorial 4-Part Narrative */}
+      <section className="about-editorial-sections">
+        <div className="about-editorial-row">
+          <div className="about-row-label">
+            <span>01</span>
+            <h2>WHAT IT IS</h2>
           </div>
-          <span className="provenance-pill reference-pill">SYSTEM PHILOSOPHY</span>
+          <div className="about-row-body">
+            <p>
+              NexSolve is a scientific network attack forecasting platform built for defensive cybersecurity operations.
+              Operating passively from raw packet streams or discrete 60-second telemetry windows, it models continuous network state
+              and projects adversarial trajectory across forward lookahead horizons (T+1 through T+5).
+            </p>
+          </div>
         </div>
 
-        <p className="mission-lead">
-          Intrusion Detection Systems (IDS) and Endpoint Detection & Response (EDR) are inherently retrospective. They detect signatures of packets that have already arrived, files that have already dropped, and connections that have already compromised perimeter hosts.
-        </p>
-        <p className="mission-body">
-          Under Smart India Hackathon Problem Statement 26153 (<em>"AI based Network Attack Forecasting from Network Traffic Data"</em>), our objective was to formalize network defense as an autoregressive state simulation problem. By learning the physical dynamics of normal network flows, NexSolve projects future network states across multiple horizons (T+1 to T+5) and alerts analysts to impending threat conditions with genuine lead time.
-        </p>
-      </Panel>
+        <div className="editorial-hr-subtle" />
 
-      {/* Guiding Principles Grid */}
-      <section className="principles-section">
-        <div className="section-heading-wrap">
-          <span className="panel-eyebrow">ENGINEERING VALUES</span>
-          <h2 className="section-title">Core Principles</h2>
-          <p className="section-desc">
-            The scientific constraints and engineering standards that guide every line of code in NexSolve.
-          </p>
+        <div className="about-editorial-row">
+          <div className="about-row-label">
+            <span>02</span>
+            <h2>WHY IT EXISTS</h2>
+          </div>
+          <div className="about-row-body">
+            <p>
+              Traditional intrusion detection systems alert defenders after packets deliver payloads and hosts compromise.
+              Under Smart India Hackathon Problem Statement 26153, NexSolve reframes network security as an autoregressive state simulation problem —
+              granting security analysts proactive lead time before full kill-chain execution.
+            </p>
+          </div>
         </div>
 
-        <div className="principles-detail-grid">
-          <div className="principle-card">
-            <div className="principle-icon-wrap">
-              <Shield size={20} className="text-accent" />
-            </div>
-            <h3>1. Scientific Honesty Above Hype</h3>
+        <div className="editorial-hr-subtle" />
+
+        <div className="about-editorial-row">
+          <div className="about-row-label">
+            <span>03</span>
+            <h2>SCIENTIFIC INTEGRITY</h2>
+          </div>
+          <div className="about-row-body">
             <p>
-              We do not claim 99.9% accuracy with fabricated features. If a baseline like the Persistence Champion calibrates better than an unconstrained deep LSTM, we publish that truth and place deep models on scientific hold.
+              We reject synthetic heuristics and uncalibrated deep models. NexSolve strictly omits unobservable passive metrics
+              such as <code>mean_tcp_rtt</code> under an audited 45-feature contract, enforces deliberate abstention when historical context is insufficient,
+              and benchmarks all candidates against a rigorous Persistence Champion baseline.
             </p>
           </div>
+        </div>
 
-          <div className="principle-card">
-            <div className="principle-icon-wrap">
-              <Cpu size={20} className="text-accent" />
-            </div>
-            <h3>2. Zero Synthetic Fabrication</h3>
-            <p>
-              Passive network taps cannot accurately measure round-trip time without active probe injections. We eliminated <code>mean_tcp_rtt</code> from our feature vector rather than substituting zeros or synthetic heuristics.
-            </p>
+        <div className="editorial-hr-subtle" />
+
+        <div className="about-editorial-row">
+          <div className="about-row-label">
+            <span>04</span>
+            <h2>LIMITATIONS</h2>
           </div>
-
-          <div className="principle-card">
-            <div className="principle-icon-wrap">
-              <Eye size={20} className="text-accent" />
-            </div>
-            <h3>3. Attribution Transparency</h3>
+          <div className="about-row-body">
             <p>
-              Every forecasted alert is decomposed into supporting vs contradictory evidence nodes via Feature Perturbation Attribution. SOC analysts are never forced to trust an opaque probability scalar.
-            </p>
-          </div>
-
-          <div className="principle-card">
-            <div className="principle-icon-wrap">
-              <Target size={20} className="text-accent" />
-            </div>
-            <h3>4. Operational Air-Gapped Usability</h3>
-            <p>
-              Critical national infrastructure cannot depend on cloud APIs or outbound internet connectivity. NexSolve runs 100% locally with zero phone-home calls.
+              NexSolve is designed for structured network telemetry and passive observation taps. It does not perform active payload exploitation,
+              does not claim zero-loss prevention guarantees, and treats counterfactual rollouts as modelled scenario explorations
+              rather than deterministic physical certainties.
             </p>
           </div>
         </div>
       </section>
 
-      {/* The Problem Statement Context */}
-      <Panel className="sih-context-panel">
-        <div className="sih-context-content">
-          <span className="panel-eyebrow">SIH 2026 SPECIFICATION</span>
-          <h3>Problem Statement ID: 26153</h3>
-          <p>
-            <strong>Title:</strong> AI based Network Attack Forecasting from Network Traffic Data
-          </p>
-          <p>
-            <strong>Core Mandate:</strong> Build an AI system that learns the evolving state of a computer network from traffic telemetry and predicts the likelihood and progression of malicious activity across multiple future time steps.
-          </p>
-          <div className="sih-badges">
-            <span className="contract-chip">Domain: Cybersecurity</span>
-            <span className="contract-chip">Category: Software</span>
-            <span className="contract-chip">Focus: Multi-Step World Model</span>
-          </div>
-        </div>
-      </Panel>
+      <div className="editorial-hr" />
 
-      {/* CTA */}
-      <section className="about-cta-strip">
-        <div className="cta-strip-content">
-          <h2>Experience the forecasting platform</h2>
-          <p>
-            Launch the interactive console, inspect live packet telemetry, or explore our pre-loaded judge demonstration scenarios.
-          </p>
-        </div>
-        <div className="cta-strip-actions">
-          <Link to="/analyze" className="button button-primary">
-            <Terminal size={15} /> Launch Console
-          </Link>
-          <Link to="/demo" className="button button-quiet">
-            <Sparkles size={15} style={{ color: 'var(--accent)' }} /> Explore Judge Demo
-          </Link>
+      {/* Bottom CTA */}
+      <section className="editorial-footer-cta">
+        <div className="editorial-cta-wrap">
+          <span className="editorial-eyebrow">RESEARCH PLATFORM</span>
+          <h2>Explore the methodology and live system.</h2>
+          <div className="editorial-btn-group" style={{ marginTop: '20px' }}>
+            <Link to="/analyze" className="button button-primary">
+              Launch Console
+            </Link>
+            <Link to="/research" className="button button-secondary">
+              Read Research
+            </Link>
+          </div>
         </div>
       </section>
     </div>

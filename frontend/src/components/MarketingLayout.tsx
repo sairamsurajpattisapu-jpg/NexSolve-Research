@@ -1,21 +1,46 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, Link, Outlet } from 'react-router-dom'
-import { Menu, Moon, Sun, X, Shield } from 'lucide-react'
+import { Menu, Moon, Sun, X } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { NexSolveBackground } from './background/NexSolveBackground'
 
 export function MarketingLayout() {
   const [open, setOpen] = useState(false)
   const { isDark, toggleTheme } = useTheme()
+  const navRef = useRef<HTMLElement>(null)
+
+  // Accessible click-outside and Escape key listener for mobile menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false)
+      }
+    }
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open])
 
   return (
     <div className="app-shell marketing-shell">
       <NexSolveBackground />
-      <header className="navbar-shell marketing-navbar">
+      <header className="navbar-shell marketing-navbar" ref={navRef}>
         <div className="navbar-inner">
           <Link className="brand-block" to="/" aria-label="NexSolve Home">
-            <span className="brand-label">NexSolve</span>
-            <span className="brand-badge-sub">FORECASTING</span>
+            <span className="brand-label">NEXSOLVE</span>
           </Link>
 
           <nav className="desktop-nav" aria-label="Product navigation">
@@ -60,7 +85,7 @@ export function MarketingLayout() {
             <NavLink to="/security" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Security</NavLink>
             <NavLink to="/research" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Research</NavLink>
             <NavLink to="/about" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>About</NavLink>
-            <div style={{ padding: '12px 0 4px' }}>
+            <div style={{ padding: '16px 0 6px' }}>
               <Link
                 to="/analyze"
                 onClick={() => setOpen(false)}
@@ -84,49 +109,48 @@ export function MarketingLayout() {
         <div className="marketing-footer-inner">
           <div className="footer-brand-col">
             <div className="footer-brand-header">
-              <span className="brand-label">NexSolve</span>
-              <span className="provenance-pill status-pill">SIH 2026 #26153</span>
+              <span className="brand-label">NEXSOLVE</span>
+              <span className="footer-meta-mono">SIH 2026 #26153</span>
             </div>
             <p className="footer-desc">
-              AI-powered network attack forecasting from telemetry. Moves network defense from reactive triage to predictive trajectory simulation.
+              Network attack forecasting from passive telemetry. Temporal trajectory simulation across forward lookahead horizons.
             </p>
-            <div className="footer-guarantee">
-              <Shield size={13} style={{ color: 'var(--accent)' }} />
-              <span>Offline-First · 45-Dim Contract · Zero RTT Fabrication</span>
+            <div className="footer-meta-mono" style={{ color: 'var(--text-muted)' }}>
+              Offline-First · 45-Feature Contract · Zero Fabrication
             </div>
           </div>
 
           <div className="footer-nav-col">
-            <div className="footer-col-title">Product & Pipeline</div>
-            <Link to="/workflow" className="footer-link">9-Step Workflow</Link>
-            <Link to="/security" className="footer-link">Security Architecture</Link>
-            <Link to="/research" className="footer-link">Research & Benchmarks</Link>
-            <Link to="/about" className="footer-link">Mission & Principles</Link>
+            <div className="footer-col-title">Architecture</div>
+            <Link to="/workflow" className="footer-link">Workflow</Link>
+            <Link to="/security" className="footer-link">Security</Link>
+            <Link to="/research" className="footer-link">Research</Link>
+            <Link to="/about" className="footer-link">About</Link>
           </div>
 
           <div className="footer-nav-col">
-            <div className="footer-col-title">Live Application</div>
-            <Link to="/analyze" className="footer-link">Telemetry Console</Link>
-            <Link to="/forecast" className="footer-link">Multi-Horizon Rollout</Link>
-            <Link to="/evidence" className="footer-link">Evidence & Drivers</Link>
-            <Link to="/demo" className="footer-link">Judge Demo Mode</Link>
+            <div className="footer-col-title">Console</div>
+            <Link to="/analyze" className="footer-link">Analyze PCAP</Link>
+            <Link to="/forecast" className="footer-link">Forecast Rollout</Link>
+            <Link to="/evidence" className="footer-link">Evidence Drivers</Link>
+            <Link to="/demo" className="footer-link">Evaluation Scenarios</Link>
           </div>
 
           <div className="footer-nav-col">
-            <div className="footer-col-title">Scientific Governance</div>
-            <span className="footer-meta-item">Contract: Canonical 45-Dim</span>
-            <span className="footer-meta-item">Rollout: T+1 to T+5</span>
-            <span className="footer-meta-item">Telemetry: Passive PCAP/PCAPNG</span>
-            <span className="footer-meta-item">Audit: SHA-256 Content Hash</span>
+            <div className="footer-col-title">Governance</div>
+            <span className="footer-meta-item">Canonical 45-Dim PCAP</span>
+            <span className="footer-meta-item">60s Discrete Windows</span>
+            <span className="footer-meta-item">Horizons T+1 to T+5</span>
+            <span className="footer-meta-item">SHA-256 Content Hash</span>
           </div>
         </div>
 
         <div className="footer-bottom-bar">
           <div className="footer-bottom-left">
-            © 2026 NexSolve Research. Built for Smart India Hackathon (Problem Statement 26153).
+            NexSolve Research. Problem Statement 26153.
           </div>
           <div className="footer-bottom-right">
-            <span className="provenance-pill reference-pill">AIR-GAPPED COMPATIBLE</span>
+            <span className="footer-meta-mono">AIR-GAPPED COMPATIBLE</span>
           </div>
         </div>
       </footer>

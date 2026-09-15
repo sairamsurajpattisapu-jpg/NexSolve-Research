@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Panel } from '../components/Ui'
 
 const PIPELINE_STEPS = [
   {
@@ -119,218 +118,208 @@ export function Landing() {
 
   return (
     <div className="page-stack page-enter landing-container">
-      {/* Hero Section */}
-      <section className="landing-hero">
-        <div className="landing-hero-content">
-          <span className="provenance-pill status-pill" style={{ alignSelf: 'flex-start' }}>
-            SIH PROBLEM STATEMENT 26153
-          </span>
+      {/* Hero Section — Spacious Editorial Hierarchy */}
+      <section className="landing-hero-editorial">
+        <div className="landing-meta-line">
+          <span>NETWORK SECURITY</span>
+          <span className="meta-sep">/</span>
+          <span>SIH PROBLEM STATEMENT 26153</span>
+        </div>
 
-          <h1 className="landing-title">
-            NEXSOLVE <span className="text-gradient">— Network Attack Forecasting</span>
-          </h1>
+        <h1 className="landing-editorial-title">
+          NEXSOLVE
+        </h1>
 
-          <p className="landing-lead">
-            Forecast how network attack-state behavior may evolve across multiple future horizons.
-          </p>
+        <div className="landing-editorial-subheading">
+          Network Attack Forecasting
+        </div>
 
-          <div className="landing-cta-row">
-            <Link to="/analyze" className="button landing-primary-btn">
-              Analyze PCAP
-            </Link>
-            <Link to="/workflow" className="button button-quiet landing-tour-btn">
-              Explore Workflow
-            </Link>
+        <p className="landing-editorial-lead">
+          Forecast how network attack-state behavior may evolve across multiple future horizons.
+          See where the network is heading — not just where it has been.
+        </p>
+
+        <div className="landing-editorial-cta-row">
+          <Link to="/analyze" className="button button-primary landing-main-cta">
+            Analyze PCAP
+          </Link>
+          <Link to="/workflow" className="button button-secondary landing-sub-cta">
+            Explore Workflow
+          </Link>
+        </div>
+
+        <div className="landing-contract-strip">
+          <div className="contract-item">
+            <span className="contract-label">CONTRACT</span>
+            <span className="contract-val">45 Canonical Features</span>
+          </div>
+          <div className="contract-divider" />
+          <div className="contract-item">
+            <span className="contract-label">EPOCH</span>
+            <span className="contract-val">60s Discrete Windows</span>
+          </div>
+          <div className="contract-divider" />
+          <div className="contract-item">
+            <span className="contract-label">HORIZONS</span>
+            <span className="contract-val">T+1 through T+5</span>
+          </div>
+          <div className="contract-divider" />
+          <div className="contract-item">
+            <span className="contract-label">TELEMETRY</span>
+            <span className="contract-val">Zero RTT Fabrication</span>
           </div>
         </div>
+      </section>
 
-        {/* Hero Interactive Engine Widget */}
-        <div className="landing-hero-widget">
-          <Panel className="engine-card">
-            <div className="engine-card-header">
-              <div className="engine-status-pulse">
-                <span className="status-dot status-success" />
-                <span className="engine-status-text">PIPELINE CORE ACTIVE</span>
-              </div>
-              <span className="engine-ver">45-FEATURE CANONICAL CONTRACT</span>
-            </div>
+      {/* Editorial Rule */}
+      <div className="editorial-hr" />
 
-            <div className="engine-flow-diagram" aria-label="Interactive pipeline stages">
-              <div className="flow-nodes-row">
-                <button
-                  type="button"
-                  className={`flow-node ${activeStep === 0 || activeStep === 1 ? 'active' : ''}`}
-                  onClick={() => setActiveStep(0)}
-                >
-                  <span>Packets</span>
-                </button>
-                <div className="flow-arrow">→</div>
-                <button
-                  type="button"
-                  className={`flow-node ${activeStep === 2 || activeStep === 3 ? 'active' : ''}`}
-                  onClick={() => setActiveStep(2)}
-                >
-                  <span>Windows</span>
-                </button>
-                <div className="flow-arrow">→</div>
-                <button
-                  type="button"
-                  className={`flow-node ${activeStep === 4 ? 'active' : ''}`}
-                  onClick={() => setActiveStep(4)}
-                >
-                  <span>Forecast</span>
-                </button>
-                <div className="flow-arrow">→</div>
-                <button
-                  type="button"
-                  className={`flow-node ${activeStep === 5 || activeStep === 6 ? 'active' : ''}`}
-                  onClick={() => setActiveStep(5)}
-                >
-                  <span>Horizon</span>
-                </button>
-              </div>
-
-              <div className="engine-preview-box">
-                <div className="preview-eyebrow">STAGE {currentStep.step} / 08 · {currentStep.eyebrow}</div>
-                <h4 className="preview-title">{currentStep.title}</h4>
-                <p className="preview-desc">{currentStep.description}</p>
-              </div>
-
-              <div className="engine-card-footer">
-                <div className="engine-stat">
-                  <span className="engine-stat-label">Temporal Window</span>
-                  <span className="engine-stat-val">60s Discrete</span>
-                </div>
-                <div className="engine-stat">
-                  <span className="engine-stat-label">Model Contract</span>
-                  <span className="engine-stat-val">45 Features</span>
-                </div>
-                <div className="engine-stat">
-                  <span className="engine-stat-label">Forecast Horizons</span>
-                  <span className="engine-stat-val">T+1 .. T+5</span>
-                </div>
-              </div>
-            </div>
-          </Panel>
+      {/* What NexSolve Does — Architectural Columns */}
+      <section className="landing-statement-section">
+        <div className="statement-col-header">
+          <span className="editorial-eyebrow">PREDICTIVE WORLD MODEL</span>
+          <h2 className="editorial-h2">Anticipating threat progression before physical breach onset.</h2>
+        </div>
+        <div className="statement-col-body">
+          <p>
+            Standard intrusion detection systems operate retrospectively after packets have delivered exploits.
+            NexSolve learns the temporal dynamics of network traffic to project future attack state transitions
+            with verifiable statistical governance.
+          </p>
         </div>
       </section>
 
-      {/* Scientific Principles & Guarantees */}
-      <section className="landing-principles">
-        <div className="section-title-wrap">
-          <span className="eyebrow" style={{ color: 'var(--accent)' }}>SCIENTIFIC INTEGRITY</span>
-          <h2>Built for Defensive Security Operations</h2>
-          <p>Adheres to verifiable statistical contracts and transparent defense principles.</p>
+      {/* Scientific Principles — Editorial Wireframe Columns */}
+      <section className="landing-principles-editorial">
+        <div className="principles-header">
+          <span className="editorial-eyebrow">SCIENTIFIC INTEGRITY</span>
+          <h2 className="editorial-h2">Defensive Security Guarantees</h2>
         </div>
 
-        <div className="principles-grid">
-          <Panel className="principle-card">
-            <h3>Zero-Fabrication Contract</h3>
-            <p>
-              Eliminates <code>mean_tcp_rtt</code> from the PCAP model schema, strictly refusing to zero-fill or fabricate missing physical metrics.
+        <div className="editorial-tri-grid">
+          <div className="editorial-tri-col">
+            <span className="col-index">01</span>
+            <h3 className="col-title">Zero-Fabrication Contract</h3>
+            <p className="col-text">
+              Eliminates <code>mean_tcp_rtt</code> from the canonical model schema, strictly refusing to synthesize unobservable passive metrics.
             </p>
-          </Panel>
+          </div>
 
-          <Panel className="principle-card">
-            <h3>Persistence Champion Baseline</h3>
-            <p>
-              All ML candidates must empirically outperform a strict temporal Persistence baseline without data leakage.
+          <div className="editorial-tri-col">
+            <span className="col-index">02</span>
+            <h3 className="col-title">Persistence Champion Baseline</h3>
+            <p className="col-text">
+              All forecasting candidates must empirically outperform a strict temporal Persistence baseline without data leakage.
             </p>
-          </Panel>
+          </div>
 
-          <Panel className="principle-card">
-            <h3>Calibrated Forecast Abstention</h3>
-            <p>
-              If a capture has fewer than 8 temporal windows (&lt; 8 minutes of history), NexSolve explicitly withholds its forecast.
+          <div className="editorial-tri-col">
+            <span className="col-index">03</span>
+            <h3 className="col-title">Calibrated Forecast Abstention</h3>
+            <p className="col-text">
+              Explicitly withholds forecasting output when capture history contains fewer than 8 temporal windows or degraded fidelity.
             </p>
-          </Panel>
+          </div>
         </div>
       </section>
 
-      {/* 8-Stage Interactive Product Tour */}
-      <section id="pipeline-tour" className="landing-pipeline-section">
-        <div className="section-title-wrap">
-          <span className="eyebrow" style={{ color: 'var(--accent)' }}>PIPELINE ARCHITECTURE</span>
-          <h2>8-Stage Processing Pipeline</h2>
-          <p>How NexSolve processes raw network traffic from the wire to multi-horizon forecasts.</p>
+      {/* Editorial Rule */}
+      <div className="editorial-hr" />
+
+      {/* 8-Stage Processing Pipeline Tour */}
+      <section id="pipeline-tour" className="landing-pipeline-editorial">
+        <div className="pipeline-header-editorial">
+          <span className="editorial-eyebrow">PIPELINE ARCHITECTURE</span>
+          <h2 className="editorial-h2">8-Stage Processing Pipeline</h2>
         </div>
 
-        <div className="pipeline-tour-grid">
-          <div className="tour-nav-list" role="tablist">
+        <div className="pipeline-editorial-layout">
+          {/* Timeline navigation */}
+          <div className="pipeline-editorial-list" role="tablist">
             {PIPELINE_STEPS.map((s, idx) => (
               <button
                 key={s.id}
                 type="button"
                 role="tab"
                 aria-selected={activeStep === idx}
-                className={`tour-nav-item ${activeStep === idx ? 'active' : ''}`}
+                className={`pipeline-nav-row ${activeStep === idx ? 'active' : ''}`}
                 onClick={() => setActiveStep(idx)}
               >
-                <span className="tour-step-num">{s.step}</span>
-                <div className="tour-nav-text">
-                  <strong>{s.title}</strong>
-                </div>
+                <span className="pipeline-num">{s.step}</span>
+                <span className="pipeline-title">{s.title}</span>
               </button>
             ))}
           </div>
 
-          <div className="tour-detail-card">
-            <Panel>
-              <div className="tour-detail-header">
-                <span className="eyebrow" style={{ color: 'var(--accent)' }}>
-                  STAGE {currentStep.step} OF 08 · {currentStep.eyebrow}
-                </span>
-                <h3>{currentStep.title}</h3>
-              </div>
+          {/* Stage detail pane */}
+          <div className="pipeline-editorial-detail">
+            <div className="detail-meta">
+              STAGE {currentStep.step} OF 08 · {currentStep.eyebrow}
+            </div>
+            <h3 className="detail-title">{currentStep.title}</h3>
+            <p className="detail-desc">{currentStep.description}</p>
 
-              <p className="tour-detail-body">{currentStep.description}</p>
+            <div className="detail-tech">
+              <span className="tech-label">MECHANISMS:</span>
+              <span className="tech-body">{currentStep.tech}</span>
+            </div>
 
-              <div className="tour-tech-callout">
-                <span className="eyebrow">MECHANISMS</span>
-                <p>{currentStep.tech}</p>
-              </div>
-
-              <div className="tour-actions-row">
-                <button
-                  type="button"
-                  className="button button-quiet"
-                  disabled={activeStep === 0}
-                  onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
-                >
-                  Previous Stage
-                </button>
-                <button
-                  type="button"
-                  className="button"
-                  disabled={activeStep === PIPELINE_STEPS.length - 1}
-                  onClick={() => setActiveStep(Math.min(PIPELINE_STEPS.length - 1, activeStep + 1))}
-                >
-                  Next Stage
-                </button>
-              </div>
-            </Panel>
+            <div className="detail-actions">
+              <button
+                type="button"
+                className="button button-secondary"
+                disabled={activeStep === 0}
+                onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
+              >
+                Previous Stage
+              </button>
+              <button
+                type="button"
+                className="button button-primary"
+                disabled={activeStep === PIPELINE_STEPS.length - 1}
+                onClick={() => setActiveStep(Math.min(PIPELINE_STEPS.length - 1, activeStep + 1))}
+              >
+                Next Stage
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* FAQ Accordion Section */}
-      <section className="faq-section" style={{ marginTop: '24px' }}>
-        <div className="section-title-wrap">
-          <span className="eyebrow" style={{ color: 'var(--accent)' }}>FREQUENTLY ASKED QUESTIONS</span>
-          <h2>System Operations & Methodology</h2>
+      {/* Editorial Rule */}
+      <div className="editorial-hr" />
+
+      {/* FAQ Accordion Section — Bottom of Page */}
+      <section className="faq-editorial-section">
+        <div className="faq-header-editorial">
+          <span className="editorial-eyebrow">FREQUENTLY ASKED QUESTIONS</span>
+          <h2 className="editorial-h2">System Operations & Methodology</h2>
         </div>
 
-        <div className="faq-accordion" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>
+        <div className="faq-editorial-list">
           {faqs.map((faq, idx) => {
             const isOpen = openFaq === idx
             return (
-              <div key={idx} className="panel" style={{ padding: '16px 20px', cursor: 'pointer' }} onClick={() => setOpenFaq(isOpen ? null : idx)}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{faq.q}</h4>
-                  <span style={{ fontFamily: 'var(--mono)', fontSize: '14px', color: 'var(--text-muted)' }}>{isOpen ? '-' : '+'}</span>
+              <div
+                key={idx}
+                className="faq-editorial-item"
+                onClick={() => setOpenFaq(isOpen ? null : idx)}
+                tabIndex={0}
+                role="button"
+                aria-expanded={isOpen}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setOpenFaq(isOpen ? null : idx)
+                  }
+                }}
+              >
+                <div className="faq-editorial-question-row">
+                  <h4 className="faq-editorial-q">{faq.q}</h4>
+                  <span className="faq-editorial-toggle">{isOpen ? '—' : '+'}</span>
                 </div>
                 {isOpen && (
-                  <p style={{ marginTop: '10px', fontSize: '13px', lineHeight: '1.55', color: 'var(--text-secondary)', marginBottom: 0 }}>
+                  <p className="faq-editorial-a">
                     {faq.a}
                   </p>
                 )}
@@ -340,28 +329,25 @@ export function Landing() {
         </div>
       </section>
 
-      {/* SIH Judge Callout */}
-      <section className="judge-callout-section">
-        <Panel className="judge-banner">
-          <div className="judge-banner-content">
-            <span className="eyebrow" style={{ color: 'var(--accent)', margin: 0 }}>
-              SIH JURY QUICK START
-            </span>
-            <h2>Evaluate NexSolve Scenarios</h2>
+      {/* SIH Jury Evaluation Footer Callout */}
+      <section className="jury-strip-editorial">
+        <div className="jury-strip-inner">
+          <div className="jury-strip-text">
+            <span className="editorial-eyebrow">SIH JURY EVALUATION</span>
+            <h3>Evaluate Pre-Computed Scenarios</h3>
             <p>
-              Explore pre-computed deterministic evaluation scenarios covering normal traffic baselines, early attack signals,
-              sustained attack forecasts, and abstention guardrails.
+              Inspect deterministic benchmarks covering normal telemetry baselines, early signals, sustained horizons, and abstention guardrails.
             </p>
-            <div className="judge-actions">
-              <Link to="/demo" className="button">
-                Open Judge Demo
-              </Link>
-              <Link to="/analyze" className="button button-quiet">
-                Inspect Real PCAP Pipeline
-              </Link>
-            </div>
           </div>
-        </Panel>
+          <div className="jury-strip-actions">
+            <Link to="/demo" className="button button-primary">
+              Open Judge Demo
+            </Link>
+            <Link to="/analyze" className="button button-secondary">
+              Inspect PCAP Pipeline
+            </Link>
+          </div>
+        </div>
       </section>
     </div>
   )

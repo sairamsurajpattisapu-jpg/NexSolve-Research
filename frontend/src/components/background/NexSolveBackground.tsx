@@ -15,27 +15,27 @@ import { useTheme } from '../../hooks/useTheme'
 
 /* ── Configuration ───────────────────────────────────────────────────────── */
 
-const DOT_SPACING = 28           // px between grid centres
-const DOT_RADIUS = 1.2           // base radius
-const SIZE_VARIATION = 0.4       // ± random variation on radius
-const MAX_OPACITY = 0.35         // peak dot opacity (dark theme)
-const MAX_OPACITY_LIGHT = 0.18   // peak dot opacity (light theme)
-const TWINKLE_SPEED = 0.0008     // radians per ms — very slow pulse
-const JITTER = 1.2               // max px random offset from grid
+const DOT_SPACING = 36           // px between grid centres
+const DOT_RADIUS = 0.9           // base radius
+const SIZE_VARIATION = 0.2       // ± random variation on radius
+const MAX_OPACITY = 0.14         // peak dot opacity (dark theme, ultra subtle)
+const MAX_OPACITY_LIGHT = 0.08   // peak dot opacity (light theme)
+const TWINKLE_SPEED = 0.0004     // radians per ms — very calm, slow pulse
+const JITTER = 0.8               // max px random offset from grid
 const PHASE_SPREAD = Math.PI * 2 // full‑circle phase randomisation
-const VIGNETTE_STRENGTH = 0.55   // how aggressively edges fade out
+const VIGNETTE_STRENGTH = 0.7    // how aggressively edges fade out
 
-/* NexSolve colour tokens (teal / cyan / electric‑blue family) */
+/* Monochrome editorial palette (no cyan/teal/blue/purple) */
 const DOT_COLORS_DARK = [
-  { r: 104, g: 225, b: 216 },   // --accent  #68e1d8
-  { r: 56,  g: 189, b: 210 },   // electric cyan
-  { r: 72,  g: 160, b: 220 },   // electric blue
+  { r: 255, g: 255, b: 255 },   // pure white
+  { r: 220, g: 220, b: 220 },   // light gray
+  { r: 160, g: 160, b: 160 },   // medium gray
 ]
 
 const DOT_COLORS_LIGHT = [
-  { r: 14,  g: 135, b: 128 },   // --accent  #0e8780
-  { r: 10,  g: 120, b: 140 },   // deeper teal
-  { r: 30,  g: 110, b: 160 },   // muted blue
+  { r: 40,  g: 40,  b: 40  },   // dark neutral
+  { r: 80,  g: 80,  b: 80  },   // mid neutral
+  { r: 120, g: 120, b: 120 },   // light neutral
 ]
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
