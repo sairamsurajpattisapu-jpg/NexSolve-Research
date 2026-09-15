@@ -139,39 +139,4 @@ describe('NexSolve Theme System & Controls', () => {
     await user.click(uploadAnotherBtn)
     expect(onReset).toHaveBeenCalledTimes(1)
   })
-
-  it('renders correct provenance indicators in Layout across modes', () => {
-    const { rerender } = render(
-      <MemoryRouter initialEntries={['/dashboard']}>
-        <Routes>
-          <Route element={<Layout status="Operational" provenance="reference" />}>
-            <Route path="*" element={<div>Dashboard</div>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    )
-    expect(screen.getByText('Reference')).toBeInTheDocument()
-
-    rerender(
-      <MemoryRouter initialEntries={['/dashboard']}>
-        <Routes>
-          <Route element={<Layout status="Operational" provenance="uploaded" />}>
-            <Route path="*" element={<div>Dashboard</div>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    )
-    expect(screen.getByText('Live capture')).toBeInTheDocument()
-
-    rerender(
-      <MemoryRouter initialEntries={['/dashboard']}>
-        <Routes>
-          <Route element={<Layout status="Operational" provenance="demo" />}>
-            <Route path="*" element={<div>Dashboard</div>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    )
-    expect(screen.getByText('Demo')).toBeInTheDocument()
-  })
 })

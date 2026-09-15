@@ -65,6 +65,7 @@ export interface TrafficSummary {
   retransmissions: number
   fragmented_packets: number
   flows?: number
+  duration_seconds?: number
   protocol_counts: Record<string, number>
   windows_data?: WindowRow[]
 }
@@ -1484,4 +1485,177 @@ export interface NetworkWorldStatePayload {
     chains: number
   }
   temporal_world_state?: TemporalNetworkWorldStatePayload | null
+}
+
+// Model Artifact Metadata & Scientific Governance Types
+export interface ModelInfoPayload {
+  status: string
+  model_name: string
+  version: string
+  feature_version: string
+  feature_count: number
+  canonical_features: string[]
+  champion_baseline: {
+    name: string
+    formula: string
+    status: string
+    rationale: string
+  }
+  research_candidate: {
+    name: string
+    architecture: string
+    status: string
+    rationale: string
+  }
+  temporal_parameters: {
+    window_duration_seconds: number
+    lookback_windows: number
+    lookback_seconds: number
+    forecast_horizons: number[]
+    max_horizon_seconds: number
+  }
+  datasets: {
+    primary_benchmark: string
+    cross_domain_evaluation: string
+    rtt_policy: string
+  }
+  governance: {
+    leakage_prevention: string
+    zero_fabrication: string
+  }
+}
+
+// Scientific Evaluation & Benchmark Types
+export interface ModelBenchmarkScore {
+  precision: number
+  recall: number
+  f1: number
+  fpr: number
+  balanced_accuracy: number
+  roc_auc: number | string
+  pr_auc: number | string
+}
+
+export interface EvaluationMetricsPayload {
+  status: string
+  dataset: string
+  feature_contract: string
+  evaluation_protocol: string
+  model_comparison: Record<string, ModelBenchmarkScore>
+  rollout_progression: {
+    horizons?: Array<{
+      horizon: number
+      lookahead_seconds: number
+      mean_squared_error: number
+      mean_absolute_error: number
+      brier_score?: number
+    }>
+    [key: string]: unknown
+  }
+  calibration: {
+    brier_score?: number
+    expected_calibration_error?: number
+    reliability_bins?: Array<{
+      bin_range: [number, number]
+      mean_predicted_prob: number
+      empirical_frequency: number
+      sample_count: number
+    }>
+    [key: string]: unknown
+  }
+  unseen_attack_generalization: {
+    unseen_attack_recall: number
+    unseen_attack_precision: number
+    unseen_attack_f1: number
+    mean_state_transition_mse: number
+  }
+  forecast_lead_time: {
+    median_lead_time_seconds: number
+    median_lead_time_minutes: number
+    mean_lead_time_seconds: number
+    mean_lead_time_minutes: number
+    min_lead_time_seconds: number
+    max_lead_time_seconds: number
+    percentile_25_seconds: number
+    percentile_75_seconds: number
+    sample_episodes: number
+    definition: string
+  }
+  scientific_integrity_note: string
+}
+
+// What-If Defence Simulator Types
+export interface SimulationInterventionPayload {
+  type: 'isolate_host' | 'block_port' | 'rate_limit' | 'contain_ip'
+  target: string
+  intensity: number
+}
+
+export interface SimulationRequestPayload {
+  analysis_id?: string
+  interventions: SimulationInterventionPayload[]
+}
+
+export interface SimulationTrajectoryPoint {
+  horizon: number
+  lookaheadSeconds: number
+  attackProbability: number
+  cumulativeRisk: number
+}
+
+export interface SimulationResponsePayload {
+  status: string
+  mode: string
+  analysis_id: string
+  interventions_count: number
+  applied_interventions: Array<{
+    action: string
+    feature_impact: string
+    dampening_factor: number
+  }>
+  baseline_trajectory: SimulationTrajectoryPoint[]
+  counterfactual_trajectory: SimulationTrajectoryPoint[]
+  risk_reduction_pct: number
+  label: string
+  disclaimer: string
+}
+
+// Attack Replay Player Types
+export interface ReplayScenarioSummaryPayload {
+  id: string
+  name: string
+  threat_family: string
+  capture_duration_seconds: number
+  window_count: number
+  forecast_trigger_window: number
+  lead_time_seconds: number
+  description: string
+}
+
+export interface ReplayFramePayload {
+  window_index: number
+  time_offset_seconds: number
+  timestamp?: number
+  timestamp_label: string
+  phase: 'OBSERVED' | 'FORECAST' | string
+  state_name: string
+  packet_count: number
+  flow_count: number
+  byte_volume: number
+  active_ports: number
+  attack_probability: number
+  cumulative_risk: number
+  is_forecast_trigger: boolean
+  events: string[]
+}
+
+export interface ReplayStreamPayload {
+  status: string
+  scenario_id: string
+  total_frames: number
+  window_duration_seconds: number
+  forecast_trigger_index: number
+  escalation_index: number
+  lead_time_seconds: number
+  frames: ReplayFramePayload[]
 }

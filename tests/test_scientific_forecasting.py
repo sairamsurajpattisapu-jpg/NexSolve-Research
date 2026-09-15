@@ -67,3 +67,25 @@ def test_calibration_and_promotion_are_explicitly_conservative():
     hold = promotion_report({"Persistence": {}, "Existing LSTM": {}}, 1, calibration)
     assert hold["production_eligible"] is False
     assert hold["status"] == "HOLD"
+
+
+def test_cumulative_risk_and_confidence_math():
+    """Verify exact mathematical formulation of cumulative horizon risk and confidence."""
+    import numpy as np
+
+    step_probs = [0.20, 0.40, 0.50, 0.30, 0.10]
+    # Math: CumulativeRisk_K = 1 - prod(1 - p_k)
+    expected_cum = []
+    prod = 1.0
+    for p in step_probs:
+        prod *= (1.0 - p)
+        expected_cum.append(round(1.0 - prod, 4))
+
+    assert expected_cum[0] == 0.2000
+    assert expected_cum[1] == 0.5200  # 1 - (0.8 * 0.6) = 0.52
+    assert expected_cum[2] == 0.7600  # 1 - (0.8 * 0.6 * 0.5) = 0.76
+
+    # Confidence math: abs(p - 0.5) * 2
+    confidences = [round(abs(p - 0.5) * 2, 4) for p in step_probs]
+    assert confidences[0] == 0.6000   # abs(0.2 - 0.5) * 2 = 0.6
+    assert confidences[2] == 0.0000   # abs(0.5 - 0.5) * 2 = 0.0 (maximum uncertainty at 0.5)

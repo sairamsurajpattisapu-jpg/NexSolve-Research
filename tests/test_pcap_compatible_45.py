@@ -104,3 +104,62 @@ def test_real_friday_slice_pcap_end_to_end():
     ec = res["evidence_chain"]
     assert len(ec["supporting"]) > 0 or len(ec["contradictory"]) > 0
 
+
+def test_insufficient_history_abstention():
+    """Verify captures with fewer than 8 windows trigger explicit forecast abstention without generating predictions."""
+    base_epoch = 1700000000.0
+    packets = []
+    # Generate only 5 windows (less than 8 requirement)
+    for w in range(5):
+        for p in range(2):
+            pkt = Ether(src="00:11:22:33:44:55", dst="66:77:88:99:aa:bb") / IP(src="10.0.1.1", dst="10.0.2.1") / TCP(sport=5000 + w, dport=80, flags="S")
+            pkt.time = base_epoch + w * 60.0 + p * 1.0
+            packets.append(pkt)
+
+    with tempfile.NamedTemporaryFile(suffix=".pcap", delete=False) as tf:
+        temp_path = Path(tf.name)
+    try:
+        wrpcap(str(temp_path), packets)
+        content = temp_path.read_bytes()
+        res = analyze_uploaded_capture("short_5win.pcap", content)
+
+        assert res["model_compatibility"]["model_ready"] is False
+        assert "minimum 8 windows required" in res["model_compatibility"]["reason"].lower() or "insufficient" in res["model_compatibility"]["reason"].lower()
+
+        for pt in res["forecasts"]:
+            assert pt["attackProbability"] is None
+            assert pt["predictedStage"] is None
+            assert "Forecast abstained" in pt["explanation"][0]
+    finally:
+        temp_path.unlink(missing_ok=True)
+
+
+def test_model_boundary_strict_45_shape():
+    """Verify candidate state encoding produces exact 45-dimensional vectors for model input."""
+    base_epoch = 1700000000.0
+    packets = []
+    for w in range(8):
+        for p in range(2):
+            pkt1 = Ether(src="00:11:22:33:44:55", dst="66:77:88:99:aa:bb") / IP(src="10.0.1.1", dst="10.0.2.1") / TCP(sport=5000 + w, dport=80, flags="S", window=64240) / b"data"
+            pkt1.time = base_epoch + w * 60.0 + p * 1.0
+            packets.append(pkt1)
+            pkt2 = Ether(src="66:77:88:99:aa:bb", dst="00:11:22:33:44:55") / IP(src="10.0.2.1", dst="10.0.1.1") / TCP(sport=80, dport=5000 + w, flags="SA", window=32768) / b"resp"
+            pkt2.time = base_epoch + w * 60.0 + p * 1.0 + 0.05
+            packets.append(pkt2)
+
+    with tempfile.NamedTemporaryFile(suffix=".pcap", delete=False) as tf:
+        temp_path = Path(tf.name)
+    try:
+        wrpcap(str(temp_path), packets)
+        _pkts, windows, _quality = extract_canonical_capture(temp_path, window_seconds=60)
+        candidates = build_network_state_candidates(windows, MODEL_SCHEMA_45)
+        history = build_state_history(candidates)
+        states = candidates_to_network_states(candidates, MODEL_SCHEMA_45, history.status)
+
+        for s in states:
+            vec = s.encode_45()
+            assert vec.shape == (45,)
+            assert vec.dtype == float or vec.dtype.kind == 'f'
+    finally:
+        temp_path.unlink(missing_ok=True)
+

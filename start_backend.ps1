@@ -10,6 +10,6 @@ if (-not (Test-Path $VenvPython)) {
     $VenvPython = "python"
 }
 
-Write-Host "[+] Launching FastAPI backend on http://127.0.0.1:8000 ..." -ForegroundColor Green
-& $VenvPython -m uvicorn model_service.main:app --host 127.0.0.1 --port 8000 --reload
+Write-Host "[+] Launching FastAPI backend on http://127.0.0.1:8001 ..." -ForegroundColor Green
+& $VenvPython -m uvicorn model_service.app:app --host 127.0.0.1 --port 8001 --reload
 

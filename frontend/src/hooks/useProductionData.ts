@@ -25,6 +25,7 @@ export function useProductionData() {
     clearUploadedAnalysis,
     setUploadedAnalysis,
     analysisId: dynamicAnalysisId,
+    apiConnected: snapshot.apiConnected,
     provenance: snapshot.provenance,
     isReferenceDataset: snapshot.provenance === 'reference',
     isLiveCapture: snapshot.provenance === 'uploaded',

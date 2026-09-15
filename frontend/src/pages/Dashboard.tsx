@@ -1,13 +1,16 @@
 import { useState, type DragEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   ArrowUpRight,
   FileUp,
   Gauge,
   Radio,
   ShieldAlert,
+  Sparkles,
   TimerReset,
 } from 'lucide-react'
 import { ActivityChart, ProtocolBars } from '../components/Charts'
+import { CsvRequirementsModal } from '../components/CsvRequirementsModal'
 import { JobProgress } from '../components/JobProgress'
 import { JobResult } from '../components/JobResult'
 import { ErrorState, LoadingState, MetricCard, Panel, SectionHeading } from '../components/Ui'
@@ -17,16 +20,19 @@ import type { JobStatusResponse, UploadedAnalysisResponse } from '../types/api'
 import { formatNumber } from '../utils/format'
 
 export function Dashboard() {
-  const { data, loading, error, reload, analyzePcap, clearUploadedAnalysis, setUploadedAnalysis, analysisSource, uploadError } = useProductionData()
+  const navigate = useNavigate()
+  const { data, loading, error, reload, analyzePcap, clearUploadedAnalysis, analysisSource, uploadError } = useProductionData()
   const [file, setFile] = useState<File | null>(null)
-  const [uploading, setUploading] = useState(false)
+  const [uploading, setUploading] = useState<boolean>(false)
   const [selectionError, setSelectionError] = useState<string | null>(null)
   const [activeJob, setActiveJob] = useState<JobStatusResponse | null>(null)
   const [jobResult, setJobResult] = useState<UploadedAnalysisResponse | null>(null)
   const [isDragging, setIsDragging] = useState<boolean>(false)
+  const [showCsvModal, setShowCsvModal] = useState<boolean>(false)
 
-  if (loading && !data) return <LoadingState />
+  if (loading && !data) return <LoadingState message="Loading production analysis" />
   if (error || !data) return <ErrorState message={error ?? 'No analysis has been loaded.'} onRetry={() => void reload()} />
+
   const { traffic, detection } = data.results
   const windows = traffic.windows_data ?? []
   const effectiveResult = jobResult ?? (analysisSource === 'uploaded' ? (data.results as unknown as UploadedAnalysisResponse) : null)
@@ -36,9 +42,11 @@ export function Dashboard() {
       setFile(null)
       return
     }
-    const ext = selected.name.slice(selected.name.lastIndexOf('.')).toLowerCase()
-    const supported = ['.pcap', '.pcapng'].includes(ext)
-    if (!supported) {
+    const name = selected.name.toLowerCase()
+    const isPcap = name.endsWith('.pcap') || name.endsWith('.pcapng')
+    const isCsv = name.endsWith('.csv')
+
+    if (!isPcap && !isCsv) {
       setSelectionError('Choose a .pcap or .pcapng capture.')
       setFile(null)
     } else {
@@ -53,26 +61,26 @@ export function Dashboard() {
     setSelectionError(null)
 
     try {
-      // Initiate async processing job
+      // Initiate asynchronous processing job
       const job = await api.createJob(file)
       setActiveJob(job)
-      let cur = job
-      while (cur.status === 'QUEUED' || cur.status === 'PROCESSING') {
-        await new Promise((r) => setTimeout(r, 300))
-        cur = await api.getJobStatus(job.job_id)
-        setActiveJob(cur)
-      }
-      if (cur.status === 'COMPLETED') {
-        const res = await api.getJobResult(cur.job_id)
-        setJobResult(res)
-        await setUploadedAnalysis(res)
-      }
+      setFile(null)
+      // Navigate to dedicated forecast rollout route with the created job ID
+      navigate(`/console/forecast/${job.job_id}`)
     } catch {
-      // Graceful fallback to legacy synchronous upload
-      await analyzePcap(file)
+      // Fallback to synchronous analysis if job manager is bypassed
+      try {
+        await analyzePcap(file)
+        setFile(null)
+      } catch (err: unknown) {
+        setSelectionError(
+          err instanceof Error
+            ? err.message
+            : 'Unable to start analysis. The analysis service is currently unavailable. Please retry when ready.'
+        )
+      }
     } finally {
       setUploading(false)
-      setFile(null)
     }
   }
 
@@ -82,8 +90,10 @@ export function Dashboard() {
     void clearUploadedAnalysis()
   }
 
+  const isCsv = file?.name.toLowerCase().endsWith('.csv')
+
   return (
-    <div className="page-stack page-enter">
+    <div className="page-stack page-enter" style={{ maxWidth: '1080px', margin: '0 auto', width: '100%' }}>
       {!effectiveResult && (
         <SectionHeading
           eyebrow="NETWORK ATTACK FORECASTING"
@@ -91,7 +101,20 @@ export function Dashboard() {
           description="Upload a PCAP and NexSolve will reconstruct the traffic, assess the current state, and forecast what may happen next."
           action={
             <div className="heading-actions">
-              <button className="button button-quiet" onClick={() => void reload()} aria-label="Refresh data">
+              <button
+                type="button"
+                className="button button-quiet"
+                onClick={() => navigate('/console/demo')}
+                style={{ fontSize: '12px' }}
+              >
+                <Sparkles size={14} color="var(--accent)" /> Launch SIH Demo
+              </button>
+              <button
+                type="button"
+                className="button button-quiet"
+                onClick={() => void reload()}
+                aria-label="Refresh data"
+              >
                 <TimerReset size={14} /> Refresh
               </button>
             </div>
@@ -99,7 +122,7 @@ export function Dashboard() {
         />
       )}
 
-      {/* 1. HERO PCAP Upload Panel (Primary Hero Workflow when no active result) */}
+      {/* 1. PCAP / PCAPNG / CSV Upload Hero Box */}
       {!effectiveResult && !activeJob && (
         <Panel
           className={`capture-upload ${isDragging ? 'drag-over' : ''}`}
@@ -129,7 +152,15 @@ export function Dashboard() {
           }}
         >
           <div style={{ maxWidth: '540px' }}>
-            <div style={{ display: 'inline-flex', padding: '10px', borderRadius: '50%', background: 'var(--button-secondary-bg)', marginBottom: '8px' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                padding: '10px',
+                borderRadius: '50%',
+                background: 'var(--button-secondary-bg)',
+                marginBottom: '8px',
+              }}
+            >
               <FileUp size={24} color="var(--accent)" />
             </div>
             <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '4px 0 6px 0', color: 'var(--text-primary)' }}>
@@ -139,9 +170,42 @@ export function Dashboard() {
               Reconstructs 5-tuple flows, computes 60s temporal windows, and rolls out attack horizon projections.
             </p>
             <small style={{ display: 'block', marginTop: '8px', fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
-              Supported: .pcap, .pcapng &middot; Maximum size: 64 MB
+              Supported: .pcap, .pcapng, .csv &middot; Maximum size: 64 MB
             </small>
           </div>
+
+          {/* Selected File Details */}
+          {file && (
+            <div
+              style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: '6px',
+                padding: '12px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '16px',
+              }}
+            >
+              <div style={{ textAlign: 'left' }}>
+                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>INPUT PREVIEW</span>
+                <strong style={{ display: 'block', fontSize: '13.5px', color: 'var(--text-primary)' }}>{file.name}</strong>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--accent)' }}>
+                  {isCsv ? 'CSV Telemetry' : 'PCAP Network Capture'} &middot; {(file.size / 1024 / 1024).toFixed(2)} MB
+                </span>
+              </div>
+              {isCsv && (
+                <button
+                  type="button"
+                  className="button button-quiet"
+                  onClick={() => setShowCsvModal(true)}
+                  style={{ fontSize: '11px', height: '26px' }}
+                >
+                  CSV Specs
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="capture-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '4px' }}>
             <label className="button button-quiet" style={{ cursor: 'pointer' }}>
@@ -179,7 +243,7 @@ export function Dashboard() {
         </Panel>
       )}
 
-      {/* 2. Active Asynchronous Job Progress */}
+      {/* 2. Active Job Progress */}
       {activeJob && !jobResult && (
         <JobProgress job={activeJob} onCancel={resetJobView} />
       )}
@@ -220,7 +284,7 @@ export function Dashboard() {
         <JobResult result={effectiveResult} onReset={resetJobView} />
       )}
 
-      {/* 4. Production Reference Benchmark Panels (Clearly separated at the bottom when no PCAP analyzed) */}
+      {/* 4. Production Reference Benchmark Panels when no live PCAP is active */}
       {!effectiveResult && (
         <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border)' }}>
           <div className="provenance-banner reference-mode" data-testid="provenance-banner-reference" style={{ marginBottom: '16px' }}>
@@ -292,6 +356,11 @@ export function Dashboard() {
           </div>
         </div>
       )}
+
+      <CsvRequirementsModal
+        isOpen={showCsvModal}
+        onClose={() => setShowCsvModal(false)}
+      />
     </div>
   )
 }

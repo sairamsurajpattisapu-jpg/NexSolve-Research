@@ -203,29 +203,96 @@ When capture quality is degraded or historical temporal context is insufficient,
 
 ---
 
+## Complete End-to-End Product Workflow
+
+NexSolve provides a unified, continuous analyst workflow from raw ingestion to forensic export:
+
+```text
+OPEN NEXSOLVE (http://localhost:5173)
+       │
+       ▼
+LAUNCH CONSOLE (/console/analyze)
+       │
+       ▼
+UPLOAD DATA (.pcap / .pcapng / .csv)
+       │
+       ▼
+ANALYZE & PROCESS (8-Stage Real-Time Execution Tracking)
+       │
+       ▼
+FORECAST (Multi-Horizon Rollout T+1 .. T+5 with Distinct Step vs Cumulative Risk)
+       │
+       ▼
+EXPLAIN (Counterfactual Perturbation Feature Influence & Top Drivers)
+       │
+       ▼
+SHOW ATTACK PROGRESSION (Empirical Markovian Behavioral Stage Transitions)
+       │
+       ▼
+SHOW MITRE INTERPRETATION (Behavioral ATT&CK Discovery & Exploitation Mapping)
+       │
+       ▼
+SHOW EVIDENCE (Supporting vs Contradictory Indicators & Quality Constraints)
+       │
+       ▼
+EXPORT RESULT (Cryptographic JSON Forensic Payload & Standalone HTML Audit Report)
+```
+
+---
+
 ## Installation & Quick Start
 
-Get NexSolve running locally with one unified command or modular scripts.
-
 ### Prerequisites
-- Python 3.10+ (Tested on Python 3.11 - 3.14)
-- Node.js 18+ and npm
-- Windows PowerShell / Linux bash
+- **Python 3.10+** (Tested on Python 3.11 – 3.14) with virtual environment at `.venv`
+- **Node.js 18+** and **npm**
+- **Windows PowerShell** / **Linux bash**
 
-### One-Command Unified Startup (Recommended)
+### 1. One-Command Full Stack Launcher (PowerShell)
 ```powershell
-# In root directory: launches backend, frontend, and opens browser to SIH Demo
-python scripts/start_demo.py
+# In root directory: launches FastAPI backend (8001) and Vite console (5173)
+.\start-dev.ps1
 ```
+*(Optionally pass `-BackendOnly` or `-FrontendOnly` to isolate services).*
 
-### Modular Startup (PowerShell)
+### 2. Modular Service Startup
 ```powershell
-# Terminal 1 - Backend FastAPI Service (http://127.0.0.1:8000)
+# Terminal 1 - Backend FastAPI Service (http://127.0.0.1:8001)
 .\start_backend.ps1
 
-# Terminal 2 - Frontend SOC Command Center (http://localhost:5173)
+# Terminal 2 - Frontend Forecast Console (http://localhost:5173)
 .\start_frontend.ps1
 ```
+
+---
+
+## Running Real PCAP & CSV Analysis
+
+1. Open the console at `http://localhost:5173/console/analyze` (or click **Analyze** in the top navigation).
+2. Drag and drop any `.pcap`, `.pcapng`, or 60-second windowed `.csv` file (e.g. `data/test_slices/friday_10windows_slice.pcap`).
+3. Click **Start Security Forecast Analysis**.
+4. The console automatically redirects to `/console/forecast/:jobId` and streams real deterministic processing stages:
+   `INGESTION` $\to$ `PARSING` $\to$ `FLOW_RECONSTRUCTION` $\to$ `WINDOWING` $\to$ `NETWORK_STATE` $\to$ `FORECAST` $\to$ `EVIDENCE` $\to$ `REPORT` $\to$ `COMPLETE`.
+5. Upon completion, the interactive **Forecast Console** renders:
+   - **Primary Visualization**: Observed trajectory ($T_0$) with forward rollout projections ($T+1 \dots T+5$).
+   - **Two Distinct Risk Panels**: Point Attack Probability $P(\text{attack at } T+K)$ vs Monotonic Cumulative Future Risk $P(\text{attack } \le T+K)$.
+   - **Early Warning Composite**: Score (0–100), lead time, and dynamic onset indicator.
+   - **Attacker Progression**: Sequential reconnaissance and exploitation stages with transition probabilities.
+   - **Behavioral MITRE ATT&CK Matrix**: Grounded mapping to techniques (e.g. T1046, T1498).
+   - **45-Feature Vector Inspection**: [View Full Feature Vector (45-dim)] modal with complete semantic dictionary.
+   - **Explainability Drivers**: [View All Features] modal with counterfactual perturbation attribution.
+   - **Forensic Export**: Immediate links to download machine-readable JSON and printable HTML forensic reports.
+
+---
+
+## Running Deterministic SIH Demos
+
+For judges, evaluators, and presentation environments:
+- **Web UI**: Navigate to `http://localhost:5173/console/demo` (or click **SIH Demo** in the top header). Select any of the 7 pre-computed deterministic scenarios (e.g. *Normal Baseline*, *Early Reconnaissance Signal*, *Sustained Volumetric Attack*, *Contradictory Evidence*, *Forecast Abstained*).
+- **Presentation Mode**: Click **Presentation Mode** in the console header for a high-contrast, uncluttered view suitable for projectors and live demonstrations.
+- **Terminal E2E Runner**:
+  ```bash
+  python scripts/run_demo.py
+  ```
 
 ---
 

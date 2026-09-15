@@ -1,5 +1,6 @@
 import { api, ApiError } from '../services/api'
 import type { AnalysisData, AnalysisProvenance, UploadedAnalysisResponse } from '../types/api'
+import { REFERENCE_BENCHMARK_DATA } from './referenceFixture'
 
 export const ANALYSIS_ID = 'production-cic-ids2017'
 const UPLOAD_ID_KEY = 'nexsolve-upload-analysis-id'
@@ -12,6 +13,7 @@ type StoreState = {
   analysisSource: 'production' | 'uploaded'
   provenance: AnalysisProvenance
   uploadError: string | null
+  apiConnected: boolean
 }
 
 let state: StoreState = {
@@ -21,6 +23,7 @@ let state: StoreState = {
   analysisSource: 'production',
   provenance: 'reference',
   uploadError: null,
+  apiConnected: true,
 }
 let request: Promise<void> | null = null
 const listeners = new Set<() => void>()
@@ -87,6 +90,7 @@ async function fetchData(targetAnalysisId?: string) {
       analysisSource: isProd ? 'production' : 'uploaded',
       provenance,
       uploadError: null,
+      apiConnected: true,
     }
   } catch (cause) {
     if (targetAnalysisId && targetAnalysisId !== ANALYSIS_ID && cause instanceof ApiError && cause.status === 404) {
@@ -100,7 +104,16 @@ async function fetchData(targetAnalysisId?: string) {
       await fetchData(ANALYSIS_ID)
       return
     }
-    state = { ...state, loading: false, error: cause instanceof ApiError ? cause.message : 'Unable to load analysis.' }
+    const fallbackData = state.data ?? REFERENCE_BENCHMARK_DATA
+    state = {
+      ...state,
+      data: fallbackData,
+      loading: false,
+      error: null,
+      apiConnected: false,
+      analysisSource: 'production',
+      provenance: 'reference',
+    }
   } finally {
     request = null
     emit()
@@ -180,6 +193,7 @@ export async function setUploadedAnalysis(uploaded: UploadedAnalysisResponse): P
     },
     loading: false,
     error: null,
+    apiConnected: true,
     analysisSource: isProd ? 'production' : 'uploaded',
     provenance,
     uploadError: null,
@@ -223,6 +237,7 @@ export async function clearUploadedAnalysis() {
     data: null,
     loading: true,
     error: null,
+    apiConnected: true,
     analysisSource: 'production',
     provenance: 'reference',
     uploadError: null,

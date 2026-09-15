@@ -190,4 +190,17 @@ export const api = {
       }>
       relationships: Record<string, number[]>
     }>(`/api/intelligence/world/entity/${encodeURIComponent(entityId)}/timeline?analysis_id=${encodeURIComponent(analysisId)}`),
+  getModelInfo: () =>
+    request<import('../types/api').ModelInfoPayload>('/api/model/info'),
+  getEvaluationMetrics: () =>
+    request<import('../types/api').EvaluationMetricsPayload>('/api/evaluation'),
+  runSimulation: (payload: import('../types/api').SimulationRequestPayload) =>
+    request<import('../types/api').SimulationResponsePayload>('/api/simulation', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  getReplayScenarios: () =>
+    request<import('../types/api').ReplayScenarioSummaryPayload[]>('/api/replay/scenarios'),
+  getReplayStream: (scenarioId: string) =>
+    request<import('../types/api').ReplayStreamPayload>(`/api/replay/${encodeURIComponent(scenarioId)}`),
 }

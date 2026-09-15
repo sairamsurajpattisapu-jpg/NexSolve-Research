@@ -12,15 +12,19 @@ import { Reports } from './pages/Reports'
 import { Research } from './pages/Research'
 import { Security } from './pages/Security'
 import { Settings } from './pages/Settings'
+import { AttackReplay } from './pages/AttackReplay'
+import { Evaluation } from './pages/Evaluation'
+import { Network } from './pages/Network'
+import { Simulation } from './pages/Simulation'
 import { Threats } from './pages/Threats'
 import { Traffic } from './pages/Traffic'
 import { Workflow } from './pages/Workflow'
 
 function App() {
-  const { data, loading, error, analysisSource, provenance } = useProductionData()
+  const { data, loading, error, analysisSource, provenance, apiConnected } = useProductionData()
   const status = loading
     ? 'Syncing data'
-    : error
+    : apiConnected === false || error
     ? 'API unavailable'
     : data?.status.status === 'completed'
     ? 'API connected'
@@ -29,34 +33,60 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Marketing / Product Experience */}
+        {/* Marketing / Explanatory Pages */}
         <Route element={<MarketingLayout />}>
           <Route path="/" element={<Landing />} />
           <Route path="/workflow" element={<Workflow />} />
           <Route path="/security" element={<Security />} />
           <Route path="/research" element={<Research />} />
+          <Route path="/methodology" element={<Research />} />
           <Route path="/about" element={<About />} />
         </Route>
 
-        {/* Working Application / Console Experience */}
+        {/* Operational Console Experience */}
         <Route element={<Layout status={status} source={analysisSource} provenance={provenance} />}>
-          <Route path="/console" element={<Navigate to="/analyze" replace />} />
-          <Route path="/overview" element={<Navigate to="/analyze" replace />} />
+          {/* Canonical /console/* namespace */}
+          <Route path="/console" element={<Navigate to="/console/analyze" replace />} />
+          <Route path="/console/overview" element={<Navigate to="/console/analyze" replace />} />
+          <Route path="/console/analyze" element={<Dashboard />} />
+          <Route path="/console/forecast" element={<Forecast />} />
+          <Route path="/console/forecast/:jobId" element={<Forecast />} />
+          <Route path="/console/evidence" element={<Evidence />} />
+          <Route path="/console/evidence/:jobId" element={<Evidence />} />
+          <Route path="/console/network" element={<Network />} />
+          <Route path="/console/replay" element={<AttackReplay />} />
+          <Route path="/console/simulation" element={<Simulation />} />
+          <Route path="/console/evaluation" element={<Evaluation />} />
+          <Route path="/console/reports" element={<Reports />} />
+          <Route path="/console/reports/:jobId" element={<Reports />} />
+          <Route path="/console/demo" element={<Demo />} />
+          <Route path="/console/settings" element={<Settings />} />
+
+          {/* Root paths / aliases for direct access and backward compatibility */}
           <Route path="/analyze" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Navigate to="/analyze" replace />} />
+          <Route path="/dashboard" element={<Navigate to="/console/analyze" replace />} />
+          <Route path="/overview" element={<Navigate to="/console/analyze" replace />} />
           <Route path="/forecast" element={<Forecast />} />
+          <Route path="/forecast/:jobId" element={<Forecast />} />
           <Route path="/evidence" element={<Evidence />} />
-          <Route path="/threats" element={<Threats />} />
-          <Route path="/traffic" element={<Traffic />} />
+          <Route path="/evidence/:jobId" element={<Evidence />} />
+          <Route path="/network" element={<Network />} />
+          <Route path="/replay" element={<AttackReplay />} />
+          <Route path="/simulation" element={<Simulation />} />
+          <Route path="/evaluation" element={<Evaluation />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/reports/:jobId" element={<Reports />} />
           <Route path="/demo" element={<Demo />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/threats" element={<Threats />} />
+          <Route path="/traffic" element={<Traffic />} />
+
+          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>
   )
 }
-
 
 export default App
