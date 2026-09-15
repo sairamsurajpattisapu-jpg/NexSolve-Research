@@ -20,7 +20,7 @@ const PIPELINE_STEPS = [
     title: 'Packet Ingestion & Integrity',
     eyebrow: 'CANONICAL VALIDATION',
     description:
-      'Zero-loss streaming parser ingests .pcap and .pcapng captures up to 64 MB. Enforces magic-byte verification, microsecond timestamp sorting, snaplen bounds, and deterministic deduplication.',
+      'Streaming PCAP and PCAPNG parser with deterministic validation. Enforces magic-byte verification, microsecond timestamp sorting, snaplen bounds, and packet deduplication.',
     tech: 'Magic byte check · IPv4/IPv6 · TCP/UDP/ICMP · VLAN handling',
   },
   {
@@ -38,7 +38,7 @@ const PIPELINE_STEPS = [
     title: 'Temporal Window Aggregation',
     eyebrow: 'TEMPORAL DISCRETIZATION',
     description:
-      'Slices reconstructed flow telemetry into deterministic 60-second sliding analysis windows. Tracks packet rates, active flow counts, and volume velocity across continuous time intervals.',
+      'Slices reconstructed flow telemetry into deterministic 60-second analysis windows. Tracks packet rates, active flow counts, and volume velocity across continuous time intervals.',
     tech: '60-second windows · Microsecond window boundaries · Rate evolution',
   },
   {
@@ -65,26 +65,26 @@ const PIPELINE_STEPS = [
     title: 'Attack Horizon Synthesis',
     eyebrow: 'PREDICTIVE TIMELINE',
     description:
-      'Calculates the earliest sustained threat onset horizon, estimated lead time in seconds, temporal consistency, and confidence intervals to provide proactive defense posture before incidents materialize.',
+      'Calculates the earliest sustained threat onset horizon, estimated lead time in seconds, temporal consistency, and confidence intervals to provide proactive decision support before incidents materialize.',
     tech: 'Lead-time computation · Onset window detection · Dynamic severity rating',
   },
   {
     step: '07',
     id: 'evidence',
-    title: 'Causal Evidence Chain',
+    title: 'Feature Drivers & Evidence Analysis',
     eyebrow: 'EXPLAINABLE ATTRIBUTION',
     description:
-      'Maps observed feature shifts directly to forecast decisions. Classifies telemetry deltas into supporting vs contradictory evidence nodes with magnitude, direction, and domain-grounded rationale.',
-    tech: 'Supporting vs contradictory · Feature delta weights · Forensic causal graph',
+      'Maps observed feature shifts directly to forecast decisions. Classifies telemetry deltas into supporting vs contradictory evidence nodes using Feature Perturbation Attribution and domain-grounded rationale.',
+    tech: 'Supporting vs contradictory · Feature perturbation attribution · Ablation analysis',
   },
   {
     step: '08',
     id: 'trust',
-    title: 'Trust Guardrails & Signed Reports',
+    title: 'Trust Guardrails & Cryptographic Reports',
     eyebrow: 'SCIENTIFIC INTEGRITY',
     description:
-      'Enforces calibrated abstention when capture history is insufficient (< 8 windows) or capture quality degrades. Compiles immutable SHA-256 signed forensic reports for auditability.',
-    tech: 'Calibrated abstention · Out-of-distribution detection · SHA-256 cryptographic audit',
+      'Enforces calibrated abstention when capture history is insufficient (< 8 windows) or capture quality degrades. Compiles immutable SHA-256 cryptographic reports for forensic auditability.',
+    tech: 'Calibrated abstention · Out-of-distribution detection · SHA-256 cryptographic hash',
   },
 ]
 
@@ -114,7 +114,7 @@ export function Landing() {
           <p className="landing-lead">
             NexSolve transforms raw network packet captures into multi-step temporal state trajectories.
             By projecting attack probabilities across <strong>T+1 to T+5</strong> horizons, estimating an <strong>Attack Horizon</strong>,
-            and attributing causal shifts via an <strong>Evidence Chain</strong>, security teams gain actionable lead time before threats strike.
+            and analyzing forecast drivers through <strong>Feature Perturbation Attribution</strong> and evidence analysis, security teams gain predictive decision support before threats escalate.
           </p>
 
           <div className="landing-cta-row">

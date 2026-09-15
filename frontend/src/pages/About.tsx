@@ -77,9 +77,9 @@ export function About() {
             <div className="principle-icon-wrap">
               <Eye size={20} className="text-accent" />
             </div>
-            <h3>3. Causal Transparency</h3>
+            <h3>3. Attribution Transparency</h3>
             <p>
-              Every forecasted alert is decomposed into supporting vs contradictory evidence nodes. SOC analysts are never forced to trust an opaque probability scalar.
+              Every forecasted alert is decomposed into supporting vs contradictory evidence nodes via Feature Perturbation Attribution. SOC analysts are never forced to trust an opaque probability scalar.
             </p>
           </div>
 

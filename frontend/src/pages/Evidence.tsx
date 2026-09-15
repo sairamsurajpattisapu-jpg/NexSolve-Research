@@ -60,7 +60,7 @@ export function Evidence() {
       <SectionHeading
         eyebrow="SCIENTIFIC AUDIT & TECHNICAL PROVENANCE"
         title="Evidence Chain & Attribution Explorer"
-        description="Full transparency into feature contracts, model architectures, temporal context, and causal attribution signals."
+        description="Full transparency into feature contracts, model architectures, temporal context, and feature perturbation drivers."
         action={
           <div className="heading-actions">
             <Link to={jobId ? `/console/forecast/${jobId}` : '/console/forecast'} className="button button-quiet">
@@ -82,7 +82,7 @@ export function Evidence() {
         <div className="provenance-details">
           <p>
             {analysis.isDemo
-              ? `Evaluation sandbox: ${analysis.demoScenarioId ?? 'Deterministic Scenario'}. Validating causal attribution and evidence separation without live traffic dependency.`
+              ? `Evaluation sandbox: ${analysis.demoScenarioId ?? 'Deterministic Scenario'}. Validating feature perturbation drivers and evidence separation without live traffic dependency.`
               : `Active forensic evidence derived directly from capture ${input.filename}. All features and attribution weights are extracted without synthetic imputation.`}
           </p>
         </div>
@@ -197,15 +197,15 @@ export function Evidence() {
         </Panel>
       </div>
 
-      {/* 2. EVIDENCE CHAIN & CAUSAL ATTRIBUTION (Section 15) */}
+      {/* 2. EVIDENCE CHAIN & FEATURE ATTRIBUTION (Section 15) */}
       <Panel>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
           <div>
             <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--accent)' }}>
-              CAUSAL ATTRIBUTION &middot; FEATURE LEVEL
+              FEATURE PERTURBATION ATTRIBUTION &middot; FEATURE LEVEL
             </span>
             <h3 style={{ margin: '2px 0', fontSize: '16px', color: 'var(--text-primary)' }}>
-              Evidence Chain: Supporting vs Contradictory Nodes
+              Evidence Nodes: Supporting vs Contradictory Drivers
             </h3>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
               Attribution method: {analysis.explanations.method}

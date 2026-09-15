@@ -127,7 +127,7 @@ export function MarketingLayout() {
             <div className="footer-col-title">Live Application</div>
             <Link to="/analyze" className="footer-link">Telemetry Console</Link>
             <Link to="/forecast" className="footer-link">Multi-Horizon Rollout</Link>
-            <Link to="/evidence" className="footer-link">Causal Attribution</Link>
+            <Link to="/evidence" className="footer-link">Evidence & Drivers</Link>
             <Link to="/demo" className="footer-link">Judge Demo Mode</Link>
           </div>
 
@@ -136,7 +136,7 @@ export function MarketingLayout() {
             <span className="footer-meta-item">Contract: Canonical 45-Dim</span>
             <span className="footer-meta-item">Rollout: T+1 to T+5</span>
             <span className="footer-meta-item">Telemetry: Passive PCAP/PCAPNG</span>
-            <span className="footer-meta-item">Audit: SHA-256 Signed</span>
+            <span className="footer-meta-item">Audit: SHA-256 Content Hash</span>
           </div>
         </div>
 

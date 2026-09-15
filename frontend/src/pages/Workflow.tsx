@@ -26,9 +26,9 @@ const WORKFLOW_STEPS: StepDetail[] = [
     id: 'ingest',
     title: 'PCAP Ingestion & Wire Parsing',
     phase: 'INGEST',
-    subheadline: 'Zero-loss streaming packet parsing from live captures and offline files',
+    subheadline: 'Streaming packet parsing from live captures and offline files',
     description:
-      'Ingests raw standard PCAP and PCAPNG capture formats up to 64 MB. Enforces strict magic byte validation, microsecond wire timestamp preservation, wire length bounds checking, and packet deduplication without modifying source bytes.',
+      'Ingests raw standard PCAP and PCAPNG capture formats. Enforces strict magic byte validation, microsecond wire timestamp preservation, wire length bounds checking, and packet deduplication without modifying source bytes.',
     contract: 'Libpcap / PcapNG wire format standard',
     features: ['Magic byte verification', 'Microsecond precision timestamps', 'Snaplen clamp validation', 'IPv4 & IPv6 dual-stack support'],
     inputs: 'Raw .pcap / .pcapng binary stream',
@@ -115,13 +115,13 @@ const WORKFLOW_STEPS: StepDetail[] = [
   {
     step: '08',
     id: 'evidence',
-    title: 'Causal Attribution & Evidence Chain',
+    title: 'Feature Perturbation Attribution & Drivers',
     phase: 'EXPLAIN',
     subheadline: 'Decomposing forecast drivers into supporting vs contradictory signals',
     description:
-      'Identifies the exact empirical feature shifts responsible for the threat forecast. Bins observed telemetry changes into supporting evidence (accelerating risk) vs contradictory evidence (stabilizing factors), preventing black-box opacity.',
-    contract: 'Causal Delta Attribution Model (Directional Weights)',
-    features: ['Supporting evidence identification', 'Contradictory dampening factors', 'Magnitude & percent deviation scoring', 'Domain-expert causal explanations'],
+      'Identifies the empirical feature shifts driving the threat forecast. Bins observed telemetry changes into supporting evidence (accelerating risk) vs contradictory evidence (stabilizing factors), preventing black-box opacity.',
+    contract: 'Feature Perturbation Attribution Model (Directional Weights)',
+    features: ['Supporting evidence identification', 'Contradictory dampening factors', 'Magnitude & percent deviation scoring', 'Domain-grounded feature explanations'],
     inputs: 'Temporal state delta ΔS = S_t - S_{t-1}',
     outputs: 'Dual-binned forensic evidence graph with feature rationales',
   },
@@ -132,11 +132,11 @@ const WORKFLOW_STEPS: StepDetail[] = [
     phase: 'ACT',
     subheadline: 'Deterministic report generation and cryptographic reproducibility',
     description:
-      'Generates cryptographically signed (SHA-256) audit dossiers containing packet capture hashes, extraction parameters, model version hashes, and recommended proactive firewall/routing posture adjustments.',
+      'Generates SHA-256 content-hashed audit dossiers containing packet capture hashes, extraction parameters, model version hashes, and recommended proactive posture adjustments.',
     contract: 'Cryptographic Audit & Zero-Trust Governance Protocol',
-    features: ['SHA-256 payload & model signature', 'Calibrated abstention safety gate', 'Exportable JSON, CSV & Markdown dossier', 'Automated containment recommendations'],
-    inputs: 'Forecast, MITRE tags, and causal evidence',
-    outputs: 'Signed forensic audit dossier & actionable containment plan',
+    features: ['SHA-256 payload & model hash', 'Calibrated abstention safety gate', 'Exportable JSON, CSV & Markdown dossier', 'Automated containment recommendations'],
+    inputs: 'Forecast, MITRE tags, and feature drivers',
+    outputs: 'Cryptographic forensic audit dossier & actionable containment plan',
   },
 ]
 
@@ -283,7 +283,7 @@ export function Workflow() {
         <div className="cta-strip-content">
           <h2>Test the pipeline with your own capture file</h2>
           <p>
-            Upload any standard .pcap or .pcapng capture to verify feature extraction, multi-horizon rollouts, and causal attribution in real time.
+            Upload any standard .pcap or .pcapng capture to verify feature extraction, multi-horizon rollouts, and feature driver attribution in real time.
           </p>
         </div>
         <div className="cta-strip-actions">

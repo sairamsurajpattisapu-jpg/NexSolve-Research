@@ -60,7 +60,7 @@ describe('End-to-End Product Data Consistency Journey', () => {
     expect(screen.getByText(/CUMULATIVE FUTURE RISK/i)).toBeInTheDocument()
   })
 
-  it('3. Evidence page displays supporting and contradictory causal drivers for same analysis', () => {
+  it('3. Evidence page displays supporting and contradictory feature drivers for same analysis', () => {
     renderAppAt('/evidence')
     expect(screen.getByText(/Evidence Chain & Attribution Explorer/i)).toBeInTheDocument()
     expect(screen.getByText(/1. Input Telemetry/i)).toBeInTheDocument()

@@ -164,9 +164,9 @@ export function Research() {
       <section className="explainability-theory-section">
         <div className="section-heading-wrap">
           <span className="panel-eyebrow">TRANSPARENT REASONING</span>
-          <h2 className="section-title">Directional Causal Delta Attribution</h2>
+          <h2 className="section-title">Directional Feature Perturbation Attribution</h2>
           <p className="section-desc">
-            How NexSolve moves beyond black-box saliency maps to verifiable telemetry delta attributions.
+            How NexSolve moves beyond black-box saliency maps to verifiable telemetry feature perturbation drivers.
           </p>
         </div>
 
