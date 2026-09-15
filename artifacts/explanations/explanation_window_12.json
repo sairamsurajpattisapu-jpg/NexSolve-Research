@@ -1,0 +1,49 @@
+{
+  "test_window_index": 12,
+  "timestamp": 1424219700,
+  "forecast_attack_probability": 0.9618,
+  "ground_truth_label": 0,
+  "top_contributing_features": [
+    {
+      "feature": "mean_dwin",
+      "contribution": 0.22342898264298638,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "delta_iat",
+      "contribution": 0.21489631116882668,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_swin",
+      "contribution": 0.1227488018441436,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_iat",
+      "contribution": 0.038738308271190625,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "unique_dst_ports",
+      "contribution": 0.03284029779925668,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "unique_src_ports",
+      "contribution": -0.021565096597072952,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_dttl",
+      "contribution": -0.019776664438695413,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "proto_udp_count",
+      "contribution": -0.016543708727971285,
+      "language": "contributed to the model forecast; not causal"
+    }
+  ],
+  "method": "counterfactual_feature_perturbation_to_mean"
+}

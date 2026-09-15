@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexSolve Report - rep-upload-a2516a79689b4b289fe837420ffd1448</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --border: #1f293d;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #0d9488;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      padding: 24px;
+    }
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 16px;
+    }
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .brand h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #38bdf8;
+    }
+    .brand p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .meta-box {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px 20px;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .pill {
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+    .pill-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid #059669; }
+    .pill-red { background: rgba(225, 29, 72, 0.15); color: #fb7185; border: 1px solid #e11d48; }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .stat-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 12px;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: #f1f5f9;
+      margin-top: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    th {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    td {
+      padding: 8px;
+      border-bottom: 1px solid rgba(31, 41, 61, 0.5);
+    }
+    .small-text { font-size: 11px; color: var(--text-muted); }
+    .alert-box {
+      border-left: 4px solid var(--accent);
+      background: rgba(13, 148, 136, 0.08);
+      padding: 10px 14px;
+      border-radius: 0 4px 4px 0;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .alert-warn {
+      border-color: #d97706;
+      background: rgba(217, 119, 6, 0.08);
+    }
+    ul { padding-left: 20px; font-size: 13px; }
+    li { margin-bottom: 4px; }
+    footer {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    @media print {
+      body { background: #ffffff; color: #0f172a; padding: 0; }
+      .section { border: 1px solid #cbd5e1; background: #ffffff; page-break-inside: avoid; }
+      .stat-card { background: #f8fafc; border: 1px solid #cbd5e1; }
+      .stat-value { color: #0f172a; }
+      .alert-box { background: #f1f5f9; color: #0f172a; border-left-color: #0d9488; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <h1>NEXSOLVE</h1>
+        <p>Evidence-backed predictive network intelligence</p>
+      </div>
+      <div class="meta-box">
+        <div><strong>REPORT ID:</strong> rep-upload-a2516a79689b4b289fe837420ffd1448</div>
+        <div><strong>GENERATED:</strong> 2026-09-14T19:48:11.866161+00:00</div>
+        <div><strong>SOURCE:</strong> friday_10windows_slice.pcap</div>
+      </div>
+    </header>
+
+    <!-- 1. Executive Summary -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">1. Executive Summary</h2>
+        <span class="badge" style="background-color: #8b5cf6;">INFERRED</span>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div class="stat-card" style="border-left: 4px solid #10b981;">
+            <div class="stat-label">Observed Threat Level</div>
+            <div class="stat-value" style="color: #10b981;">medium</div>
+          </div>
+          <div style="margin-top: 10px;">
+            <p style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">Key Observed Findings:</p>
+            <ul><li>Observed: [&#x27;TCP retransmission rate is at least 5 percent.&#x27;]</li><li>Observed: [&#x27;TCP retransmission rate is at least 5 percent.&#x27;]</li><li>Observed: [&#x27;TCP retransmission rate is at least 5 percent.&#x27;]</li><li>Observed: [&#x27;TCP retransmission rate is at least 5 percent.&#x27;]</li><li>Observed: [&#x27;TCP retransmission rate is at least 5 percent.&#x27;]</li></ul>
+          </div>
+        </div>
+        <div>
+          <div class="stat-card" style="border-left: 4px solid #0d9488;">
+            <div class="stat-label">Attack Horizon & Forecast Status</div>
+            <div class="stat-value" style="font-size: 14px; font-family: var(--font-sans);">Attack Horizon state is EARLY_SIGNAL with 60s lead time (60s duration).</div>
+          </div>
+          <div class="alert-box alert-warn" style="margin-top: 10px;">
+            <strong>Epistemic Policy:</strong> Epistemic Note: Observed detections reflect packet-level heuristics; Forecasts reflect multi-step world model predictions. Forecast scores are strictly uncalibrated margins, not calibrated probabilities.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 & 3. Capture Quality & Activity Summary -->
+    <div class="grid-2">
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">2. Capture Quality</h2>
+          <span class="badge" style="background-color: #0284c7;">OBSERVED</span>
+        </div>
+        <div class="grid-2">
+          <div class="stat-card">
+            <div class="stat-label">Parsed / Total</div>
+            <div class="stat-value">2277 / 2277</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Quality Status</div>
+            <div class="stat-value">DEGRADED</div>
+          </div>
+        </div>
+        <table style="margin-top: 10px;">
+          <tr><td>Malformed Packets</td><td><strong>0</strong></td></tr>
+          <tr><td>Truncated Packets</td><td><strong>35</strong></td></tr>
+          <tr><td>Packet Loss Ratio</td><td><strong>0.00%</strong></td></tr>
+          <tr><td>Reordered Packets</td><td><strong>0</strong></td></tr>
+        </table>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">3. Network Activity Summary</h2>
+          <span class="badge" style="background-color: #0284c7;">OBSERVED</span>
+        </div>
+        <div class="grid-2">
+          <div class="stat-card">
+            <div class="stat-label">Total Volume</div>
+            <div class="stat-value">2,277 pkts</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Temporal Window Coverage</div>
+            <div class="stat-value">600.0s</div>
+            <div class="small-text" style="margin-top: 4px;">Packet Timestamp Span: 500.46s</div>
+          </div>
+        </div>
+        <table style="margin-top: 10px;">
+          <tr><td>Reconstructed Flows</td><td><strong>283</strong></td></tr>
+          <tr><td>Unique Host Pairs</td><td><strong>137 src &rarr; 139 dst</strong></td></tr>
+          <tr><td>Destination Ports</td><td><strong>259</strong></td></tr>
+          <tr><td>Protocols</td><td><strong>ARP: 56, ICMPv6: 21, IPv4_PROTO_2: 4, TCP: 1617, UDP: 519, UNSUPPORTED: 60</strong></td></tr>
+        </table>
+      </section>
+    </div>
+
+    <!-- 4. Temporal Behavior -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">4. Temporal Behavior</h2>
+        <span class="badge" style="background-color: #0284c7;">OBSERVED</span>
+      </div>
+      <div class="grid-4">
+        <div class="stat-card"><div class="stat-label">Windows (60s)</div><div class="stat-value">10</div></div>
+        <div class="stat-card"><div class="stat-label">Continuity</div><div class="stat-value">CONTINUOUS</div></div>
+        <div class="stat-card"><div class="stat-label">Rate Trend</div><div class="stat-value">STABLE</div></div>
+        <div class="stat-card"><div class="stat-label">Flow Churn</div><div class="stat-value">STABLE</div></div>
+      </div>
+    </section>
+
+    <!-- 5 & 6. Forecast Rollout & Attack Horizon -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">5. Multi-Horizon Forecast Rollout & Attack Horizon</h2>
+        <span class="badge" style="background-color: #0d9488;">FORECAST</span>
+      </div>
+      <div class="grid-2" style="margin-bottom: 12px;">
+        <div class="stat-card">
+          <div class="stat-label">Attack Horizon State</div>
+          <div class="stat-value" style="color: #38bdf8;">EARLY_SIGNAL</div>
+          <div class="small-text" style="margin-top: 4px;">Early attack signal detected at horizon T+1 (lead time 60s); duration isolated to 60s (1 window). Temporal consistency: 1.00.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Horizon Duration & Lead Time</div>
+          <div class="stat-value">60s (1 windows)</div>
+          <div class="small-text" style="margin-top: 4px;">Lead Time: 60.0s</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Horizon</th>
+            <th>Predicted Score</th>
+            <th>Predicted Stage</th>
+            <th>Uncertainty</th>
+            <th>Top Contributing Signal</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+        <tr>
+          <td>T+1 (60s)</td>
+          <td><strong>60.02%</strong></td>
+          <td>RECONNAISSANCE</td>
+          <td>0.80</td>
+          <td class="small-text">Feature &#x27;proto_udp_count&#x27; increasing by 410209592.8% relative to current state.; Feature &#x27;proto_other_count&#x27; increasing by 80579679.9% relative to current state.; Inter-arrival time increasing (0.00s -&gt; 107.64s) indicates irregular pacing or command-and-control interval changes.; Inter-arrival time increasing (0.00s -&gt; 107.64s) indicates irregular pacing or command-and-control interval changes.; Feature &#x27;tcp_fin_count&#x27; increasing by 1023737.4% relative to current state.</td>
+        </tr>
+        
+        <tr>
+          <td>T+2 (120s)</td>
+          <td><strong>20.85%</strong></td>
+          <td>STABLE_BENIGN</td>
+          <td>0.42</td>
+          <td class="small-text">Feature &#x27;proto_udp_count&#x27; increasing by 371238138.5% relative to current state.; Inter-arrival time increasing (0.00s -&gt; 419.58s) indicates irregular pacing or command-and-control interval changes.; Inter-arrival time increasing (0.00s -&gt; 419.58s) indicates irregular pacing or command-and-control interval changes.; Feature &#x27;proto_other_count&#x27; increasing by 34613548.4% relative to current state.; TCP flag pressure increasing (0 -&gt; 0) reflects connection exhaustion attempts or failed handshakes.</td>
+        </tr>
+        
+        <tr>
+          <td>T+3 (180s)</td>
+          <td><strong>15.38%</strong></td>
+          <td>STABLE_BENIGN</td>
+          <td>0.31</td>
+          <td class="small-text">Feature &#x27;proto_udp_count&#x27; increasing by 404320392.5% relative to current state.; Inter-arrival time increasing (0.00s -&gt; 425.97s) indicates irregular pacing or command-and-control interval changes.; Inter-arrival time increasing (0.00s -&gt; 425.97s) indicates irregular pacing or command-and-control interval changes.; Feature &#x27;proto_other_count&#x27; increasing by 6637794.4% relative to current state.; TCP flag pressure increasing (0 -&gt; 0) reflects connection exhaustion attempts or failed handshakes.</td>
+        </tr>
+        
+        <tr>
+          <td>T+4 (240s)</td>
+          <td><strong>11.74%</strong></td>
+          <td>STABLE_BENIGN</td>
+          <td>0.23</td>
+          <td class="small-text">Feature &#x27;proto_udp_count&#x27; increasing by 414690620.3% relative to current state.; Inter-arrival time increasing (0.00s -&gt; 431.00s) indicates irregular pacing or command-and-control interval changes.; Inter-arrival time increasing (0.00s -&gt; 431.00s) indicates irregular pacing or command-and-control interval changes.; Feature &#x27;proto_other_count&#x27; increasing by 5215494.3% relative to current state.; TCP flag pressure increasing (0 -&gt; 0) reflects connection exhaustion attempts or failed handshakes.</td>
+        </tr>
+        
+        <tr>
+          <td>T+5 (300s)</td>
+          <td><strong>9.44%</strong></td>
+          <td>STABLE_BENIGN</td>
+          <td>0.19</td>
+          <td class="small-text">Feature &#x27;proto_udp_count&#x27; increasing by 415294633.9% relative to current state.; Inter-arrival time increasing (0.00s -&gt; 398.82s) indicates irregular pacing or command-and-control interval changes.; Inter-arrival time increasing (0.00s -&gt; 398.82s) indicates irregular pacing or command-and-control interval changes.; Feature &#x27;proto_other_count&#x27; increasing by 7007517.9% relative to current state.; TCP flag pressure increasing (0 -&gt; 0) reflects connection exhaustion attempts or failed handshakes.</td>
+        </tr>
+        
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 7. Evidence Chain (Why This Forecast) -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">6. Evidence Chain (Observable Corroboration)</h2>
+        <span class="badge" style="background-color: #8b5cf6;">INFERRED</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div><strong>Evidence Strength:</strong> 0.34 (DEGRADED Quality)</div>
+        <div class="small-text">Observation supported by 4 indicators, but qualified by 8 contradictory signals (e.g., Active concurrent flow volume (flow_count) decreased 95.2% during an attack forecast window.).</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Alignment</th>
+            <th>Feature</th>
+            <th>Observed vs Baseline</th>
+            <th>Severity</th>
+            <th>Physical Telemetry Rationale</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+        <tr class="supp-row">
+          <td><span class="pill pill-green">SUPPORTING</span></td>
+          <td>total_src_bytes</td>
+          <td>175466.0 vs 66246.2 (+164.9%)</td>
+          <td>HIGH</td>
+          <td>Source data transmission volume (total_src_bytes) increased 164.9% over baseline (175466.0 vs 66246.2).</td>
+        </tr>
+        
+        <tr class="supp-row">
+          <td><span class="pill pill-green">SUPPORTING</span></td>
+          <td>total_dst_bytes</td>
+          <td>89218.0 vs 24494.6 (+264.2%)</td>
+          <td>HIGH</td>
+          <td>Destination data reception volume (total_dst_bytes) increased 264.2% over baseline (89218.0 vs 24494.6).</td>
+        </tr>
+        
+        <tr class="supp-row">
+          <td><span class="pill pill-green">SUPPORTING</span></td>
+          <td>delta_total_bytes</td>
+          <td>198022.0 vs 7406.6 (+2573.6%)</td>
+          <td>HIGH</td>
+          <td>Sequential byte volume acceleration (delta_total_bytes) increased 2573.6% over baseline (198022.0 vs 7406.6).</td>
+        </tr>
+        
+        <tr class="supp-row">
+          <td><span class="pill pill-green">SUPPORTING</span></td>
+          <td>attack_horizon</td>
+          <td>1.0 vs 0.0 (+100.0%)</td>
+          <td>MEDIUM</td>
+          <td>Early attack signal isolated to horizon T+1.</td>
+        </tr>
+        
+        <tr class="contra-row">
+          <td><span class="pill pill-red">CONTRADICTORY</span></td>
+          <td>flow_count</td>
+          <td>2.0 vs 41.3 (-95.2%)</td>
+          <td>HIGH</td>
+          <td>Active concurrent flow volume (flow_count) decreased 95.2% during an attack forecast window.</td>
+        </tr>
+        
+        <tr class="contra-row">
+          <td><span class="pill pill-red">CONTRADICTORY</span></td>
+          <td>total_packets</td>
+          <td>250.0 vs 321.7 (-22.3%)</td>
+          <td>LOW</td>
+          <td>Total aggregate packet volume (total_packets) decreased 22.3% during an attack forecast window.</td>
+        </tr>
+        
+        <tr class="contra-row">
+          <td><span class="pill pill-red">CONTRADICTORY</span></td>
+          <td>unique_dst_ports</td>
+          <td>2.0 vs 26.2 (-92.4%)</td>
+          <td>HIGH</td>
+          <td>Destination port diversity (unique_dst_ports) decreased 92.4% during an attack forecast window.</td>
+        </tr>
+        
+        <tr class="contra-row">
+          <td><span class="pill pill-red">CONTRADICTORY</span></td>
+          <td>unique_src_ports</td>
+          <td>2.0 vs 35.9 (-94.4%)</td>
+          <td>HIGH</td>
+          <td>Source port diversity (unique_src_ports) decreased 94.4% during an attack forecast window.</td>
+        </tr>
+        
+        <tr class="contra-row">
+          <td><span class="pill pill-red">CONTRADICTORY</span></td>
+          <td>proto_tcp_count</td>
+          <td>2.0 vs 29.4 (-93.2%)</td>
+          <td>HIGH</td>
+          <td>TCP protocol distribution count (proto_tcp_count) decreased 93.2% during an attack forecast window.</td>
+        </tr>
+        
+        <tr class="contra-row">
+          <td><span class="pill pill-red">CONTRADICTORY</span></td>
+          <td>proto_udp_count</td>
+          <td>0.0 vs 9.9 (-100.0%)</td>
+          <td>HIGH</td>
+          <td>UDP protocol distribution count (proto_udp_count) decreased 100.0% during an attack forecast window.</td>
+        </tr>
+        
+        <tr class="contra-row">
+          <td><span class="pill pill-red">CONTRADICTORY</span></td>
+          <td>delta_flow_count</td>
+          <td>-81.0 vs 9.9 (-920.2%)</td>
+          <td>HIGH</td>
+          <td>Sequential flow count acceleration (delta_flow_count) decreased 920.3% during an attack forecast window.</td>
+        </tr>
+        
+        <tr class="contra-row">
+          <td><span class="pill pill-red">CONTRADICTORY</span></td>
+          <td>capture_quality</td>
+          <td>0.7 vs 1.0 (-30.0%)</td>
+          <td>MEDIUM</td>
+          <td>Underlying network capture is flagged DEGRADED.; Capture contains 1 timestamp anomalies.; Capture contains 35 truncated packets.</td>
+        </tr>
+        
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 8, 9, 10. Confidence, Unknown Behavior & Abstention -->
+    <div class="grid-2">
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">7. Confidence & Unknown Behavior</h2>
+          <span class="badge" style="background-color: #8b5cf6;">INFERRED</span>
+        </div>
+        <div class="alert-box alert-warn" style="margin-bottom: 10px;">
+          <strong>Calibration Disclaimer:</strong> Forecast score is uncalibrated and must not be interpreted as a calibrated probability.
+        </div>
+        <table style="margin-bottom: 12px;">
+          <tr><td>Raw Model Score</td><td><strong>0.6002</strong></td></tr>
+          <tr><td>Calibrated Confidence</td><td><strong>WITHHELD (UNSUPPORTED)</strong></td></tr>
+          <tr><td>Uncertainty Level</td><td><strong>HIGH</strong></td></tr>
+        </table>
+        <div style="border-top: 1px solid var(--border); padding-top: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 13px; font-weight: 600;">Behavior Classification:</span>
+            <span class="badge" style="background-color: #d97706;">UNKNOWN_BEHAVIOR</span>
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Conflicting evidence: contradictory signals exceed supporting indicators across multiple dimensions.</p>
+          <div class="small-text" style="margin-top: 4px;">Coverage: 45.0% · Abstain Recommended: False</div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">8. Abstention Status & Preconditions</h2>
+          <span class="badge" style="background-color: #e11d48;">ABSTAINED</span>
+        </div>
+        <div class="stat-card" style="margin-bottom: 10px;">
+          <div class="stat-label">Availability Gate Status</div>
+          <div class="stat-value" style="font-size: 14px; font-family: var(--font-mono); color: #34d399;">FORECAST_AVAILABLE_BUT_UNCALIBRATED</div>
+        </div>
+        <p style="font-size: 12px; margin-bottom: 6px;">Forecast is available and supported by lookback history, but model calibration is UNSUPPORTED. Raw scores should not be treated as calibrated probabilities.</p>
+        
+      </section>
+    </div>
+
+    <!-- 11 & 12. Limitations & Provenance -->
+    <div class="grid-2">
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">9. Operational Limitations</h2>
+          <span class="badge" style="background-color: #0284c7;">OBSERVED</span>
+        </div>
+        <ul><li>Underlying network capture is flagged DEGRADED.</li><li>Capture contains 1 timestamp anomalies.</li><li>Capture contains 35 truncated packets.</li><li>Forecast score reflects raw model margin. Calibration status is UNSUPPORTED for single-class/benchmark regimes.</li><li>Heuristic packet alerts are indicators, not definitive intrusion ground truth.</li></ul>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">10. Provenance & Auditability</h2>
+          <span class="badge" style="background-color: #0284c7;">OBSERVED</span>
+        </div>
+        <table class="small-text">
+          <tr><td>Source File</td><td>friday_10windows_slice.pcap (833,081 bytes)</td></tr>
+          <tr><td>SHA-256 Hash</td><td style="font-family: var(--font-mono);">N/A</td></tr>
+          <tr><td>Model Version</td><td>nexsolve-v1.0-research</td></tr>
+          <tr><td>Processing Version</td><td>nexsolve-v1.0.0-prod</td></tr>
+          <tr><td>Execution Time</td><td>0.00s (Stage: completed)</td></tr>
+        </table>
+      </section>
+    </div>
+
+    <footer>
+      <div>NexSolve Security Intelligence Platform &copy; 2026. All rights reserved.</div>
+      <div>Confidential &middot; Automated Forensic & Predictive Report</div>
+    </footer>
+  </div>
+</body>
+</html>

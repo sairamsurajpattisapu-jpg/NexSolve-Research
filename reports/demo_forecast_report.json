@@ -1,0 +1,403 @@
+{
+  "report_id": "rep-upload-a2516a79689b4b289fe837420ffd1448",
+  "title": "NexSolve Network Threat & Predictive Intelligence Report",
+  "system_tagline": "Evidence-backed predictive network intelligence",
+  "generated_at_utc": "2026-09-14T19:48:11.866161+00:00",
+  "sections": {
+    "executive_summary": {
+      "category": "INFERRED",
+      "status": "COMPLETED",
+      "overall_threat_level": "medium",
+      "key_findings": [
+        "Observed: ['TCP retransmission rate is at least 5 percent.']",
+        "Observed: ['TCP retransmission rate is at least 5 percent.']",
+        "Observed: ['TCP retransmission rate is at least 5 percent.']",
+        "Observed: ['TCP retransmission rate is at least 5 percent.']",
+        "Observed: ['TCP retransmission rate is at least 5 percent.']"
+      ],
+      "forecast_summary": "Attack Horizon state is EARLY_SIGNAL with 60s lead time (60s duration).",
+      "epistemic_disclaimer": "Epistemic Note: Observed detections reflect packet-level heuristics; Forecasts reflect multi-step world model predictions. Forecast scores are strictly uncalibrated margins, not calibrated probabilities."
+    },
+    "capture_quality": {
+      "category": "OBSERVED",
+      "capture_id": "capture.pcap",
+      "quality_status": "DEGRADED",
+      "parsed_packets": 2277,
+      "total_packets_observed": 2277,
+      "malformed_packets": 0,
+      "truncated_packets": 35,
+      "reordered_packets": 0,
+      "packet_loss_ratio": 0.0,
+      "reordered_ratio": 0.0
+    },
+    "network_activity": {
+      "category": "OBSERVED",
+      "packet_count": 2277,
+      "flow_count": 283,
+      "byte_count": 291456,
+      "duration_seconds": 600.0,
+      "packet_timestamp_span_seconds": 500.4628,
+      "temporal_window_coverage_seconds": 600.0,
+      "protocol_distribution": {
+        "ARP": 56,
+        "ICMPv6": 21,
+        "IPv4_PROTO_2": 4,
+        "TCP": 1617,
+        "UDP": 519,
+        "UNSUPPORTED": 60
+      },
+      "tcp_flag_counts": {
+        "SYN": 102,
+        "ACK": 1562,
+        "FIN": 133,
+        "RST": 32,
+        "PSH": 407,
+        "URG": 0
+      },
+      "unique_src_ips": 137,
+      "unique_dst_ips": 139,
+      "unique_dst_ports": 259
+    },
+    "temporal_behavior": {
+      "category": "OBSERVED",
+      "window_count": 10,
+      "window_duration_seconds": 60,
+      "earliest_timestamp": "2017-07-07T11:59:00+00:00",
+      "latest_timestamp": "2017-07-07T12:09:00+00:00",
+      "packet_timestamp_span_seconds": 500.4628,
+      "temporal_window_coverage_seconds": 600.0,
+      "temporal_continuity": "CONTINUOUS",
+      "packet_rate_trend": "STABLE",
+      "flow_churn_trend": "STABLE"
+    },
+    "forecast": {
+      "category": "FORECAST",
+      "model_version": "nexsolve-v1.0-research",
+      "forecast_points": [
+        {
+          "horizon": 1,
+          "attack_probability": 0.6002,
+          "predicted_stage": "RECONNAISSANCE",
+          "confidence": 0.2003,
+          "uncertainty": 0.7997,
+          "explanation": [
+            "Feature 'proto_udp_count' increasing by 410209592.8% relative to current state.",
+            "Feature 'proto_other_count' increasing by 80579679.9% relative to current state.",
+            "Inter-arrival time increasing (0.00s -> 107.64s) indicates irregular pacing or command-and-control interval changes.",
+            "Inter-arrival time increasing (0.00s -> 107.64s) indicates irregular pacing or command-and-control interval changes.",
+            "Feature 'tcp_fin_count' increasing by 1023737.4% relative to current state."
+          ]
+        },
+        {
+          "horizon": 2,
+          "attack_probability": 0.2085,
+          "predicted_stage": "STABLE_BENIGN",
+          "confidence": 0.583,
+          "uncertainty": 0.417,
+          "explanation": [
+            "Feature 'proto_udp_count' increasing by 371238138.5% relative to current state.",
+            "Inter-arrival time increasing (0.00s -> 419.58s) indicates irregular pacing or command-and-control interval changes.",
+            "Inter-arrival time increasing (0.00s -> 419.58s) indicates irregular pacing or command-and-control interval changes.",
+            "Feature 'proto_other_count' increasing by 34613548.4% relative to current state.",
+            "TCP flag pressure increasing (0 -> 0) reflects connection exhaustion attempts or failed handshakes."
+          ]
+        },
+        {
+          "horizon": 3,
+          "attack_probability": 0.1538,
+          "predicted_stage": "STABLE_BENIGN",
+          "confidence": 0.6923,
+          "uncertainty": 0.3077,
+          "explanation": [
+            "Feature 'proto_udp_count' increasing by 404320392.5% relative to current state.",
+            "Inter-arrival time increasing (0.00s -> 425.97s) indicates irregular pacing or command-and-control interval changes.",
+            "Inter-arrival time increasing (0.00s -> 425.97s) indicates irregular pacing or command-and-control interval changes.",
+            "Feature 'proto_other_count' increasing by 6637794.4% relative to current state.",
+            "TCP flag pressure increasing (0 -> 0) reflects connection exhaustion attempts or failed handshakes."
+          ]
+        },
+        {
+          "horizon": 4,
+          "attack_probability": 0.1174,
+          "predicted_stage": "STABLE_BENIGN",
+          "confidence": 0.7651,
+          "uncertainty": 0.2349,
+          "explanation": [
+            "Feature 'proto_udp_count' increasing by 414690620.3% relative to current state.",
+            "Inter-arrival time increasing (0.00s -> 431.00s) indicates irregular pacing or command-and-control interval changes.",
+            "Inter-arrival time increasing (0.00s -> 431.00s) indicates irregular pacing or command-and-control interval changes.",
+            "Feature 'proto_other_count' increasing by 5215494.3% relative to current state.",
+            "TCP flag pressure increasing (0 -> 0) reflects connection exhaustion attempts or failed handshakes."
+          ]
+        },
+        {
+          "horizon": 5,
+          "attack_probability": 0.0944,
+          "predicted_stage": "STABLE_BENIGN",
+          "confidence": 0.8112,
+          "uncertainty": 0.1888,
+          "explanation": [
+            "Feature 'proto_udp_count' increasing by 415294633.9% relative to current state.",
+            "Inter-arrival time increasing (0.00s -> 398.82s) indicates irregular pacing or command-and-control interval changes.",
+            "Inter-arrival time increasing (0.00s -> 398.82s) indicates irregular pacing or command-and-control interval changes.",
+            "Feature 'proto_other_count' increasing by 7007517.9% relative to current state.",
+            "TCP flag pressure increasing (0 -> 0) reflects connection exhaustion attempts or failed handshakes."
+          ]
+        }
+      ],
+      "decision_threshold": 0.5,
+      "abstained": false,
+      "summary": "Generated 5 multi-step temporal forecast horizons (60s intervals)."
+    },
+    "attack_horizon": {
+      "category": "FORECAST",
+      "state": "EARLY_SIGNAL",
+      "onset_horizon": 1,
+      "onset_timestamp": "2017-07-07T12:09:00Z",
+      "lead_time_seconds": 60,
+      "horizon_windows": 1,
+      "horizon_seconds": 60,
+      "end_horizon": 1,
+      "end_timestamp": "2017-07-07T12:09:00Z",
+      "temporal_consistency": 1.0,
+      "decay_observed": false,
+      "summary": "Early attack signal detected at horizon T+1 (lead time 60s); duration isolated to 60s (1 window). Temporal consistency: 1.00."
+    },
+    "evidence_chain": {
+      "category": "INFERRED",
+      "evidence_strength": 0.34,
+      "evidence_quality": "DEGRADED",
+      "supporting_evidence": [
+        {
+          "evidence_id": "EV-003",
+          "evidence_type": "BYTE_RATE_CHANGE",
+          "feature_name": "total_src_bytes",
+          "observed_value": 175466.0,
+          "baseline_value": 66246.2222,
+          "relative_change": 1.6487,
+          "direction": "INCREASE",
+          "severity": "HIGH",
+          "is_supporting": true,
+          "explanation": "Source data transmission volume (total_src_bytes) increased 164.9% over baseline (175466.0 vs 66246.2)."
+        },
+        {
+          "evidence_id": "EV-004",
+          "evidence_type": "BYTE_RATE_CHANGE",
+          "feature_name": "total_dst_bytes",
+          "observed_value": 89218.0,
+          "baseline_value": 24494.5556,
+          "relative_change": 2.6424,
+          "direction": "INCREASE",
+          "severity": "HIGH",
+          "is_supporting": true,
+          "explanation": "Destination data reception volume (total_dst_bytes) increased 264.2% over baseline (89218.0 vs 24494.6)."
+        },
+        {
+          "evidence_id": "EV-010",
+          "evidence_type": "TEMPORAL_CHANGE",
+          "feature_name": "delta_total_bytes",
+          "observed_value": 198022.0,
+          "baseline_value": 7406.625,
+          "relative_change": 25.7358,
+          "direction": "INCREASE",
+          "severity": "HIGH",
+          "is_supporting": true,
+          "explanation": "Sequential byte volume acceleration (delta_total_bytes) increased 2573.6% over baseline (198022.0 vs 7406.6)."
+        },
+        {
+          "evidence_id": "EV-011",
+          "evidence_type": "FORECAST_SUPPORT",
+          "feature_name": "attack_horizon",
+          "observed_value": 1.0,
+          "baseline_value": 0.0,
+          "relative_change": 1.0,
+          "direction": "INCREASE",
+          "severity": "MEDIUM",
+          "is_supporting": true,
+          "explanation": "Early attack signal isolated to horizon T+1."
+        }
+      ],
+      "contradictory_evidence": [
+        {
+          "evidence_id": "EV-001",
+          "evidence_type": "FLOW_ACTIVITY",
+          "feature_name": "flow_count",
+          "observed_value": 2.0,
+          "baseline_value": 41.3333,
+          "relative_change": -0.9516,
+          "direction": "DECREASE",
+          "severity": "HIGH",
+          "is_supporting": false,
+          "explanation": "Active concurrent flow volume (flow_count) decreased 95.2% during an attack forecast window."
+        },
+        {
+          "evidence_id": "EV-002",
+          "evidence_type": "PACKET_RATE_CHANGE",
+          "feature_name": "total_packets",
+          "observed_value": 250.0,
+          "baseline_value": 321.6667,
+          "relative_change": -0.2228,
+          "direction": "DECREASE",
+          "severity": "LOW",
+          "is_supporting": false,
+          "explanation": "Total aggregate packet volume (total_packets) decreased 22.3% during an attack forecast window."
+        },
+        {
+          "evidence_id": "EV-005",
+          "evidence_type": "PORT_DIVERSITY",
+          "feature_name": "unique_dst_ports",
+          "observed_value": 2.0,
+          "baseline_value": 26.2222,
+          "relative_change": -0.9237,
+          "direction": "DECREASE",
+          "severity": "HIGH",
+          "is_supporting": false,
+          "explanation": "Destination port diversity (unique_dst_ports) decreased 92.4% during an attack forecast window."
+        },
+        {
+          "evidence_id": "EV-006",
+          "evidence_type": "PORT_DIVERSITY",
+          "feature_name": "unique_src_ports",
+          "observed_value": 2.0,
+          "baseline_value": 35.8889,
+          "relative_change": -0.9443,
+          "direction": "DECREASE",
+          "severity": "HIGH",
+          "is_supporting": false,
+          "explanation": "Source port diversity (unique_src_ports) decreased 94.4% during an attack forecast window."
+        },
+        {
+          "evidence_id": "EV-007",
+          "evidence_type": "PROTOCOL_SHIFT",
+          "feature_name": "proto_tcp_count",
+          "observed_value": 2.0,
+          "baseline_value": 29.4444,
+          "relative_change": -0.9321,
+          "direction": "DECREASE",
+          "severity": "HIGH",
+          "is_supporting": false,
+          "explanation": "TCP protocol distribution count (proto_tcp_count) decreased 93.2% during an attack forecast window."
+        },
+        {
+          "evidence_id": "EV-008",
+          "evidence_type": "PROTOCOL_SHIFT",
+          "feature_name": "proto_udp_count",
+          "observed_value": 0.0,
+          "baseline_value": 9.8889,
+          "relative_change": -1.0,
+          "direction": "DECREASE",
+          "severity": "HIGH",
+          "is_supporting": false,
+          "explanation": "UDP protocol distribution count (proto_udp_count) decreased 100.0% during an attack forecast window."
+        },
+        {
+          "evidence_id": "EV-009",
+          "evidence_type": "TEMPORAL_CHANGE",
+          "feature_name": "delta_flow_count",
+          "observed_value": -81.0,
+          "baseline_value": 9.875,
+          "relative_change": -9.2025,
+          "direction": "DECREASE",
+          "severity": "HIGH",
+          "is_supporting": false,
+          "explanation": "Sequential flow count acceleration (delta_flow_count) decreased 920.3% during an attack forecast window."
+        },
+        {
+          "evidence_id": "EV-012",
+          "evidence_type": "CAPTURE_QUALITY",
+          "feature_name": "capture_quality",
+          "observed_value": 0.7,
+          "baseline_value": 1.0,
+          "relative_change": -0.3,
+          "direction": "DECREASE",
+          "severity": "MEDIUM",
+          "is_supporting": false,
+          "explanation": "Underlying network capture is flagged DEGRADED.; Capture contains 1 timestamp anomalies.; Capture contains 35 truncated packets."
+        }
+      ],
+      "explanation": "Observation supported by 4 indicators, but qualified by 8 contradictory signals (e.g., Active concurrent flow volume (flow_count) decreased 95.2% during an attack forecast window.).",
+      "limitations": [
+        "Underlying network capture is flagged DEGRADED.",
+        "Capture contains 1 timestamp anomalies.",
+        "Capture contains 35 truncated packets."
+      ]
+    },
+    "confidence": {
+      "category": "INFERRED",
+      "forecast_score": 0.6002,
+      "confidence_value": null,
+      "confidence_state": "HIGH_UNCERTAINTY",
+      "calibration_status": "UNSUPPORTED",
+      "uncertainty_level": "HIGH",
+      "disclaimer": "Forecast score is uncalibrated and must not be interpreted as a calibrated probability."
+    },
+    "unknown_behavior": {
+      "category": "UNKNOWN",
+      "classification": "UNKNOWN_BEHAVIOR",
+      "reason": "Conflicting evidence: contradictory signals exceed supporting indicators across multiple dimensions.",
+      "supporting_evidence": [
+        "Source data transmission volume (total_src_bytes) increased 164.9% over baseline (175466.0 vs 66246.2).",
+        "Destination data reception volume (total_dst_bytes) increased 264.2% over baseline (89218.0 vs 24494.6).",
+        "Sequential byte volume acceleration (delta_total_bytes) increased 2573.6% over baseline (198022.0 vs 7406.6).",
+        "Early attack signal isolated to horizon T+1."
+      ],
+      "contradictory_evidence": [
+        "Active concurrent flow volume (flow_count) decreased 95.2% during an attack forecast window.",
+        "Total aggregate packet volume (total_packets) decreased 22.3% during an attack forecast window.",
+        "Destination port diversity (unique_dst_ports) decreased 92.4% during an attack forecast window.",
+        "Source port diversity (unique_src_ports) decreased 94.4% during an attack forecast window.",
+        "TCP protocol distribution count (proto_tcp_count) decreased 93.2% during an attack forecast window.",
+        "UDP protocol distribution count (proto_udp_count) decreased 100.0% during an attack forecast window.",
+        "Sequential flow count acceleration (delta_flow_count) decreased 920.3% during an attack forecast window.",
+        "Underlying network capture is flagged DEGRADED.; Capture contains 1 timestamp anomalies.; Capture contains 35 truncated packets."
+      ],
+      "coverage": 0.45,
+      "abstain_recommended": false
+    },
+    "abstention": {
+      "category": "ABSTAINED",
+      "abstained": false,
+      "reason": null,
+      "severity": "LOW",
+      "status": "FORECAST_AVAILABLE_BUT_UNCALIBRATED",
+      "missing_requirements": [],
+      "explanation": "Forecast is available and supported by lookback history, but model calibration is UNSUPPORTED. Raw scores should not be treated as calibrated probabilities."
+    },
+    "limitations": {
+      "category": "OBSERVED",
+      "limitations": [
+        "Underlying network capture is flagged DEGRADED.",
+        "Capture contains 1 timestamp anomalies.",
+        "Capture contains 35 truncated packets."
+      ],
+      "capture_limitations": [],
+      "calibration_caveats": [
+        "Forecast score reflects raw model margin. Calibration status is UNSUPPORTED for single-class/benchmark regimes.",
+        "Heuristic packet alerts are indicators, not definitive intrusion ground truth."
+      ]
+    },
+    "provenance": {
+      "category": "OBSERVED",
+      "capture_hash": null,
+      "source_filename": "friday_10windows_slice.pcap",
+      "file_size_bytes": 833081,
+      "packet_count": 2277,
+      "flow_count": 283,
+      "window_count": 10,
+      "time_range": {
+        "start": "2017-07-07T11:59:00+00:00",
+        "end": "2017-07-07T12:09:00+00:00"
+      },
+      "model_version": "nexsolve-v1.0-research",
+      "processing_version": "nexsolve-v1.0.0-prod"
+    },
+    "processing_metadata": {
+      "category": "OBSERVED",
+      "job_id": "upload-a2516a79689b4b289fe837420ffd1448",
+      "generated_at_utc": "2026-09-14T19:48:11.866510+00:00",
+      "processing_seconds": 0.0,
+      "stage": "completed",
+      "peak_memory_mb": null
+    }
+  }
+}

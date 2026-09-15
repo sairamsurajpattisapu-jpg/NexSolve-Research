@@ -328,11 +328,23 @@ export interface AttackHorizonPayload {
 
 export interface ForecastPoint {
   horizon: number
+  lookaheadSeconds?: number
   attackProbability: number | null
+  cumulativeRisk?: number | null
+  riskLevel?: string
   predictedStage: string | null
   confidence: number | null
   uncertainty: number | null
   explanation: string[]
+  topDrivers?: Array<{
+    feature: string
+    current_value: number
+    predicted_value: number
+    direction: string
+    relative_change: number
+    importance: string
+    interpretation: string
+  }>
 }
 
 export type PredictionType = 'STATE_PERSISTENCE' | 'DOWNSTREAM_PROGRESSION' | 'ABSTAINED'

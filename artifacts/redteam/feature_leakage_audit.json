@@ -1,0 +1,458 @@
+{
+  "audit_timestamp_utc": "2026-09-14T17:57:48.872150+00:00",
+  "features_audited": 45,
+  "mean_tcp_rtt_status": "EXCLUDED_FROM_CANONICAL_45_CONTRACT_ZERO_FABRICATION",
+  "leakage_free_count": 45,
+  "feature_details": [
+    {
+      "feature": "flow_count",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "total_src_bytes",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "total_dst_bytes",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "total_packets",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "mean_duration",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "mean_flow_bytes",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "mean_flow_packets",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "mean_sttl",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "mean_dttl",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "mean_swin",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "mean_dwin",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "mean_iat",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "unique_src_ports",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "unique_dst_ports",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "proto_tcp_count",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "proto_udp_count",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "proto_other_count",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "packet_count",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "mean_packet_size",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "std_packet_size",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "min_packet_size",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "max_packet_size",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "mean_ttl",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "std_ttl",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "min_ttl",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "max_ttl",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "tcp_syn_count",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "tcp_ack_count",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "tcp_fin_count",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "tcp_rst_count",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "tcp_psh_count",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "tcp_urg_count",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "mean_tcp_window",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "std_tcp_window",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "fragment_count",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "retransmission_count",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "mean_iat",
+      "group": "flow",
+      "source": "Flow aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "std_iat",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "max_iat",
+      "group": "packet",
+      "source": "Packet aggregation over [t, t+60)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "delta_flow_count",
+      "group": "temporal",
+      "source": "Backward finite difference over [t-60, t)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "delta_total_bytes",
+      "group": "temporal",
+      "source": "Backward finite difference over [t-60, t)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "delta_total_packets",
+      "group": "temporal",
+      "source": "Backward finite difference over [t-60, t)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "delta_ports",
+      "group": "temporal",
+      "source": "Backward finite difference over [t-60, t)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "delta_iat",
+      "group": "temporal",
+      "source": "Backward finite difference over [t-60, t)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    },
+    {
+      "feature": "rolling_total_bytes",
+      "group": "temporal",
+      "source": "Backward finite difference over [t-60, t)",
+      "causal_at_t": true,
+      "future_dependency": false,
+      "label_dependency": false,
+      "normalization_scope": "fit_strictly_on_train_split_only",
+      "status": "PASSED_ZERO_LEAKAGE"
+    }
+  ]
+}

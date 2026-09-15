@@ -1,0 +1,49 @@
+{
+  "test_window_index": 16,
+  "timestamp": 1424219940,
+  "forecast_attack_probability": 0.5235,
+  "ground_truth_label": 1,
+  "top_contributing_features": [
+    {
+      "feature": "delta_ports",
+      "contribution": 0.1497956831185016,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "unique_src_ports",
+      "contribution": -0.12654030167674413,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_flow_bytes",
+      "contribution": 0.08677494338524278,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "delta_iat",
+      "contribution": -0.08039501462957077,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "flow_count",
+      "contribution": -0.07743615740762422,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_flow_packets",
+      "contribution": 0.05032907190693209,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_dwin",
+      "contribution": -0.03303082766907817,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "proto_tcp_count",
+      "contribution": 0.031314466261690765,
+      "language": "contributed to the model forecast; not causal"
+    }
+  ],
+  "method": "counterfactual_feature_perturbation_to_mean"
+}

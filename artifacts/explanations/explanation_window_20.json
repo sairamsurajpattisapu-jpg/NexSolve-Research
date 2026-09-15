@@ -1,0 +1,49 @@
+{
+  "test_window_index": 20,
+  "timestamp": 1424220180,
+  "forecast_attack_probability": 0.9602,
+  "ground_truth_label": 1,
+  "top_contributing_features": [
+    {
+      "feature": "mean_dttl",
+      "contribution": 0.15937564250325986,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_sttl",
+      "contribution": 0.01634039951424926,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_dwin",
+      "contribution": -0.0027483078588225185,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "unique_src_ports",
+      "contribution": 0.0026833028691443106,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "unique_dst_ports",
+      "contribution": 0.0025367150494982615,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_flow_packets",
+      "contribution": 0.0024483187344501722,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_iat",
+      "contribution": -0.0019628472033543787,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "total_src_bytes",
+      "contribution": -0.0019372158950319296,
+      "language": "contributed to the model forecast; not causal"
+    }
+  ],
+  "method": "counterfactual_feature_perturbation_to_mean"
+}

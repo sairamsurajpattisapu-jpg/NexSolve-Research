@@ -1,0 +1,13 @@
+{
+  "one_step_state_transition": {
+    "world_model": {
+      "normalized_mse": 38.71794200912892,
+      "normalized_mae": 1.6642818941936837
+    },
+    "persistence_baseline": {
+      "normalized_mse": 34.79473657870605,
+      "normalized_mae": 1.032618485430523
+    }
+  },
+  "evaluation_pairs": 17
+}

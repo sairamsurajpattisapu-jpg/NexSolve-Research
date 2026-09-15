@@ -8,6 +8,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { DemoModeSelector } from '../components/DemoModeSelector'
+import { LiveDemoWizard } from '../components/LiveDemoWizard'
 import { JobResult } from '../components/JobResult'
 import { Panel, SectionHeading } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
@@ -96,6 +97,9 @@ export function Demo() {
           </div>
         </div>
       </Panel>
+
+      {/* One-Click Automated 8-Step Interactive Live Demo Wizard */}
+      <LiveDemoWizard onComplete={handleSelectScenario} />
 
       {/* Scenario Selector */}
       <DemoModeSelector

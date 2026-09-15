@@ -9,6 +9,7 @@ const navigation = [
   { to: '/forecast', label: 'Forecast' },
   { to: '/evidence', label: 'Evidence' },
   { to: '/reports', label: 'Reports' },
+  { to: '/demo', label: 'SIH Demo' },
 ]
 
 export function Layout({

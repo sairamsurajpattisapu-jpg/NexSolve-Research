@@ -59,6 +59,31 @@ export function ReportActions({ jobId, onReset }: ReportActionsProps) {
         <Download size={12} color="var(--text-muted)" />
       </a>
 
+      <button
+        type="button"
+        onClick={() => {
+          const summaryText = `NEXSOLVE FORECAST SUMMARY\nReport ID: rep-${jobId}\nEngine: NexSolve 45-Feature PCAP-Compatible World Model\nExecution: 100% Offline / Local\nStatus: Complete\nAccess full report at: ${htmlUrl}`
+          navigator.clipboard.writeText(summaryText)
+          alert('Forecast Summary copied to clipboard!')
+        }}
+        className="button button-quiet"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '7px 13px',
+          fontSize: '11px',
+          fontFamily: 'var(--mono)',
+          fontWeight: 700,
+          borderColor: 'var(--border)',
+          background: 'var(--button-secondary-bg)',
+          color: 'var(--text-primary)',
+        }}
+      >
+        <Download size={12} color="var(--accent)" />
+        <span>Copy Summary</span>
+      </button>
+
       {onReset && (
         <button
           type="button"

@@ -1,0 +1,177 @@
+{
+  "audit_timestamp_utc": "2026-09-14T17:56:57.089383+00:00",
+  "reproduced_experiments": {
+    "transition_evaluation": {
+      "stored_1step_wm_mse": 38.71794200912892,
+      "reproduced_1step_wm_mse": 38.71794200912892,
+      "status": "EXACT_MATCH",
+      "critical_redteam_finding": "WM MSE is dominated by mean_iat (MSE 1148.61) due to extreme test-set mean_iat shift (test mean 11,191s vs train mean 429s). On 1-step MAE, Persistence (1.03) beats World Model (1.66)."
+    },
+    "rollout_evaluation": {
+      "stored_rollout": {
+        "T+1": {
+          "horizon_step": 1,
+          "lookahead_seconds": 60,
+          "world_model": {
+            "state_mse": 41.10384421671806,
+            "state_mae": 1.7391892098115869
+          },
+          "persistence_baseline": {
+            "state_mse": 36.951245805593814,
+            "state_mae": 1.077308197327248
+          }
+        },
+        "T+2": {
+          "horizon_step": 2,
+          "lookahead_seconds": 120,
+          "world_model": {
+            "state_mse": 34.6303755888717,
+            "state_mae": 1.5340374372550625
+          },
+          "persistence_baseline": {
+            "state_mse": 49.680254623737774,
+            "state_mae": 1.4680329897713946
+          }
+        },
+        "T+3": {
+          "horizon_step": 3,
+          "lookahead_seconds": 180,
+          "world_model": {
+            "state_mse": 27.44948961691391,
+            "state_mae": 1.36901890505424
+          },
+          "persistence_baseline": {
+            "state_mse": 38.651670341244646,
+            "state_mae": 1.336740095110099
+          }
+        },
+        "T+4": {
+          "horizon_step": 4,
+          "lookahead_seconds": 240,
+          "world_model": {
+            "state_mse": 24.695627192313523,
+            "state_mae": 1.2210889176688575
+          },
+          "persistence_baseline": {
+            "state_mse": 36.364211312123444,
+            "state_mae": 1.5878565869355634
+          }
+        },
+        "T+5": {
+          "horizon_step": 5,
+          "lookahead_seconds": 300,
+          "world_model": {
+            "state_mse": 24.403777267552147,
+            "state_mae": 1.1356195733373005
+          },
+          "persistence_baseline": {
+            "state_mse": 59.79906887121289,
+            "state_mae": 2.140026087528763
+          }
+        }
+      },
+      "status": "REPRODUCED_WITH_SAMPLE_SIZE_DISCLOSURE",
+      "critical_redteam_finding": "Rollout MSE decreasing from 41.10 (T+1) to 24.40 (T+5) was caused by sample truncation across 25-window test set (N=16 at T+1 down to N=12 at T+5). When evaluated on identical 12 origins, WM MSE stays 54.68 -> 43.18 -> 31.96 -> 26.72 -> 24.40. It genuinely beats Persistence at horizons >= 2, because Persistence explodes to 59.80 MSE."
+    },
+    "baseline_comparison": {
+      "stored_metrics": {
+        "Temporal_World_Model": {
+          "precision": 0.6471,
+          "recall": 1.0,
+          "f1": 0.7857,
+          "fpr": 1.0,
+          "balanced_accuracy": 0.5,
+          "roc_auc": 0.6667,
+          "pr_auc": 0.8386,
+          "confusion_matrix": {
+            "tp": 11,
+            "fp": 6,
+            "tn": 0,
+            "fn": 0
+          },
+          "evaluated_cases": 17
+        },
+        "Logistic_Regression_Baseline": {
+          "precision": 0.6875,
+          "recall": 1.0,
+          "f1": 0.8148,
+          "fpr": 0.8333,
+          "balanced_accuracy": 0.5833,
+          "roc_auc": 0.2121,
+          "pr_auc": 0.5131,
+          "confusion_matrix": {
+            "tp": 11,
+            "fp": 5,
+            "tn": 1,
+            "fn": 0
+          },
+          "evaluated_cases": 17
+        },
+        "Persistence_Champion_Baseline": {
+          "precision": 1.0,
+          "recall": 0.9091,
+          "f1": 0.9524,
+          "fpr": 0.0,
+          "balanced_accuracy": 0.9545,
+          "roc_auc": "N/A",
+          "pr_auc": "N/A",
+          "confusion_matrix": {
+            "tp": 10,
+            "fp": 0,
+            "tn": 6,
+            "fn": 1
+          },
+          "evaluated_cases": 17
+        }
+      },
+      "status": "REPRODUCED_WITH_SAMPLE_DISCLOSURE",
+      "critical_redteam_finding": "World Model 100% recall corresponds to exactly 11 out of 11 attack windows detected in a 17-pair test set with 6 false positives (Precision 0.6471, F1 0.7857). Persistence Champion achieves 0.9524 F1 with 0% FPR."
+    },
+    "unseen_attack_campaign": {
+      "stored_metrics": {
+        "unseen_attack_recall": 0.6364,
+        "unseen_attack_precision": 0.7778,
+        "unseen_attack_f1": 0.7,
+        "mean_state_transition_mse": 39.1669,
+        "confusion_matrix": {
+          "tp": 7,
+          "fp": 2,
+          "tn": 4,
+          "fn": 4
+        }
+      },
+      "status": "REPRODUCED_RECLASSIFIED_AS_CAMPAIGN_GENERALIZATION",
+      "critical_redteam_finding": "Experiment evaluates held-out temporal attack campaign (Run 2: 15 attack windows) rather than an isolated attack category. Recall 0.6364, F1 0.7000."
+    },
+    "calibration": {
+      "stored_metrics": {
+        "status": "computed",
+        "brier_score": 0.25016395999999996,
+        "expected_calibration_error": 0.21029411764705874,
+        "reliability_bins": [
+          {
+            "bin": 2,
+            "count": 3,
+            "mean_probability": 0.5558,
+            "observed_rate": 0.6666666666666666
+          },
+          {
+            "bin": 3,
+            "count": 3,
+            "mean_probability": 0.6272,
+            "observed_rate": 0.3333333333333333
+          },
+          {
+            "bin": 4,
+            "count": 11,
+            "mean_probability": 0.941890909090909,
+            "observed_rate": 0.7272727272727273
+          }
+        ],
+        "fit_scope": "validation only"
+      },
+      "status": "REPRODUCED_WEAK_CALIBRATION_DISCLOSED",
+      "critical_redteam_finding": "Brier = 0.2502, ECE = 0.2103. ECE is high; raw neural probabilities are NOT well-calibrated and require post-hoc temperature/isotonic scaling."
+    }
+  }
+}

@@ -1,50 +1,45 @@
-# NexSolve: AI-Based Network Attack Forecasting
+# NexSolve
 
-> **SIH 2026 Problem Statement 26153**: AI-Based Network Attack Forecasting from Network Traffic Data  
-> **Repository Type**: Production-Grade Research & Predictive Network Intelligence System  
-> **Status**: Production Software Foundation Complete | Scientific Model Baseline: Persistence Champion (`ML Promotion: HOLD`)
-
----
-
-## 1. What NexSolve Is
-
-**NexSolve** is a predictive network intelligence and forensic analysis platform. Rather than merely detecting intrusions after damage has occurred, NexSolve reconstructs ordered network packet captures into temporal network states and answers a forward-looking question:
-
-> **"Given the network traffic observed up to time $t_0$, what is the attack trajectory and network state likely to look like across future horizons ($t+1$ to $t+5$), how far out is the attack window, and what evidence supports or contradicts this forecast?"**
-
-NexSolve bridges raw packet-level forensic capture (`.pcap` / `.pcapng`) to forward-looking cyber defense, providing SOC analysts and incident responders with deterministic, auditable, and scientifically defensible decision support.
+> **AI-Powered Network Attack Forecasting & Early-Warning Platform**  
+> **Smart India Hackathon 2026** · Problem Statement ID: **26153**  
+> **Title**: "AI based Network Attack Forecasting from Network Traffic Data"  
+> **Scientific Model**: Autoregressive LSTM World Model (`45_feature_pcap_compatible`) · 100% Offline Edge Execution
 
 ---
 
-## 2. The Problem It Solves
+## Why NexSolve?
 
-Traditional network defense operates in an inherently reactive paradigm:
+Traditional intrusion detection systems (IDS/IPS, NIDS, and standard ML classifiers) operate in a fundamentally reactive posture:
+```
+Traditional IDS:  Observe traffic -> Match rule/signature -> Alert on breach (T0) -> Predictive Lead Time = 0s
+NexSolve:         Observe traffic -> Model temporal state -> Simulate future -> Forecast attack risk -> Explain WHY
+```
+When an attack occurs, defending networks need **lead time** to trigger automated egress isolation, rate-limiting, and quarantine policies *during early reconnaissance* before data exfiltration or denial-of-service impacts the perimeter.
 
-1. **Post-Incident Alert Overwhelm**: Intrusion Detection Systems (IDS/IPS) trigger alerts only after malicious payloads, signature matches, or volumetric spikes have already breached the network perimeter.
-2. **Zero Temporal Horizon**: Standard security dashboards answer *"What just happened?"* or *"What is happening right now?"*, but fail to inform defenders about the trajectory of the threat over the next 1 to 5 minutes.
-3. **Black-Box Hallucinations**: Many proposed AI/ML models output uncalibrated probabilities with no traceable evidence chain, creating analyst distrust and fatal alert fatigue.
-4. **Data Leakage in Research**: Academic models often report artificially inflated >99% accuracies by randomly shuffling time-series data or mixing train/test packets from the same temporal flows, collapsing when deployed on continuous, out-of-distribution traffic.
-
-NexSolve addresses SIH PS 26153 by establishing a chronologically strict, leakage-free pipeline that produces verifiable temporal network states, multi-step attack forecasts, explicit attack horizons, bidirectional evidence chains, and strict safety abstention when data quality or history is insufficient.
-
----
-
-## 3. Why Existing Approaches Fail
-
-| Vector | Traditional IDS / SIEM | Naive Academic ML | NexSolve System |
-| :--- | :--- | :--- | :--- |
-| **Paradigm** | Reactive / Signature / Retrospective | Unbounded Classification | Predictive Temporal Network Intelligence |
-| **Temporal Horizon** | $t_0$ only (Past / Immediate) | Static slice ($t_0$) | Forward rollouts: $t+1$ through $t+5$ |
-| **Evidence Basis** | Rule match or anomaly score | Opaque tensor / embedding | Bidirectional (Supporting + Contradictory) |
-| **Evaluation** | Synthetic test benches | Random train/test split (Data Leakage) | Contiguous temporal episodes (Zero leakage) |
-| **Degraded Data** | Silent misclassification / False alerts | Hallucinated confidence | Explicit Forecast Abstention (`FORECAST WITHHELD`) |
-| **Operational Output** | Alert spam | Arbitrary label | Actionable Defender Horizon & Countermeasures |
+NexSolve models the evolving state of a computer network from passive traffic telemetry and predicts the likelihood and progression of malicious activity across future discrete time windows ($T+1$ through $T+5$).
 
 ---
 
-## 4. Architecture
+## Core Workflow
 
-NexSolve decouples live packet forensic extraction, canonical state reconstruction, temporal forecasting, and forensic reporting into an asynchronous, auditable architecture:
+```
+NETWORK TRAFFIC (PCAP/PCAPNG)
+        ↓
+TEMPORAL NETWORK STATE (45 Passive Features · 60s Windows)
+        ↓
+FUTURE STATE SIMULATION (Autoregressive LSTM World Model)
+        ↓
+MULTI-HORIZON ATTACK RISK (Single P(Atk) & Monotonic Cumulative Risk)
+        ↓
+ATTACK PROGRESSION (Markovian Behavioral Stage Transitions)
+        ↓
+MITRE BEHAVIORAL INTERPRETATION (T1046, T1071, T1190, T1498)
+        ↓
+EXPLAINABLE EARLY WARNING (Top Feature Drivers & 0-100 Score)
+        ↓
+SOC COMMAND CENTER & STANDALONE AUDIT REPORTS (HTML / JSON)
+```
+
 
 ```text
 +-------------------------------------------------------------------------------+
@@ -208,35 +203,85 @@ When capture quality is degraded or historical temporal context is insufficient,
 
 ---
 
-## 13. How to Run Locally (Quickstart)
+## Installation & Quick Start
 
-Get NexSolve running locally in 3 quick terminal steps:
+Get NexSolve running locally with one unified command or modular scripts.
 
 ### Prerequisites
-- Python 3.11+
+- Python 3.10+ (Tested on Python 3.11 - 3.14)
 - Node.js 18+ and npm
-- (Optional) PostgreSQL 14+ (SQLite used automatically in test/local development modes)
+- Windows PowerShell / Linux bash
 
-### Step 1: Install Backend & Dependencies
+### One-Command Unified Startup (Recommended)
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r model_service/requirements.txt
+# In root directory: launches backend, frontend, and opens browser to SIH Demo
+python scripts/start_demo.py
 ```
 
-### Step 2: Start the Backend API
+### Modular Startup (PowerShell)
 ```powershell
-python -m uvicorn model_service.app:app --host 127.0.0.1 --port 8001
+# Terminal 1 - Backend FastAPI Service (http://127.0.0.1:8000)
+.\start_backend.ps1
+
+# Terminal 2 - Frontend SOC Command Center (http://localhost:5173)
+.\start_frontend.ps1
 ```
 
-### Step 3: Start the Frontend Application
+---
+
+## Command-Line Interface (CLI)
+
+NexSolve includes a unified CLI runner for air-gapped terminal analysis and automated CI/CD pipelines:
+
+```bash
+# Analyze PCAP and print SOC terminal forecast table
+python -m nexsolve forecast data/test_slices/friday_10windows_slice.pcap
+
+# Export machine-readable JSON intelligence report
+python -m nexsolve forecast capture.pcap --json -o reports/forecast.json
+
+# Generate standalone printable HTML security audit report
+python -m nexsolve forecast capture.pcap --report -o reports/audit_report.html
+```
+
+---
+
+## Deterministic Live Demo Runner
+
+Run the end-to-end user journey in under 5 seconds with zero mock data:
+
+```bash
+python scripts/run_demo.py
+```
+This script executes the entire 16-step user journey:
+1. Ingests real 10-window capture (`friday_10windows_slice.pcap`).
+2. Reconstructs 283 directional 5-tuple flows across 2,277 packets.
+3. Groups telemetry into discrete 60s windows without fabricating `mean_tcp_rtt`.
+4. Evaluates 45-feature state vector compatibility.
+5. Executes autoregressive LSTM rollout across horizons $T+1 \dots T+5$.
+6. Calculates single-step risk and monotonic cumulative exposure.
+7. Computes Early Warning Score (0–100) and maps behavioral MITRE techniques.
+8. Generates self-contained HTML and JSON reports in `reports/`.
+
+---
+
+## Automated Verification & Test Suite
+
+NexSolve maintains strict test coverage across scientific safety contracts, world model rollouts, and frontend components:
+
 ```powershell
+# 1. Run Complete Scientific Validation Suite (Contracts, Rollouts, PCAP pipeline)
+python scripts/validate_system.py
+
+# 2. Run End-to-End PCAP Demo & CLI Test Suite
+pytest tests/test_pcap_demo_pipeline.py -v
+
+# 3. Run Frontend Unit & Integration Tests (15 suites, 65 tests)
 cd frontend
-npm install
-npm run dev
+npm test -- --run
+npm run typecheck
 ```
 
-Visit **`http://localhost:5173`** in your browser.
 
 ---
 

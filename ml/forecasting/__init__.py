@@ -47,6 +47,14 @@ from ml.forecasting.unknown_behavior import (
     UnknownBehaviorResult,
     classify_unknown_behavior,
 )
+from ml.forecasting.forecasting_engine import (
+    EarlyWarningAssessment,
+    EarlyWarningLevel,
+    ForecastTrajectoryResult,
+    ForecastingPipeline,
+    HorizonForecastPoint,
+    RiskLevel,
+)
 
 __all__ = [
     "AttackHorizonResult",
@@ -80,4 +88,10 @@ __all__ = [
     "BehaviorClassification",
     "UnknownBehaviorResult",
     "classify_unknown_behavior",
+    "ForecastingPipeline",
+    "HorizonForecastPoint",
+    "EarlyWarningAssessment",
+    "ForecastTrajectoryResult",
+    "RiskLevel",
+    "EarlyWarningLevel",
 ]

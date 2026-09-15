@@ -1,0 +1,67 @@
+{
+  "manifest_version": "1.0.0",
+  "generated_at_utc": "2026-09-14T15:52:01.099277+00:00",
+  "problem_statement_id": "26153",
+  "title": "AI based Network Attack Forecasting from Network Traffic Data",
+  "dataset": {
+    "name": "UNSW-NB15",
+    "raw_sources": [
+      "UNSW-NB15_1.csv",
+      "UNSW-NB15_2.csv",
+      "UNSW-NB15_3.csv",
+      "UNSW-NB15_4.csv"
+    ],
+    "processed_cache": "data/processed/unsw_network_states.json",
+    "total_temporal_windows": 1441,
+    "window_seconds": 60,
+    "split": {
+      "train": 595,
+      "val": 149,
+      "test": 25,
+      "unused_or_gaps": 672
+    },
+    "leakage_safety": "strictly_chronological_no_shuffle_train_fit_scaler_only"
+  },
+  "feature_contracts": {
+    "canonical_45_feature_pcap": {
+      "total_features": 45,
+      "flow_features": 17,
+      "packet_features": 22,
+      "temporal_features": 6,
+      "rtt_policy": "strictly_excluded_mean_tcp_rtt_never_zero_filled_or_fabricated",
+      "model_directory": "models/nexsolve_world_model_45"
+    },
+    "canonical_46_feature_enriched": {
+      "total_features": 46,
+      "flow_features": 18,
+      "packet_features": 22,
+      "temporal_features": 6,
+      "rtt_policy": "requires_valid_rtt_telemetry_unavailable_on_passive_pcap",
+      "model_directory": "models/nexsolve_world_model"
+    }
+  },
+  "model_architecture": {
+    "type": "NumpyLSTM",
+    "input_size": 45,
+    "hidden_size": 24,
+    "parameters": "W (hidden+input to 4*hidden), b, Wy (hidden to output_state + attack_prob), by",
+    "lookback_windows": 8,
+    "forecast_horizon_k": 5
+  },
+  "experiment_results": {
+    "transition_metrics": "artifacts/transition_metrics.json",
+    "transition_predictions": "artifacts/transition_predictions.csv",
+    "rollout_metrics": "artifacts/rollout_metrics.json",
+    "rollout_predictions": "artifacts/rollout_predictions.csv",
+    "calibration_metrics": "artifacts/calibration_metrics.json",
+    "baseline_metrics": "artifacts/baseline_metrics.json",
+    "unseen_attack_metrics": "experiments/unseen_attack/unseen_attack_metrics.json",
+    "explanations": "artifacts/explanations/"
+  },
+  "reproducibility": {
+    "python_version": "3.14.3",
+    "seed": 7,
+    "offline_capable": true,
+    "zero_dependency_core": true
+  }
+}

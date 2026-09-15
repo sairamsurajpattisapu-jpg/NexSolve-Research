@@ -335,27 +335,31 @@ class JobManager:
             t_forecast_start = time.perf_counter()
             self._update_stage(job_id, "FORECAST")
             forecast_points: list[dict[str, Any]] = []
-            
+            trajectory_result = None
+
+            from ml.forecasting.forecasting_engine import ForecastingPipeline
+            forecasting_pipeline = ForecastingPipeline(active_model_dir)
+
             if compatibility.get("model_ready", False):
                 try:
-                    from world_model import explain, forecast_k_steps, load_model
                     states = candidates_to_network_states(candidates, active_schema, history.status)
-                    model, mean, scale = load_model(active_model_dir)
-                    forecast_res = forecast_k_steps(states, int(active_config["forecast_horizon"]), active_model_dir)
-                    explanation_rows = explain(states, model, mean, scale)
-                    exps = [f"{r['feature']} contributed ({r['contribution']:+.6f})" for r in explanation_rows]
-                    for pt in forecast_res.get("forecasts", []):
+                    trajectory_result = forecasting_pipeline.execute_forecast(states, horizons=(1, 2, 3, 4, 5))
+                    for pt in trajectory_result.forecasts:
                         forecast_points.append({
-                            "horizon": pt["horizon"],
-                            "attackProbability": pt["attack_probability"],
-                            "predictedStage": None,
-                            "confidence": pt["confidence"],
-                            "uncertainty": None if pt["confidence"] is None else 1.0 - pt["confidence"],
-                            "explanation": exps,
+                            "horizon": pt.horizon,
+                            "lookaheadSeconds": pt.lookahead_seconds,
+                            "attackProbability": pt.attack_probability,
+                            "cumulativeRisk": pt.cumulative_risk,
+                            "riskLevel": pt.risk_level.value,
+                            "predictedStage": pt.predicted_stage,
+                            "confidence": pt.confidence,
+                            "uncertainty": pt.uncertainty,
+                            "explanation": [d.interpretation for d in pt.top_drivers] if pt.top_drivers else [pt.behavioral_interpretation],
+                            "topDrivers": [d.to_dict() for d in pt.top_drivers],
                         })
                 except Exception:
                     # Model evaluation fallback to abstained points
-                    for h in range(1, 6):
+                    for h in (1, 2, 3, 4, 5):
                         forecast_points.append({
                             "horizon": h,
                             "attackProbability": None,
@@ -366,7 +370,7 @@ class JobManager:
                         })
             else:
                 reason = compatibility.get("reason", "Incompatible feature contract for world model.")
-                for h in range(1, 6):
+                for h in (1, 2, 3, 4, 5):
                     forecast_points.append({
                         "horizon": h,
                         "attackProbability": None,
@@ -563,6 +567,8 @@ class JobManager:
                 "threat_assessment": threat_assessment.to_dict(),
                 # Trust Layer
                 "forecasts": forecast_points,
+                "forecast_trajectory": trajectory_result.to_dict() if trajectory_result else None,
+                "early_warning": trajectory_result.early_warning.to_dict() if trajectory_result else None,
                 "attack_horizon": intelligence.attack_horizon,
                 "attackHorizon": intelligence.attack_horizon,
                 "attack_progression": progression_forecast.to_dict(),

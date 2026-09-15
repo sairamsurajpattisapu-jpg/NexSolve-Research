@@ -1,0 +1,49 @@
+{
+  "test_window_index": 8,
+  "timestamp": 1424219460,
+  "forecast_attack_probability": 0.8802,
+  "ground_truth_label": 0,
+  "top_contributing_features": [
+    {
+      "feature": "mean_dwin",
+      "contribution": 0.24575053672138913,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_swin",
+      "contribution": 0.1578828011044433,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_dttl",
+      "contribution": -0.09971028389541026,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "delta_iat",
+      "contribution": 0.08638913487105637,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_duration",
+      "contribution": -0.07751841038708629,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_iat",
+      "contribution": 0.07497434112350365,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "proto_udp_count",
+      "contribution": -0.06485427158755364,
+      "language": "contributed to the model forecast; not causal"
+    },
+    {
+      "feature": "mean_flow_packets",
+      "contribution": 0.048244152420260145,
+      "language": "contributed to the model forecast; not causal"
+    }
+  ],
+  "method": "counterfactual_feature_perturbation_to_mean"
+}

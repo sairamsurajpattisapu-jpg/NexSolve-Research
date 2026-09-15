@@ -1,0 +1,26 @@
+{
+  "status": "computed",
+  "brier_score": 0.25016395999999996,
+  "expected_calibration_error": 0.21029411764705874,
+  "reliability_bins": [
+    {
+      "bin": 2,
+      "count": 3,
+      "mean_probability": 0.5558,
+      "observed_rate": 0.6666666666666666
+    },
+    {
+      "bin": 3,
+      "count": 3,
+      "mean_probability": 0.6272,
+      "observed_rate": 0.3333333333333333
+    },
+    {
+      "bin": 4,
+      "count": 11,
+      "mean_probability": 0.941890909090909,
+      "observed_rate": 0.7272727272727273
+    }
+  ],
+  "fit_scope": "validation only"
+}

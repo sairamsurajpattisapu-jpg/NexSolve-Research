@@ -1,0 +1,62 @@
+{
+  "T+1": {
+    "horizon_step": 1,
+    "lookahead_seconds": 60,
+    "world_model": {
+      "state_mse": 41.10384421671806,
+      "state_mae": 1.7391892098115869
+    },
+    "persistence_baseline": {
+      "state_mse": 36.951245805593814,
+      "state_mae": 1.077308197327248
+    }
+  },
+  "T+2": {
+    "horizon_step": 2,
+    "lookahead_seconds": 120,
+    "world_model": {
+      "state_mse": 34.6303755888717,
+      "state_mae": 1.5340374372550625
+    },
+    "persistence_baseline": {
+      "state_mse": 49.680254623737774,
+      "state_mae": 1.4680329897713946
+    }
+  },
+  "T+3": {
+    "horizon_step": 3,
+    "lookahead_seconds": 180,
+    "world_model": {
+      "state_mse": 27.44948961691391,
+      "state_mae": 1.36901890505424
+    },
+    "persistence_baseline": {
+      "state_mse": 38.651670341244646,
+      "state_mae": 1.336740095110099
+    }
+  },
+  "T+4": {
+    "horizon_step": 4,
+    "lookahead_seconds": 240,
+    "world_model": {
+      "state_mse": 24.695627192313523,
+      "state_mae": 1.2210889176688575
+    },
+    "persistence_baseline": {
+      "state_mse": 36.364211312123444,
+      "state_mae": 1.5878565869355634
+    }
+  },
+  "T+5": {
+    "horizon_step": 5,
+    "lookahead_seconds": 300,
+    "world_model": {
+      "state_mse": 24.403777267552147,
+      "state_mae": 1.1356195733373005
+    },
+    "persistence_baseline": {
+      "state_mse": 59.79906887121289,
+      "state_mae": 2.140026087528763
+    }
+  }
+}
