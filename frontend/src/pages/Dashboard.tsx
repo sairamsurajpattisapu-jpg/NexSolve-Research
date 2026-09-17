@@ -39,12 +39,32 @@ export function Dashboard() {
   const [showCsvModal, setShowCsvModal] = useState<boolean>(false)
   const [history, setHistory] = useState<AnalysisHistoryEntry[]>(() => getAnalysisHistory())
 
+  const effectiveResult = jobResult ?? (analysisSource === 'uploaded' ? (data?.results as unknown as UploadedAnalysisResponse) : null)
+
+  // Sync history when effectiveResult is available
+  useEffect(() => {
+    if (effectiveResult) {
+      recordAnalysisHistory({
+        id: effectiveResult.analysis_id,
+        filename: effectiveResult.source?.name || effectiveResult.source?.filename || 'Uploaded Capture',
+        timestamp:
+          (effectiveResult as any).timestamp ||
+          effectiveResult.detection?.findings?.[0]?.timestamp ||
+          new Date().toISOString(),
+        status: 'COMPLETED',
+        provenance: effectiveResult.is_demo ? 'demo' : 'uploaded',
+        peakRiskPct: effectiveResult.detection?.risk_score,
+        predictedStage: (effectiveResult as any).attack_progression?.current_stage,
+      })
+      setHistory(getAnalysisHistory())
+    }
+  }, [effectiveResult])
+
   if (loading && !data) return <LoadingState message="Preparing analysis..." />
   if (error || !data) return <ErrorState message={error ?? 'No analysis has been loaded.'} onRetry={() => void reload()} />
 
   const { traffic, detection } = data.results
   const windows = traffic.windows_data ?? []
-  const effectiveResult = jobResult ?? (analysisSource === 'uploaded' ? (data.results as unknown as UploadedAnalysisResponse) : null)
 
   const handleFileSelect = (selected: File | null) => {
     if (!selected) {
@@ -69,25 +89,6 @@ export function Dashboard() {
       setFile(selected)
     }
   }
-
-  // Sync history when effectiveResult is available
-  useEffect(() => {
-    if (effectiveResult) {
-      recordAnalysisHistory({
-        id: effectiveResult.analysis_id,
-        filename: effectiveResult.source?.name || effectiveResult.source?.filename || 'Uploaded Capture',
-        timestamp:
-          (effectiveResult as any).timestamp ||
-          effectiveResult.detection?.findings?.[0]?.timestamp ||
-          new Date().toISOString(),
-        status: 'COMPLETED',
-        provenance: effectiveResult.is_demo ? 'demo' : 'uploaded',
-        peakRiskPct: effectiveResult.detection?.risk_score,
-        predictedStage: (effectiveResult as any).attack_progression?.current_stage,
-      })
-      setHistory(getAnalysisHistory())
-    }
-  }, [effectiveResult])
 
   const submitCapture = async () => {
     if (!file || uploading) return

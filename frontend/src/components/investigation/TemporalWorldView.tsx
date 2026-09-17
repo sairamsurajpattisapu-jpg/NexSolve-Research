@@ -36,18 +36,29 @@ export function TemporalWorldView({
   const [diffWindowB, setDiffWindowB] = useState<number>(1)
   const [activeTab, setActiveTab] = useState<'SNAPSHOT' | 'DIFF' | 'TRAJECTORIES'>('SNAPSHOT')
   const [entityFilter, setEntityFilter] = useState<string>('')
-
-  if (!worldState || !worldState.windows || worldState.windows.length === 0) {
-    return null
-  }
-
-  const windows = worldState.windows
-  const snapshots = worldState.snapshots || {}
-  const totalWindows = worldState.total_windows || windows.length
+  const hasData = Boolean(worldState && worldState.windows && worldState.windows.length > 0)
+  const windows = worldState?.windows || []
+  const snapshots = worldState?.snapshots || {}
+  const totalWindows = worldState?.total_windows || windows.length
   const currentSnapshot: WorldStateSnapshotPayload | undefined = snapshots[String(selectedWindowIndex)]
 
   // Compute local diff between diffWindowA and diffWindowB
   const diff: WorldStateDiffPayload = useMemo(() => {
+    if (!hasData) {
+      return {
+        window_a: 0,
+        window_b: 0,
+        entities_added: [],
+        entities_persisted: [],
+        entities_not_observed: [],
+        relationships_added: [],
+        relationships_not_observed: [],
+        attack_state_transitions: [],
+        fanout_surges: [],
+        volume_deltas: [],
+        new_evidence_keys: [],
+      }
+    }
     const snapA = snapshots[String(diffWindowA)]
     const snapB = snapshots[String(diffWindowB)]
     const entsA = snapA ? snapA.entities || {} : {}
@@ -140,6 +151,10 @@ export function TemporalWorldView({
     if (!currentSnapshot || !currentSnapshot.relationships) return []
     return Object.values(currentSnapshot.relationships)
   }, [currentSnapshot])
+
+  if (!worldState || !worldState.windows || worldState.windows.length === 0) {
+    return null
+  }
 
   return (
     <Panel style={{ border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
