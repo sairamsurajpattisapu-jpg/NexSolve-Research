@@ -17,7 +17,7 @@ import { JobProgress } from '../components/JobProgress'
 import { JobResult } from '../components/JobResult'
 import { ErrorState, LoadingState, MetricCard, Panel, SectionHeading } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
-import { api } from '../services/api'
+import { api, ApiError } from '../services/api'
 import type { JobStatusResponse, UploadedAnalysisResponse } from '../types/api'
 import { formatNumber } from '../utils/format'
 import {
@@ -29,7 +29,7 @@ import {
 
 export function Dashboard() {
   const navigate = useNavigate()
-  const { data, loading, error, reload, analyzePcap, clearUploadedAnalysis, analysisSource, uploadError } = useProductionData()
+  const { data, loading, error, reload, analyzePcap, clearUploadedAnalysis, clearUploadError, analysisSource, uploadError } = useProductionData()
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState<boolean>(false)
   const [selectionError, setSelectionError] = useState<string | null>(null)
@@ -67,6 +67,7 @@ export function Dashboard() {
   const windows = traffic.windows_data ?? []
 
   const handleFileSelect = (selected: File | null) => {
+    clearUploadError?.()
     if (!selected) {
       setFile(null)
       return
@@ -94,6 +95,7 @@ export function Dashboard() {
     if (!file || uploading) return
     setUploading(true)
     setSelectionError(null)
+    clearUploadError?.()
 
     try {
       // Initiate asynchronous processing job
@@ -111,25 +113,40 @@ export function Dashboard() {
       setFile(null)
       // Navigate to dedicated forecast rollout route with the created job ID
       navigate(`/console/forecast/${job.job_id}`)
-    } catch {
-      // Fallback to synchronous analysis if job manager is bypassed
-      try {
-        await analyzePcap(file)
-        setFile(null)
-        navigate('/console/forecast')
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          const msg = err.message
-          if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('ECONNREFUSED')) {
-            setSelectionError('The analysis service is temporarily unreachable. Please retry when ready.')
-          } else if (msg.includes('500') || msg.includes('Internal Server Error')) {
-            setSelectionError('The capture could not be processed. Please ensure the file contains valid packet frames.')
-          } else {
-            setSelectionError(msg)
-          }
-        } else {
-          setSelectionError('Unable to start analysis. The analysis service is currently unavailable. Please retry when ready.')
+    } catch (err: unknown) {
+      if (err instanceof ApiError && err.status === 404) {
+        // Fallback to synchronous analysis ONLY if async jobs endpoint is 404
+        try {
+          await analyzePcap(file)
+          setFile(null)
+          navigate('/console/forecast')
+          return
+        } catch {
+          // Handled below
         }
+      }
+
+      if (err instanceof ApiError) {
+        if (err.status === 408) {
+          setSelectionError('Upload request timed out. The file could not be transmitted in time. Please check your network connection and retry.')
+        } else if (err.status === 413) {
+          setSelectionError('The capture exceeds the maximum allowed upload size (250 MB).')
+        } else if (err.status === 415) {
+          setSelectionError('Only .pcap and .pcapng captures are supported.')
+        } else if (err.status === 422) {
+          setSelectionError('The file could not be parsed as a supported PCAP/PCAPNG capture.')
+        } else {
+          setSelectionError(err.message || 'Unable to start analysis job. Please retry when ready.')
+        }
+      } else if (err instanceof Error) {
+        const msg = err.message
+        if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('ECONNREFUSED')) {
+          setSelectionError('The analysis service is temporarily unreachable. Please retry when ready.')
+        } else {
+          setSelectionError(msg)
+        }
+      } else {
+        setSelectionError('Unable to start analysis. The analysis service is currently unavailable. Please retry when ready.')
       }
     } finally {
       setUploading(false)
@@ -340,15 +357,43 @@ export function Dashboard() {
             </div>
           )}
 
-          {(uploadError || selectionError) && (
-            <p className="upload-error" style={{ color: 'var(--danger)', margin: '6px 0 0 0', fontSize: '12px' }}>
-              {uploadError ?? selectionError}
+          {!uploading && (selectionError || uploadError) && (
+            <p className="upload-error" style={{ color: 'var(--danger)', margin: '8px 0 0 0', fontSize: '12px' }}>
+              {selectionError ?? uploadError}
             </p>
           )}
           {uploading && !activeJob && (
-            <p className="upload-status" role="status" style={{ color: 'var(--accent)', margin: '6px 0 0 0', fontSize: '12px' }}>
-              Uploading capture, computing windows, and forecasting...
-            </p>
+            <div
+              className="upload-status-card"
+              role="status"
+              aria-live="polite"
+              style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: '4px',
+                padding: '10px 14px',
+                marginTop: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="pulse-dot" style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
+                <div>
+                  <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
+                    UPLOADING CAPTURE &middot;
+                  </span>{' '}
+                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    Transmitting {file?.name || 'capture'} to passive wire processing engine...
+                  </span>
+                </div>
+              </div>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                {file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : ''}
+              </span>
+            </div>
           )}
         </Panel>
       )}

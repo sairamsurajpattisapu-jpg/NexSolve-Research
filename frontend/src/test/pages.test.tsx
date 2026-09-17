@@ -11,7 +11,7 @@ const clearUploadedAnalysis = vi.fn()
 let hookState: { data: typeof fixture | null; loading: boolean; error: string | null; analysisSource: 'production' | 'uploaded' } = { data: fixture, loading: false, error: null, analysisSource: 'production' }
 
 vi.mock('../hooks/useProductionData', () => ({
-  useProductionData: () => ({ ...hookState, reload, analyzePcap: vi.fn().mockResolvedValue(null), clearUploadedAnalysis, uploadError: null, analysisId: 'production-cic-ids2017' }),
+  useProductionData: () => ({ ...hookState, reload, analyzePcap: vi.fn().mockResolvedValue(null), clearUploadedAnalysis, clearUploadError: vi.fn(), uploadError: null, analysisId: 'production-cic-ids2017' }),
 }))
 
 function renderPage(page: ReactNode) {

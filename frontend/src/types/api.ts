@@ -865,6 +865,7 @@ export interface JobError {
 
 export interface JobStatusResponse {
   job_id: string
+  filename?: string
   status: JobStatusType
   progress: number
   stage: JobStageType

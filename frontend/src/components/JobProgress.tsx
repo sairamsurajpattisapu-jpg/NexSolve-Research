@@ -1,5 +1,7 @@
-import { AlertCircle, AlertTriangle, CheckCircle2, Clock, Cpu, HardDrive } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { AlertCircle, AlertTriangle, CheckCircle2, Clock, Cpu, HardDrive, Timer } from 'lucide-react'
 import type { JobStageType, JobStatusResponse } from '../types/api'
+import { calculateEta } from '../utils/etaEstimator'
 import { Panel } from './Ui'
 
 interface JobProgressProps {
@@ -32,10 +34,26 @@ const STAGES_ORDER: JobStageType[] = [
 ]
 
 export function JobProgress({ job, onCancel }: JobProgressProps) {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const isFailed = job.status === 'FAILED'
   const isLimitExceeded = job.status === 'RESOURCE_LIMIT_EXCEEDED'
   const isComplete = job.status === 'COMPLETED'
   const percent = Math.min(100, Math.max(0, Math.round(job.progress * 100)))
+
+  useEffect(() => {
+    if (isComplete || isFailed || isLimitExceeded) return
+    const timer = setInterval(() => {
+      setElapsedSeconds((prev) => prev + 1)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [isComplete, isFailed, isLimitExceeded])
+
+  const { formattedEta, isCalculating } = calculateEta({
+    elapsedSeconds,
+    progress: job.progress,
+    stage: job.stage,
+    status: job.status,
+  })
 
   return (
     <Panel className="job-progress-panel">
@@ -93,8 +111,16 @@ export function JobProgress({ job, onCancel }: JobProgressProps) {
           />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
           <span>Stage: {job.stage}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Clock size={12} /> Elapsed: {elapsedSeconds}s
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: isCalculating ? 'var(--text-muted)' : 'var(--accent)' }}>
+              <Timer size={12} /> Remaining: {formattedEta}
+            </span>
+          </div>
           <span>{percent}% Deterministic Progress</span>
         </div>
 

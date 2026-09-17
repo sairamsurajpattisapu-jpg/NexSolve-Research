@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import {
   clearUploadedAnalysis,
+  clearUploadError,
   getSnapshot,
   refreshProductionData,
   subscribe,
@@ -23,6 +24,7 @@ export function useProductionData() {
     reload: refreshProductionData,
     analyzePcap: uploadPcap,
     clearUploadedAnalysis,
+    clearUploadError,
     setUploadedAnalysis,
     analysisId: dynamicAnalysisId,
     apiConnected: snapshot.apiConnected,

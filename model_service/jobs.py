@@ -105,6 +105,7 @@ class JobRecord:
         """Return public job status dict without internal filesystem details."""
         return {
             "job_id": self.job_id,
+            "filename": self.filename,
             "status": self.status,
             "progress": round(self.progress, 2),
             "stage": self.stage,
@@ -237,6 +238,10 @@ class JobManager:
             except Exception as error:
                 raise RuntimeError("The file could not be parsed as a supported PCAP/PCAPNG capture.") from error
             pcap_parsing_ms = round((time.perf_counter() - t_parse_start) * 1000, 2)
+            with self._lock:
+                job_rec = self._jobs.get(job_id)
+                if job_rec:
+                    job_rec.processing_statistics["packets_processed"] = len(packets)
 
             # Check Resource Limits on packets
             if len(packets) > MAX_PACKETS:
@@ -281,6 +286,10 @@ class JobManager:
             t_win_start = time.perf_counter()
             self._update_stage(job_id, "WINDOWING")
             window_generation_ms = round((time.perf_counter() - t_win_start) * 1000, 2)
+            with self._lock:
+                job_rec = self._jobs.get(job_id)
+                if job_rec:
+                    job_rec.processing_statistics["windows_processed"] = len(windows)
 
             # 3. NETWORK_STATE
             t_state_start = time.perf_counter()

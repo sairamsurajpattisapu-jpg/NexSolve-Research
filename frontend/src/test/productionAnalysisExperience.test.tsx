@@ -1,4 +1,4 @@
-﻿import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { AnalysisPipelineVisualizer } from '../components/AnalysisPipelineVisualizer'
@@ -42,7 +42,7 @@ describe('Production Analysis Experience & Backend Invisibility Suite', () => {
     expect(screen.queryByText(/8001/i)).not.toBeInTheDocument()
   })
 
-  it('3. AnalysisPipelineVisualizer renders all 8 exact requested stages', () => {
+  it('3. AnalysisPipelineVisualizer renders all 12 exact requested stages', () => {
     render(
       <AnalysisPipelineVisualizer
         jobId="test-job-123"
@@ -64,20 +64,23 @@ describe('Production Analysis Experience & Backend Invisibility Suite', () => {
       />
     )
 
-    // Verify all 8 stage names are present
+    // Verify canonical 12 stage names are present
+    expect(screen.getByText('UPLOAD')).toBeInTheDocument()
+    expect(screen.getByText('VALIDATE')).toBeInTheDocument()
     expect(screen.getByText('INGEST')).toBeInTheDocument()
     expect(screen.getByText('NORMALIZE')).toBeInTheDocument()
     expect(screen.getAllByText('RECONSTRUCT').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('REPRESENT')).toBeInTheDocument()
-    expect(screen.getByText('ANALYZE')).toBeInTheDocument()
-    expect(screen.getByText('SIMULATE')).toBeInTheDocument()
+    expect(screen.getAllByText('WINDOWS').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('FEATURES').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText('NETWORK STATE')).toBeInTheDocument()
+    expect(screen.getByText('THREAT ANALYSIS')).toBeInTheDocument()
     expect(screen.getByText('FORECAST')).toBeInTheDocument()
-    expect(screen.getByText('EXPLAIN')).toBeInTheDocument()
+    expect(screen.getByText('EVIDENCE')).toBeInTheDocument()
+    expect(screen.getByText('COMPLETE')).toBeInTheDocument()
 
     // Verify real telemetry is rendered without faked percentages
     expect(screen.getByText('1,450')).toBeInTheDocument()
-    expect(screen.getByText('128')).toBeInTheDocument()
-    expect(screen.getByText('4')).toBeInTheDocument()
+    expect(screen.getByText('4 Windows')).toBeInTheDocument()
     expect(screen.getByText('35%')).toBeInTheDocument()
   })
 

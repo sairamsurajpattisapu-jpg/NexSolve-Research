@@ -201,6 +201,13 @@ export async function setUploadedAnalysis(uploaded: UploadedAnalysisResponse): P
   emit()
 }
 
+export function clearUploadError() {
+  if (state.uploadError !== null) {
+    state = { ...state, uploadError: null }
+    emit()
+  }
+}
+
 export async function uploadPcap(file: File): Promise<string | null> {
   state = { ...state, loading: false, uploadError: null }
   emit()
