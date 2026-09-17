@@ -145,7 +145,7 @@ export function Dashboard() {
   const isCsv = file?.name.toLowerCase().endsWith('.csv')
 
   return (
-    <div className="page-stack page-enter" style={{ maxWidth: '1080px', margin: '0 auto', width: '100%' }}>
+    <div className="page-stack page-enter">
       {!effectiveResult && (
         <SectionHeading
           eyebrow="NETWORK ATTACK FORECASTING"
@@ -258,40 +258,35 @@ export function Dashboard() {
             </div>
           ) : (
             /* Analysis Confirmation Card (Before Processing) */
-            <div style={{ width: '100%', maxWidth: '600px', textAlign: 'left' }}>
-              <div style={{ marginBottom: '14px', textAlign: 'center' }}>
-                <span className="eyebrow" style={{ color: 'var(--accent)' }}>
-                  ANALYSIS CONFIRMATION
-                </span>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '4px 0', color: 'var(--text-primary)' }}>
-                  Ready to Start Analysis
-                </h3>
-                <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--text-muted)' }}>
-                  Review capture configuration before initiating multi-horizon network simulation.
-                </p>
+            <div style={{ maxWidth: '560px', width: '100%' }}>
+              <div style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', marginBottom: '4px' }}>
+                ANALYSIS CONFIRMATION
               </div>
+              <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 14px 0', color: 'var(--text-primary)' }}>
+                Ready to Start Analysis
+              </h3>
 
               <div
                 style={{
                   background: 'var(--bg-secondary)',
                   border: '1px solid var(--border)',
                   borderRadius: '6px',
-                  padding: '16px 20px',
+                  padding: '14px 18px',
+                  textAlign: 'left',
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gridTemplateColumns: '1fr 1fr',
                   gap: '12px',
-                  fontSize: '12px',
                   marginBottom: '16px',
                 }}
               >
                 <div>
-                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>FILE</span>
+                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>FILENAME</span>
                   <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '13px', marginTop: '2px', wordBreak: 'break-all' }}>
                     {file.name}
                   </strong>
                 </div>
                 <div>
-                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>SIZE</span>
+                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>FILE SIZE</span>
                   <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '13px', marginTop: '2px' }}>
                     {(file.size / (1024 * 1024)).toFixed(2)} MB
                   </strong>
@@ -373,8 +368,7 @@ export function Dashboard() {
           </div>
           <div className="provenance-details">
             <p>
-              Active forensic inspection of uploaded capture: <strong>{effectiveResult.source?.name || 'Uploaded Capture'}</strong>.
-              All extracted features, packet windows, and predictive assessments are derived directly from this capture.
+              Source: <strong>{effectiveResult.source?.name || 'Uploaded Capture'}</strong> &middot; Verified wire telemetry under 45-feature canonical contract.
             </p>
           </div>
         </div>
@@ -389,7 +383,7 @@ export function Dashboard() {
           </div>
           <div className="provenance-details">
             <p>
-              Deterministic evaluation sandbox: <strong>{effectiveResult.demo_scenario_name}</strong>. Validating forward horizon trajectories without live capture dependency.
+              Evaluation sandbox: <strong>{effectiveResult.demo_scenario_name}</strong> &middot; Deterministic benchmark validation.
             </p>
           </div>
         </div>

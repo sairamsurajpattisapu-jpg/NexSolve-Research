@@ -1,6 +1,7 @@
 import { AlertTriangle, Clock, ShieldAlert, TrendingUp, Zap } from 'lucide-react'
 import { Panel } from './Ui'
 import { RiskBadge } from './RiskBadge'
+import { formatDisplayLabel } from '../utils/format'
 
 interface ExecutiveSummaryPanelProps {
   overallThreat: string
@@ -44,7 +45,7 @@ export function ExecutiveSummaryPanel({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <ShieldAlert size={18} color={isHigh ? 'var(--danger)' : 'var(--accent)'} />
           <span className="eyebrow" style={{ color: isHigh ? 'var(--danger)' : 'var(--accent)', margin: 0, fontWeight: 700 }}>
-            NEXSOLVE STRATEGIC FORECAST SUMMARY
+            THREAT ASSESSMENT SUMMARY
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -96,10 +97,10 @@ export function ExecutiveSummaryPanel({
           {/* Forecast State */}
           <div style={{ background: 'var(--bg-secondary)', padding: '12px 14px', borderRadius: '6px', border: '1px solid var(--border)' }}>
             <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
-              Trajectory Status
+              Attack Progression
             </span>
             <strong style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700, display: 'block', marginTop: '4px' }}>
-              {forecastVerdict.replace(/_/g, ' ')}
+              {formatDisplayLabel(forecastVerdict)}
             </strong>
           </div>
 
@@ -119,22 +120,22 @@ export function ExecutiveSummaryPanel({
           {/* Projected Stage */}
           <div style={{ background: 'var(--bg-secondary)', padding: '12px 14px', borderRadius: '6px', border: '1px solid var(--border)' }}>
             <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
-              Projected Stage
+              Projected Attack Stage
             </span>
             <strong style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 700, display: 'block', marginTop: '4px' }}>
-              {(projectedStage ?? 'NORMAL').replace(/_/g, ' ')}
+              {formatDisplayLabel(projectedStage ?? 'NORMAL')}
             </strong>
           </div>
 
           {/* Top Driver */}
           <div style={{ background: 'var(--bg-secondary)', padding: '12px 14px', borderRadius: '6px', border: '1px solid var(--border)' }}>
             <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
-              Primary Driver
+              Primary Indicator
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
               <Zap size={14} color="var(--warning)" />
               <strong style={{ fontSize: '12px', fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>
-                {topDriver}
+                {formatDisplayLabel(topDriver)}
               </strong>
             </div>
           </div>
@@ -142,7 +143,7 @@ export function ExecutiveSummaryPanel({
           {/* Cumulative Future Risk */}
           <div style={{ background: 'var(--bg-secondary)', padding: '12px 14px', borderRadius: '6px', border: '1px solid var(--border)' }}>
             <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
-              Multi-Window Risk
+              Cumulative Risk
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
               <TrendingUp size={14} color={isHigh ? 'var(--danger)' : 'var(--accent)'} />

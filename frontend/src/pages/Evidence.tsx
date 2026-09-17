@@ -16,6 +16,7 @@ import { useProductionData } from '../hooks/useProductionData'
 import { api } from '../services/api'
 import type { CanonicalAnalysis, EvidenceItemNode } from '../types/canonical'
 import { adaptToCanonical } from '../utils/canonicalAdapter'
+import { formatDisplayLabel } from '../utils/format'
 
 export function Evidence() {
   const { jobId } = useParams<{ jobId?: string }>()
@@ -79,12 +80,12 @@ export function Evidence() {
   const activePoint = forecastPoints.find((p) => p.horizon === selectedHorizonTab) ?? forecastPoints[forecastPoints.length - 1]
 
   return (
-    <div className="page-stack page-enter" style={{ maxWidth: '1180px', margin: '0 auto', width: '100%' }}>
+    <div className="page-stack page-enter" style={{ width: '100%' }}>
       {/* Page Header */}
       <SectionHeading
         eyebrow="SCIENTIFIC AUDIT & TECHNICAL PROVENANCE"
         title="Evidence Chain & Attribution Explorer"
-        description="Comprehensive audit of passive observation, network state representation, temporal lookback, world model simulation, and feature attribution."
+        description="Comprehensive audit of passive observation, network state representation, temporal lookback, network state model simulation, and feature attribution."
         action={
           <div className="heading-actions">
             <Link to={jobId ? `/console/forecast/${jobId}` : '/console/forecast'} className="button button-quiet">
@@ -287,7 +288,7 @@ export function Evidence() {
                     justifyContent: 'space-between',
                   }}
                 >
-                  <span style={{ color: 'var(--text-secondary)' }}>{f.name}</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{formatDisplayLabel(f.name)}</span>
                   <strong style={{ color: 'var(--text-primary)' }}>{f.val}</strong>
                 </div>
               ))}
@@ -343,7 +344,7 @@ export function Evidence() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
           <Cpu size={16} color="var(--text-primary)" />
           <h3 style={{ margin: 0, fontSize: '15px', color: 'var(--text-primary)' }}>
-            4. World Model Architecture &amp; Simulation Engine
+            4. Network State Model Architecture &amp; Simulation Engine
           </h3>
         </div>
 
@@ -351,7 +352,7 @@ export function Evidence() {
           <div style={{ border: '1px solid var(--border)', padding: '12px', borderRadius: '4px' }}>
             <span style={{ color: 'var(--text-muted)', fontSize: '10px', fontFamily: 'var(--mono)' }}>PREDICTOR TYPE</span>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
-              NumPy LSTM World Model
+              NumPy LSTM State Transition Model
             </div>
             <div style={{ color: 'var(--text-muted)', fontSize: '11px', marginTop: '4px' }}>
               Hidden Dim: 24 &middot; Continuous Transition Heads
@@ -450,7 +451,7 @@ export function Evidence() {
               <div>
                 <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>PREDICTED BEHAVIORAL STAGE</span>
                 <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
-                  {activePoint.predictedStage || 'RECONNAISSANCE'}
+                  {formatDisplayLabel(activePoint.predictedStage || 'RECONNAISSANCE')}
                 </div>
                 <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>Empirical transition classification</span>
               </div>
@@ -539,7 +540,7 @@ export function Evidence() {
                 </span>
               </div>
               <div style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text-primary)' }}>
-                {st.predictedState}
+                {formatDisplayLabel(st.predictedState)}
               </div>
               <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
                 Transition Prob: {st.transitionProbability ? Math.round(st.transitionProbability * 100) + '%' : 'N/A'}
@@ -590,7 +591,7 @@ export function Evidence() {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  #{idx + 1} {driver.feature}
+                  #{idx + 1} {formatDisplayLabel(driver.feature)}
                 </span>
                 <span
                   style={{
@@ -679,7 +680,7 @@ export function Evidence() {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>{node.name}</strong>
+                  <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>{formatDisplayLabel(node.name)}</strong>
                   <span
                     style={{
                       fontSize: '9px',

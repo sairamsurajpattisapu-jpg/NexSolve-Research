@@ -63,7 +63,7 @@ export function Security() {
           </div>
           <div className="integrity-row-content">
             <p>
-              Adheres strictly to a canonical 45-dimensional feature schema comprising 17 flow behavior metrics, 22 packet distribution statistics, and 6 temporal deltas. The disputed <code>mean_tcp_rtt</code> is strictly omitted under a zero-fabrication contract.
+              Adheres strictly to a canonical 45-dimensional feature schema comprising 17 flow behavior metrics, 22 packet distribution statistics, and 6 temporal deltas. The disputed Mean TCP RTT metric (<code>mean_tcp_rtt</code>) is strictly omitted under a zero-fabrication contract.
             </p>
           </div>
         </div>
@@ -114,7 +114,7 @@ export function Security() {
             <h2>CALIBRATED ABSTENTION</h2>
             <div className="editorial-tag-row">
               <span className="editorial-badge warning">8-WINDOW GATE</span>
-              <span className="editorial-badge">INSUFFICIENT_HISTORY</span>
+              <span className="editorial-badge">INSUFFICIENT HISTORY</span>
               <span className="editorial-badge">NO SPECULATION</span>
             </div>
           </div>

@@ -332,7 +332,7 @@ h3, h4 {
   position: sticky;
   top: 0;
   z-index: 50;
-  padding: 14px 24px;
+  padding: 0;
   background: var(--navbar-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -344,8 +344,24 @@ h3, h4 {
   display: flex;
   align-items: center;
   gap: 16px;
-  width: min(100%, 1440px);
-  margin: 0 auto;
+  width: 100%;
+  max-width: var(--site-max-width, 1240px);
+  margin-inline: auto;
+  padding-inline: var(--site-gutter-desktop, 32px);
+  height: 56px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .navbar-inner {
+    padding-inline: var(--site-gutter-tablet, 24px);
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-inner {
+    padding-inline: var(--site-gutter-mobile, 20px);
+  }
 }
 
 /* =============================================================================
@@ -3149,12 +3165,26 @@ h3, h4 {
 .workflow-page,
 .security-page,
 .research-page,
-.about-page {
+.about-page,
+.site-container,
+.page-container,
+.content-rail,
+.page-stack,
+.page-content {
   width: 100%;
   max-width: var(--site-max-width, 1240px);
   margin-inline: auto;
   padding-inline: var(--site-gutter-desktop, 32px);
   box-sizing: border-box;
+}
+
+/* Prevent double horizontal padding when nested */
+.page-content > .page-stack,
+.page-content .site-container,
+.page-content .page-container,
+.page-stack .page-stack {
+  padding-inline: 0;
+  max-width: 100%;
 }
 
 @media (max-width: 1024px) {
@@ -3170,7 +3200,12 @@ h3, h4 {
   .workflow-page,
   .security-page,
   .research-page,
-  .about-page {
+  .about-page,
+  .site-container,
+  .page-container,
+  .content-rail,
+  .page-stack,
+  .page-content {
     padding-inline: var(--site-gutter-tablet, 24px);
   }
 }
@@ -3188,7 +3223,12 @@ h3, h4 {
   .workflow-page,
   .security-page,
   .research-page,
-  .about-page {
+  .about-page,
+  .site-container,
+  .page-container,
+  .content-rail,
+  .page-stack,
+  .page-content {
     padding-inline: var(--site-gutter-mobile, 20px);
   }
 }
@@ -3564,32 +3604,58 @@ h3, h4 {
   }
 }
 
-/* Workflow 5-Stage Pipeline */
-.workflow-pipeline-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 16px;
-  margin: 36px 0;
-  position: relative;
+/* Workflow 5-Stage Compact Engineering Process Flow */
+.workflow-flow-section {
+  margin: 32px 0;
+  width: 100%;
 }
 
-@media (max-width: 1100px) {
-  .workflow-pipeline-grid {
-    grid-template-columns: repeat(2, 1fr);
+.workflow-flow-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+}
+
+.workflow-step-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.workflow-flow-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+@media (max-width: 1024px) {
+  .workflow-flow-strip {
+    flex-direction: column;
+    gap: 16px;
   }
-}
-
-@media (max-width: 600px) {
-  .workflow-pipeline-grid {
-    grid-template-columns: 1fr;
+  .workflow-step-wrapper {
+    flex-direction: column;
+    width: 100%;
+  }
+  .workflow-flow-arrow {
+    transform: rotate(90deg);
+    padding: 4px 0;
   }
 }
 
 .workflow-stage-card {
+  flex: 1;
+  width: 100%;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 20px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -5331,19 +5397,89 @@ h3, h4 {
 }
 
 /* ==========================================================================
+   REPORT PAGE LAYOUT & PAGINATION
+   ========================================================================== */
+.report-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+}
+
+.report-print-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background: transparent;
+  width: 100%;
+}
+
+.report-page-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 6px;
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
    PRINT / PDF EXPORT STYLESHEET
    ========================================================================== */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm 10mm 10mm;
+  }
+
+  :root,
+  html,
+  body,
+  .report-page-container {
+    --bg-primary: #ffffff !important;
+    --bg-secondary: #f8fafc !important;
+    --bg-surface: #ffffff !important;
+    --bg-elevated: #f1f5f9 !important;
+    --text-primary: #0f172a !important;
+    --text-secondary: #334155 !important;
+    --text-muted: #64748b !important;
+    --border: #d1d5db !important;
+    --border-strong: #9ca3af !important;
+    --border-subtle: #e2e8f0 !important;
+    --accent: #0f172a !important;
+    --accent-muted: rgba(0, 0, 0, 0.06) !important;
+    --success: #166534 !important;
+    --warning: #854d0e !important;
+    --danger: #991b1b !important;
+  }
+
   body {
     background: #ffffff !important;
-    color: #000000 !important;
-    font-size: 11pt !important;
+    color: #0f172a !important;
+    font-size: 9pt !important;
     margin: 0 !important;
     padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Eliminate all browser scrollbars during PDF print */
+  * {
+    scrollbar-width: none !important;
+  }
+
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
   }
 
   /* Hide navigation, chrome, interactive controls, and canvas animations */
   .navbar-shell,
+  .navigation-context-strip,
   .command-drawer,
   .mobile-scrim,
   .no-print,
@@ -5359,34 +5495,97 @@ h3, h4 {
   .app-shell,
   .main-area,
   .page-content,
-  .page-stack {
+  .page-stack,
+  .report-page-container {
     padding: 0 !important;
     margin: 0 !important;
     max-width: 100% !important;
     width: 100% !important;
     background: transparent !important;
     box-shadow: none !important;
+    gap: 0 !important;
+  }
+
+  .report-print-page {
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    min-height: 250mm !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .report-print-page:last-child {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
 
   .panel,
   .state-card,
   .report-header,
   .report-table {
-    border: 1px solid #cccccc !important;
+    border: 1px solid #d1d5db !important;
     background: #ffffff !important;
-    color: #000000 !important;
+    color: #0f172a !important;
     box-shadow: none !important;
     break-inside: avoid !important;
-    margin-bottom: 12pt !important;
+    margin-bottom: 6pt !important;
+    padding: 7pt 10pt !important;
+  }
+
+  .report-table {
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  .section-heading {
+    margin-bottom: 4pt !important;
+    gap: 2pt !important;
+  }
+
+  .section-heading h2,
+  .section-heading h3 {
+    color: #0f172a !important;
+  }
+
+  .section-heading p {
+    color: #475569 !important;
+  }
+
+  .eyebrow {
+    color: #64748b !important;
+  }
+
+  .table-row {
+    padding: 3pt 6pt !important;
+  }
+
+  .table-row.table-head {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    font-weight: 700 !important;
+  }
+
+  .report-page-footer {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-top: 1px solid #d1d5db !important;
+    padding-top: 5pt !important;
+    margin-top: auto !important;
+    font-size: 7.5pt !important;
+    font-family: var(--mono) !important;
+    color: #475569 !important;
   }
 
   a {
     text-decoration: none !important;
-    color: #000000 !important;
-  }
-
-  .report-print-footer {
-    display: flex !important;
+    color: #0f172a !important;
   }
 }
 

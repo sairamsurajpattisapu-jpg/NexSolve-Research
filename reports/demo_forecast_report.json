@@ -1,8 +1,8 @@
 {
-  "report_id": "rep-upload-a2516a79689b4b289fe837420ffd1448",
+  "report_id": "rep-upload-6d74bff80fa947c08c543e58bf6bca20",
   "title": "NexSolve Network Threat & Predictive Intelligence Report",
   "system_tagline": "Evidence-backed predictive network intelligence",
-  "generated_at_utc": "2026-09-14T19:48:11.866161+00:00",
+  "generated_at_utc": "2026-09-17T14:13:28.149003+00:00",
   "sections": {
     "executive_summary": {
       "category": "INFERRED",
@@ -393,8 +393,8 @@
     },
     "processing_metadata": {
       "category": "OBSERVED",
-      "job_id": "upload-a2516a79689b4b289fe837420ffd1448",
-      "generated_at_utc": "2026-09-14T19:48:11.866510+00:00",
+      "job_id": "upload-6d74bff80fa947c08c543e58bf6bca20",
+      "generated_at_utc": "2026-09-17T14:13:28.149003+00:00",
       "processing_seconds": 0.0,
       "stage": "completed",
       "peak_memory_mb": null

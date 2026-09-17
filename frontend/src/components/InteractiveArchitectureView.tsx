@@ -84,7 +84,7 @@ const ARCHITECTURE_NODES: ArchitectureNode[] = [
     subtitle: 'Top 5 feature drivers & 0-100 score',
     layer: 'INTERPRET',
     icon: Zap,
-    details: 'Computes directional feature divergence (e.g., unique_dst_ports increasing by +600%) and composite Early Warning Score.',
+    details: 'Computes directional feature divergence (e.g., Unique Destination Ports increasing by +600%) and composite Early Warning index.',
     contract: 'Direct mathematical attribution grounded in physical telemetry semantics.',
   },
   {

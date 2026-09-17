@@ -1,6 +1,7 @@
 import { Shield } from 'lucide-react'
 import { Panel } from './Ui'
 import { RiskBadge } from './RiskBadge'
+import { formatDisplayLabel } from '../utils/format'
 
 interface ForecastHeroProps {
   currentProbability: number | null
@@ -37,7 +38,7 @@ export function ForecastHero({
         gap: '14px',
       }}
     >
-      {/* 1. Primary AI Risk Core (Spans 5 cols) */}
+      {/* 1. Primary Risk Core (Spans 5 cols) */}
       <Panel
         style={{
           gridColumn: 'span 5',
@@ -55,7 +56,7 @@ export function ForecastHero({
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="eyebrow" style={{ color: 'var(--accent)', margin: 0 }}>
-              AI THREAT RADAR · ACTIVE STATE
+              THREAT ASSESSMENT
             </span>
             <RiskBadge level={earlyWarningLevel} size="sm" />
           </div>
@@ -66,10 +67,10 @@ export function ForecastHero({
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Early Warning Score
+                Early Warning
               </span>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
-                Scale 0-100 &middot; Composite Risk Momentum
+                Scale 0-100 &middot; Risk Momentum
               </span>
             </div>
           </div>
@@ -79,11 +80,11 @@ export function ForecastHero({
           <div>
             <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10px' }}>CURRENT STAGE</span>
             <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>
-              {currentStage.replace(/_/g, ' ')}
+              {formatDisplayLabel(currentStage)}
             </strong>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10px' }}>IMMEDIATE PROBABILITY</span>
+            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10px' }}>CURRENT RISK</span>
             <strong style={{ color: isHighRisk ? 'var(--danger)' : 'var(--accent)', fontSize: '13px' }}>
               {currentProbability !== null ? `${(currentProbability * 100).toFixed(1)}%` : 'Withheld'}
             </strong>
@@ -102,94 +103,88 @@ export function ForecastHero({
       >
         <div>
           <span className="eyebrow" style={{ color: 'var(--text-muted)' }}>
-            FORWARD ROLLOUT HORIZONS
+            FORECAST HORIZONS
           </span>
-          <h4 style={{ margin: '4px 0 12px 0', fontSize: '14px', color: 'var(--text-primary)' }}>
-            Cumulative Infiltration Risk
-          </h4>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '14px' }}>
             {/* T+1 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-              <span style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>T+1 (+60s)</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>
-                  {t1Risk !== null ? `${(t1Risk * 100).toFixed(1)}%` : '—'}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>T+1 (+60s)</span>
+                <strong style={{ fontFamily: 'var(--mono)', color: (t1Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--text-primary)' }}>
+                  {t1Risk !== null ? `${(t1Risk * 100).toFixed(1)}%` : 'Withheld'}
                 </strong>
+              </div>
+              <div
+                style={{
+                  height: '4px',
+                  borderRadius: '2px',
+                  background: 'var(--bg-secondary)',
+                  overflow: 'hidden',
+                }}
+              >
                 <span
                   style={{
-                    width: '40px',
-                    height: '4px',
-                    borderRadius: '2px',
-                    background: 'var(--bg-secondary)',
-                    overflow: 'hidden',
+                    display: 'block',
+                    height: '100%',
+                    width: `${(t1Risk ?? 0) * 100}%`,
+                    background: (t1Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--accent)',
                   }}
-                >
-                  <span
-                    style={{
-                      display: 'block',
-                      height: '100%',
-                      width: `${(t1Risk ?? 0) * 100}%`,
-                      background: (t1Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--accent)',
-                    }}
-                  />
-                </span>
+                />
               </div>
             </div>
 
             {/* T+3 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-              <span style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>T+3 (+180s)</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <strong style={{ fontFamily: 'var(--mono)', color: (t3Risk ?? 0) >= 0.5 ? 'var(--warning)' : 'var(--text-primary)' }}>
-                  {t3Risk !== null ? `${(t3Risk * 100).toFixed(1)}%` : '—'}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>T+3 (+180s)</span>
+                <strong style={{ fontFamily: 'var(--mono)', color: (t3Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--text-primary)' }}>
+                  {t3Risk !== null ? `${(t3Risk * 100).toFixed(1)}%` : 'Withheld'}
                 </strong>
+              </div>
+              <div
+                style={{
+                  height: '4px',
+                  borderRadius: '2px',
+                  background: 'var(--bg-secondary)',
+                  overflow: 'hidden',
+                }}
+              >
                 <span
                   style={{
-                    width: '40px',
-                    height: '4px',
-                    borderRadius: '2px',
-                    background: 'var(--bg-secondary)',
-                    overflow: 'hidden',
+                    display: 'block',
+                    height: '100%',
+                    width: `${(t3Risk ?? 0) * 100}%`,
+                    background: (t3Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--accent)',
                   }}
-                >
-                  <span
-                    style={{
-                      display: 'block',
-                      height: '100%',
-                      width: `${(t3Risk ?? 0) * 100}%`,
-                      background: (t3Risk ?? 0) >= 0.5 ? 'var(--warning)' : 'var(--accent)',
-                    }}
-                  />
-                </span>
+                />
               </div>
             </div>
 
             {/* T+5 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
-              <span style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>T+5 (+300s)</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12px' }}>
+                <span style={{ color: 'var(--text-muted)' }}>T+5 (+300s)</span>
                 <strong style={{ fontFamily: 'var(--mono)', color: (t5Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--text-primary)' }}>
-                  {t5Risk !== null ? `${(t5Risk * 100).toFixed(1)}%` : '—'}
+                  {t5Risk !== null ? `${(t5Risk * 100).toFixed(1)}%` : 'Withheld'}
                 </strong>
+              </div>
+              <div
+                style={{
+                  height: '4px',
+                  borderRadius: '2px',
+                  background: 'var(--bg-secondary)',
+                  overflow: 'hidden',
+                }}
+              >
                 <span
                   style={{
-                    width: '40px',
-                    height: '4px',
-                    borderRadius: '2px',
-                    background: 'var(--bg-secondary)',
-                    overflow: 'hidden',
+                    display: 'block',
+                    height: '100%',
+                    width: `${(t5Risk ?? 0) * 100}%`,
+                    background: (t5Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--accent)',
                   }}
-                >
-                  <span
-                    style={{
-                      display: 'block',
-                      height: '100%',
-                      width: `${(t5Risk ?? 0) * 100}%`,
-                      background: (t5Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--accent)',
-                    }}
-                  />
-                </span>
+                />
               </div>
             </div>
           </div>

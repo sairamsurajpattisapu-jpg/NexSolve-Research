@@ -350,7 +350,8 @@ def generate_html_report(report: NexSolveReport) -> str:
       color: var(--text-muted);
     }}
     @media print {{
-      body {{ background: #ffffff; color: #0f172a; padding: 0; }}
+      @page {{ size: A4 portrait; margin: 12mm 14mm 14mm 14mm; }}
+      body {{ background: #ffffff; color: #0f172a; padding: 0; font-size: 10pt; }}
       .section {{ border: 1px solid #cbd5e1; background: #ffffff; page-break-inside: avoid; }}
       .stat-card {{ background: #f8fafc; border: 1px solid #cbd5e1; }}
       .stat-value {{ color: #0f172a; }}
@@ -381,7 +382,7 @@ def generate_html_report(report: NexSolveReport) -> str:
       <div class="grid-2">
         <div>
           <div class="stat-card" style="border-left: 4px solid {threat_color};">
-            <div class="stat-label">Observed Threat Level</div>
+            <div class="stat-label">Current Network Assessment</div>
             <div class="stat-value" style="color: {threat_color};">{overall_threat}</div>
           </div>
           <div style="margin-top: 10px;">
@@ -391,10 +392,13 @@ def generate_html_report(report: NexSolveReport) -> str:
         </div>
         <div>
           <div class="stat-card" style="border-left: 4px solid #0d9488;">
-            <div class="stat-label">Attack Horizon & Forecast Status</div>
+            <div class="stat-label">Forecast Outcome (Rollout)</div>
             <div class="stat-value" style="font-size: 14px; font-family: var(--font-sans);">{html.escape(exec_sec.forecast_summary)}</div>
           </div>
           <div class="alert-box alert-warn" style="margin-top: 10px;">
+            <strong>Semantic Distinction:</strong> Observed threat assessment evaluates current telemetry at T<sub>0</sub>, while forecast outcome projects forward multi-step trajectory evolution (T+1..T+5). Elevated threat signal does not confirm future compromise.
+          </div>
+          <div class="small-text" style="margin-top: 6px; padding: 0 4px;">
             <strong>Epistemic Policy:</strong> {html.escape(exec_sec.epistemic_disclaimer)}
           </div>
         </div>
@@ -497,6 +501,9 @@ def generate_html_report(report: NexSolveReport) -> str:
           {forecast_rows_html}
         </tbody>
       </table>
+      <div class="alert-box" style="margin-top: 10px;">
+        <strong>Methodological Disclosure:</strong> Predicted scores represent uncalibrated model transition signals; not empirical probabilities of attack occurrence. Contextual MITRE ATT&amp;CK mappings represent contextual behavioral alignments derived from telemetry distributions, not direct payload signature classifications.
+      </div>
     </section>
 
     <!-- 7. Evidence Chain (Why This Forecast) -->

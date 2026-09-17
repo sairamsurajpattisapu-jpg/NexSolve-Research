@@ -329,36 +329,48 @@ export function Layout({
           style={{
             background: 'var(--bg-secondary)',
             borderBottom: '1px solid var(--border)',
-            padding: '6px 24px',
             fontSize: '11px',
             fontFamily: 'var(--mono)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-            flexWrap: 'wrap',
+            width: '100%',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{ color: 'var(--text-muted)' }}>Analysis:</span>
-            <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{contextFilename}</strong>
-            <span style={{ color: 'var(--border)' }}>&middot;</span>
-            <span style={{ color: 'var(--text-muted)' }}>Status:</span>
-            <span style={{ color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-              <span
-                style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  background: contextDotColor,
-                  display: 'inline-block',
-                }}
-              />
-              {contextStatusText}
-            </span>
-          </div>
-          <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
-            ID: {(analysisId || 'production-cic-ids2017').slice(0, 16)}
+          <div
+            className="context-strip-inner"
+            style={{
+              width: '100%',
+              maxWidth: 'var(--site-max-width, 1240px)',
+              marginInline: 'auto',
+              paddingInline: 'var(--site-gutter-desktop, 32px)',
+              paddingBlock: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ color: 'var(--text-muted)' }}>Analysis:</span>
+              <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{contextFilename}</strong>
+              <span style={{ color: 'var(--border)' }}>&middot;</span>
+              <span style={{ color: 'var(--text-muted)' }}>Status:</span>
+              <span style={{ color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <span
+                  style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background: contextDotColor,
+                    display: 'inline-block',
+                  }}
+                />
+                {contextStatusText}
+              </span>
+            </div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
+              ID: {(analysisId || 'production-cic-ids2017').slice(0, 16)}
+            </div>
           </div>
         </div>
 

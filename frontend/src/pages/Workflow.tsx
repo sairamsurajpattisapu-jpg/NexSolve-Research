@@ -1,55 +1,49 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Activity, Clock, ShieldAlert, TrendingUp, Search } from 'lucide-react'
+import { ArrowRight, Activity, Cpu, Layers, ShieldAlert, TrendingUp } from 'lucide-react'
 
-interface PipelineStage {
+interface ProcessStage {
   num: string
   title: string
-  sentence: string
-  detail: string
-  badges: string[]
+  description: string
+  attributes: string[]
   icon: typeof Activity
 }
 
-const STAGES: PipelineStage[] = [
+const STAGES: ProcessStage[] = [
   {
     num: '01',
-    title: 'NETWORK TRAFFIC',
-    sentence: 'Wire packet ingestion, microsecond timestamps, magic-byte validation, zero packet drops.',
-    detail: 'Continuous packet capture streaming parses standard PCAP and PCAPNG headers with microsecond timing fidelity and snaplen clamping.',
-    badges: ['PCAP/PCAPNG', 'ZERO DROPS', 'MAGIC-BYTE VALIDATED'],
+    title: 'Ingest & Validate',
+    description: 'Continuous wire capture streaming parses PCAP/PCAPNG headers with microsecond timing and magic-byte verification.',
+    attributes: ['PCAP / PCAPNG', 'Zero Drops', 'Magic-Byte Validated'],
     icon: Activity,
   },
   {
     num: '02',
-    title: 'TEMPORAL STATE',
-    sentence: '45-feature aggregation, 60s sliding window, flow + packet distributions, RTT strictly omitted.',
-    detail: 'Telemetry is structured into 60-second tumbling epochs comprising 17 flow metrics, 22 packet stats, and 6 temporal deltas without synthetic imputation.',
-    badges: ['45-FEATURE SCHEMA', '60s WINDOWS', 'NO RTT FABRICATION'],
-    icon: Clock,
+    title: 'Header Normalization',
+    description: 'Protocol decapsulation and packet header extraction without payload retention or synthetic imputation.',
+    attributes: ['L3/L4 Normalization', 'Snaplen Clamping', 'Zero Payload Leakage'],
+    icon: Cpu,
   },
   {
     num: '03',
-    title: 'ATTACK DETECTION',
-    sentence: 'T+0 baseline classification, persistence champion benchmark, calibrated confidence scoring.',
-    detail: 'Evaluates current observed state against the Persistence Champion baseline to establish confirmed baseline threat posture and signal deviation.',
-    badges: ['T+0 STATE', 'AUROC 0.893', 'CALIBRATED SCORING'],
-    icon: ShieldAlert,
+    title: 'Canonical State Extraction',
+    description: 'Telemetry structured into the canonical 45-feature state vector across continuous 60-second observation epochs.',
+    attributes: ['45-Feature Schema', '60s Windows', 'No RTT Fabrication'],
+    icon: Layers,
   },
   {
     num: '04',
-    title: 'TEMPORAL FORECAST',
-    sentence: 'Horizons T+1 to T+5 multi-step projection, early warning indicator, onset lead time estimation.',
-    detail: 'Simulates prospective multi-step network trajectory, computing Step Attack Probabilities and Cumulative Risk with explicit uncertainty bounds.',
-    badges: ['HORIZONS T+1 → T+5', 'LEAD TIME ESTIMATION', 'CUMULATIVE RISK'],
-    icon: TrendingUp,
+    title: 'Threat Assessment',
+    description: 'T+0 baseline threat posture evaluated against calibrated criteria with strict safety abstention gating.',
+    attributes: ['T+0 State Baseline', 'Calibrated Scoring', 'Safety Abstention'],
+    icon: ShieldAlert,
   },
   {
     num: '05',
-    title: 'EVIDENCE & REASONING',
-    sentence: 'Feature perturbation attribution, directional shift ranking, SHA-256 tamper-evident export.',
-    detail: 'Isolates primary telemetry drivers via partial derivative perturbation analysis and compiles an immutable cryptographic audit dossier.',
-    badges: ['PERTURBATION ATTRIBUTION', 'SHA-256 PROVENANCE', 'AUDIT READY'],
-    icon: Search,
+    title: 'Multi-Horizon Forecast',
+    description: 'Forward rollout projecting T+1 to T+5 network state trajectories with step-specific and cumulative risk bounds.',
+    attributes: ['Horizons T+1 → T+5', 'Early Warning', 'Cumulative Risk'],
+    icon: TrendingUp,
   },
 ]
 
@@ -71,34 +65,42 @@ export function Workflow() {
 
       <div className="editorial-hr" />
 
-      {/* 5-Stage Engineering Pipeline Grid */}
-      <section className="workflow-pipeline-grid">
-        {STAGES.map((stage) => {
-          const IconComponent = stage.icon
-          return (
-            <div key={stage.num} className="workflow-stage-card">
-              <div className="stage-header">
-                <span className="stage-step-num">{stage.num}</span>
-                <IconComponent size={16} color="var(--text-muted)" />
+      {/* Compact Engineering Process Flow with Directional Arrows */}
+      <section className="workflow-flow-section" aria-label="Pipeline Architecture Process Flow">
+        <div className="workflow-flow-strip">
+          {STAGES.map((stage, index) => {
+            const IconComponent = stage.icon
+            return (
+              <div key={stage.num} className="workflow-step-wrapper">
+                <div className="workflow-stage-card">
+                  <div className="stage-header">
+                    <span className="stage-step-num">{stage.num}</span>
+                    <IconComponent size={15} color="var(--text-muted)" />
+                  </div>
+                  <h2 className="stage-title">{stage.title}</h2>
+                  <p className="stage-sentence">{stage.description}</p>
+                  <div className="stage-badges">
+                    {stage.attributes.map((attr) => (
+                      <span key={attr} className="editorial-badge">
+                        {attr}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                {index < STAGES.length - 1 && (
+                  <div className="workflow-flow-arrow" aria-hidden="true">
+                    <ArrowRight size={16} />
+                  </div>
+                )}
               </div>
-              <h2 className="stage-title">{stage.title}</h2>
-              <p className="stage-sentence">{stage.sentence}</p>
-              <p className="stage-detail">{stage.detail}</p>
-              <div className="stage-badges">
-                {stage.badges.map((b) => (
-                  <span key={b} className="editorial-badge">
-                    {b}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </section>
 
       <div className="editorial-hr" />
 
-      {/* Editorial CTA */}
+      {/* Editorial CTA - Single Canonical Action */}
       <section className="editorial-footer-cta">
         <div className="editorial-cta-wrap">
           <span className="editorial-eyebrow">TELEMETRY CONSOLE</span>
@@ -109,9 +111,6 @@ export function Workflow() {
           <div className="editorial-btn-group">
             <Link to="/console/analyze" className="button button-primary" style={{ gap: '6px' }}>
               <span>START</span> <ArrowRight size={13} />
-            </Link>
-            <Link to="/research" className="button button-secondary">
-              Read Research Paper
             </Link>
           </div>
         </div>

@@ -343,10 +343,10 @@ def build_graph_snapshot_from_flows(
     total_pkts = 0
 
     for flow in flows:
-        src = flow.src_ip
-        dst = flow.dst_ip
-        proto = flow.protocol
-        port = flow.dst_port
+        src = flow.src_ip or "0.0.0.0"
+        dst = flow.dst_ip or "0.0.0.0"
+        proto = flow.protocol or "UNKNOWN"
+        port = flow.dst_port or 0
 
         bytes_fwd = getattr(flow, "forward_bytes", 0) or 0
         bytes_rev = getattr(flow, "reverse_bytes", 0) or 0

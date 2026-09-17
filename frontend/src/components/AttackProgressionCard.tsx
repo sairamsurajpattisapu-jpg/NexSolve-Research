@@ -20,7 +20,7 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
         action={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <StatusPill tone={isAbstained ? 'warning' : 'success'}>
-              {isAbstained ? 'Progression Abstained' : progression.verdict.replace('_', ' ')}
+              {isAbstained ? 'Progression Abstained' : progression.verdict.replace(/_/g, ' ')}
             </StatusPill>
           </div>
         }

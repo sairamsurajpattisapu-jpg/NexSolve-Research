@@ -16,6 +16,7 @@ import {
   Zap,
 } from 'lucide-react'
 import type { CanonicalAnalysis } from '../types/canonical'
+import { formatDisplayLabel } from '../utils/format'
 import { DynamicForecastGraph } from './DynamicForecastGraph'
 import { FeatureInfluenceModal } from './FeatureInfluenceModal'
 import { FeatureVectorModal } from './FeatureVectorModal'
@@ -291,7 +292,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
                 FORECAST WITHHELD &middot; SAFETY GUARDRAIL ACTIVE
               </span>
               <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', padding: '1px 6px', borderRadius: '3px', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--warning)', fontWeight: 600 }}>
-                INSUFFICIENT_HISTORY &middot; {forecast.availableWindows ?? 0} / 8 WINDOWS
+                INSUFFICIENT HISTORY &middot; {forecast.availableWindows ?? 0} / 8 WINDOWS
               </span>
             </div>
             <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -398,10 +399,11 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
 
         <div>
           <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            PREDICTED PROGRESSION
+            PROJECTED ATTACK STAGE
+            <span style={{ display: 'none' }}>PREDICTED PROGRESSION</span>
           </span>
           <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
-            {progression.stages[progression.stages.length - 1]?.predictedState || progression.observedState || 'Sustained State'}
+            {formatDisplayLabel(progression.stages[progression.stages.length - 1]?.predictedState || progression.observedState || 'Sustained State')}
           </div>
           <small style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
             {progression.stages.length} forward stage steps
@@ -762,14 +764,14 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
           <Workflow size={16} color="var(--text-primary)" />
           <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
-            PREDICTED ATTACK PROGRESSION
+            PROJECTED ATTACK STAGE PROGRESSION
           </span>
         </div>
         <h3 style={{ margin: '0 0 4px 0', fontSize: '17px', color: 'var(--text-primary)' }}>
           Behavioral State Transition Rollout
         </h3>
         <p style={{ margin: '0 0 16px 0', fontSize: '12.5px', color: 'var(--text-muted)' }}>
-          Progression kinematics grounded in transition dynamics; neural world model predicts feature representations rather than arbitrary labels.
+          Progression kinematics grounded in transition dynamics; neural network state model predicts feature representations rather than arbitrary labels.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
@@ -805,7 +807,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
                 </div>
 
                 <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {st.predictedState}
+                  {formatDisplayLabel(st.predictedState)}
                 </div>
 
                 <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
@@ -877,7 +879,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <code style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', fontSize: '12px' }}>
-                    {d.feature}
+                    {formatDisplayLabel(d.feature)}
                   </code>
                   <span
                     style={{
@@ -916,7 +918,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
                 COUNTERFACTUAL SENSITIVITY INSPECTOR
               </span>
               <h4 style={{ margin: '2px 0 0 0', fontSize: '14px', color: 'var(--text-primary)' }}>
-                Feature: <code>{selectedFeatureDriver}</code> (Perturbation: {perturbationRatio > 0 ? `+${perturbationRatio}%` : `${perturbationRatio}%`})
+                Feature: <code>{formatDisplayLabel(selectedFeatureDriver)}</code> (Perturbation: {perturbationRatio > 0 ? `+${perturbationRatio}%` : `${perturbationRatio}%`})
               </h4>
             </div>
             <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
@@ -1150,7 +1152,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--accent)' }}>ZERO FABRICATION</span>
             <h4 style={{ margin: '4px 0', fontSize: '14px', color: 'var(--text-primary)' }}>45-Feature PCAP Contract</h4>
             <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              Passive network taps cannot measure TCP Round Trip Time without active injection. NexSolve strictly removed <code>mean_tcp_rtt</code> from the PCAP feature vector without zero-filling.
+              Passive network taps cannot measure TCP Round Trip Time without active injection. NexSolve strictly removed Mean TCP RTT (<code>mean_tcp_rtt</code>) from the PCAP feature vector without zero-filling.
             </p>
           </div>
         </div>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NexSolve Report - rep-upload-a2516a79689b4b289fe837420ffd1448</title>
+  <title>NexSolve Report - rep-upload-6d74bff80fa947c08c543e58bf6bca20</title>
   <style>
     :root {
       --bg: #090d16;
@@ -168,7 +168,8 @@
       color: var(--text-muted);
     }
     @media print {
-      body { background: #ffffff; color: #0f172a; padding: 0; }
+      @page { size: A4 portrait; margin: 12mm 14mm 14mm 14mm; }
+      body { background: #ffffff; color: #0f172a; padding: 0; font-size: 10pt; }
       .section { border: 1px solid #cbd5e1; background: #ffffff; page-break-inside: avoid; }
       .stat-card { background: #f8fafc; border: 1px solid #cbd5e1; }
       .stat-value { color: #0f172a; }
@@ -184,8 +185,8 @@
         <p>Evidence-backed predictive network intelligence</p>
       </div>
       <div class="meta-box">
-        <div><strong>REPORT ID:</strong> rep-upload-a2516a79689b4b289fe837420ffd1448</div>
-        <div><strong>GENERATED:</strong> 2026-09-14T19:48:11.866161+00:00</div>
+        <div><strong>REPORT ID:</strong> rep-upload-6d74bff80fa947c08c543e58bf6bca20</div>
+        <div><strong>GENERATED:</strong> 2026-09-17T14:13:28.149003+00:00</div>
         <div><strong>SOURCE:</strong> friday_10windows_slice.pcap</div>
       </div>
     </header>
@@ -199,7 +200,7 @@
       <div class="grid-2">
         <div>
           <div class="stat-card" style="border-left: 4px solid #10b981;">
-            <div class="stat-label">Observed Threat Level</div>
+            <div class="stat-label">Current Network Assessment</div>
             <div class="stat-value" style="color: #10b981;">medium</div>
           </div>
           <div style="margin-top: 10px;">
@@ -209,10 +210,13 @@
         </div>
         <div>
           <div class="stat-card" style="border-left: 4px solid #0d9488;">
-            <div class="stat-label">Attack Horizon & Forecast Status</div>
+            <div class="stat-label">Forecast Outcome (Rollout)</div>
             <div class="stat-value" style="font-size: 14px; font-family: var(--font-sans);">Attack Horizon state is EARLY_SIGNAL with 60s lead time (60s duration).</div>
           </div>
           <div class="alert-box alert-warn" style="margin-top: 10px;">
+            <strong>Semantic Distinction:</strong> Observed threat assessment evaluates current telemetry at T<sub>0</sub>, while forecast outcome projects forward multi-step trajectory evolution (T+1..T+5). Elevated threat signal does not confirm future compromise.
+          </div>
+          <div class="small-text" style="margin-top: 6px; padding: 0 4px;">
             <strong>Epistemic Policy:</strong> Epistemic Note: Observed detections reflect packet-level heuristics; Forecasts reflect multi-step world model predictions. Forecast scores are strictly uncalibrated margins, not calibrated probabilities.
           </div>
         </div>
@@ -355,6 +359,9 @@
         
         </tbody>
       </table>
+      <div class="alert-box" style="margin-top: 10px;">
+        <strong>Methodological Disclosure:</strong> Predicted scores represent uncalibrated model transition signals; not empirical probabilities of attack occurrence. Contextual MITRE ATT&amp;CK mappings represent contextual behavioral alignments derived from telemetry distributions, not direct payload signature classifications.
+      </div>
     </section>
 
     <!-- 7. Evidence Chain (Why This Forecast) -->

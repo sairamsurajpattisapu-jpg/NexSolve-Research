@@ -17,10 +17,7 @@ import { Panel } from './Ui'
 import { UnknownBehavior } from './UnknownBehavior'
 import { ForecastHero } from './ForecastHero'
 import { ExecutiveSummaryPanel } from './ExecutiveSummaryPanel'
-import { HowItWorksView } from './HowItWorksView'
-import { ProductDifferentiatorsView } from './ProductDifferentiatorsView'
 import { TechnicalStatusDrawer } from './TechnicalStatusDrawer'
-import { InteractiveArchitectureView } from './InteractiveArchitectureView'
 import { ForecastTimeline } from './ForecastTimeline'
 import { NetworkStateChart } from './NetworkStateChart'
 import { AttackProgressionTimeline } from './AttackProgressionTimeline'
@@ -211,16 +208,7 @@ export function JobResult({ result, onReset }: JobResultProps) {
               lookbackWindows={result.window_count ?? traffic?.windows ?? 8}
             />
 
-            {/* 3. Architecture Tour: How NexSolve Works */}
-            <HowItWorksView />
-
-            {/* 4. Interactive End-to-End System Architecture */}
-            <InteractiveArchitectureView />
-
-            {/* 5. Paradigm Shift: Traditional IDS vs NexSolve Forecasting */}
-            <ProductDifferentiatorsView />
-
-            {/* 6. Technical Status Drawer (Local / Offline specs) */}
+            {/* 3. Technical Status Drawer (Local / Offline specs) */}
             <TechnicalStatusDrawer
               modelType="NumpyLSTM (Pure Offline Recurrent World Model)"
               featureCount={45}
