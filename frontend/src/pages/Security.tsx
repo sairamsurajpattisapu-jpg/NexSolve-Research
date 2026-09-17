@@ -57,13 +57,13 @@ export function Security() {
             <h2>FEATURE INTEGRITY</h2>
             <div className="editorial-tag-row">
               <span className="editorial-badge">45-FEATURE SCHEMA</span>
-              <span className="editorial-badge accent">ZERO FABRICATION</span>
+              <span className="editorial-badge accent">DATA INTEGRITY VERIFIED</span>
               <span className="editorial-badge">RTT OMITTED</span>
             </div>
           </div>
           <div className="integrity-row-content">
             <p>
-              Adheres strictly to a canonical 45-dimensional feature schema comprising 17 flow behavior metrics, 22 packet distribution statistics, and 6 temporal deltas. The disputed Mean TCP RTT metric (<code>mean_tcp_rtt</code>) is strictly omitted under a zero-fabrication contract.
+              Adheres strictly to a canonical 45-dimensional feature schema comprising 17 flow behavior metrics, 22 packet distribution statistics, and 6 temporal deltas. The disputed Mean TCP RTT metric is strictly omitted under a verified data integrity contract.
             </p>
           </div>
         </div>

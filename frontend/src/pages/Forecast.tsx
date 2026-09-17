@@ -138,7 +138,7 @@ export function Forecast() {
   // CASE 3: Loading Active Analysis from store
   if (!jobId && storeLoading && !activeAnalysis) {
     return (
-      <div className="page-stack page-enter" style={{ maxWidth: '1240px', margin: '0 auto', width: '100%', padding: '24px 16px' }}>
+      <div className="page-stack page-enter" style={{ width: '100%', padding: '24px 0' }}>
         <div style={{ marginBottom: '24px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 10px', borderRadius: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', marginBottom: '12px' }}>
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--text-primary)', display: 'inline-block' }} />

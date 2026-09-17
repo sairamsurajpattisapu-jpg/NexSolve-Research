@@ -87,7 +87,7 @@ export function PcapUploader({
             {selectedFile ? selectedFile.name : 'DROP PCAP OR CSV HERE'}
           </h3>
           <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-            Drag and drop live network traffic captures to reconstruct transport flows, compile 60s temporal states, and execute continuous world model forecasting.
+            Drag and drop live network traffic captures to reconstruct transport flows, compile 60s temporal states, and execute continuous temporal attack forecasting.
           </p>
           <span style={{ display: 'block', marginTop: '8px', fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
             Accepts PCAP, PCAPNG, or flow-telemetry CSV &middot; Max 64 MB &middot; 45-feature schema

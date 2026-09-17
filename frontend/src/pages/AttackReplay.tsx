@@ -122,7 +122,7 @@ export function AttackReplay() {
   }
 
   return (
-    <div className="page-stack page-enter" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', padding: '24px 16px' }}>
+    <div className="page-stack page-enter" style={{ width: '100%', padding: '24px 0' }}>
       {/* Header */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -138,7 +138,7 @@ export function AttackReplay() {
         </h1>
         <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0, maxWidth: '820px', lineHeight: 1.5 }}>
           Scrub through frame-by-frame temporal windows to observe how early reconnaissance patterns trigger forward-looking
-          world-model forecasts before physical escalation. Observe the empirical lead-time window available for automated defence.
+          network state model forecasts before physical escalation. Observe the empirical lead-time window available for automated defence.
         </p>
       </div>
 
@@ -405,8 +405,8 @@ export function AttackReplay() {
                   </h4>
                   <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
                     {isEscalated
-                      ? `Target breach confirmed at window 5. ${leadTimeSec !== null ? `Verified lead time of ${leadTimeSec} seconds was successfully provided` : 'Lead time calculation is UNAVAILABLE for this telemetry stream'} between initial world-model alert and physical system impact.`
-                      : `World model has projected escalation probability above decision threshold. ${leadTimeSec !== null ? `A ${leadTimeSec}-second actionable lead time window is active` : 'Lead time calculation is UNAVAILABLE'} before expected breach.`}
+                      ? `Target breach confirmed at window 5. ${leadTimeSec !== null ? `Verified lead time of ${leadTimeSec} seconds was successfully provided` : 'Lead time calculation is UNAVAILABLE for this telemetry stream'} between initial forecasting alert and physical system impact.`
+                      : `Temporal forecast model has projected escalation probability above decision threshold. ${leadTimeSec !== null ? `A ${leadTimeSec}-second actionable lead time window is active` : 'Lead time calculation is UNAVAILABLE'} before expected breach.`}
                   </p>
                 </div>
               </div>

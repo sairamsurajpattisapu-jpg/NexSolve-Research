@@ -210,14 +210,14 @@ export function JobResult({ result, onReset }: JobResultProps) {
 
             {/* 3. Technical Status Drawer (Local / Offline specs) */}
             <TechnicalStatusDrawer
-              modelType="NumpyLSTM (Pure Offline Recurrent World Model)"
+              modelType="NumpyLSTM (Temporal Network State Model)"
               featureCount={45}
               windowSeconds={60}
               lookbackWindows={result.window_count ?? traffic?.windows ?? 8}
               supportedHorizons="T+1 ... T+5 (Simulated +60s ... +300s)"
               executionMode="100% Offline / Local Edge Processing"
-              calibrationStatus="UNCALIBRATED (Raw Neural Sigmoidal Posterior)"
-              schemaVariant={(result as any).model_compatibility?.schema_variant ?? '45_feature_pcap_compatible (mean_tcp_rtt strictly omitted)'}
+              calibrationStatus="Uncalibrated (Neural Posterior)"
+              schemaVariant={(result as any).model_compatibility?.schema_variant ?? '45-feature schema (Mean TCP RTT omitted)'}
             />
 
             {/* 7. Network Future Trajectory Interactive Curve */}
@@ -316,7 +316,7 @@ export function JobResult({ result, onReset }: JobResultProps) {
         <IncidentStoryPanel incidentStory={result.incident_story} />
       )}
 
-      {/* 2b-ii. Temporal Network World Model & Intelligence State Engine */}
+      {/* 2b-ii. Temporal Network State Model & Intelligence State Engine */}
       {result.network_world_state?.temporal_world_state && (
         <TemporalWorldView worldState={result.network_world_state.temporal_world_state} analysisId={jobId} />
       )}

@@ -339,7 +339,7 @@ export function Evidence() {
         </div>
       </Panel>
 
-      {/* 4. WORLD MODEL SECTION */}
+      {/* 4. TEMPORAL NETWORK STATE MODEL SECTION */}
       <Panel>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
           <Cpu size={16} color="var(--text-primary)" />

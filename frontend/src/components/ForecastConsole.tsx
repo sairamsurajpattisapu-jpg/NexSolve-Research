@@ -972,14 +972,6 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             <button
               type="button"
               className="button button-quiet"
-              onClick={() => navigate('/console/network')}
-              style={{ fontSize: '12px', height: '34px' }}
-            >
-              <Network size={14} /> VIEW NETWORK STATE
-            </button>
-            <button
-              type="button"
-              className="button button-quiet"
               onClick={() => setShowFeatureModal(true)}
               style={{ fontSize: '12px', height: '34px' }}
             >
@@ -1149,10 +1141,10 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
           </div>
 
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '14px' }}>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--accent)' }}>ZERO FABRICATION</span>
+            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--accent)' }}>DATA INTEGRITY VERIFIED</span>
             <h4 style={{ margin: '4px 0', fontSize: '14px', color: 'var(--text-primary)' }}>45-Feature PCAP Contract</h4>
             <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              Passive network taps cannot measure TCP Round Trip Time without active injection. NexSolve strictly removed Mean TCP RTT (<code>mean_tcp_rtt</code>) from the PCAP feature vector without zero-filling.
+              Passive network taps cannot measure TCP Round Trip Time without active injection. NexSolve strictly removed Mean TCP RTT from the PCAP feature vector without zero-filling.
             </p>
           </div>
         </div>

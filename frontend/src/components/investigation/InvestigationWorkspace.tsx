@@ -395,7 +395,7 @@ export function InvestigationWorkspace({
       {activeTab === 'RISK' && currentRisk && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-            Additive explainable risk score calculation. Zero score averaging or arbitrary AI confidence weights.
+            Additive explainable risk score calculation. Zero score averaging or arbitrary heuristic confidence weights.
           </div>
 
           <div

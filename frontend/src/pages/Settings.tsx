@@ -159,7 +159,7 @@ export function Settings() {
               <div className="boundary-card">
                 <div className="boundary-icon"><Info size={18} /></div>
                 <div>
-                  <h3>Autoregressive World Model</h3>
+                  <h3>Autoregressive Network State Model</h3>
                   <p>Simulates prospective latent network states across forward temporal steps. Dual risk scoring provides both point attack probability and compound cumulative risk.</p>
                   <span className="boundary-state"><Check size={14} /> Verified</span>
                 </div>

@@ -131,7 +131,7 @@ export function Network() {
     : filteredNodes[0] ?? null
 
   return (
-    <div className="page-stack page-enter" style={{ maxWidth: '1240px', margin: '0 auto', width: '100%', padding: '24px 16px' }}>
+    <div className="page-stack page-enter" style={{ width: '100%', padding: '24px 0' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
         <div>

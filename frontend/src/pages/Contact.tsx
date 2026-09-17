@@ -69,7 +69,7 @@ export function Contact() {
             </div>
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.55, margin: '0 0 14px 0' }}>
-            For research groups evaluating autoregressive temporal world modeling, benchmark replications, or persistence baseline comparisons.
+            For research groups evaluating autoregressive temporal network state modeling, benchmark replications, or persistence baseline comparisons.
           </p>
           <div style={{ fontSize: '12px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', background: 'var(--bg-secondary)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border)' }}>
             research@nexsolve.internal

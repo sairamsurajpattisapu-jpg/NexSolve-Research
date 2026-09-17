@@ -266,7 +266,7 @@ export function adaptToCanonical(
       tactic: 'Discovery',
       forecastStep: 'T+1 (60s)',
       interpretation: 'Behavior consistent with automated port scan and network service enumeration.',
-      evidence: 'Rapid expansion in unique_dst_ports and consistent SYN flag generation.',
+      evidence: 'Rapid expansion in Unique Destination Ports and consistent SYN flag generation.',
     },
     {
       techniqueId: 'T1190',
@@ -431,7 +431,7 @@ export function adaptToCanonical(
 
     mitre: {
       method: 'Behavioral interpretation based on anomalous transport patterns and connection diversity.',
-      disclaimer: 'Behavioral interpretation; neural world model predicts feature dynamics, stages mapped heuristically. Not direct neural classification.',
+      disclaimer: 'Behavioral interpretation; neural network state model predicts feature dynamics, stages mapped heuristically. Not direct neural classification.',
       mappings: mitreMappings,
     },
 

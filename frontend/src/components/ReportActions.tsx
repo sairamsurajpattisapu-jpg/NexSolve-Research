@@ -1,4 +1,5 @@
-import { Download, ExternalLink, FileJson, FileText, RotateCcw } from 'lucide-react'
+import { useState } from 'react'
+import { CheckCircle2, Copy, Download, ExternalLink, FileJson, FileText, RotateCcw } from 'lucide-react'
 import { api } from '../services/api'
 
 interface ReportActionsProps {
@@ -7,6 +8,7 @@ interface ReportActionsProps {
 }
 
 export function ReportActions({ jobId, onReset }: ReportActionsProps) {
+  const [copied, setCopied] = useState(false)
   const jsonUrl = api.getReportJsonUrl(jobId)
   const htmlUrl = api.getReportHtmlUrl(jobId)
 
@@ -62,9 +64,10 @@ export function ReportActions({ jobId, onReset }: ReportActionsProps) {
       <button
         type="button"
         onClick={() => {
-          const summaryText = `NEXSOLVE FORECAST SUMMARY\nReport ID: rep-${jobId}\nEngine: NexSolve 45-Feature PCAP-Compatible World Model\nExecution: 100% Offline / Local\nStatus: Complete\nAccess full report at: ${htmlUrl}`
-          navigator.clipboard.writeText(summaryText)
-          alert('Forecast Summary copied to clipboard!')
+          const summaryText = `NEXSOLVE FORECAST SUMMARY\nReport ID: rep-${jobId}\nEngine: NexSolve 45-Feature Network State Model\nExecution: 100% Offline / Local\nStatus: Complete\nAccess full report at: ${htmlUrl}`
+          void navigator.clipboard.writeText(summaryText)
+          setCopied(true)
+          setTimeout(() => setCopied(false), 2000)
         }}
         className="button button-quiet"
         style={{
@@ -75,13 +78,13 @@ export function ReportActions({ jobId, onReset }: ReportActionsProps) {
           fontSize: '11px',
           fontFamily: 'var(--mono)',
           fontWeight: 700,
-          borderColor: 'var(--border)',
+          borderColor: copied ? 'var(--accent)' : 'var(--border)',
           background: 'var(--button-secondary-bg)',
           color: 'var(--text-primary)',
         }}
       >
-        <Download size={12} color="var(--accent)" />
-        <span>Copy Summary</span>
+        {copied ? <CheckCircle2 size={12} color="var(--accent)" /> : <Copy size={12} color="var(--accent)" />}
+        <span>{copied ? 'Copied' : 'Copy Summary'}</span>
       </button>
 
       {onReset && (

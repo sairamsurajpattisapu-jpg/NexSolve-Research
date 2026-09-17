@@ -93,7 +93,7 @@ export function ProductDifferentiatorsView() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
               <CheckCircle2 size={18} color="var(--accent)" />
               <strong style={{ fontSize: '15px', color: 'var(--text-primary)' }}>
-                NexSolve Temporal World Model Platform
+                NexSolve Temporal Network Forecasting Platform
               </strong>
             </div>
             <div

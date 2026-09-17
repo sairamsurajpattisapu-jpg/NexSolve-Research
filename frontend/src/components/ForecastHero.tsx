@@ -206,27 +206,27 @@ export function ForecastHero({
       >
         <div>
           <span className="eyebrow" style={{ color: 'var(--text-muted)' }}>
-            GOVERNANCE & INTEGRITY
+            DATA &amp; MODEL INTEGRITY
           </span>
           <h4 style={{ margin: '4px 0 12px 0', fontSize: '14px', color: 'var(--text-primary)' }}>
-            Telemetry Telemetry
+            Network Telemetry
           </h4>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11.5px', fontFamily: 'var(--mono)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Model Schema:</span>
-              <strong style={{ color: 'var(--accent)' }}>45 Passive</strong>
+              <span style={{ color: 'var(--text-muted)' }}>Feature Schema:</span>
+              <strong style={{ color: 'var(--accent)' }}>45 passive features</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>TCP RTT:</span>
-              <strong style={{ color: 'var(--text-secondary)' }}>Omitted (No fake)</strong>
+              <strong style={{ color: 'var(--text-secondary)' }}>Not observed from passive capture</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Lookback:</span>
-              <strong style={{ color: 'var(--text-primary)' }}>{lookbackWindows} / 8 windows</strong>
+              <span style={{ color: 'var(--text-muted)' }}>History:</span>
+              <strong style={{ color: 'var(--text-primary)' }}>{lookbackWindows} / 8 required windows</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Confidence:</span>
+              <span style={{ color: 'var(--text-muted)' }}>Assessment Confidence:</span>
               <strong style={{ color: 'var(--text-primary)' }}>
                 {forecastConfidence !== null && forecastConfidence !== undefined ? `${(forecastConfidence * 100).toFixed(0)}%` : 'Uncalibrated'}
               </strong>
@@ -248,7 +248,7 @@ export function ForecastHero({
           }}
         >
           <Shield size={12} />
-          <span>ZERO FABRICATION CONTRACT</span>
+          <span>Data Integrity Verified</span>
         </div>
       </Panel>
     </div>

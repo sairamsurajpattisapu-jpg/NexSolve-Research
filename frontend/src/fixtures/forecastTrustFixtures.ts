@@ -15,9 +15,9 @@ export const forecastTrustFixtures: Record<string, TrustFixtureItem> = {
     response: {
       currentState: { timestamp: '2026-09-10T06:00:00Z', attackProbability: null },
       forecasts: [
-        { horizon: 1, attackProbability: 0.82, predictedStage: 'Reconnaissance', confidence: null, uncertainty: 0.36, explanation: ['flow_count contributed +0.14'] },
-        { horizon: 2, attackProbability: 0.88, predictedStage: 'Lateral Movement', confidence: null, uncertainty: 0.24, explanation: ['unique_dst_ports contributed +0.22'] },
-        { horizon: 3, attackProbability: 0.80, predictedStage: 'Command and Control', confidence: null, uncertainty: 0.40, explanation: ['total_src_bytes contributed +0.18'] },
+        { horizon: 1, attackProbability: 0.82, predictedStage: 'Reconnaissance', confidence: null, uncertainty: 0.36, explanation: ['Flow Count contributed +0.14'] },
+        { horizon: 2, attackProbability: 0.88, predictedStage: 'Lateral Movement', confidence: null, uncertainty: 0.24, explanation: ['Unique Destination Ports contributed +0.22'] },
+        { horizon: 3, attackProbability: 0.80, predictedStage: 'Command and Control', confidence: null, uncertainty: 0.40, explanation: ['Total Source Bytes contributed +0.18'] },
         { horizon: 4, attackProbability: 0.35, predictedStage: null, confidence: null, uncertainty: 0.70, explanation: [] },
         { horizon: 5, attackProbability: 0.15, predictedStage: null, confidence: null, uncertainty: 0.85, explanation: [] },
       ],

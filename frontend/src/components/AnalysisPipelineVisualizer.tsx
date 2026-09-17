@@ -42,8 +42,8 @@ export const PIPELINE_STAGES: PipelineStageDef[] = [
   { num: '03', id: 'RECONSTRUCT', label: 'RECONSTRUCT', detail: 'Reconstructing bidirectional flows and session conversations.', icon: Network },
   { num: '04', id: 'REPRESENT', label: 'REPRESENT', detail: 'Segmenting telemetry into 45-dimensional canonical vectors.', icon: Activity },
   { num: '05', id: 'ANALYZE', label: 'ANALYZE', detail: 'Evaluating graph topology, centrality, and baseline state.', icon: Cpu },
-  { num: '06', id: 'SIMULATE', label: 'SIMULATE', detail: 'Simulating forward temporal state dynamics with World Model.', icon: Sparkles },
-  { num: '07', id: 'FORECAST', label: 'FORECAST', detail: 'Multi-horizon attack probability and trajectory rollout.', icon: ShieldAlert },
+  { num: '06', id: 'SIMULATE', label: 'SIMULATE', detail: 'Simulating forward temporal state dynamics with network state model.', icon: Sparkles },
+  { num: '07', id: 'FORECAST', label: 'FORECAST', detail: 'Multi-horizon attack probability and trajectory projection.', icon: ShieldAlert },
   { num: '08', id: 'EXPLAIN', label: 'EXPLAIN', detail: 'Attributing feature influence and MITRE behavioral correlates.', icon: Workflow },
 ]
 

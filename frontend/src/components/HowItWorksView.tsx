@@ -21,10 +21,10 @@ const HOW_IT_WORKS_STEPS = [
   {
     step: '03',
     title: 'Simulate',
-    subtitle: 'Autoregressive World Model',
+    subtitle: 'Autoregressive Network State Model',
     icon: BrainCircuit,
-    tagline: 'Recurrent State Rollout',
-    desc: 'A pure NumpyLSTM world model recurses across future steps S(t+1)...S(t+5), simulating network evolution without future ground truth.',
+    tagline: 'Recurrent State Forecast',
+    desc: 'A pure NumpyLSTM network state model recurses across future steps S(t+1)...S(t+5), simulating network evolution without future ground truth.',
   },
   {
     step: '04',

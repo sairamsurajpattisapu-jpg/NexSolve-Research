@@ -16,7 +16,7 @@ const METRICS_OPTIONS: Array<{ key: string; label: string; unit: string; tone: s
   { key: 'flow_count', label: 'Flow Count', unit: 'flows', tone: 'var(--accent, #68e1d8)' },
   { key: 'total_packets', label: 'Packet Count', unit: 'pkts', tone: 'var(--warning, #f2bb71)' },
   { key: 'total_bytes', label: 'Total Bytes', unit: 'bytes', tone: '#38bdf8' },
-  { key: 'unique_dst_ports', label: 'Unique Dst Ports', unit: 'ports', tone: 'var(--danger, #ed806f)' },
+  { key: 'unique_dst_ports', label: 'Unique Destination Ports', unit: 'ports', tone: 'var(--danger, #ed806f)' },
   { key: 'mean_iat', label: 'Inter-Arrival Time (IAT)', unit: 'ms', tone: '#a78bfa' },
   { key: 'mean_tcp_window', label: 'Mean TCP Window', unit: 'bytes', tone: '#34d399' },
   { key: 'mean_ttl', label: 'Mean TTL', unit: 'hops', tone: '#f472b6' },

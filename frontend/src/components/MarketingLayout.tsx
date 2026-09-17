@@ -190,7 +190,7 @@ export function MarketingLayout() {
               Network attack forecasting from passive telemetry. Temporal trajectory simulation across forward lookahead horizons.
             </p>
             <div className="footer-meta-mono" style={{ color: 'var(--text-muted)' }}>
-              Offline-First · 45-Feature Contract · Zero Fabrication
+              Offline-First · 45-Feature Contract · Data Integrity Verified
             </div>
           </div>
 

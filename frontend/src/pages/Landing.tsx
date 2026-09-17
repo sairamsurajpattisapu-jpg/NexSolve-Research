@@ -47,7 +47,7 @@ const PIPELINE_STEPS = [
     eyebrow: '45-Dimensional Continuous Schema',
     description:
       'Condenses network behavior into an audited 45-feature vector S_t across discrete 60-second tumbling windows: 17 flow behavior metrics, 22 packet distribution moments, and 6 temporal rate deltas.',
-    tech: 'Audited 45-dim contract · Strictly omits mean_tcp_rtt under Zero-Fabrication Contract',
+    tech: 'Audited 45-dim contract · Strictly omits Mean TCP RTT under data integrity contract',
   },
   {
     id: 'analyze',
@@ -61,11 +61,11 @@ const PIPELINE_STEPS = [
   {
     id: 'simulate',
     step: '06',
-    title: 'World Model Simulation',
-    eyebrow: 'Autoregressive Multi-Step Rollout',
+    title: 'Network State Simulation',
+    eyebrow: 'Autoregressive Temporal Projection',
     description:
-      'Recursive LSTM World Model ingests sequence history S_{t-7..t} and projects future continuous state vectors S_{t+1}, S_{t+2}, S_{t+3}, and S_{t+5} into the prospective horizon.',
-    tech: 'Deep recurrent World Model · State trajectory simulation · Multi-horizon rollout',
+      'Recursive LSTM network state model ingests sequence history S_{t-7..t} and projects future continuous state vectors S_{t+1}, S_{t+2}, S_{t+3}, and S_{t+5} into the prospective horizon.',
+    tech: 'Deep recurrent state model · State trajectory simulation · Multi-horizon forecast',
   },
   {
     id: 'forecast',
@@ -101,7 +101,7 @@ const CAPABILITIES = [
   {
     icon: <TrendingUp size={20} color="var(--text-primary)" />,
     title: 'Multi-Horizon Attack Forecasting',
-    desc: 'Autoregressive World Model simulates prospective network states across forward lookaheads T+1, T+2, T+3, and T+5.',
+    desc: 'Autoregressive network state model simulates prospective network states across forward lookaheads T+1, T+2, T+3, and T+5.',
   },
   {
     icon: <GitBranch size={20} color="var(--text-primary)" />,
@@ -123,7 +123,7 @@ const CAPABILITIES = [
 const TOP_FAQS = [
   {
     q: 'What is NexSolve and how does attack forecasting work?',
-    a: 'NexSolve is an AI-based network attack forecasting platform. Rather than merely detecting intrusions after exploits detonate, it reconstructs continuous network-state representations across discrete 60-second windows, simulates forward dynamics with a World Model, and forecasts attack progression across T+1 through T+5 horizons.',
+    a: 'NexSolve is a network attack forecasting platform. Rather than merely detecting intrusions after exploits detonate, it reconstructs continuous network-state representations across discrete 60-second windows, simulates forward dynamics with a temporal network state model, and forecasts attack progression across T+1 through T+5 horizons.',
   },
   {
     q: 'Does NexSolve replace an IDS or firewall?',
@@ -131,7 +131,7 @@ const TOP_FAQS = [
   },
   {
     q: 'Does NexSolve fabricate unavailable passive metrics?',
-    a: 'Never. Under a strict Zero-Fabrication Contract, metrics that cannot be genuinely observed from passive packet taps—most notably mean_tcp_rtt—are permanently excluded from the 45-feature schema rather than zero-filled or guessed.',
+    a: 'Never. Under a strict data integrity contract, metrics that cannot be genuinely observed from passive packet taps—most notably Mean TCP RTT—are permanently excluded from the 45-feature schema rather than zero-filled or guessed.',
   },
   {
     q: 'What happens when input data contains fewer than 8 windows?',
@@ -325,7 +325,7 @@ export function Landing() {
             </h2>
             <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
               NexSolve formalizes network defense as an autoregressive state simulation problem. Continuous packet streams are sliced into discrete 60-second temporal windows.
-              An internal World Model recursively projects prospective future network states, outputting calibrated attack probabilities and cumulative risk curves backed by mathematical counterfactual evidence.
+              An internal temporal forecast model recursively projects prospective future network states, outputting calibrated attack probabilities and cumulative risk curves backed by mathematical counterfactual evidence.
             </p>
           </div>
         </div>

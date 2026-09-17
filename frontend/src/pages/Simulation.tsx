@@ -117,7 +117,7 @@ export function Simulation() {
   const activeCount = interventions.filter((i) => i.enabled).length
 
   return (
-    <div className="page-stack page-enter" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', padding: '24px 16px' }}>
+    <div className="page-stack page-enter" style={{ width: '100%', padding: '24px 0' }}>
       {/* Header */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

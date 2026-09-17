@@ -21,7 +21,7 @@ export function TechnicalStatusDrawer({
   supportedHorizons = 'T+1 ... T+5 (Simulated +60s ... +300s)',
   executionMode = '100% Offline / Local Edge Processing',
   calibrationStatus = 'UNCALIBRATED (Raw Neural Sigmoidal Posterior)',
-  schemaVariant = '45_feature_pcap_compatible (mean_tcp_rtt strictly omitted)',
+  schemaVariant = '45-Feature PCAP Schema (RTT strictly omitted)',
 }: TechnicalStatusDrawerProps) {
   const [isOpen, setIsOpen] = useState(false)
 

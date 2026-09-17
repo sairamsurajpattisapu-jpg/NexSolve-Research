@@ -1,4 +1,5 @@
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from 'lucide-react'
+import { formatDisplayLabel } from '../utils/format'
 
 export interface DriverItem {
   feature: string
@@ -76,7 +77,7 @@ export function FeatureDriver({ driver, rank }: FeatureDriverProps) {
               color: 'var(--text-primary)',
             }}
           >
-            {driver.feature}
+            {formatDisplayLabel(driver.feature)}
           </span>
           <span
             style={{

@@ -124,7 +124,7 @@ export function CsvRequirementsModal({ isOpen, onClose }: CsvRequirementsModalPr
               3. Scientific Honesty & Feature Imputation Policy
             </h4>
             <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--text-secondary)' }}>
-              <li><CheckCircle size={12} color="var(--accent)" style={{ display: 'inline', marginRight: '6px' }} /><strong>No RTT Imputation:</strong> TCP round-trip latency (<code style={{ fontFamily: 'var(--mono)' }}>mean_tcp_rtt</code>) is strictly withheld in passive ingestion rather than zero-filled or guessed.</li>
+              <li><CheckCircle size={12} color="var(--accent)" style={{ display: 'inline', marginRight: '6px' }} /><strong>No RTT Imputation:</strong> TCP round-trip latency (Mean TCP RTT) is strictly withheld in passive ingestion rather than zero-filled or guessed.</li>
               <li><CheckCircle size={12} color="var(--accent)" style={{ display: 'inline', marginRight: '6px' }} /><strong>No Synthetic Interpolation:</strong> Missing time windows will not be filled with synthetic noise; gaps cause explicit abstention.</li>
             </ul>
           </div>

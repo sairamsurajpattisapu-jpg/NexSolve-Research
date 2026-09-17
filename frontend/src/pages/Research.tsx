@@ -62,7 +62,7 @@ export function Research() {
           </div>
         </div>
         <p className="research-body-note">
-          <strong>Zero-Fabrication Contract:</strong> Passive network taps cannot verify TCP Round Trip Time without active injection. The disputed Mean TCP RTT metric (<span className="mono-inline">mean_tcp_rtt</span>) is strictly omitted from the canonical schema rather than synthetically imputed.
+          <strong>Zero-Fabrication Contract:</strong> Passive network taps cannot verify TCP Round Trip Time without active injection. The disputed Mean TCP RTT metric is strictly omitted from the canonical schema rather than synthetically imputed.
         </p>
       </section>
 

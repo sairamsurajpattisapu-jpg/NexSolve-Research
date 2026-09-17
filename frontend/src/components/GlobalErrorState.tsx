@@ -43,7 +43,7 @@ const ERROR_EXPLANATIONS: Record<string, string> = {
   'ANALYSIS_INCOMPLETE':
     'The analysis could not be completed.',
   'ANALYSIS FAILED':
-    'The forecasting world model encountered an unrecoverable condition while processing telemetry horizons.',
+    'The temporal forecasting engine encountered an unrecoverable condition while processing telemetry horizons.',
   'RESULT UNAVAILABLE':
     'The processed job completed, but the canonical result payload could not be retrieved. Please retry.',
 }

@@ -33,9 +33,24 @@ def build_executive_summary(
     findings_count = detection.get("detected_events", 0)
     
     key_findings: list[str] = []
-    for f in detection.get("findings", [])[:5]:
+    seen_findings: set[str] = set()
+    for f in detection.get("findings", []):
         desc = f.get("explanation") or f.get("rule_id", "Heuristic anomaly")
-        key_findings.append(f"Observed: {desc}")
+        items = desc if isinstance(desc, list) else [desc]
+        for item in items:
+            clean_item = str(item).strip()
+            if not clean_item:
+                continue
+            if clean_item.lower().startswith("observed:"):
+                clean_item = clean_item[9:].strip()
+            norm_key = clean_item.lower()
+            if norm_key not in seen_findings:
+                seen_findings.add(norm_key)
+                key_findings.append(f"Observed: {clean_item}")
+            if len(key_findings) >= 5:
+                break
+        if len(key_findings) >= 5:
+            break
 
     if not key_findings:
         key_findings.append("No active heuristic attack patterns identified in observed packets.")
@@ -45,15 +60,25 @@ def build_executive_summary(
     elif horizon:
         state = horizon.get("state", "NO_ATTACK_FORECAST")
         lead_time = horizon.get("lead_time_seconds")
-        lead_str = f"with {lead_time}s lead time" if lead_time is not None else "no onset"
-        forecast_summary = f"Attack Horizon state is {state} {lead_str} ({horizon.get('horizon_seconds', 0)}s duration)."
+        lead_str = f"within the next {int(lead_time)} seconds" if lead_time is not None else "with no immediate onset"
+        dur = horizon.get("horizon_seconds", 0)
+        dur_str = f" ({dur}s forward horizon)" if dur else ""
+        if state in ("EARLY_SIGNAL", "EARLY_ATTACK_SIGNAL"):
+            forecast_summary = f"Early attack activity is projected {lead_str}{dur_str}."
+        elif state == "SUSTAINED_ATTACK_FORECAST":
+            forecast_summary = f"Sustained attack progression is projected {lead_str}{dur_str}."
+        elif state in ("BENIGN", "NO_ATTACK_FORECAST"):
+            forecast_summary = "Nominal network baseline projected across future observation windows."
+        else:
+            human_state = state.replace("_", " ").title()
+            forecast_summary = f"{human_state} projected {lead_str}{dur_str}."
     else:
         forecast_summary = "No forecast data available for this capture."
 
     disclaimer = (
-        "Epistemic Note: Observed detections reflect packet-level heuristics; "
-        "Forecasts reflect multi-step world model predictions. "
-        "Forecast scores are strictly uncalibrated margins, not calibrated probabilities."
+        "Current assessment reflects observed network activity. "
+        "Forecast values represent projected changes across future analysis windows "
+        "and should not be interpreted as confirmation of compromise."
     )
 
     return ExecutiveSummarySection(
@@ -396,8 +421,10 @@ def build_limitations_section(
     limitations: list[str] = []
     capture_limitations: list[str] = []
     calibration_caveats: list[str] = [
-        "Forecast score reflects raw model margin. Calibration status is UNSUPPORTED for single-class/benchmark regimes.",
-        "Heuristic packet alerts are indicators, not definitive intrusion ground truth.",
+        "Forecast scores represent forward-looking transition signals, not calibrated actuarial event probabilities.",
+        "Observed heuristic packet alerts represent behavioral indicators, not definitive ground-truth payload compromise.",
+        "Continuous state prediction confidence decreases as lookahead extends from T+1 to T+5 due to recursive latent variance.",
+        "Round-trip time (RTT) metrics are deliberately omitted from passive captures to avoid synthetic data imputation.",
     ]
 
     if evidence_chain and evidence_chain.get("limitations"):
