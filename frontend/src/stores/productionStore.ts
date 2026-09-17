@@ -17,8 +17,8 @@ type StoreState = {
 }
 
 let state: StoreState = {
-  data: null,
-  loading: true,
+  data: REFERENCE_BENCHMARK_DATA,
+  loading: false,
   error: null,
   analysisSource: 'production',
   provenance: 'reference',

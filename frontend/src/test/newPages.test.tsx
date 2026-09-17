@@ -2,10 +2,13 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
-import { Demo } from '../pages/Demo'
 import { Evidence } from '../pages/Evidence'
+import { Faq } from '../pages/Faq'
 import { Forecast } from '../pages/Forecast'
 import { Landing } from '../pages/Landing'
+import { NotFound } from '../pages/NotFound'
+import { Progression } from '../pages/Progression'
+import { Settings } from '../pages/Settings'
 import { fixture } from './fixtures'
 
 vi.mock('../hooks/useProductionData', () => ({
@@ -85,19 +88,75 @@ describe('New Product Pages Suite', () => {
     })
   })
 
-  describe('Demo Page', () => {
-    it('renders 60-second judge guidance and scenario selector', () => {
+  describe('Progression Page', () => {
+    it('renders multi-step dynamics, 3-tier operational linkage, and horizon steppers', () => {
       render(
         <MemoryRouter>
-          <Demo />
+          <Progression />
         </MemoryRouter>
       )
 
-      expect(screen.getByText(/SIH Judge Demo Explorer & Evaluation Journey/i)).toBeInTheDocument()
-      expect(screen.getByText(/60-SECOND JURY EVALUATION JOURNEY/i)).toBeInTheDocument()
-      expect(screen.getByText(/1. Early Attack Signal/i)).toBeInTheDocument()
-      expect(screen.getByText(/2. Contradictory Evidence/i)).toBeInTheDocument()
-      expect(screen.getByText(/3. Forecast Abstained/i)).toBeInTheDocument()
+      expect(screen.getByText(/ATTACK PROGRESSION TIMELINE/i)).toBeInTheDocument()
+      expect(screen.getByText(/3-TIER OPERATIONAL LINKAGE/i)).toBeInTheDocument()
+      expect(screen.getByText(/01 · OBSERVED EVIDENCE/i)).toBeInTheDocument()
+      expect(screen.getByText(/02 · DETECTED BEHAVIOR/i)).toBeInTheDocument()
+      expect(screen.getByText(/03 · PREDICTED PROGRESSION/i)).toBeInTheDocument()
+      expect(screen.getByText(/MITRE ATT&CK BEHAVIORAL INTERPRETATION/i)).toBeInTheDocument()
+    })
+  })
+
+  describe('NotFound Page', () => {
+    it('renders 404 header and recovery CTAs', () => {
+      render(
+        <MemoryRouter>
+          <NotFound />
+        </MemoryRouter>
+      )
+
+      expect(screen.getByText(/404/i)).toBeInTheDocument()
+      expect(screen.getByText(/Page Not Found/i)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /Back to Console/i })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /Return Home/i })).toBeInTheDocument()
+    })
+  })
+
+  describe('Faq Page', () => {
+    it('renders categories, accordion questions, and toggles items', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <Faq />
+        </MemoryRouter>
+      )
+
+      expect(screen.getByText(/Technical & Operational FAQ/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /^ALL$/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /^Data Ingestion$/i })).toBeInTheDocument()
+
+      const questionBtn = screen.getByRole('button', { name: /Does NexSolve analyze PCAP files\?/i })
+      expect(questionBtn).toBeInTheDocument()
+      await user.click(questionBtn)
+      expect(screen.getByText(/NexSolve natively ingests microsecond-precision/i)).toBeInTheDocument()
+    })
+  })
+
+  describe('Settings Page', () => {
+    it('renders appearance and motion controls', async () => {
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <Settings />
+        </MemoryRouter>
+      )
+
+      expect(screen.getByText(/System configuration/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Dark Theme/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Light Theme/i })).toBeInTheDocument()
+
+      const motionToggle = screen.getByRole('button', { name: /Toggle Reduced Motion/i })
+      expect(motionToggle).toBeInTheDocument()
+      await user.click(motionToggle)
+      expect(motionToggle).toHaveAttribute('aria-pressed', 'true')
     })
   })
 })

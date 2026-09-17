@@ -17,12 +17,12 @@ describe('api client', () => {
 
   it('turns network failures into a user-safe message', async () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('connection refused'))
-    await expect(api.traffic()).rejects.toThrow('Backend unavailable')
+    await expect(api.traffic()).rejects.toThrow('temporarily unavailable')
   })
 
   it('rejects malformed successful responses safely', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('not json', { status: 200 }))
-    await expect(api.health()).rejects.toThrow('invalid JSON response')
+    await expect(api.health()).rejects.toThrow('invalid response')
   })
 
   it('detects HTML responses from misconfigured endpoints', async () => {
@@ -32,13 +32,13 @@ describe('api client', () => {
         headers: { 'Content-Type': 'text/html' },
       }),
     )
-    await expect(api.health()).rejects.toThrow('API endpoint returned HTML instead of JSON')
+    await expect(api.health()).rejects.toThrow('unexpected response')
   })
 
   it('handles request timeout gracefully', async () => {
     const abortErr = new DOMException('The operation was aborted due to timeout', 'AbortError')
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(abortErr)
-    await expect(api.health()).rejects.toThrow('Backend connection timed out')
+    await expect(api.health()).rejects.toThrow('timed out')
   })
 
   it('supports the production readiness probe', async () => {

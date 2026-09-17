@@ -1,13 +1,15 @@
-import { useState, type DragEvent } from 'react'
+import { useEffect, useState, type DragEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowUpRight,
+  CheckCircle2,
   FileUp,
   Gauge,
   Radio,
   ShieldAlert,
   Sparkles,
   TimerReset,
+  X,
 } from 'lucide-react'
 import { ActivityChart, ProtocolBars } from '../components/Charts'
 import { CsvRequirementsModal } from '../components/CsvRequirementsModal'
@@ -18,6 +20,12 @@ import { useProductionData } from '../hooks/useProductionData'
 import { api } from '../services/api'
 import type { JobStatusResponse, UploadedAnalysisResponse } from '../types/api'
 import { formatNumber } from '../utils/format'
+import {
+  getAnalysisHistory,
+  recordAnalysisHistory,
+  clearAnalysisHistory,
+  type AnalysisHistoryEntry,
+} from '../utils/analysisHistory'
 
 export function Dashboard() {
   const navigate = useNavigate()
@@ -29,8 +37,9 @@ export function Dashboard() {
   const [jobResult, setJobResult] = useState<UploadedAnalysisResponse | null>(null)
   const [isDragging, setIsDragging] = useState<boolean>(false)
   const [showCsvModal, setShowCsvModal] = useState<boolean>(false)
+  const [history, setHistory] = useState<AnalysisHistoryEntry[]>(() => getAnalysisHistory())
 
-  if (loading && !data) return <LoadingState message="Loading production analysis" />
+  if (loading && !data) return <LoadingState message="Preparing analysis..." />
   if (error || !data) return <ErrorState message={error ?? 'No analysis has been loaded.'} onRetry={() => void reload()} />
 
   const { traffic, detection } = data.results
@@ -49,14 +58,39 @@ export function Dashboard() {
     if (!isPcap && !isCsv) {
       setSelectionError('Choose a .pcap or .pcapng capture.')
       setFile(null)
+    } else if (selected.size === 0) {
+      setSelectionError('The selected capture file is empty (0 bytes).')
+      setFile(null)
+    } else if (selected.size > 250 * 1024 * 1024) {
+      setSelectionError('Capture file exceeds maximum size limit (250 MB).')
+      setFile(null)
     } else {
       setSelectionError(null)
       setFile(selected)
     }
   }
 
+  // Sync history when effectiveResult is available
+  useEffect(() => {
+    if (effectiveResult) {
+      recordAnalysisHistory({
+        id: effectiveResult.analysis_id,
+        filename: effectiveResult.source?.name || effectiveResult.source?.filename || 'Uploaded Capture',
+        timestamp:
+          (effectiveResult as any).timestamp ||
+          effectiveResult.detection?.findings?.[0]?.timestamp ||
+          new Date().toISOString(),
+        status: 'COMPLETED',
+        provenance: effectiveResult.is_demo ? 'demo' : 'uploaded',
+        peakRiskPct: effectiveResult.detection?.risk_score,
+        predictedStage: (effectiveResult as any).attack_progression?.current_stage,
+      })
+      setHistory(getAnalysisHistory())
+    }
+  }, [effectiveResult])
+
   const submitCapture = async () => {
-    if (!file) return
+    if (!file || uploading) return
     setUploading(true)
     setSelectionError(null)
 
@@ -64,6 +98,15 @@ export function Dashboard() {
       // Initiate asynchronous processing job
       const job = await api.createJob(file)
       setActiveJob(job)
+      recordAnalysisHistory({
+        id: job.job_id,
+        filename: file.name,
+        filesize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+        timestamp: new Date().toISOString(),
+        status: 'PROCESSING',
+        provenance: 'uploaded',
+      })
+      setHistory(getAnalysisHistory())
       setFile(null)
       // Navigate to dedicated forecast rollout route with the created job ID
       navigate(`/console/forecast/${job.job_id}`)
@@ -72,12 +115,20 @@ export function Dashboard() {
       try {
         await analyzePcap(file)
         setFile(null)
+        navigate('/console/forecast')
       } catch (err: unknown) {
-        setSelectionError(
-          err instanceof Error
-            ? err.message
-            : 'Unable to start analysis. The analysis service is currently unavailable. Please retry when ready.'
-        )
+        if (err instanceof Error) {
+          const msg = err.message
+          if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('ECONNREFUSED')) {
+            setSelectionError('The analysis service is temporarily unreachable. Please retry when ready.')
+          } else if (msg.includes('500') || msg.includes('Internal Server Error')) {
+            setSelectionError('The capture could not be processed. Please ensure the file contains valid packet frames.')
+          } else {
+            setSelectionError(msg)
+          }
+        } else {
+          setSelectionError('Unable to start analysis. The analysis service is currently unavailable. Please retry when ready.')
+        }
       }
     } finally {
       setUploading(false)
@@ -98,16 +149,29 @@ export function Dashboard() {
         <SectionHeading
           eyebrow="NETWORK ATTACK FORECASTING"
           title="Analyze network traffic"
-          description="Upload a PCAP and NexSolve will reconstruct the traffic, assess the current state, and forecast what may happen next."
+          description="Upload network telemetry to reconstruct the current network state and forecast future attack progression."
           action={
             <div className="heading-actions">
               <button
                 type="button"
                 className="button button-quiet"
                 onClick={() => navigate('/console/demo')}
-                style={{ fontSize: '12px' }}
+                style={{ fontSize: '12px', gap: '6px' }}
               >
-                <Sparkles size={14} color="var(--accent)" /> Launch SIH Demo
+                <Sparkles size={14} color="var(--accent)" /> Try Demo
+                <span
+                  style={{
+                    fontSize: '9px',
+                    fontFamily: 'var(--mono)',
+                    padding: '1px 5px',
+                    borderRadius: '3px',
+                    background: 'rgba(242, 187, 113, 0.2)',
+                    color: '#eda850',
+                    fontWeight: 700,
+                  }}
+                >
+                  DEMO DATA
+                </span>
               </button>
               <button
                 type="button"
@@ -136,7 +200,7 @@ export function Dashboard() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '14px',
+            gap: '16px',
             transition: 'all 0.15s ease',
           }}
           onDragOver={(e: DragEvent<HTMLElement>) => {
@@ -151,92 +215,142 @@ export function Dashboard() {
             handleFileSelect(droppedFile)
           }}
         >
-          <div style={{ maxWidth: '540px' }}>
-            <div
-              style={{
-                display: 'inline-flex',
-                padding: '10px',
-                borderRadius: '50%',
-                background: 'var(--button-secondary-bg)',
-                marginBottom: '8px',
-              }}
-            >
-              <FileUp size={24} color="var(--accent)" />
-            </div>
-            <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '4px 0 6px 0', color: 'var(--text-primary)' }}>
-              {file ? file.name : 'Analyze a PCAP or PCAPNG capture'}
-            </h3>
-            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '13px', lineHeight: 1.5 }}>
-              Reconstructs 5-tuple flows, computes 60s temporal windows, and rolls out attack horizon projections.
-            </p>
-            <small style={{ display: 'block', marginTop: '8px', fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
-              Supported: .pcap, .pcapng, .csv &middot; Maximum size: 64 MB
-            </small>
-          </div>
-
-          {/* Selected File Details */}
-          {file && (
-            <div
-              style={{
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border)',
-                borderRadius: '6px',
-                padding: '12px 18px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
-              }}
-            >
-              <div style={{ textAlign: 'left' }}>
-                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>INPUT PREVIEW</span>
-                <strong style={{ display: 'block', fontSize: '13.5px', color: 'var(--text-primary)' }}>{file.name}</strong>
-                <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--accent)' }}>
-                  {isCsv ? 'CSV Telemetry' : 'PCAP Network Capture'} &middot; {(file.size / 1024 / 1024).toFixed(2)} MB
-                </span>
+          {!file ? (
+            /* Dropzone Empty State */
+            <div style={{ maxWidth: '560px' }}>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  padding: '12px',
+                  borderRadius: '50%',
+                  background: 'var(--button-secondary-bg)',
+                  marginBottom: '10px',
+                }}
+              >
+                <FileUp size={26} color="var(--accent)" />
               </div>
-              {isCsv && (
+              <h3 style={{ fontSize: '19px', fontWeight: 600, margin: '4px 0 6px 0', color: 'var(--text-primary)' }}>
+                Analyze a PCAP or PCAPNG capture
+              </h3>
+              <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '13.5px', lineHeight: 1.5 }}>
+                Upload network telemetry to reconstruct the current network state and forecast future attack progression.
+              </p>
+              <small style={{ display: 'block', marginTop: '10px', fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                Supported: .pcap, .pcapng &middot; Maximum size: 250 MB
+              </small>
+
+              <div className="capture-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center', marginTop: '16px', flexWrap: 'wrap' }}>
+                <label className="button button-primary" style={{ cursor: 'pointer', gap: '6px' }}>
+                  <FileUp size={14} /> Upload PCAP
+                  <input
+                    aria-label="Choose PCAP capture"
+                    type="file"
+                    accept=".pcap,.pcapng"
+                    style={{ display: 'none' }}
+                    onChange={(event) => {
+                      const selected = event.target.files?.[0] ?? null
+                      handleFileSelect(selected)
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+          ) : (
+            /* Analysis Confirmation Card (Before Processing) */
+            <div style={{ width: '100%', maxWidth: '600px', textAlign: 'left' }}>
+              <div style={{ marginBottom: '14px', textAlign: 'center' }}>
+                <span className="eyebrow" style={{ color: 'var(--accent)' }}>
+                  ANALYSIS CONFIRMATION
+                </span>
+                <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '4px 0', color: 'var(--text-primary)' }}>
+                  Ready to Start Analysis
+                </h3>
+                <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                  Review capture configuration before initiating multi-horizon network simulation.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '6px',
+                  padding: '16px 20px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '12px',
+                  fontSize: '12px',
+                  marginBottom: '16px',
+                }}
+              >
+                <div>
+                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>FILE</span>
+                  <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '13px', marginTop: '2px', wordBreak: 'break-all' }}>
+                    {file.name}
+                  </strong>
+                </div>
+                <div>
+                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>SIZE</span>
+                  <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '13px', marginTop: '2px' }}>
+                    {(file.size / (1024 * 1024)).toFixed(2)} MB
+                  </strong>
+                </div>
+                <div>
+                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>FORMAT</span>
+                  <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '13px', marginTop: '2px' }}>
+                    {file.name.toLowerCase().endsWith('.pcapng')
+                      ? 'PCAPNG (Next Generation)'
+                      : isCsv
+                      ? 'CSV (Temporal Telemetry)'
+                      : 'Standard PCAP (libpcap)'}
+                  </strong>
+                </div>
+                <div>
+                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>FORECAST HORIZONS</span>
+                  <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '13px', marginTop: '2px' }}>
+                    Multi-Horizon (T+1..T+5)
+                  </strong>
+                </div>
+                <div style={{ gridColumn: 'span 2', paddingTop: '6px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <CheckCircle2 size={14} color="var(--success)" />
+                  <span style={{ color: 'var(--success)', fontFamily: 'var(--mono)', fontSize: '11px', fontWeight: 600 }}>
+                    Format validated &middot; Ready for ingestion
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="button button-primary"
+                  disabled={uploading}
+                  onClick={() => void submitCapture()}
+                  style={{ gap: '6px' }}
+                >
+                  <Sparkles size={14} /> {uploading ? 'Processing...' : 'Start Analysis'}
+                </button>
                 <button
                   type="button"
                   className="button button-quiet"
-                  onClick={() => setShowCsvModal(true)}
-                  style={{ fontSize: '11px', height: '26px' }}
+                  onClick={() => {
+                    setFile(null)
+                    setSelectionError(null)
+                  }}
+                  style={{ gap: '6px' }}
                 >
-                  CSV Specs
+                  <X size={14} /> Choose Another File
                 </button>
-              )}
+              </div>
             </div>
           )}
 
-          <div className="capture-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '4px' }}>
-            <label className="button button-quiet" style={{ cursor: 'pointer' }}>
-              <FileUp size={14} /> {file ? 'Change capture' : 'Choose capture'}
-              <input
-                aria-label="Choose PCAP capture"
-                type="file"
-                accept=".pcap,.pcapng"
-                style={{ display: 'none' }}
-                onChange={(event) => {
-                  const selected = event.target.files?.[0] ?? null
-                  handleFileSelect(selected)
-                }}
-              />
-            </label>
-            <button
-              className="button"
-              disabled={!file || uploading}
-              onClick={() => void submitCapture()}
-            >
-              {uploading ? 'Processing...' : 'Analyze PCAP'}
-            </button>
-          </div>
-
           {(uploadError || selectionError) && (
-            <p className="upload-error" style={{ color: 'var(--danger)', margin: '4px 0 0 0', fontSize: '12px' }}>
+            <p className="upload-error" style={{ color: 'var(--danger)', margin: '6px 0 0 0', fontSize: '12px' }}>
               {uploadError ?? selectionError}
             </p>
           )}
           {uploading && !activeJob && (
-            <p className="upload-status" role="status" style={{ color: 'var(--accent)', margin: '4px 0 0 0', fontSize: '12px' }}>
+            <p className="upload-status" role="status" style={{ color: 'var(--accent)', margin: '6px 0 0 0', fontSize: '12px' }}>
               Uploading capture, computing windows, and forecasting...
             </p>
           )}
@@ -356,6 +470,116 @@ export function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* 5. Analysis History Architecture Panel */}
+      <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+          <div>
+            <span className="eyebrow" style={{ color: 'var(--text-muted)' }}>
+              ANALYSIS HISTORY &middot; SESSION CAPTURES
+            </span>
+            <h3 style={{ margin: '2px 0 0 0', fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)' }}>
+              Recent Analyses
+            </h3>
+          </div>
+          {history.length > 0 && (
+            <button
+              type="button"
+              className="button button-quiet"
+              onClick={() => {
+                clearAnalysisHistory()
+                setHistory([])
+              }}
+              style={{ fontSize: '11px', height: '26px' }}
+            >
+              Clear History
+            </button>
+          )}
+        </div>
+
+        {history.length === 0 ? (
+          <Panel style={{ padding: '20px', textAlign: 'center', background: 'var(--bg-surface)' }}>
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
+              No previous analyses in current session. Analyzed captures will appear here with instant context restoration.
+            </p>
+          </Panel>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {history.map((item) => (
+              <Panel
+                key={item.id}
+                style={{
+                  padding: '12px 18px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                  background: 'var(--bg-surface)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div
+                    style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      background:
+                        item.status === 'COMPLETED'
+                          ? 'var(--success)'
+                          : item.status === 'PROCESSING'
+                          ? 'var(--accent)'
+                          : 'var(--danger)',
+                    }}
+                  />
+                  <div>
+                    <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)', display: 'block' }}>
+                      {item.filename}
+                    </strong>
+                    <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                      ID: {item.id.slice(0, 16)} &middot; {item.filesize || 'Capture'} &middot; {new Date(item.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {item.peakRiskPct !== undefined && (
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        fontFamily: 'var(--mono)',
+                        color: item.peakRiskPct > 50 ? 'var(--danger)' : 'var(--success)',
+                      }}
+                    >
+                      Risk: {Number(item.peakRiskPct).toFixed(1)}%
+                    </span>
+                  )}
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontFamily: 'var(--mono)',
+                      padding: '2px 6px',
+                      borderRadius: '3px',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
+                    {item.status}
+                  </span>
+                  <button
+                    type="button"
+                    className="button button-quiet"
+                    onClick={() => navigate(`/console/forecast/${item.id}`)}
+                    style={{ fontSize: '11px', height: '28px' }}
+                  >
+                    Open Forecast
+                  </button>
+                </div>
+              </Panel>
+            ))}
+          </div>
+        )}
+      </div>
 
       <CsvRequirementsModal
         isOpen={showCsvModal}

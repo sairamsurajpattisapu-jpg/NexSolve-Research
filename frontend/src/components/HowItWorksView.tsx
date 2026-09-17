@@ -52,7 +52,7 @@ export function HowItWorksView() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Sparkles size={16} color="var(--accent)" />
             <span className="eyebrow" style={{ color: 'var(--accent)', margin: 0 }}>
-              INNOVATION BREAKDOWN · 30-SECOND JURY OVERVIEW
+              INNOVATION BREAKDOWN · ARCHITECTURE OVERVIEW
             </span>
           </div>
           <h3 style={{ margin: '4px 0 0 0', color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700 }}>

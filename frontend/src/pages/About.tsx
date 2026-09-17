@@ -44,7 +44,7 @@ export function About() {
           <div className="about-row-body">
             <p>
               Traditional intrusion detection systems alert defenders after packets deliver payloads and hosts compromise.
-              Under Smart India Hackathon Problem Statement 26153, NexSolve reframes network security as an autoregressive state simulation problem —
+              NexSolve reframes network security as an autoregressive state simulation problem —
               granting security analysts proactive lead time before full kill-chain execution.
             </p>
           </div>

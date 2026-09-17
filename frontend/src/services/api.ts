@@ -45,12 +45,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   } catch (err: unknown) {
     clearTimeout(timer)
     if (err instanceof DOMException && err.name === 'AbortError') {
-      throw new ApiError('Backend connection timed out after 15s. The service may be cold-starting or unavailable.', 408)
+      throw new ApiError('Request timed out. Please retry when ready.', 408)
     }
     if (!API_BASE && typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app')) {
-      throw new ApiError('Vercel deployment detected without VITE_API_BASE_URL. Configure VITE_API_BASE_URL in your Vercel project settings to connect to the backend.', 0)
+      throw new ApiError('Service endpoint unconfigured. Please configure VITE_API_BASE_URL.', 0)
     }
-    throw new ApiError('Backend unavailable. Start the FastAPI service and try again.', 0)
+    throw new ApiError('Service temporarily unavailable. Please retry when ready.', 0)
   } finally {
     clearTimeout(timer)
   }
@@ -58,9 +58,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const contentType = response.headers.get('content-type') ?? ''
   if (contentType.includes('text/html')) {
     if (!API_BASE && typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app')) {
-      throw new ApiError('Vercel deployment detected without VITE_API_BASE_URL. API requests returned HTML fallback. Configure VITE_API_BASE_URL in your Vercel project settings to connect to the backend.', response.status)
+      throw new ApiError('Service endpoint returned an invalid response. Please verify configuration.', response.status)
     }
-    throw new ApiError('API endpoint returned HTML instead of JSON. Check your backend URL configuration.', response.status)
+    throw new ApiError('The service endpoint returned an unexpected response.', response.status)
   }
 
   if (!response.ok) {
@@ -76,7 +76,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     return await response.json() as T
   } catch {
-    throw new ApiError('Backend returned an invalid JSON response.', response.status)
+    throw new ApiError('The analysis service returned an invalid response.', response.status)
   }
 }
 
@@ -108,10 +108,6 @@ export const api = {
   getJobResult: (jobId: string) => request<UploadedAnalysisResponse>(`/jobs/${jobId}/result`),
   getReportJsonUrl: (jobId: string) => `${API_BASE}/jobs/${jobId}/report.json`,
   getReportHtmlUrl: (jobId: string) => `${API_BASE}/jobs/${jobId}/report.html`,
-  getDemoScenarios: () => request<Array<{ id: string; name: string; badge: string; tone: string; description: string; expected_behavior: string }>>('/api/demo/scenarios'),
-  getDemoScenarioResult: (scenarioId: string) => request<UploadedAnalysisResponse>(`/api/demo/scenarios/${scenarioId}`),
-  getDemoReportJsonUrl: (scenarioId: string) => `${API_BASE}/api/demo/scenarios/${scenarioId}/report.json`,
-  getDemoReportHtmlUrl: (scenarioId: string) => `${API_BASE}/api/demo/scenarios/${scenarioId}/report.html`,
   getCurrentAnalysis: () =>
     request<{
       analysis_id: string

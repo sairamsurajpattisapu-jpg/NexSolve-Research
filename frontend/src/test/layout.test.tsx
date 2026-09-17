@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
@@ -17,7 +17,7 @@ function renderLayout(path = '/analyze', status = 'API connected') {
 }
 
 describe('Application Header & Navigation Layout', () => {
-  it('renders ONLY Analyze, Forecast, Evidence, Reports in primary navbar (NO SIH DEMO)', () => {
+  it('renders ONLY Analyze, Forecast, Evidence, Reports in primary navbar (NO UNVERIFIED DEMO BANNERS)', () => {
     renderLayout('/analyze')
     const primaryNav = screen.getByRole('navigation', { name: 'Primary navigation' })
     expect(primaryNav).toBeInTheDocument()
@@ -40,11 +40,11 @@ describe('Application Header & Navigation Layout', () => {
 
   it('displays correct backend status labels based on API health', () => {
     const { unmount } = renderLayout('/analyze', 'API connected')
-    expect(screen.getByText('API CONNECTED')).toBeInTheDocument()
+    expect(screen.getByText('READY')).toBeInTheDocument()
     unmount()
 
     renderLayout('/analyze', 'API unavailable')
-    expect(screen.getByText('API OFFLINE')).toBeInTheDocument()
+    expect(screen.getByText('TEMPORARILY UNAVAILABLE')).toBeInTheDocument()
   })
 
   it('provides a functional hamburger menu with ARIA attributes, keyboard escape, and click outside', async () => {
@@ -79,5 +79,33 @@ describe('Application Header & Navigation Layout', () => {
 
     await user.click(networkLink)
     expect(menuBtn).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('contains all required navigation links in the command drawer menu', async () => {
+    const user = userEvent.setup()
+    renderLayout('/analyze')
+
+    const menuBtn = screen.getByRole('button', { name: /Open navigation menu/i })
+    await user.click(menuBtn)
+
+    const appMenu = screen.getByRole('navigation', { name: 'Application menu' })
+    expect(appMenu).toBeInTheDocument()
+
+    // Required canonical console links: Overview, Analyze, Network, Forecast, Progression, Evidence, Reports, Settings
+    const expectedLinkPatterns = [
+      /Overview/i,
+      /Analyze/i,
+      /^Network$/i,
+      /Forecast/i,
+      /Progression/i,
+      /Evidence/i,
+      /Reports/i,
+      /Settings/i,
+    ]
+
+    for (const pattern of expectedLinkPatterns) {
+      const link = within(appMenu).getByRole('link', { name: pattern })
+      expect(link).toBeInTheDocument()
+    }
   })
 })

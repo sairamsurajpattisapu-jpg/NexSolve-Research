@@ -8,6 +8,8 @@ import { Forecast } from '../pages/Forecast'
 import { Network } from '../pages/Network'
 import { Simulation } from '../pages/Simulation'
 import { Reports } from '../pages/Reports'
+import { Progression } from '../pages/Progression'
+import { NotFound } from '../pages/NotFound'
 import { fixture } from './fixtures'
 
 vi.mock('../hooks/useProductionData', () => ({
@@ -39,8 +41,10 @@ describe('End-to-End Product Data Consistency Journey', () => {
             <Route path="/forecast" element={<Forecast />} />
             <Route path="/evidence" element={<Evidence />} />
             <Route path="/network" element={<Network />} />
+            <Route path="/progression" element={<Progression />} />
             <Route path="/simulation" element={<Simulation />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </MemoryRouter>
@@ -88,6 +92,13 @@ describe('End-to-End Product Data Consistency Journey', () => {
   it('7. Forecast page does NOT substitute DEMO MODE badge when handling live capture', () => {
     renderAppAt('/forecast')
     expect(screen.queryByText(/DEMO MODE/i)).not.toBeInTheDocument()
+  })
+
+  it('8. Unknown or legacy routes such as /judge fall through to 404 page', () => {
+    renderAppAt('/judge')
+    expect(screen.getByText(/404/i)).toBeInTheDocument()
+    expect(screen.getByText(/Page Not Found/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Back to Console/i })).toBeInTheDocument()
   })
 })
 

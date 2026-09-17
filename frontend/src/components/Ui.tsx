@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type DragEvent, type ReactNode } from 'react'
+import type { CSSProperties, DragEvent, ReactNode } from 'react'
 import type { Severity } from '../types/api'
 
 export function Panel({
@@ -55,31 +55,40 @@ export function SectionHeading({ eyebrow, title, description, action }: { eyebro
   </div>
 }
 
-export function LoadingState({ message = 'Loading production analysis' }: { message?: string }) {
-  const [slow, setSlow] = useState(false)
-
-  useEffect(() => {
-    const timer = setTimeout(() => setSlow(true), 4000)
-    return () => clearTimeout(timer)
-  }, [])
-
+export function LoadingState({ message = 'Preparing analysis...' }: { message?: string }) {
   return (
     <div className="state-card">
       <span className="spinner" aria-hidden="true" />
       <strong>{message}</strong>
-      <span>
-        {slow
-          ? 'Connecting to backend service... (Cold starts on hosted platforms may take up to 30 seconds)'
-          : 'Reading verified backend data...'}
-      </span>
+      <span>Processing network telemetry...</span>
     </div>
   )
 }
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
-  return <div className="state-card state-error"><span className="state-symbol">!</span><strong>Backend unavailable</strong><span>{message}</span>{onRetry && <button className="button button-quiet" onClick={onRetry}>Retry connection</button>}</div>
+  return (
+    <div className="state-card state-error">
+      <span className="state-symbol">!</span>
+      <strong>Service Temporarily Unavailable</strong>
+      <span>{message}</span>
+      {onRetry && (
+        <button className="button button-quiet" onClick={onRetry}>
+          Retry analysis
+        </button>
+      )}
+    </div>
+  )
 }
 
 export function EmptyState({ title, message }: { title: string; message: string }) {
-  return <div className="empty-state"><span className="empty-mark" /><strong>{title}</strong><span>{message}</span></div>
+  return (
+    <div className="empty-state">
+      <span className="empty-mark" />
+      <strong>{title}</strong>
+      <span>{message}</span>
+    </div>
+  )
 }
+
+export { GlobalErrorState } from './GlobalErrorState'
+

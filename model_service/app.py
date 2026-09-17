@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal
 
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -538,8 +538,8 @@ async def analyze_pcap(file: UploadFile = File(...)) -> dict[str, Any]:
         raise HTTPException(status_code=422, detail=str(error)) from error
 
 
-@app.delete("/api/analysis/{analysis_id}", status_code=204)
-async def delete_uploaded_analysis(analysis_id: str) -> None:
+@app.delete("/api/analysis/{analysis_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
+async def delete_uploaded_analysis(analysis_id: str) -> Response:
     if analysis_id == PRODUCTION_ANALYSIS_ID:
         raise HTTPException(status_code=400, detail="The production analysis is read-only.")
     remove_cached_analysis(analysis_id)
@@ -547,6 +547,7 @@ async def delete_uploaded_analysis(analysis_id: str) -> None:
         delete_analysis(analysis_id)
     except (DatabaseConfigurationError, DatabaseStorageError):
         pass
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @app.get("/api/analysis/{analysis_id}/status")

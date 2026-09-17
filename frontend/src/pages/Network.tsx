@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
   Clock,
@@ -21,6 +22,7 @@ import type {
 } from '../types/api'
 
 export function Network() {
+  const navigate = useNavigate()
   const { data, loading, error, reload } = useProductionData()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSnapshotIndex, setSelectedSnapshotIndex] = useState<number>(0)
@@ -28,7 +30,46 @@ export function Network() {
   const [selectedNodeIp, setSelectedNodeIp] = useState<string | null>(null)
 
   if (loading) return <LoadingState message="Loading dynamic network graph & telemetry..." />
-  if (error || !data) return <ErrorState message={error ?? 'No active network capture loaded.'} onRetry={() => void reload()} />
+  if (error) return <ErrorState message={error} onRetry={() => void reload()} />
+  if (!data) {
+    return (
+      <div className="page-stack page-enter" style={{ maxWidth: '640px', margin: '60px auto', textAlign: 'center' }}>
+        <Panel>
+          <div style={{ padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <NetworkIcon size={20} color="var(--text-muted)" />
+            </div>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+              NO NETWORK CAPTURE LOADED
+            </h2>
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)', maxWidth: '420px' }}>
+              Upload and analyze a PCAP or PCAPNG capture to visualize network topology and communication flows.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '8px' }}>
+              <button
+                type="button"
+                className="button button-primary"
+                onClick={() => navigate('/console/analyze')}
+                style={{ fontSize: '12px' }}
+              >
+                NEW ANALYSIS
+              </button>
+              <button
+                type="button"
+                className="button button-quiet"
+                onClick={() => {
+                  if (reload) void reload()
+                }}
+                style={{ fontSize: '12px' }}
+              >
+                LOAD BENCHMARK
+              </button>
+            </div>
+          </div>
+        </Panel>
+      </div>
+    )
+  }
 
   const { traffic } = data.results
   const windows = traffic.windows_data ?? []
@@ -113,14 +154,24 @@ export function Network() {
           </p>
         </div>
 
-        <button
-          type="button"
-          className="button button-quiet"
-          onClick={() => void reload()}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-        >
-          <RefreshCw size={14} /> Refresh Graph State
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            type="button"
+            className="button button-primary"
+            onClick={() => navigate('/console/forecast')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}
+          >
+            <TrendingUp size={14} /> FORECAST THIS STATE
+          </button>
+          <button
+            type="button"
+            className="button button-quiet"
+            onClick={() => void reload()}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <RefreshCw size={14} /> Refresh Graph State
+          </button>
+        </div>
       </div>
 
       {/* Snapshot Scrubber Bar (when multiple snapshots available) */}

@@ -171,8 +171,8 @@ describe('Canonical Adapter & ForecastConsole Integration', () => {
     expect(screen.getByText('Persistence Baseline')).toBeInTheDocument()
     expect(screen.getByText(/LSTM45 Model \(HOLD\)/)).toBeInTheDocument()
 
-    // Verify Presentation Mode toggle
-    const presToggle = screen.getByRole('button', { name: /Presentation Mode/i })
+    // Verify Expand View toggle
+    const presToggle = screen.getByRole('button', { name: /Expand View/i })
     expect(presToggle).toBeInTheDocument()
     fireEvent.click(presToggle)
     expect(screen.getByRole('button', { name: /Standard View/i })).toBeInTheDocument()

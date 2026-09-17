@@ -83,7 +83,7 @@ export function JobResult({ result, onReset }: JobResultProps) {
               )}
             </div>
             <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-              {result.is_demo ? `SIH Demo: ${result.demo_scenario_name ?? result.source?.name}` : (result.source?.name || 'Uploaded Capture')}
+              {result.is_demo ? `Deterministic Scenario: ${result.demo_scenario_name ?? result.source?.name}` : (result.source?.name || 'Uploaded Capture')}
             </h2>
             <div style={{ display: 'none' }}>
               <h3>Network Forensic & Predictive Assessment</h3>
@@ -211,7 +211,7 @@ export function JobResult({ result, onReset }: JobResultProps) {
               lookbackWindows={result.window_count ?? traffic?.windows ?? 8}
             />
 
-            {/* 3. 30-Second Judge Tour: How NexSolve Works */}
+            {/* 3. Architecture Tour: How NexSolve Works */}
             <HowItWorksView />
 
             {/* 4. Interactive End-to-End System Architecture */}

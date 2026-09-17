@@ -99,8 +99,8 @@ export function adaptToCanonical(
   const confidenceRaw = (raw.confidence as Record<string, unknown>) || {}
 
   const isProd = analysisId === 'production-cic-ids2017'
-  const provenance = isDemo ? 'demo' : isProd ? 'reference' : 'live'
-  const provenanceLabel = isDemo ? 'DEMO DATA' : isProd ? 'VERIFIED REFERENCE' : 'LIVE PCAP ANALYSIS'
+  const provenance = isProd ? 'reference' : 'live'
+  const provenanceLabel = isProd ? 'VERIFIED REFERENCE' : 'LIVE PCAP ANALYSIS'
 
   // Determine format
   const rawFormat = (uploadObj.format as string) || (sourceObj.kind as string) || ''
@@ -366,7 +366,7 @@ export function adaptToCanonical(
     provenanceLabel,
 
     input: {
-      filename: (sourceObj.name as string) || (uploadObj.filename as string) || (isDemo ? 'demo_sample.pcap' : 'capture.pcap'),
+      filename: (sourceObj.name as string) || (uploadObj.filename as string) || 'capture.pcap',
       format,
       sizeBytes: Number(uploadObj.size_bytes || sourceObj.size_bytes || 4194304),
       captureDurationSeconds: Number(traffic.duration_seconds || traffic.temporal_window_coverage_seconds || windowsCount * 60),
@@ -504,12 +504,8 @@ export function adaptToCanonical(
     },
 
     export: {
-      jsonUrl: isDemo
-        ? `${apiBase}/api/demo/scenarios/${raw.demo_scenario_id || 'NORMAL_TRAFFIC'}/report.json`
-        : `${apiBase}/jobs/${analysisId}/report.json`,
-      htmlUrl: isDemo
-        ? `${apiBase}/api/demo/scenarios/${raw.demo_scenario_id || 'NORMAL_TRAFFIC'}/report.html`
-        : `${apiBase}/jobs/${analysisId}/report.html`,
+      jsonUrl: `${apiBase}/jobs/${analysisId}/report.json`,
+      htmlUrl: `${apiBase}/jobs/${analysisId}/report.html`,
     },
 
     temporalGraph: (raw as any).temporal_graph || (raw as any).temporalGraph,

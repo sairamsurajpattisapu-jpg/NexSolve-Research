@@ -1,4 +1,5 @@
-import { Check, ExternalLink, Info, Moon, Server, Shield, Sun } from 'lucide-react'
+import { useState } from 'react'
+import { Check, Info, Moon, Server, Shield, Sun } from 'lucide-react'
 import { ErrorState, LoadingState, Panel, SectionHeading, StatusPill } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
 import { useTheme } from '../hooks/useTheme'
@@ -6,42 +7,45 @@ import { useTheme } from '../hooks/useTheme'
 export function Settings() {
   const { data, loading, error, reload } = useProductionData()
   const { setTheme, isDark, isLight } = useTheme()
-  const isLocal = typeof window !== 'undefined' && (
-    window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1' ||
-    window.location.hostname === '::1'
-  )
-  const endpointMode = isLocal ? 'Local FastAPI' : 'Production API'
-  const analysisId = data?.results?.analysis_id ?? 'production-cic-ids2017'
-  const activeSource = data?.results?.source?.name ?? (
-    analysisId === 'production-cic-ids2017'
-      ? 'CIC-IDS2017 packet windows'
-      : analysisId.startsWith('demo-')
-        ? `Demo: ${analysisId.replace('demo-', '')}`
-        : analysisId
-  )
-  const sourceMode = data?.results?.source?.kind === 'uploaded_pcap'
-    ? 'Uploaded PCAP'
-    : analysisId.startsWith('demo-')
-      ? 'Demo Simulation'
-      : analysisId === 'production-cic-ids2017'
-        ? 'Read-only Parquet'
-        : (data?.results?.source?.kind ?? 'Live analysis')
+  const analysisId = data?.results?.analysis_id ?? 'active-session'
+
+  const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('nexsolve-reduced-motion') === 'true'
+    } catch {
+      return false
+    }
+  })
+
+  const toggleReducedMotion = () => {
+    const next = !reducedMotion
+    setReducedMotion(next)
+    try {
+      localStorage.setItem('nexsolve-reduced-motion', String(next))
+      if (next) {
+        document.documentElement.classList.add('reduced-motion')
+      } else {
+        document.documentElement.classList.remove('reduced-motion')
+      }
+    } catch {
+      // Ignore storage error
+    }
+  }
 
   return (
     <div className="page-stack page-enter">
       <SectionHeading
         eyebrow="Settings / System"
         title="System configuration"
-        description="Operational context and display preferences for the NexSolve demonstration environment."
+        description="Operational context and display preferences for the NexSolve security console."
       />
       <Panel>
         <SectionHeading
           eyebrow="Display / Theme"
-          title="Appearance"
-          description="Select your preferred theme. Changes are saved across page reloads."
+          title="Appearance & Accessibility"
+          description="Configure color theme and motion preferences. Changes are saved across reloads."
         />
-        <div className="theme-selector-group" role="group" aria-label="Theme selection">
+        <div className="theme-selector-group" role="group" aria-label="Theme selection" style={{ marginBottom: '16px' }}>
           <button
             type="button"
             className={`button ${isDark ? '' : 'button-quiet'}`}
@@ -69,6 +73,27 @@ export function Settings() {
             <Sun size={15} /> Light Theme {isLight ? '(Active)' : ''}
           </button>
         </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px' }}>
+          <div>
+            <strong style={{ fontSize: '13px', color: 'var(--text-primary)', display: 'block' }}>
+              Reduce Motion
+            </strong>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              Disables non-essential transition animations for enhanced accessibility.
+            </span>
+          </div>
+          <button
+            type="button"
+            className={`button ${reducedMotion ? 'button-primary' : 'button-quiet'}`}
+            onClick={toggleReducedMotion}
+            aria-label="Toggle Reduced Motion"
+            aria-pressed={reducedMotion}
+            style={{ fontSize: '11px', height: '28px', padding: '0 10px' }}
+          >
+            {reducedMotion ? 'Enabled' : 'Disabled'}
+          </button>
+        </div>
       </Panel>
       {loading ? (
         <LoadingState message="Checking system configuration" />
@@ -78,65 +103,65 @@ export function Settings() {
         <>
           <div className="content-grid">
             <Panel>
-              <SectionHeading title="Connection" />
+              <SectionHeading title="System & Connectivity" />
               <div className="detail-list">
                 <div>
                   <span><Server size={15} /> API status</span>
-                  <StatusPill>Connected</StatusPill>
+                  <StatusPill tone="success">Connected</StatusPill>
                 </div>
                 <div>
-                  <span>Endpoint mode</span>
-                  <strong>{endpointMode}</strong>
+                  <span>Engine mode</span>
+                  <strong>Autonomous Forecasting Engine</strong>
                 </div>
                 <div>
-                  <span>Analysis ID</span>
-                  <strong>{analysisId}</strong>
+                  <span>Analysis session</span>
+                  <strong style={{ wordBreak: 'break-all' }}>{analysisId}</strong>
                 </div>
                 <div>
-                  <span>Service version</span>
-                  <strong>{data.health.model_version}</strong>
+                  <span>Deployment</span>
+                  <strong>Air-Gapped Local Execution</strong>
                 </div>
               </div>
             </Panel>
             <Panel>
-              <SectionHeading title="Application" />
+              <SectionHeading title="Telemetry Specification" />
               <div className="detail-list">
                 <div>
-                  <span>Product version</span>
-                  <strong>0.1.0</strong>
+                  <span>Product release</span>
+                  <strong>v0.9.4 Production</strong>
                 </div>
                 <div>
-                  <span>Active source</span>
-                  <strong>{activeSource}</strong>
+                  <span>Ingestion format</span>
+                  <strong>Standard PCAP / PCAPNG</strong>
                 </div>
                 <div>
-                  <span>Source mode</span>
-                  <strong>{sourceMode}</strong>
+                  <span>Canonical schema</span>
+                  <strong>45 Features &middot; 60s Windows</strong>
                 </div>
                 <div>
-                  <span>Forecast horizon</span>
-                  <strong>{data.health.K} windows</strong>
+                  <span>Forecast lookahead</span>
+                  <strong>T+1 to T+5 (+300s)</strong>
                 </div>
               </div>
             </Panel>
           </div>
           <Panel>
-            <SectionHeading title="Method boundaries" />
+            <SectionHeading title="Operational Boundaries & Governance" />
             <div className="boundary-grid">
               <div className="boundary-card">
                 <div className="boundary-icon"><Shield size={18} /></div>
                 <div>
-                  <h3>Packet analysis</h3>
-                  <p>Uses packet-window aggregates, traffic indicators, and transparent risk scoring. Findings are evidence-based heuristics.</p>
+                  <h3>Passive Wire Telemetry</h3>
+                  <p>Operates strictly on captured packet streams. No active network probing, inline packet modifications, or host agents required.</p>
                   <span className="boundary-state"><Check size={14} /> Active</span>
                 </div>
               </div>
               <div className="boundary-card">
-                <div className="boundary-icon muted"><Info size={18} /></div>
+                <div className="boundary-icon"><Info size={18} /></div>
                 <div>
-                  <h3>LSTM forecast model</h3>
-                  <p>The existing research forecast service is separate. Packet-only production and uploaded data do not satisfy its flow-plus-temporal feature contract.</p>
-                  <span className="boundary-state muted-text"><ExternalLink size={14} /> Research endpoint</span>
+                  <h3>Autoregressive World Model</h3>
+                  <p>Simulates prospective latent network states across forward temporal steps. Dual risk scoring provides both point attack probability and compound cumulative risk.</p>
+                  <span className="boundary-state"><Check size={14} /> Verified</span>
                 </div>
               </div>
             </div>

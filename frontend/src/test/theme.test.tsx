@@ -1,13 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { DemoModeSelector } from '../components/DemoModeSelector'
 import { Layout } from '../components/Layout'
 import { ReportActions } from '../components/ReportActions'
 import { Settings } from '../pages/Settings'
-import { DEMO_SCENARIO_PAYLOADS } from '../fixtures/demoScenarios'
-import { api } from '../services/api'
 import { applyTheme, getTheme, THEME_STORAGE_KEY } from '../stores/themeStore'
 
 describe('NexSolve Theme System & Controls', () => {
@@ -99,25 +96,24 @@ describe('NexSolve Theme System & Controls', () => {
     expect(darkBtn).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('preserves Demo scenario button interactivity and state', async () => {
-    vi.spyOn(api, 'getDemoScenarioResult').mockResolvedValue(DEMO_SCENARIO_PAYLOADS.EARLY_WARNING)
-    const onSelect = vi.fn()
-    render(<DemoModeSelector onSelectScenario={onSelect} />)
+  it('toggles reduced motion preference in Settings and updates document class', async () => {
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={['/settings']}>
+        <Routes>
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </MemoryRouter>
+    )
 
-    const earlyBtn = screen.getByRole('tab', { name: /Early Attack Signal/i })
-    expect(earlyBtn).toBeInTheDocument()
-    expect(earlyBtn).toHaveClass('button')
-    expect(earlyBtn).toHaveClass('button-quiet')
+    const motionToggle = await screen.findByRole('button', { name: /toggle reduced motion/i })
+    expect(motionToggle).toBeInTheDocument()
+    expect(motionToggle).toHaveAttribute('aria-pressed', 'false')
 
-    await act(async () => {
-      fireEvent.click(earlyBtn)
-    })
-
-    expect(earlyBtn).toHaveClass('active')
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Load Early Attack Signal/i })).toBeInTheDocument()
-    })
-    expect(onSelect).toHaveBeenCalledWith(DEMO_SCENARIO_PAYLOADS.EARLY_WARNING)
+    await user.click(motionToggle)
+    expect(motionToggle).toHaveAttribute('aria-pressed', 'true')
+    expect(document.documentElement.classList.contains('reduced-motion')).toBe(true)
+    expect(localStorage.getItem('nexsolve-reduced-motion')).toBe('true')
   })
 
   it('verifies ReportActions buttons render and execute click handlers', async () => {

@@ -35,13 +35,13 @@ describe('Dashboard', () => {
   it('renders the loading state', () => {
     hookState = { data: null, loading: true, error: null, analysisSource: 'production' }
     renderPage(<Dashboard />)
-    expect(screen.getByText('Loading production analysis')).toBeInTheDocument()
+    expect(screen.getByText('Preparing analysis...')).toBeInTheDocument()
   })
 
   it('renders the backend error state', () => {
     hookState = { data: null, loading: false, error: 'Backend unavailable', analysisSource: 'production' }
     renderPage(<Dashboard />)
-    expect(screen.getByText('Backend unavailable', { selector: 'strong' })).toBeInTheDocument()
+    expect(screen.getByText('Service Temporarily Unavailable', { selector: 'strong' })).toBeInTheDocument()
   })
 
   it('renders the real PCAP upload entry point', () => {

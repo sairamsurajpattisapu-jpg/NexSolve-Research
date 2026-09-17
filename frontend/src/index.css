@@ -446,14 +446,48 @@ h3, h4 {
   box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
 }
 
-.status-warning .status-dot {
+.status-warning .status-dot,
+.status-dot.status-warning {
   background: var(--warning);
   box-shadow: 0 0 0 4px rgba(242, 187, 113, 0.15);
 }
 
-.status-danger .status-dot {
+.status-danger .status-dot,
+.status-dot.status-danger {
   background: var(--danger);
   box-shadow: 0 0 0 4px rgba(237, 128, 111, 0.15);
+}
+
+.status-muted .status-dot,
+.status-dot.status-muted {
+  background: var(--text-muted);
+  box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.15);
+}
+
+.status-accent .status-dot,
+.status-dot.status-accent {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
+}
+
+.status-pulse .status-dot,
+.status-dot.status-pulse,
+.pulse-dot {
+  animation: pulse-dot 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.85); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-slow {
+  animation: spin-slow 8s linear infinite;
 }
 
 .source-indicator {
@@ -503,20 +537,118 @@ h3, h4 {
 }
 
 .mobile-nav {
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 4px;
-  width: min(100%, 1440px);
-  margin: 10px auto 0;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-surface);
 }
 
 .mobile-scrim {
-  display: none;
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(2px);
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  animation: scrim-fade 0.22s ease-out forwards;
 }
+
+@keyframes scrim-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.command-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(380px, 90vw);
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.4);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  animation: drawer-slide 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes drawer-slide {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.drawer-section {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.drawer-section-title {
+  font-size: 10px;
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+
+.drawer-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: background 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+}
+
+.drawer-link:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.drawer-link.active {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  font-weight: 600;
+}
+
+.drawer-link.active .drawer-badge {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.drawer-badge {
+  font-size: 9px;
+  font-family: var(--mono);
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
 
 .main-area {
   min-width: 0;
@@ -1971,45 +2103,7 @@ h3, h4 {
   border-top: 1px solid var(--border);
 }
 
-/* SIH Judge Banner */
-.judge-callout-section {
-  margin-top: 12px;
-}
 
-.judge-banner {
-  padding: 36px;
-  border: 1px solid var(--accent);
-  background: radial-gradient(circle at right top, var(--accent-muted), var(--bg-surface) 60%);
-  border-radius: 12px;
-}
-
-.judge-badge-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.judge-banner h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 8px 0;
-}
-
-.judge-banner p {
-  font-size: 14.5px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  max-width: 760px;
-  margin: 0 0 20px 0;
-}
-
-.judge-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
 
 @media (max-width: 1024px) {
   .landing-hero {
@@ -3050,38 +3144,7 @@ h3, h4 {
   margin: 0;
 }
 
-.sih-context-panel {
-  padding: 26px;
-  background: radial-gradient(circle at left top, rgba(104, 225, 216, 0.08), var(--bg-surface) 60%);
-  border: 1px solid var(--border-strong);
-}
 
-.sih-context-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.sih-context-content h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.sih-context-content p {
-  font-size: 13.5px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.sih-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 6px;
-}
 
 /* =============================================================================
    NEXSOLVE EDITORIAL BLACK & WHITE TYPOGRAPHY STYLES
@@ -3845,3 +3908,167 @@ h3, h4 {
     gap: 20px;
   }
 }
+
+/* ==========================================================================
+   MOBILE RESPONSIVENESS & ACCESSIBILITY ENHANCEMENTS
+   ========================================================================== */
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+  }
+
+  .app-shell {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .page-stack {
+    padding: 14px 10px !important;
+    gap: 14px !important;
+  }
+
+  .panel {
+    padding: 16px 14px !important;
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+  }
+
+  .section-heading {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 12px;
+  }
+
+  .heading-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .heading-actions .button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .landing-editorial-cta-row {
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch !important;
+  }
+
+  .landing-contract-strip {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding: 14px !important;
+  }
+
+  .contract-divider {
+    display: none !important;
+  }
+
+  .command-drawer {
+    width: min(88vw, 360px) !important;
+  }
+
+  .desktop-nav {
+    display: none !important;
+  }
+
+  .menu-button {
+    display: inline-flex !important;
+  }
+
+  .editorial-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Reduced Motion Support for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   PRINT / PDF EXPORT STYLESHEET
+   ========================================================================== */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide navigation, chrome, interactive controls, and canvas animations */
+  .navbar-shell,
+  .command-drawer,
+  .mobile-scrim,
+  .no-print,
+  .heading-actions,
+  button,
+  .theme-toggle-btn,
+  .menu-button,
+  .background-canvas,
+  canvas {
+    display: none !important;
+  }
+
+  .app-shell,
+  .main-area,
+  .page-content,
+  .page-stack {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .panel,
+  .state-card,
+  .report-header,
+  .report-table {
+    border: 1px solid #cccccc !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    break-inside: avoid !important;
+    margin-bottom: 12pt !important;
+  }
+
+  a {
+    text-decoration: none !important;
+    color: #000000 !important;
+  }
+
+  .report-print-footer {
+    display: flex !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
