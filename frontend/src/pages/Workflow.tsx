@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 
 interface WorkflowStep {
   num: string
@@ -107,8 +108,8 @@ export function Workflow() {
             Upload any standard PCAP / PCAPNG capture or evaluate pre-computed benchmarks in real time.
           </p>
           <div className="editorial-btn-group">
-            <Link to="/analyze" className="button button-primary">
-              Launch Console
+            <Link to="/console/analyze" className="button button-primary" style={{ gap: '6px' }}>
+              <span>START</span> <ArrowRight size={13} />
             </Link>
             <Link to="/research" className="button button-secondary">
               Read Research Paper

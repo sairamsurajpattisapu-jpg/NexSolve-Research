@@ -8,9 +8,7 @@ import {
   FileText,
   GitBranch,
   Shield,
-  Sparkles,
   TrendingUp,
-  Workflow,
 } from 'lucide-react'
 
 const PIPELINE_STEPS = [
@@ -147,102 +145,153 @@ export function Landing() {
   const currentStep = PIPELINE_STEPS[activeStep]
 
   return (
-    <div className="page-stack page-enter landing-container" style={{ maxWidth: '1200px', margin: '0 auto', width: '100%', padding: '0 16px' }}>
+    <div className="page-stack page-enter landing-container">
       {/* 1. HERO SECTION */}
-      <section className="landing-hero-editorial" style={{ textAlign: 'center', padding: '56px 0 40px 0' }}>
-        <div className="landing-meta-line" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', letterSpacing: '0.08em', marginBottom: '16px' }}>
-          <span>NETWORK SECURITY</span>
-          <span className="meta-sep">/</span>
-          <span>AUTONOMOUS ATTACK FORECASTING</span>
+      <section className="landing-hero-section">
+        <div className="landing-hero-content">
+          <div className="landing-hero-eyebrow">
+            <span>NETWORK SECURITY</span>
+            <span className="meta-sep">/</span>
+            <span>AUTONOMOUS ATTACK FORECASTING</span>
+          </div>
+
+          <h1 className="landing-hero-title">
+            NEXSOLVE
+          </h1>
+
+          <div className="landing-hero-subtitle">
+            Network Attack Forecasting
+          </div>
+
+          <p className="landing-hero-lead">
+            Forecast how network attack-state behavior may evolve across multiple future horizons.
+            See where the network is heading — not just where it has been.
+          </p>
+
+          {/* Primary CTA + Secondary Actions */}
+          <div className="landing-hero-cta-group">
+            <Link
+              to="/console/analyze"
+              className="landing-primary-start-btn"
+              aria-label="START — Launch Console"
+            >
+              <span>START</span>
+              <ArrowRight size={14} className="start-btn-arrow" />
+            </Link>
+
+            <div className="landing-secondary-ctas">
+              <Link to="/console/analyze" className="landing-secondary-link">
+                Analyze PCAP
+              </Link>
+              <span className="landing-cta-dot" aria-hidden="true">·</span>
+              <Link to="/workflow" className="landing-secondary-link">
+                Explore Workflow
+              </Link>
+            </div>
+          </div>
         </div>
 
-        <h1 className="landing-editorial-title" style={{ fontSize: 'clamp(38px, 6vw, 64px)', fontWeight: 800, margin: '0 0 8px 0', letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
-          NEXSOLVE
-        </h1>
+        {/* 5-Stage Architecture Pipeline */}
+        <div className="architecture-pipeline-container">
+          <div className="architecture-pipeline-header">
+            <span className="architecture-pipeline-eyebrow">CORE OPERATIONAL ARCHITECTURE</span>
+            <span className="architecture-pipeline-meta">5-STAGE AUTONOMOUS PIPELINE</span>
+          </div>
 
-        <div className="landing-editorial-subheading" style={{ fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '-0.02em', marginBottom: '16px' }}>
-          Network Attack Forecasting
-        </div>
-
-        <p className="landing-editorial-lead" style={{ fontSize: '16px', color: 'var(--text-secondary)', maxWidth: '680px', margin: '0 auto 28px auto', lineHeight: 1.6 }}>
-          Forecast how network attack-state behavior may evolve across multiple future horizons.
-          See where the network is heading — not just where it has been.
-        </p>
-
-        {/* Primary CTA Row */}
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '40px' }}>
-          <Link to="/console/analyze" className="button button-primary" style={{ padding: '12px 28px', fontSize: '14px', fontWeight: 600, gap: '8px' }}>
-            <Sparkles size={16} /> Launch Console
-          </Link>
-          <Link to="/console/analyze" className="button button-quiet" style={{ padding: '12px 24px', fontSize: '14px', gap: '6px' }}>
-            Analyze PCAP
-          </Link>
-          <Link to="/workflow" className="button button-quiet" style={{ padding: '12px 24px', fontSize: '14px', gap: '6px' }}>
-            <Workflow size={16} /> Explore Workflow
-          </Link>
-        </div>
-
-        {/* Visual Architecture Flow Diagram: Traffic -> Behavior -> Detection -> Forecast -> Explanation */}
-        <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '8px', padding: '20px', maxWidth: '980px', margin: '0 auto 36px auto' }}>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '14px' }}>
-            CORE OPERATIONAL ARCHITECTURE FLOW
-          </span>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ flex: '1 1 140px', padding: '12px 8px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', textAlign: 'center' }}>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block' }}>INPUT</span>
-              <strong style={{ fontSize: '12.5px', color: 'var(--text-primary)' }}>NETWORK TRAFFIC</strong>
+          <div className="architecture-pipeline-track">
+            <div className="architecture-node-wrapper">
+              <div className="architecture-node">
+                <div className="architecture-node-top">
+                  <span className="architecture-node-step">01</span>
+                  <span className="architecture-node-role">INPUT</span>
+                </div>
+                <div className="architecture-node-title">NETWORK TRAFFIC</div>
+                <div className="architecture-node-detail">Passive wire telemetry</div>
+              </div>
+              <div className="architecture-connector" aria-hidden="true">
+                <div className="connector-line" />
+                <ArrowRight size={12} className="connector-arrow" />
+              </div>
             </div>
 
-            <ArrowRight size={16} color="var(--text-muted)" />
-
-            <div style={{ flex: '1 1 140px', padding: '12px 8px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', textAlign: 'center' }}>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block' }}>TEMPORALITY</span>
-              <strong style={{ fontSize: '12.5px', color: 'var(--text-primary)' }}>BEHAVIOR</strong>
+            <div className="architecture-node-wrapper">
+              <div className="architecture-node">
+                <div className="architecture-node-top">
+                  <span className="architecture-node-step">02</span>
+                  <span className="architecture-node-role">TEMPORALITY</span>
+                </div>
+                <div className="architecture-node-title">TEMPORAL BEHAVIOR</div>
+                <div className="architecture-node-detail">60s window aggregation</div>
+              </div>
+              <div className="architecture-connector" aria-hidden="true">
+                <div className="connector-line" />
+                <ArrowRight size={12} className="connector-arrow" />
+              </div>
             </div>
 
-            <ArrowRight size={16} color="var(--text-muted)" />
-
-            <div style={{ flex: '1 1 140px', padding: '12px 8px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', textAlign: 'center' }}>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block' }}>EVALUATION</span>
-              <strong style={{ fontSize: '12.5px', color: 'var(--text-primary)' }}>ATTACK DETECTION</strong>
+            <div className="architecture-node-wrapper">
+              <div className="architecture-node">
+                <div className="architecture-node-top">
+                  <span className="architecture-node-step">03</span>
+                  <span className="architecture-node-role">EVALUATION</span>
+                </div>
+                <div className="architecture-node-title">ATTACK DETECTION</div>
+                <div className="architecture-node-detail">45-feature vector S_t</div>
+              </div>
+              <div className="architecture-connector" aria-hidden="true">
+                <div className="connector-line" />
+                <ArrowRight size={12} className="connector-arrow" />
+              </div>
             </div>
 
-            <ArrowRight size={16} color="var(--text-muted)" />
-
-            <div style={{ flex: '1 1 140px', padding: '12px 8px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', textAlign: 'center' }}>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block' }}>PROJECTION</span>
-              <strong style={{ fontSize: '12.5px', color: 'var(--text-primary)' }}>TEMPORAL FORECAST</strong>
+            <div className="architecture-node-wrapper">
+              <div className="architecture-node">
+                <div className="architecture-node-top">
+                  <span className="architecture-node-step">04</span>
+                  <span className="architecture-node-role">PROJECTION</span>
+                </div>
+                <div className="architecture-node-title">TEMPORAL FORECAST</div>
+                <div className="architecture-node-detail">Multi-horizon rollout</div>
+              </div>
+              <div className="architecture-connector" aria-hidden="true">
+                <div className="connector-line" />
+                <ArrowRight size={12} className="connector-arrow" />
+              </div>
             </div>
 
-            <ArrowRight size={16} color="var(--text-muted)" />
-
-            <div style={{ flex: '1 1 140px', padding: '12px 8px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', textAlign: 'center' }}>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block' }}>REASONING</span>
-              <strong style={{ fontSize: '12.5px', color: 'var(--text-primary)' }}>EXPLANATION</strong>
+            <div className="architecture-node-wrapper">
+              <div className="architecture-node">
+                <div className="architecture-node-top">
+                  <span className="architecture-node-step">05</span>
+                  <span className="architecture-node-role">REASONING</span>
+                </div>
+                <div className="architecture-node-title">EXPLANATION</div>
+                <div className="architecture-node-detail">Counterfactual drivers</div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Contract Metadata Strip */}
-        <div className="landing-contract-strip" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '20px', fontSize: '12px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
-          <div>
-            <span style={{ color: 'var(--text-muted)', marginRight: '6px' }}>SCHEMA:</span>
-            <strong style={{ color: 'var(--text-primary)' }}>45 Canonical Features</strong>
+        <div className="landing-contract-strip">
+          <div className="contract-item">
+            <span className="contract-label">SCHEMA:</span>
+            <strong className="contract-value">45 Canonical Features</strong>
           </div>
-          <div>&middot;</div>
-          <div>
-            <span style={{ color: 'var(--text-muted)', marginRight: '6px' }}>WINDOW:</span>
-            <strong style={{ color: 'var(--text-primary)' }}>60s Discrete Windows</strong>
+          <div className="contract-sep">&middot;</div>
+          <div className="contract-item">
+            <span className="contract-label">WINDOW:</span>
+            <strong className="contract-value">60s Discrete Windows</strong>
           </div>
-          <div>&middot;</div>
-          <div>
-            <span style={{ color: 'var(--text-muted)', marginRight: '6px' }}>LOOKAHEAD:</span>
-            <strong style={{ color: 'var(--text-primary)' }}>T+1 to T+5 Horizons</strong>
+          <div className="contract-sep">&middot;</div>
+          <div className="contract-item">
+            <span className="contract-label">LOOKAHEAD:</span>
+            <strong className="contract-value">T+1 to T+5 Horizons</strong>
           </div>
-          <div>&middot;</div>
-          <div>
-            <span style={{ color: 'var(--text-muted)', marginRight: '6px' }}>INTEGRITY:</span>
-            <strong style={{ color: 'var(--text-primary)' }}>Zero RTT Fabrication</strong>
+          <div className="contract-sep">&middot;</div>
+          <div className="contract-item">
+            <span className="contract-label">INTEGRITY:</span>
+            <strong className="contract-value">Zero RTT Fabrication</strong>
           </div>
         </div>
       </section>
@@ -612,8 +661,8 @@ export function Landing() {
         <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', maxWidth: '540px', margin: '0 auto 24px auto', lineHeight: 1.6 }}>
           Upload live packet telemetry to reconstruct network-state representations and project forward adversarial progression.
         </p>
-        <Link to="/console" className="button button-primary" style={{ padding: '12px 28px', fontSize: '14px', fontWeight: 600, gap: '8px' }}>
-          <Sparkles size={16} /> Enter Security Console
+        <Link to="/console/analyze" className="button button-primary" style={{ padding: '12px 28px', fontSize: '13px', fontWeight: 700, letterSpacing: '0.04em', gap: '8px' }}>
+          <span>Enter Analysis Console</span> <ArrowRight size={14} />
         </Link>
       </section>
     </div>

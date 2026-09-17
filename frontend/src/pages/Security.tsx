@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 
 export function Security() {
   return (
@@ -109,8 +110,8 @@ export function Security() {
           Counterfactual simulations represent <strong>Modelled Counterfactuals</strong> for proactive posture evaluation under feature perturbation hypotheses. They do not constitute an absolute attack prevention guarantee.
         </p>
         <div style={{ marginTop: '24px' }}>
-          <Link to="/analyze" className="button button-primary">
-            Launch Console
+          <Link to="/console/analyze" className="button button-primary" style={{ gap: '6px' }}>
+            <span>START</span> <ArrowRight size={13} />
           </Link>
         </div>
       </section>

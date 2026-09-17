@@ -16,7 +16,7 @@ describe('End-to-End Analysis Experience & Product Journey (Prompt 3)', () => {
     vi.restoreAllMocks()
   })
 
-  it('1. Landing page features Launch Console as primary CTA and routes to /console/analyze', () => {
+  it('1. Landing page features START as primary CTA and routes to /console/analyze', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <Routes>
@@ -25,9 +25,9 @@ describe('End-to-End Analysis Experience & Product Journey (Prompt 3)', () => {
       </MemoryRouter>
     )
 
-    const launchConsoleLink = screen.getByRole('link', { name: /Launch Console/i })
-    expect(launchConsoleLink).toBeInTheDocument()
-    expect(launchConsoleLink).toHaveAttribute('href', '/console/analyze')
+    const startLink = screen.getByRole('link', { name: /^START/i })
+    expect(startLink).toBeInTheDocument()
+    expect(startLink).toHaveAttribute('href', '/console/analyze')
 
     // Also preserves secondary links
     expect(screen.getByRole('link', { name: /Analyze PCAP/i })).toBeInTheDocument()

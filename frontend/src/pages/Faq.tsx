@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, HelpCircle, Sparkles } from 'lucide-react'
+import { ArrowRight, ChevronDown, HelpCircle } from 'lucide-react'
 
 interface FaqItem {
   id: string
@@ -297,7 +297,7 @@ export function Faq() {
             Research Specification
           </Link>
           <Link to="/console/analyze" className="button button-primary" style={{ fontSize: '12px', gap: '6px' }}>
-            <Sparkles size={13} /> Launch Console
+            <span>START</span> <ArrowRight size={13} />
           </Link>
         </div>
       </div>

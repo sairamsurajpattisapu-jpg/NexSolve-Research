@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 
 export function About() {
   return (
@@ -91,8 +92,8 @@ export function About() {
           <span className="editorial-eyebrow">RESEARCH PLATFORM</span>
           <h2>Explore the methodology and live system.</h2>
           <div className="editorial-btn-group" style={{ marginTop: '20px' }}>
-            <Link to="/analyze" className="button button-primary">
-              Launch Console
+            <Link to="/console/analyze" className="button button-primary" style={{ gap: '6px' }}>
+              <span>START</span> <ArrowRight size={13} />
             </Link>
             <Link to="/research" className="button button-secondary">
               Read Research

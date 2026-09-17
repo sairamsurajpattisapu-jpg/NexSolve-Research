@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { FileText, Mail, MessageSquare, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowRight, FileText, Mail, MessageSquare, ShieldCheck } from 'lucide-react'
 import { Panel, SectionHeading } from '../components/Ui'
 
 export function Contact() {
@@ -113,7 +113,7 @@ export function Contact() {
             View Workflow
           </Link>
           <Link to="/console/analyze" className="button button-primary" style={{ fontSize: '12px', gap: '6px' }}>
-            <Sparkles size={13} /> Launch Console
+            <span>START</span> <ArrowRight size={13} />
           </Link>
         </div>
       </div>
