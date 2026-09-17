@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Activity,
+  ArrowLeft,
   ArrowRight,
   ChevronDown,
   Clock,
@@ -431,18 +432,18 @@ export function Landing() {
                 className="button button-quiet"
                 disabled={activeStep === 0}
                 onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
-                style={{ fontSize: '12px' }}
+                style={{ fontSize: '12px', gap: '6px' }}
               >
-                Previous Stage
+                <ArrowLeft size={13} /> Previous Stage
               </button>
               <button
                 type="button"
                 className="button button-primary"
                 disabled={activeStep === PIPELINE_STEPS.length - 1}
                 onClick={() => setActiveStep(Math.min(PIPELINE_STEPS.length - 1, activeStep + 1))}
-                style={{ fontSize: '12px' }}
+                style={{ fontSize: '12px', gap: '6px' }}
               >
-                Next Stage
+                Next Stage <ArrowRight size={13} />
               </button>
             </div>
           </div>

@@ -7,6 +7,7 @@ import {
   Maximize2,
   Minimize2,
   Network,
+  Plus,
   Printer,
   Shield,
   Sliders,
@@ -185,9 +186,9 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
               display: 'flex',
               alignItems: 'center',
               flexWrap: 'wrap',
-              gap: '14px',
+              gap: '10px',
               marginTop: '10px',
-              fontSize: '11.5px',
+              fontSize: '11px',
               fontFamily: 'var(--mono)',
               color: 'var(--text-muted)',
             }}
@@ -204,7 +205,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             <div>&middot;</div>
             <div>
               <span>HORIZON: </span>
-              <span style={{ color: 'var(--text-primary)' }}>5 Steps (+300s lookahead)</span>
+              <span style={{ color: 'var(--text-primary)' }}>T+1 &rarr; T+5</span>
             </div>
             <div>&middot;</div>
             <div>
@@ -214,26 +215,37 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
           </div>
         </div>
 
-        {/* Primary Action Buttons */}
+        {/* Action Bar Hierarchy: Primary, Secondary, Utility */}
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          {onAnalyzeNew && (
+            <button
+              type="button"
+              className="button button-primary"
+              onClick={onAnalyzeNew}
+              style={{ fontSize: '12px', height: '34px', gap: '6px' }}
+            >
+              <Plus size={13} /> New Analysis
+            </button>
+          )}
+
           <button
             type="button"
-            className="button button-quiet"
+            className="button button-secondary"
             onClick={() => navigate('/console/network')}
             style={{ fontSize: '12px', height: '34px', gap: '6px' }}
             title="Navigate to Network State Topology"
           >
-            <Network size={14} /> VIEW NETWORK STATE
+            <Network size={13} /> Network State
           </button>
 
           <button
             type="button"
-            className="button button-quiet"
+            className="button button-secondary"
             onClick={() => navigate(`/console/evidence/${analysis.id}`)}
             style={{ fontSize: '12px', height: '34px', gap: '6px' }}
             title="Inspect supporting empirical evidence"
           >
-            <Shield size={14} /> VIEW EVIDENCE
+            <Shield size={13} /> Evidence
           </button>
 
           <button
@@ -243,7 +255,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             style={{ fontSize: '12px', height: '34px', gap: '6px' }}
             title="Export forensic incident report"
           >
-            <Download size={14} /> EXPORT REPORT
+            <Download size={13} /> Export Report
           </button>
 
           <button
@@ -253,74 +265,70 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             style={{ fontSize: '12px', height: '34px', gap: '6px' }}
             aria-label={expandedView ? 'Standard View' : 'Expand View'}
           >
-            {expandedView ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            {expandedView ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
             {expandedView ? 'Standard View' : 'Expand View'}
           </button>
-
-          {onAnalyzeNew && (
-            <button
-              type="button"
-              className="button"
-              onClick={onAnalyzeNew}
-              style={{ fontSize: '12px', height: '34px' }}
-            >
-              New Analysis
-            </button>
-          )}
         </div>
       </header>
 
-      {/* Safety Abstention Banner if Applicable */}
+      {/* Streamlined Safety Guardrail Banner */}
       {isAbstained && (
         <div
           style={{
-            background: 'rgba(242, 187, 113, 0.08)',
+            background: 'var(--bg-secondary)',
             border: '1px solid var(--warning)',
-            borderRadius: '8px',
-            padding: '18px 20px',
+            borderRadius: '6px',
+            padding: '14px 18px',
             display: 'flex',
-            gap: '14px',
+            gap: '12px',
             alignItems: 'flex-start',
           }}
         >
-          <AlertTriangle size={22} color="var(--warning)" style={{ flexShrink: 0, marginTop: '2px' }} />
-          <div>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--warning)' }}>
-              FORECAST WITHHELD &middot; SAFETY GUARDRAIL ACTIVE
-            </span>
-            <h3 style={{ margin: '4px 0 6px 0', fontSize: '16px', color: 'var(--text-primary)' }}>
+          <AlertTriangle size={18} color="var(--warning)" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--warning)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                FORECAST WITHHELD &middot; SAFETY GUARDRAIL ACTIVE
+              </span>
+              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', padding: '1px 6px', borderRadius: '3px', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--warning)', fontWeight: 600 }}>
+                INSUFFICIENT_HISTORY &middot; {forecast.availableWindows ?? 0} / 8 WINDOWS
+              </span>
+            </div>
+            <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
               {forecast.status}: Insufficient Continuous Historical Telemetry
             </h3>
-            <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               The uploaded capture contains <strong>{forecast.availableWindows} discrete 60-second windows</strong>.
-              NexSolve's world model requires at least <strong>8 continuous historical windows (480s)</strong> to establish state momentum without hallucinating trajectories.
+              NexSolve requires at least <strong>8 continuous historical windows (480s)</strong> to establish state momentum without hallucinating trajectories.
             </p>
           </div>
         </div>
       )}
 
-      {/* Dynamic Primary Forecast Statement Callout */}
-      <div
-        style={{
-          background: 'var(--bg-secondary)',
-          borderLeft: '4px solid var(--text-primary)',
-          borderRadius: '6px',
-          padding: '14px 18px',
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: '12px',
-        }}
-      >
-        <TrendingUp size={18} color="var(--text-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
-        <div>
-          <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            PRIMARY FORECAST ASSESSMENT
-          </span>
-          <p style={{ margin: '3px 0 0 0', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.5, fontWeight: 500 }}>
-            {primaryForecastStatement}
-          </p>
+      {/* Dynamic Primary Forecast Statement Callout (Rendered when forecast is active) */}
+      {!isAbstained && (
+        <div
+          style={{
+            background: 'var(--bg-secondary)',
+            borderLeft: '4px solid var(--text-primary)',
+            borderRadius: '6px',
+            padding: '14px 18px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '12px',
+          }}
+        >
+          <TrendingUp size={18} color="var(--text-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div>
+            <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              PRIMARY FORECAST ASSESSMENT
+            </span>
+            <p style={{ margin: '3px 0 0 0', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.5, fontWeight: 500 }}>
+              {primaryForecastStatement}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 1.5 CONCISE RESULT SUMMARY */}
       <div
@@ -1084,15 +1092,6 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-          <button
-            type="button"
-            className="button"
-            onClick={() => navigate(`/console/reports/${analysis.id}`)}
-            style={{ fontSize: '12px', height: '36px' }}
-          >
-            <Printer size={14} /> EXPORT REPORT
-          </button>
-
           <a
             href={analysis.export.jsonUrl}
             download={`nexsolve-forecast-${analysis.id}.json`}
@@ -1111,15 +1110,6 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
           >
             <Printer size={14} /> Printable Report
           </a>
-
-          <button
-            type="button"
-            className="button button-quiet"
-            onClick={() => navigate(`/console/evidence/${analysis.id}`)}
-            style={{ fontSize: '12px', height: '36px' }}
-          >
-            <Shield size={14} /> VIEW EVIDENCE
-          </button>
         </div>
       </section>
 

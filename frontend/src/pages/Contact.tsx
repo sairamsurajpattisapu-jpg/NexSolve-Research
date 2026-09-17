@@ -4,8 +4,9 @@ import { Panel, SectionHeading } from '../components/Ui'
 
 export function Contact() {
   return (
-    <div className="page-stack page-enter" style={{ maxWidth: '980px', margin: '0 auto', width: '100%', padding: '32px 16px' }}>
-      {/* Header */}
+    <div className="page-stack page-enter contact-container" style={{ padding: '32px 0' }}>
+      <div style={{ maxWidth: '920px', margin: '0 auto', width: '100%' }}>
+        {/* Header */}
       <section style={{ textAlign: 'center', marginBottom: '36px' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px' }}>
           <MessageSquare size={13} />
@@ -118,5 +119,6 @@ export function Contact() {
         </div>
       </div>
     </div>
+  </div>
   )
 }

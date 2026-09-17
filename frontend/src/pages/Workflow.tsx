@@ -1,67 +1,55 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Activity, Clock, ShieldAlert, TrendingUp, Search } from 'lucide-react'
 
-interface WorkflowStep {
+interface PipelineStage {
   num: string
   title: string
   sentence: string
   detail: string
+  badges: string[]
+  icon: typeof Activity
 }
 
-const STEPS: WorkflowStep[] = [
+const STAGES: PipelineStage[] = [
   {
     num: '01',
-    title: 'ANALYZE',
-    sentence: 'Inspect the network capture with deterministic wire parsing.',
-    detail: 'Enforces magic-byte validation, microsecond wire timestamp preservation, snaplen bounds, and packet deduplication.',
+    title: 'NETWORK TRAFFIC',
+    sentence: 'Wire packet ingestion, microsecond timestamps, magic-byte validation, zero packet drops.',
+    detail: 'Continuous packet capture streaming parses standard PCAP and PCAPNG headers with microsecond timing fidelity and snaplen clamping.',
+    badges: ['PCAP/PCAPNG', 'ZERO DROPS', 'MAGIC-BYTE VALIDATED'],
+    icon: Activity,
   },
   {
     num: '02',
-    title: 'VALIDATE',
-    sentence: 'Verify input integrity and structural completeness.',
-    detail: 'Ensures minimum temporal requirements (>= 8 discrete windows) and rejects corrupted or synthetic payloads.',
+    title: 'TEMPORAL STATE',
+    sentence: '45-feature aggregation, 60s sliding window, flow + packet distributions, RTT strictly omitted.',
+    detail: 'Telemetry is structured into 60-second tumbling epochs comprising 17 flow metrics, 22 packet stats, and 6 temporal deltas without synthetic imputation.',
+    badges: ['45-FEATURE SCHEMA', '60s WINDOWS', 'NO RTT FABRICATION'],
+    icon: Clock,
   },
   {
     num: '03',
-    title: 'EXTRACT',
-    sentence: 'Build the canonical 45-feature state vector from passive telemetry.',
-    detail: 'Aggregates 17 flow behavior metrics, 22 packet distribution statistics, and 6 temporal deltas without synthetic RTT fabrication.',
+    title: 'ATTACK DETECTION',
+    sentence: 'T+0 baseline classification, persistence champion benchmark, calibrated confidence scoring.',
+    detail: 'Evaluates current observed state against the Persistence Champion baseline to establish confirmed baseline threat posture and signal deviation.',
+    badges: ['T+0 STATE', 'AUROC 0.893', 'CALIBRATED SCORING'],
+    icon: ShieldAlert,
   },
   {
     num: '04',
-    title: 'WINDOW',
-    sentence: 'Discretize continuous packet flow into uniform 60-second temporal epochs.',
-    detail: 'Provides sliding window state representation across historical sequence context.',
+    title: 'TEMPORAL FORECAST',
+    sentence: 'Horizons T+1 to T+5 multi-step projection, early warning indicator, onset lead time estimation.',
+    detail: 'Simulates prospective multi-step network trajectory, computing Step Attack Probabilities and Cumulative Risk with explicit uncertainty bounds.',
+    badges: ['HORIZONS T+1 → T+5', 'LEAD TIME ESTIMATION', 'CUMULATIVE RISK'],
+    icon: TrendingUp,
   },
   {
     num: '05',
-    title: 'FORECAST',
-    sentence: 'Project future attack-state progression across horizons T+1 through T+5.',
-    detail: 'Evaluated against the validated Persistence Champion baseline with calibrated confidence bounds.',
-  },
-  {
-    num: '06',
-    title: 'EVIDENCE',
-    sentence: 'Analyze feature perturbation drivers into supporting vs contradictory signals.',
-    detail: 'Identifies exact directional shifts driving risk escalation without black-box opacity.',
-  },
-  {
-    num: '07',
-    title: 'REPLAY',
-    sentence: 'Compare observed temporal progression against projected horizons.',
-    detail: 'Enables deterministic side-by-side trajectory inspection of historical epochs.',
-  },
-  {
-    num: '08',
-    title: 'SIMULATION',
-    sentence: 'Evaluate a modelled counterfactual under controlled feature perturbations.',
-    detail: 'Simulates trajectory sensitivity under hypothetical defense adjustments without promising absolute prevention.',
-  },
-  {
-    num: '09',
-    title: 'REPORT',
-    sentence: 'Generate reproducible forensic analysis output with SHA-256 integrity verification.',
-    detail: 'Exports tamper-evident forensic dossiers with cryptographic hashes of all input telemetry and model checkpoints.',
+    title: 'EVIDENCE & REASONING',
+    sentence: 'Feature perturbation attribution, directional shift ranking, SHA-256 tamper-evident export.',
+    detail: 'Isolates primary telemetry drivers via partial derivative perturbation analysis and compiles an immutable cryptographic audit dossier.',
+    badges: ['PERTURBATION ATTRIBUTION', 'SHA-256 PROVENANCE', 'AUDIT READY'],
+    icon: Search,
   },
 ]
 
@@ -71,30 +59,41 @@ export function Workflow() {
       {/* Editorial Header */}
       <section className="editorial-page-header">
         <div className="editorial-meta-tag">
-          SPECIFICATION / PIPELINE
+          SPECIFICATION / PIPELINE ARCHITECTURE
         </div>
         <h1 className="editorial-display-heading">
           Workflow
         </h1>
         <p className="editorial-lead-text">
-          A 9-step deterministic progression from raw network wire capture to multi-horizon threat foresight.
+          A continuous 5-stage engineering pipeline transforming passive wire telemetry into multi-horizon predictive threat intelligence.
         </p>
       </section>
 
       <div className="editorial-hr" />
 
-      {/* Editorial Timeline Sequence */}
-      <section className="workflow-sequence-list">
-        {STEPS.map((step) => (
-          <div key={step.num} className="workflow-sequence-row">
-            <div className="workflow-seq-num">{step.num}</div>
-            <div className="workflow-seq-body">
-              <div className="workflow-seq-title">{step.title}</div>
-              <p className="workflow-seq-sentence">{step.sentence}</p>
-              <p className="workflow-seq-detail">{step.detail}</p>
+      {/* 5-Stage Engineering Pipeline Grid */}
+      <section className="workflow-pipeline-grid">
+        {STAGES.map((stage) => {
+          const IconComponent = stage.icon
+          return (
+            <div key={stage.num} className="workflow-stage-card">
+              <div className="stage-header">
+                <span className="stage-step-num">{stage.num}</span>
+                <IconComponent size={16} color="var(--text-muted)" />
+              </div>
+              <h2 className="stage-title">{stage.title}</h2>
+              <p className="stage-sentence">{stage.sentence}</p>
+              <p className="stage-detail">{stage.detail}</p>
+              <div className="stage-badges">
+                {stage.badges.map((b) => (
+                  <span key={b} className="editorial-badge">
+                    {b}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </section>
 
       <div className="editorial-hr" />

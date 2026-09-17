@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, ShieldCheck, Cpu, Database, Award } from 'lucide-react'
 
 export function About() {
   return (
@@ -7,7 +7,7 @@ export function About() {
       {/* Editorial Header */}
       <section className="editorial-page-header">
         <div className="editorial-meta-tag">
-          MISSION & SCIENTIFIC PRINCIPLES
+          MISSION &amp; SCIENTIFIC PRINCIPLES
         </div>
         <h1 className="editorial-display-heading">
           About NexSolve
@@ -19,8 +19,9 @@ export function About() {
 
       <div className="editorial-hr" />
 
-      {/* Editorial 4-Part Narrative */}
+      {/* Editorial 4-Part Structured Narrative */}
       <section className="about-editorial-sections">
+        {/* 01. What It Is */}
         <div className="about-editorial-row">
           <div className="about-row-label">
             <span>01</span>
@@ -28,15 +29,22 @@ export function About() {
           </div>
           <div className="about-row-body">
             <p>
-              NexSolve is a scientific network attack forecasting platform built for defensive cybersecurity operations.
-              Operating passively from raw packet streams or discrete 60-second telemetry windows, it models continuous network state
-              and projects adversarial trajectory across forward lookahead horizons (T+1 through T+5).
+              NexSolve is a scientific network attack forecasting engine built for active security defense.
+              Ingesting passive packet streams across discrete 60-second telemetry windows, it models continuous network state
+              and projects adversarial trajectory across prospective lookahead horizons (T+1 through T+5).
             </p>
+            <div className="editorial-tag-row">
+              <span className="editorial-badge"><Database size={11} /> 45-FEATURE SCHEMA</span>
+              <span className="editorial-badge">60s TUMBLING WINDOWS</span>
+              <span className="editorial-badge">T+1 &rarr; T+5 HORIZONS</span>
+              <span className="editorial-badge">PASSIVE OBSERVATION</span>
+            </div>
           </div>
         </div>
 
         <div className="editorial-hr-subtle" />
 
+        {/* 02. Why It Exists */}
         <div className="about-editorial-row">
           <div className="about-row-label">
             <span>02</span>
@@ -44,15 +52,21 @@ export function About() {
           </div>
           <div className="about-row-body">
             <p>
-              Traditional intrusion detection systems alert defenders after packets deliver payloads and hosts compromise.
+              Traditional intrusion detection systems alert defenders after packets deliver payloads and hosts are compromised.
               NexSolve reframes network security as an autoregressive state simulation problem —
-              granting security analysts proactive lead time before full kill-chain execution.
+              granting security analysts verified lead time before full kill-chain execution.
             </p>
+            <div className="editorial-tag-row">
+              <span className="editorial-badge"><ShieldCheck size={11} /> PROACTIVE LEAD TIME</span>
+              <span className="editorial-badge">STATE SIMULATION</span>
+              <span className="editorial-badge">KILL-CHAIN MAPPING</span>
+            </div>
           </div>
         </div>
 
         <div className="editorial-hr-subtle" />
 
+        {/* 03. Scientific Integrity */}
         <div className="about-editorial-row">
           <div className="about-row-label">
             <span>03</span>
@@ -60,26 +74,35 @@ export function About() {
           </div>
           <div className="about-row-body">
             <p>
-              We reject synthetic heuristics and uncalibrated deep models. NexSolve strictly omits unobservable passive metrics
-              such as <code>mean_tcp_rtt</code> under an audited 45-feature contract, enforces deliberate abstention when historical context is insufficient,
-              and benchmarks all candidates against a rigorous Persistence Champion baseline.
+              Under our audited Zero-Fabrication Contract, metrics that cannot be genuinely observed from passive packet taps —
+              most critically <code>mean_tcp_rtt</code> — are permanently excluded from the 45-feature schema rather than zero-filled or approximated with synthetic heuristics.
             </p>
+            <div className="editorial-tag-row">
+              <span className="editorial-badge"><Award size={11} /> ZERO FABRICATION</span>
+              <span className="editorial-badge">STRICT ABSTENTION</span>
+              <span className="editorial-badge">AUDITED CONTRACT</span>
+            </div>
           </div>
         </div>
 
         <div className="editorial-hr-subtle" />
 
+        {/* 04. Design Principles */}
         <div className="about-editorial-row">
           <div className="about-row-label">
             <span>04</span>
-            <h2>LIMITATIONS</h2>
+            <h2>DESIGN PRINCIPLES</h2>
           </div>
           <div className="about-row-body">
             <p>
-              NexSolve is designed for structured network telemetry and passive observation taps. It does not perform active payload exploitation,
-              does not claim zero-loss prevention guarantees, and treats counterfactual rollouts as modelled scenario explorations
-              rather than deterministic physical certainties.
+              Local compute execution guarantees zero external telemetry leakage. All candidate models are benchmarked
+              against a rigorous Persistence Champion baseline, and forecasts withhold automatically when continuous history is fewer than 8 windows (&lt; 480s).
             </p>
+            <div className="editorial-tag-row">
+              <span className="editorial-badge"><Cpu size={11} /> LOCAL COMPUTE</span>
+              <span className="editorial-badge">PERSISTENCE CHAMPION</span>
+              <span className="editorial-badge">CRYPTOGRAPHIC AUDIT</span>
+            </div>
           </div>
         </div>
       </section>

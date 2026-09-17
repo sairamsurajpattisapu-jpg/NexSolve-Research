@@ -7,10 +7,10 @@ export function Research() {
       {/* Paper Header */}
       <section className="editorial-page-header">
         <div className="editorial-meta-tag">
-          RESEARCH PAPER / METHODOLOGY SPECIFICATION
+          RESEARCH PAPER &amp; METHODOLOGY SPECIFICATION
         </div>
         <h1 className="editorial-display-heading">
-          Research & Formal Methodology
+          Research &amp; Formal Methodology
         </h1>
         <p className="editorial-lead-text">
           Discrete-time network state transitions, autoregressive trajectory simulation, and empirical evaluation.
@@ -28,9 +28,12 @@ export function Research() {
         <p className="research-body">
           We formalize network defense as a discrete-time partially observable state transition process.
           Continuous packet streams on passive monitoring interfaces are sliced into non-overlapping temporal windows of duration
-          <span className="mono-inline"> Δt = 60s</span>. The objective is to project the conditional attack probability distribution
+          <span className="mono-inline"> &Delta;t = 60s</span>. The objective is to project conditional attack probability distributions
           over multiple forward lookahead horizons without modifying wire payloads.
         </p>
+        <div className="editorial-formula-box">
+          <code>&Delta;t = 60s &nbsp;&middot;&nbsp; S_t &isin; &reals;^{'{45}'} &nbsp;&middot;&nbsp; h &isin; {'{1, 2, 3, 5}'}</code>
+        </div>
       </section>
 
       <div className="editorial-hr-subtle" />
@@ -42,14 +45,26 @@ export function Research() {
           <h2>State Representation (45-Feature Canonical Contract)</h2>
         </div>
         <p className="research-body">
-          At each temporal epoch <span className="mono-inline">t</span>, the network state is condensed into a canonical vector
-          <span className="mono-inline"> S_t ∈ ℝ^45</span> comprising:
+          At each temporal epoch <span className="mono-inline">t</span>, the observed network state is condensed into a canonical vector
+          <span className="mono-inline"> S_t &isin; &reals;^{'{45}'}</span> comprising:
         </p>
-        <ul className="research-list">
-          <li><strong>17 Bidirectional Flow Metrics:</strong> 5-tuple active counts, byte velocity ratios, TCP handshake transition states, and retransmissions.</li>
-          <li><strong>22 Packet Distribution Statistics:</strong> IAT histogram moments, size percentiles, and protocol volume distributions.</li>
-          <li><strong>6 Temporal Rate Derivatives:</strong> Inter-window rate deltas <span className="mono-inline">{'ΔS = S_t - S_{t-1}'}</span>.</li>
-        </ul>
+        <div className="research-feature-grid">
+          <div className="feature-group-card">
+            <span className="feature-group-num">17</span>
+            <strong>Flow Behavior Metrics</strong>
+            <p>5-tuple active counts, byte velocity ratios, TCP handshake state transitions, and retransmission volume.</p>
+          </div>
+          <div className="feature-group-card">
+            <span className="feature-group-num">22</span>
+            <strong>Packet Statistics</strong>
+            <p>Inter-arrival time (IAT) moments, payload size percentiles, and protocol volume distributions.</p>
+          </div>
+          <div className="feature-group-card">
+            <span className="feature-group-num">06</span>
+            <strong>Temporal Rate Deltas</strong>
+            <p>First-order inter-window derivative differences &Delta;S_t = S_t - S_{'{t-1}'} capturing velocity acceleration.</p>
+          </div>
+        </div>
         <p className="research-body-note">
           <em>Zero-Fabrication Contract:</em> Passive network taps cannot verify Round-Trip Time without active probing.
           The controversial <span className="mono-inline">mean_tcp_rtt</span> metric is strictly eliminated from the model schema rather than zero-filled.
@@ -62,10 +77,10 @@ export function Research() {
       <section className="research-paper-section">
         <div className="research-section-header">
           <span className="research-sec-num">03</span>
-          <h2>Temporal Context & Autoregressive Simulation</h2>
+          <h2>Temporal Context &amp; Autoregressive Simulation</h2>
         </div>
         <p className="research-body">
-          {'Given historical observation matrix X_t = [S_{t-K+1}, ..., S_t] in R^{8 x 45} with lookback context K = 8 (480 seconds of continuous traffic), the transition model generates recursive autoregressive state projections:'}
+          Given historical observation matrix <span className="mono-inline">{'X_t = [S_{t-7}, ..., S_t] in R^{8 x 45}'}</span> with lookback context <span className="mono-inline">K = 8</span> (480 seconds of continuous telemetry), the transition model generates recursive autoregressive state projections:
         </p>
         <div className="editorial-formula-box">
           <code>{'S_hat_{t+h} = T_theta( S_hat_{t+h-1}, h_{t+h-1} ),  forall h in {1, 2, ..., 5}'}</code>
@@ -78,7 +93,7 @@ export function Research() {
       <section className="research-paper-section">
         <div className="research-section-header">
           <span className="research-sec-num">04</span>
-          <h2>Forecast Horizons & Survival Risk</h2>
+          <h2>Forecast Horizons &amp; Survival Risk</h2>
         </div>
         <p className="research-body">
           Five discrete forward horizons are evaluated: <span className="mono-inline">T+1 (+60s), T+2 (+120s), T+3 (+180s), T+4 (+240s), T+5 (+300s)</span>.
@@ -101,8 +116,8 @@ export function Research() {
           <h2>Feature Perturbation Attribution</h2>
         </div>
         <p className="research-body">
-          Predictions avoid black-box opacity by decomposing model sensitivity through Feature Perturbation Attribution.
-          Observed telemetry deltas are classified into <strong>Supporting Evidence</strong> (amplifying threat likelihood) and
+          Predictions avoid black-box opacity by decomposing model sensitivity through Feature Perturbation Attribution (&part;p / &part;x_i).
+          Observed telemetry deltas are bifurcated into <strong>Supporting Evidence</strong> (amplifying threat likelihood) and
           <strong>Contradictory Evidence</strong> (stabilizing signals indicating normal operations), preventing false confirmation bias.
         </p>
       </section>
@@ -113,10 +128,10 @@ export function Research() {
       <section className="research-paper-section">
         <div className="research-section-header">
           <span className="research-sec-num">06</span>
-          <h2>Evaluation & Champion Model Governance</h2>
+          <h2>Evaluation &amp; Champion Model Governance</h2>
         </div>
         <p className="research-body">
-          Evaluated on the UNSW-NB15 episodic benchmark. In temporal network domains, simple baselines frequently exhibit superior calibration:
+          Evaluated on the UNSW-NB15 and CIC-IDS2017 episodic benchmarks. In temporal network domains, simple baselines frequently exhibit superior calibration:
         </p>
 
         <div className="editorial-table-wrap">
