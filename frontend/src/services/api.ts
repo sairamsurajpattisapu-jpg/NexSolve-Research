@@ -9,7 +9,7 @@ import type {
   JobStatusResponse,
 } from '../types/api'
 
-import { CHUNK_SIZE_BYTES, MAX_PCAP_UPLOAD_BYTES } from '../config/constants'
+import { CHUNK_SIZE_BYTES, MAX_PCAP_UPLOAD_BYTES, MAX_PCAP_UPLOAD_LABEL } from '../config/constants'
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 
@@ -98,7 +98,10 @@ export const api = {
   traffic: () => request<TrafficSummary>('/api/traffic'),
   report: (id: string) => request<ReportResponse>(`/api/reports/${id}`),
   deleteAnalysis: (id: string) => request<void>(`/api/analysis/${id}`, { method: 'DELETE' }),
-  uploadPcap: (file: File) => {
+  uploadPcap: async (file: File) => {
+    if (file.size > MAX_PCAP_UPLOAD_BYTES) {
+      throw new ApiError(`Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`, 413)
+    }
     const body = new FormData()
     body.append('file', file)
     return request<UploadedAnalysisResponse>('/api/pcap/analyze', { method: 'POST', body })
@@ -108,6 +111,9 @@ export const api = {
     onProgress?: (progress: { loaded: number; total: number; percentage: number }) => void,
     signal?: AbortSignal
   ): Promise<JobStatusResponse> => {
+    if (file.size > MAX_PCAP_UPLOAD_BYTES) {
+      throw new ApiError(`Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`, 413)
+    }
     // 1. Initialize session
     const initRes = await request<{
       upload_id: string
@@ -205,6 +211,9 @@ export const api = {
     onProgress?: (progress: { loaded: number; total: number; percentage: number }) => void,
     signal?: AbortSignal
   ): Promise<JobStatusResponse> => {
+    if (file.size > MAX_PCAP_UPLOAD_BYTES) {
+      throw new ApiError(`Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`, 413)
+    }
     // For captures larger than 5 MB, use chunked upload to protect memory and avoid reverse proxy timeouts
     if (file.size > CHUNK_SIZE_BYTES) {
       try {

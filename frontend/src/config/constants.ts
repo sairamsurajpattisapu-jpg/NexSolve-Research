@@ -19,7 +19,10 @@ export function formatFileSize(bytes: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
 }
 
-export function validatePcapFile(file: File | null): { valid: boolean; error?: string } {
+export function validatePcapFile(
+  file: File | null,
+  maxBytes: number = MAX_PCAP_UPLOAD_BYTES
+): { valid: boolean; error?: string } {
   if (!file) {
     return { valid: false, error: 'No file selected.' }
   }
@@ -37,7 +40,7 @@ export function validatePcapFile(file: File | null): { valid: boolean; error?: s
   }
 
   // Strict byte comparison against canonical limit
-  if (file.size > MAX_PCAP_UPLOAD_BYTES) {
+  if (file.size > maxBytes) {
     return {
       valid: false,
       error: `Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`,

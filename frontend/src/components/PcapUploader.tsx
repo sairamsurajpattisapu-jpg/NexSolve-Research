@@ -1,6 +1,7 @@
 import { useState, type DragEvent } from 'react'
 import { AlertCircle, FileUp, Sparkles, Upload } from 'lucide-react'
 import { Panel } from './Ui'
+import { MAX_PCAP_UPLOAD_LABEL, validatePcapFile } from '../config/constants'
 
 interface PcapUploaderProps {
   onFileSelected: (file: File) => void
@@ -8,8 +9,6 @@ interface PcapUploaderProps {
   disabled?: boolean
   error?: string | null
 }
-
-const SUPPORTED_EXTS = ['.pcap', '.pcapng', '.csv']
 
 export function PcapUploader({
   onFileSelected,
@@ -23,10 +22,9 @@ export function PcapUploader({
 
   const validateAndSelect = (file: File | null) => {
     if (!file) return
-    const name = file.name.toLowerCase()
-    const isExtValid = SUPPORTED_EXTS.some((ext) => name.endsWith(ext))
-    if (!isExtValid) {
-      setValidationError('Unsupported format. Please select a valid .pcap, .pcapng, or .csv network trace.')
+    const validation = validatePcapFile(file)
+    if (!validation.valid) {
+      setValidationError(validation.error ?? `Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`)
       setSelectedFile(null)
       return
     }
@@ -90,7 +88,7 @@ export function PcapUploader({
             Drag and drop live network traffic captures to reconstruct transport flows, compile 60s temporal states, and execute continuous temporal attack forecasting.
           </p>
           <span style={{ display: 'block', marginTop: '8px', fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
-            Accepts PCAP, PCAPNG, or flow-telemetry CSV &middot; Max 64 MB &middot; 45-feature schema
+            Accepts PCAP, PCAPNG, or flow-telemetry CSV &middot; Max {MAX_PCAP_UPLOAD_LABEL} &middot; 45-feature schema
           </span>
         </div>
 

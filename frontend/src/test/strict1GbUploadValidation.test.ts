@@ -6,6 +6,7 @@ import {
   validatePcapFile,
   formatFileSize,
 } from '../config/constants'
+import { api, ApiError } from '../services/api'
 
 function createMockFile(name: string, size: number): File {
   const file = new File([], name)
@@ -121,5 +122,33 @@ describe('Strict 1 GiB PCAP/PCAPNG Upload Validation & Unit Conversion Suite', (
   it('13. Format utility renders readable units', () => {
     expect(formatFileSize(1073741824)).toBe('1 GB')
     expect(formatFileSize(100 * 1024 * 1024)).toBe('100 MB')
+  })
+
+  it('14. Validates optional maxBytes parameter in validatePcapFile', () => {
+    const file50Mb = createMockFile('traffic.pcap', 50 * 1024 * 1024)
+    expect(validatePcapFile(file50Mb, 20 * 1024 * 1024).valid).toBe(false)
+    expect(validatePcapFile(file50Mb, 100 * 1024 * 1024).valid).toBe(true)
+  })
+
+  it('15. Enforces MAX_PCAP_UPLOAD_BYTES client-side guard in api methods', async () => {
+    const oversizedFile = createMockFile('oversized.pcap', MAX_PCAP_UPLOAD_BYTES + 1)
+
+    await expect(api.uploadPcap(oversizedFile)).rejects.toThrow(ApiError)
+    await expect(api.uploadPcap(oversizedFile)).rejects.toMatchObject({
+      status: 413,
+      message: `Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`,
+    })
+
+    await expect(api.uploadPcapChunked(oversizedFile)).rejects.toThrow(ApiError)
+    await expect(api.uploadPcapChunked(oversizedFile)).rejects.toMatchObject({
+      status: 413,
+      message: `Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`,
+    })
+
+    await expect(api.createJob(oversizedFile)).rejects.toThrow(ApiError)
+    await expect(api.createJob(oversizedFile)).rejects.toMatchObject({
+      status: 413,
+      message: `Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`,
+    })
   })
 })

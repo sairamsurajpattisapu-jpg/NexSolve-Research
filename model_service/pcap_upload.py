@@ -77,7 +77,7 @@ def analyze_uploaded_capture(
         capture_size_bytes = file_path.stat().st_size
         if capture_size_bytes == 0:
             raise ValueError("The uploaded capture is empty.")
-        if capture_size_bytes > MAX_UPLOAD_BYTES:
+        if capture_size_bytes > MAX_PCAP_UPLOAD_BYTES:
             raise ValueError("Capture exceeds the maximum allowed upload size of 1 GiB.")
         with open(file_path, "rb") as f:
             magic = f.read(4)
@@ -87,7 +87,7 @@ def analyze_uploaded_capture(
         if not content:
             raise ValueError("The uploaded capture is empty.")
         capture_size_bytes = len(content)
-        if capture_size_bytes > MAX_UPLOAD_BYTES:
+        if capture_size_bytes > MAX_PCAP_UPLOAD_BYTES:
             raise ValueError("Capture exceeds the maximum allowed upload size of 1 GiB.")
         if content[:4] not in PCAP_MAGICS:
             raise RuntimeError("The file could not be parsed as a supported PCAP/PCAPNG capture.")

@@ -80,7 +80,12 @@ export function Dashboard() {
       setFile(null)
       return
     }
-    const validation = validatePcapFile(selected)
+    if (selected.size > MAX_PCAP_UPLOAD_BYTES) {
+      setSelectionError(`Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`)
+      setFile(null)
+      return
+    }
+    const validation = validatePcapFile(selected, MAX_PCAP_UPLOAD_BYTES)
     if (!validation.valid) {
       setSelectionError(validation.error ?? `Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`)
       setFile(null)
@@ -92,6 +97,10 @@ export function Dashboard() {
 
   const submitCapture = async () => {
     if (!file || uploading) return
+    if (file.size > MAX_PCAP_UPLOAD_BYTES) {
+      setSelectionError(`Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`)
+      return
+    }
     setUploading(true)
     setSelectionError(null)
     setUploadProgress({ loaded: 0, total: file.size, percentage: 0 })
