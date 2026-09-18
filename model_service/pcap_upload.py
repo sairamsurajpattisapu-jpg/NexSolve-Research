@@ -10,14 +10,13 @@ from typing import Any
 from ml.data.pcap_extractor import extract_canonical_capture
 from ml.detection import analyze_packet_windows, traffic_summary
 from model_service.database import DatabaseStorageError, get_analysis, persist_analysis
+from nexsolve_core.config import (
+    ALLOWED_EXTENSIONS,
+    MAX_PCAP_UPLOAD_BYTES,
+    MAX_UPLOAD_BYTES,
+    PCAP_MAGICS,
+)
 from nexsolve_core.state import build_network_state_candidates, build_state_history, evaluate_model_compatibility
-
-MAX_UPLOAD_BYTES = 64 * 1024 * 1024
-ALLOWED_EXTENSIONS = {".pcap", ".pcapng"}
-PCAP_MAGICS = {
-    bytes.fromhex("0a0d0d0a"), bytes.fromhex("d4c3b2a1"), bytes.fromhex("a1b2c3d4"),
-    bytes.fromhex("4d3cb2a1"), bytes.fromhex("a1b23c4d"), bytes.fromhex("d4c3b2a1"),
-}
 RUNTIME_DIR = Path(__file__).resolve().parents[1] / "runtime"
 RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
 MODEL_DIR = Path(__file__).resolve().parents[1] / "models" / "nexsolve_world_model"
@@ -63,21 +62,46 @@ def _validation(windows: list[dict[str, Any]], compatibility: dict[str, Any]) ->
     }
 
 
-def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
+def analyze_uploaded_capture(
+    filename: str,
+    content: bytes | None = None,
+    file_path: Path | None = None,
+) -> dict[str, Any]:
     suffix = Path(filename).suffix.lower()
     if suffix not in ALLOWED_EXTENSIONS:
         raise ValueError("Only .pcap and .pcapng captures are supported.")
-    if not content:
-        raise ValueError("The uploaded capture is empty.")
-    if len(content) > MAX_UPLOAD_BYTES:
-        raise ValueError(f"Capture exceeds the {MAX_UPLOAD_BYTES // (1024 * 1024)} MB upload limit.")
-    if content[:4] not in PCAP_MAGICS:
-        raise RuntimeError("The file could not be parsed as a supported PCAP/PCAPNG capture.")
+
+    if file_path is not None:
+        if not file_path.exists():
+            raise ValueError("The uploaded capture file does not exist.")
+        capture_size_bytes = file_path.stat().st_size
+        if capture_size_bytes == 0:
+            raise ValueError("The uploaded capture is empty.")
+        if capture_size_bytes > MAX_UPLOAD_BYTES:
+            raise ValueError("Capture exceeds the maximum allowed upload size of 1 GiB.")
+        with open(file_path, "rb") as f:
+            magic = f.read(4)
+        if magic not in PCAP_MAGICS:
+            raise RuntimeError("The file could not be parsed as a supported PCAP/PCAPNG capture.")
+    elif content is not None:
+        if not content:
+            raise ValueError("The uploaded capture is empty.")
+        capture_size_bytes = len(content)
+        if capture_size_bytes > MAX_UPLOAD_BYTES:
+            raise ValueError("Capture exceeds the maximum allowed upload size of 1 GiB.")
+        if content[:4] not in PCAP_MAGICS:
+            raise RuntimeError("The file could not be parsed as a supported PCAP/PCAPNG capture.")
+    else:
+        raise ValueError("Either content or file_path must be provided.")
 
     analysis_id = f"upload-{uuid.uuid4().hex}"
     with tempfile.TemporaryDirectory(prefix=f"nexsolve-{analysis_id}-", dir=RUNTIME_DIR) as work_dir:
         capture_path = Path(work_dir) / f"capture{suffix}"
-        capture_path.write_bytes(content)
+        if file_path is not None:
+            import shutil
+            shutil.copy2(str(file_path), str(capture_path))
+        else:
+            capture_path.write_bytes(content)  # type: ignore[arg-type]
         try:
             _packets, canonical_windows, quality = extract_canonical_capture(capture_path)
         except Exception as error:
@@ -559,8 +583,8 @@ def analyze_uploaded_capture(filename: str, content: bytes) -> dict[str, Any]:
     result = {
         "analysis_id": analysis_id,
         "status": "completed",
-        "source": {"name": filename, "kind": "uploaded_pcap", "filename": filename, "size_bytes": len(content)},
-        "upload": {"filename": filename, "size_bytes": len(content), "format": suffix[1:]},
+        "source": {"name": filename, "kind": "uploaded_pcap", "filename": filename, "size_bytes": capture_size_bytes},
+        "upload": {"filename": filename, "size_bytes": capture_size_bytes, "format": suffix[1:]},
         "validation": _validation(windows, compatibility),
         "model_compatibility": compatibility,
         "network_state": {

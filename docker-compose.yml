@@ -1,4 +1,4 @@
-﻿version: "3.8"
+version: "3.8"
 
 services:
   postgres:
@@ -31,7 +31,7 @@ services:
       NEXSOLVE_ENV: "production"
       DATABASE_URL: "postgresql+psycopg://nexsolve:nexsolve_secure_password@postgres:5432/nexsolve_db"
       NEXSOLVE_CORS_ORIGINS: "http://localhost:5173,http://localhost:80,http://127.0.0.1:5173"
-      NEXSOLVE_MAX_UPLOAD_BYTES: 67108864
+      NEXSOLVE_MAX_UPLOAD_BYTES: 1073741824
       NEXSOLVE_MAX_PACKETS: 100000
     ports:
       - "8001:8001"

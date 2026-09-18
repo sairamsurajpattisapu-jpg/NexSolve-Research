@@ -21,6 +21,12 @@ import { api, ApiError } from '../services/api'
 import type { JobStatusResponse, UploadedAnalysisResponse } from '../types/api'
 import { formatNumber } from '../utils/format'
 import {
+  MAX_PCAP_UPLOAD_BYTES,
+  MAX_PCAP_UPLOAD_LABEL,
+  MAX_PCAP_UPLOAD_DESCRIPTION,
+  validatePcapFile,
+} from '../config/constants'
+import {
   getAnalysisHistory,
   recordAnalysisHistory,
   clearAnalysisHistory,
@@ -32,6 +38,7 @@ export function Dashboard() {
   const { data, loading, error, reload, analyzePcap, clearUploadedAnalysis, clearUploadError, analysisSource, uploadError } = useProductionData()
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState<boolean>(false)
+  const [uploadProgress, setUploadProgress] = useState<{ loaded: number; total: number; percentage: number } | null>(null)
   const [selectionError, setSelectionError] = useState<string | null>(null)
   const [activeJob, setActiveJob] = useState<JobStatusResponse | null>(null)
   const [jobResult, setJobResult] = useState<UploadedAnalysisResponse | null>(null)
@@ -68,22 +75,14 @@ export function Dashboard() {
 
   const handleFileSelect = (selected: File | null) => {
     clearUploadError?.()
+    setUploadProgress(null)
     if (!selected) {
       setFile(null)
       return
     }
-    const name = selected.name.toLowerCase()
-    const isPcap = name.endsWith('.pcap') || name.endsWith('.pcapng')
-    const isCsv = name.endsWith('.csv')
-
-    if (!isPcap && !isCsv) {
-      setSelectionError('Choose a .pcap or .pcapng capture.')
-      setFile(null)
-    } else if (selected.size === 0) {
-      setSelectionError('The selected capture file is empty (0 bytes).')
-      setFile(null)
-    } else if (selected.size > 250 * 1024 * 1024) {
-      setSelectionError('Capture file exceeds maximum size limit (250 MB).')
+    const validation = validatePcapFile(selected)
+    if (!validation.valid) {
+      setSelectionError(validation.error ?? `Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`)
       setFile(null)
     } else {
       setSelectionError(null)
@@ -95,11 +94,14 @@ export function Dashboard() {
     if (!file || uploading) return
     setUploading(true)
     setSelectionError(null)
+    setUploadProgress({ loaded: 0, total: file.size, percentage: 0 })
     clearUploadError?.()
 
     try {
-      // Initiate asynchronous processing job
-      const job = await api.createJob(file)
+      // Initiate asynchronous processing job with chunked progress callback
+      const job = await api.createJob(file, (progress) => {
+        setUploadProgress(progress)
+      })
       setActiveJob(job)
       recordAnalysisHistory({
         id: job.job_id,
@@ -130,7 +132,11 @@ export function Dashboard() {
         if (err.status === 408) {
           setSelectionError('Upload request timed out. The file could not be transmitted in time. Please check your network connection and retry.')
         } else if (err.status === 413) {
-          setSelectionError('The capture exceeds the maximum allowed upload size (250 MB).')
+          setSelectionError(
+            err.message && err.message.toLowerCase().includes('exceeds')
+              ? err.message
+              : `Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`
+          )
         } else if (err.status === 415) {
           setSelectionError('Only .pcap and .pcapng captures are supported.')
         } else if (err.status === 422) {
@@ -254,7 +260,7 @@ export function Dashboard() {
                 Upload network telemetry to reconstruct the current network state and forecast future attack progression.
               </p>
               <small style={{ display: 'block', marginTop: '10px', fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
-                Supported: .pcap, .pcapng &middot; Maximum size: 250 MB
+                Supported: .pcap, .pcapng &middot; Maximum size: {MAX_PCAP_UPLOAD_DESCRIPTION}
               </small>
 
               <div className="capture-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center', marginTop: '16px', flexWrap: 'wrap' }}>
@@ -370,29 +376,53 @@ export function Dashboard() {
               style={{
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border)',
-                borderRadius: '4px',
-                padding: '10px 14px',
-                marginTop: '10px',
+                borderRadius: '6px',
+                padding: '14px 18px',
+                marginTop: '12px',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '12px',
+                flexDirection: 'column',
+                gap: '10px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className="pulse-dot" style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
-                <div>
-                  <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
-                    UPLOADING CAPTURE &middot;
-                  </span>{' '}
-                  <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    Transmitting {file?.name || 'capture'} to passive wire processing engine...
-                  </span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="pulse-dot" style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
+                  <div>
+                    <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
+                      {uploadProgress && uploadProgress.percentage >= 100 ? 'UPLOADED · INGESTING' : 'UPLOADING CAPTURE ·'}
+                    </span>{' '}
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      {uploadProgress && uploadProgress.percentage >= 100
+                        ? 'Transfer complete. Initializing passive wire pipeline...'
+                        : `Transmitting ${file?.name || 'capture'} to passive wire processing engine...`}
+                    </span>
+                  </div>
                 </div>
+                <span style={{ fontSize: '12px', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)' }}>
+                  {uploadProgress ? `${uploadProgress.percentage}%` : '0%'}
+                </span>
               </div>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
-                {file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : ''}
-              </span>
+
+              {/* Visual progress bar */}
+              <div style={{ width: '100%', height: '6px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    height: '100%',
+                    width: `${uploadProgress?.percentage ?? 0}%`,
+                    background: 'var(--accent)',
+                    transition: 'width 0.2s ease',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                <span>
+                  {uploadProgress
+                    ? `${(uploadProgress.loaded / (1024 * 1024)).toFixed(2)} MB of ${(uploadProgress.total / (1024 * 1024)).toFixed(2)} MB`
+                    : file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : ''}
+                </span>
+                <span>Chunked Resumable Stream</span>
+              </div>
             </div>
           )}
         </Panel>

@@ -152,6 +152,15 @@ def _validation(windows: list[dict[str, Any]], compatibility: dict[str, Any]) ->
     }
 
 
+def stream_file_hash(path: Path) -> str:
+    """Compute SHA-256 hash by streaming chunks to avoid loading large captures into RAM."""
+    hasher = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(65536):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
 def validate_pcap_bytes(filename: str, content: bytes) -> tuple[str, str]:
     """Validate PCAP extension, size, and magic bytes. Returns (clean_filename, suffix)."""
     raw_suffix = Path(filename).suffix.lower()
@@ -174,6 +183,34 @@ def validate_pcap_bytes(filename: str, content: bytes) -> tuple[str, str]:
     return clean_filename, suffix
 
 
+def validate_pcap_file(file_path: Path, filename: str | None = None) -> tuple[str, str, int]:
+    """Validate PCAP on disk without loading entire file into memory. Returns (clean_filename, suffix, file_size)."""
+    target_name = filename or file_path.name
+    raw_suffix = Path(target_name).suffix.lower()
+    if raw_suffix not in ALLOWED_EXTENSIONS:
+        raise ValueError("Only .pcap and .pcapng captures are supported.")
+    clean_filename = sanitize_filename(target_name)
+    suffix = Path(clean_filename).suffix.lower()
+    if not file_path.exists():
+        raise ValueError("The uploaded capture file does not exist.")
+    file_size = file_path.stat().st_size
+    if file_size == 0:
+        raise ValueError("The uploaded capture is empty.")
+    if file_size > MAX_UPLOAD_BYTES:
+        raise ResourceLimitExceededError(
+            resource="upload_bytes",
+            observed=file_size,
+            limit=MAX_UPLOAD_BYTES,
+            explanation=f"Capture size ({file_size:,} bytes) exceeds upload limit of {MAX_UPLOAD_BYTES:,} bytes.",
+            recoverable=False,
+        )
+    with open(file_path, "rb") as f:
+        magic = f.read(4)
+    if magic not in PCAP_MAGICS:
+        raise RuntimeError("The file could not be parsed as a supported PCAP/PCAPNG capture.")
+    return clean_filename, suffix, file_size
+
+
 class JobManager:
     """Thread-safe in-process asynchronous job manager for NexSolve."""
 
@@ -182,9 +219,22 @@ class JobManager:
         self._lock = threading.Lock()
         self._executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="nexsolve-job-worker")
 
-    def create_job(self, filename: str, content: bytes) -> JobRecord:
-        clean_name, suffix = validate_pcap_bytes(filename, content)
-        job_id = f"job-{hashlib.sha256(content[:64] + str(time.time()).encode()).hexdigest()[:12]}"
+    def create_job(
+        self,
+        filename: str,
+        content: bytes | None = None,
+        file_path: Path | None = None,
+    ) -> JobRecord:
+        if file_path is not None:
+            clean_name, suffix, _size = validate_pcap_file(file_path, filename)
+            with open(file_path, "rb") as f:
+                header = f.read(64)
+            job_id = f"job-{hashlib.sha256(header + str(time.time()).encode()).hexdigest()[:12]}"
+        elif content is not None:
+            clean_name, suffix = validate_pcap_bytes(filename, content)
+            job_id = f"job-{hashlib.sha256(content[:64] + str(time.time()).encode()).hexdigest()[:12]}"
+        else:
+            raise ValueError("Either content or file_path must be provided.")
         
         job = JobRecord(
             job_id=job_id,
@@ -198,7 +248,7 @@ class JobManager:
             self._jobs[job_id] = job
 
         # Submit worker
-        self._executor.submit(self._run_job, job_id, clean_name, suffix, content)
+        self._executor.submit(self._run_job, job_id, clean_name, suffix, content, file_path)
         return job
 
     def get_job(self, job_id: str) -> JobRecord | None:
@@ -212,9 +262,15 @@ class JobManager:
                 job.stage = stage
                 job.progress = STAGE_PROGRESS_MAP[stage]
 
-    def _run_job(self, job_id: str, clean_name: str, suffix: str, content: bytes) -> None:
+    def _run_job(
+        self,
+        job_id: str,
+        clean_name: str,
+        suffix: str,
+        content: bytes | None,
+        file_path: Path | None = None,
+    ) -> None:
         start_time = time.perf_counter()
-        capture_hash = hashlib.sha256(content).hexdigest()
 
         with self._lock:
             job = self._jobs.get(job_id)
@@ -231,7 +287,17 @@ class JobManager:
             t_parse_start = time.perf_counter()
             work_dir = tempfile.mkdtemp(prefix=f"nexsolve-{job_id}-", dir=RUNTIME_DIR)
             capture_path = Path(work_dir) / f"capture{suffix}"
-            capture_path.write_bytes(content)
+            if file_path is not None:
+                capture_size_bytes = file_path.stat().st_size
+                import shutil
+                shutil.move(str(file_path), str(capture_path))
+                capture_hash = stream_file_hash(capture_path)
+            elif content is not None:
+                capture_size_bytes = len(content)
+                capture_hash = hashlib.sha256(content).hexdigest()
+                capture_path.write_bytes(content)
+            else:
+                raise ValueError("No capture content provided.")
 
             try:
                 packets, canonical_windows, quality = extract_canonical_capture(capture_path)
@@ -540,8 +606,8 @@ class JobManager:
             analysis_result = {
                 "analysis_id": job_id,
                 "status": "completed",
-                "source": {"name": clean_name, "kind": "uploaded_pcap", "filename": clean_name, "size_bytes": len(content)},
-                "upload": {"filename": clean_name, "size_bytes": len(content), "format": suffix[1:]},
+                "source": {"name": clean_name, "kind": "uploaded_pcap", "filename": clean_name, "size_bytes": capture_size_bytes},
+                "upload": {"filename": clean_name, "size_bytes": capture_size_bytes, "format": suffix[1:]},
                 "validation": _validation(windows, compatibility),
                 "model_compatibility": compatibility,
                 "network_state": {

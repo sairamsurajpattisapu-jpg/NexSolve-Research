@@ -29,7 +29,7 @@ const FAQ_ITEMS: FaqItem[] = [
     category: 'Data Ingestion',
     question: 'Does NexSolve analyze PCAP files?',
     answer:
-      'Yes. NexSolve natively ingests microsecond-precision .pcap and .pcapng files up to 250 MB per capture. It parses packet headers, reconstructs bidirectional 5-tuple communication flows, measures inter-arrival times and packet size distributions, and segments the wire telemetry into ordered 60-second temporal windows.',
+      'Yes. NexSolve natively ingests microsecond-precision .pcap and .pcapng files up to 1 GiB (1,073,741,824 bytes) per capture. It parses packet headers, reconstructs bidirectional 5-tuple communication flows, measures inter-arrival times and packet size distributions, and segments the wire telemetry into ordered 60-second temporal windows.',
   },
   {
     id: 'post-upload-pipeline',

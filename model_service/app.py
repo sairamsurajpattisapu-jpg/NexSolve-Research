@@ -8,8 +8,11 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal
+import shutil
+import tempfile
+import uuid
 
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile, status
+from fastapi import Body, FastAPI, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,10 +24,21 @@ from ml.detection import analyze_packet_windows, traffic_summary
 from ml.forecasting import assemble_forecast_intelligence, compute_attack_horizon
 from model_service.database import DatabaseConfigurationError, DatabaseStorageError, delete_analysis
 from model_service.jobs import JOB_MANAGER
-from model_service.pcap_upload import ALLOWED_EXTENSIONS, MAX_UPLOAD_BYTES, PCAP_MAGICS, analyze_uploaded_capture, get_uploaded_analysis
-from nexsolve_core.config import ResourceLimitExceededError, sanitize_error_message, sanitize_filename
+from model_service.pcap_upload import ALLOWED_EXTENSIONS, PCAP_MAGICS, analyze_uploaded_capture, get_uploaded_analysis
+from nexsolve_core.config import (
+    MAX_PCAP_UPLOAD_BYTES,
+    MAX_PCAP_UPLOAD_SIZE,
+    MAX_UPLOAD_BYTES,
+    ResourceLimitExceededError,
+    sanitize_error_message,
+    sanitize_filename,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
+RUNTIME_DIR = ROOT / "runtime"
+RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+CHUNKS_DIR = RUNTIME_DIR / "chunks"
+CHUNKS_DIR.mkdir(parents=True, exist_ok=True)
 MODEL_DIR = ROOT / "models" / "nexsolve_world_model"
 CONFIG = json.loads((MODEL_DIR / "config.json").read_text(encoding="utf-8"))
 SCHEMA = json.loads((MODEL_DIR / "feature_schema.json").read_text(encoding="utf-8"))
@@ -304,26 +318,197 @@ async def resource_limit_exception_handler(_request: Request, exc: ResourceLimit
     return JSONResponse(status_code=status_code, content={"error": exc.to_dict()})
 
 
+class ChunkInitRequest(BaseModel):
+    filename: str
+    total_size: int
+    chunk_size: int = 5 * 1024 * 1024
+
+
+class ChunkCompleteRequest(BaseModel):
+    upload_id: str
+
+
+@app.post("/api/pcap/upload/init", status_code=201)
+async def init_chunked_upload(payload: ChunkInitRequest) -> dict[str, Any]:
+    raw_filename = payload.filename or "capture.pcap"
+    suffix = Path(raw_filename).suffix.lower()
+    if Path(raw_filename).name != raw_filename or suffix not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=415, detail="Only .pcap and .pcapng captures are supported.")
+    if payload.total_size <= 0:
+        raise HTTPException(status_code=400, detail="The uploaded capture is empty.")
+    if payload.total_size > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Capture exceeds the maximum allowed upload limit ({MAX_PCAP_UPLOAD_SIZE}).",
+        )
+
+    upload_id = f"upl-{uuid.uuid4().hex[:12]}"
+    session_dir = CHUNKS_DIR / upload_id
+    session_dir.mkdir(parents=True, exist_ok=True)
+    meta = {
+        "upload_id": upload_id,
+        "filename": raw_filename,
+        "total_size": payload.total_size,
+        "chunk_size": payload.chunk_size,
+        "created_at": time.time(),
+        "chunks_received": [],
+    }
+    (session_dir / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
+    return {
+        "upload_id": upload_id,
+        "filename": raw_filename,
+        "chunk_size": payload.chunk_size,
+        "max_size_bytes": MAX_PCAP_UPLOAD_BYTES,
+        "status": "INITIATED",
+    }
+
+
+@app.post("/api/pcap/upload/chunk", status_code=200)
+async def upload_chunk(
+    upload_id: str = Form(...),
+    chunk_index: int = Form(...),
+    chunk: UploadFile = File(...),
+) -> dict[str, Any]:
+    session_dir = CHUNKS_DIR / upload_id
+    meta_path = session_dir / "meta.json"
+    if not session_dir.exists() or not meta_path.exists():
+        raise HTTPException(status_code=404, detail="Upload session not found or expired.")
+
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    chunk_path = session_dir / f"chunk_{chunk_index:06d}.part"
+
+    chunk_bytes = await chunk.read()
+    chunk_path.write_bytes(chunk_bytes)
+
+    current_total = sum(p.stat().st_size for p in session_dir.glob("chunk_*.part"))
+    if current_total > MAX_UPLOAD_BYTES:
+        shutil.rmtree(session_dir, ignore_errors=True)
+        raise HTTPException(
+            status_code=413,
+            detail=f"Capture exceeds the maximum allowed upload limit ({MAX_PCAP_UPLOAD_SIZE}).",
+        )
+
+    if chunk_index not in meta["chunks_received"]:
+        meta["chunks_received"].append(chunk_index)
+        meta_path.write_text(json.dumps(meta), encoding="utf-8")
+
+    return {
+        "upload_id": upload_id,
+        "chunk_index": chunk_index,
+        "bytes_received": len(chunk_bytes),
+        "total_uploaded_bytes": current_total,
+        "status": "CHUNK_RECEIVED",
+    }
+
+
+@app.post("/api/pcap/upload/complete", status_code=202)
+async def complete_chunked_upload(payload: ChunkCompleteRequest) -> dict[str, Any]:
+    upload_id = payload.upload_id
+    session_dir = CHUNKS_DIR / upload_id
+    meta_path = session_dir / "meta.json"
+    if not session_dir.exists() or not meta_path.exists():
+        raise HTTPException(status_code=404, detail="Upload session not found or expired.")
+
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    filename = meta["filename"]
+    suffix = Path(filename).suffix.lower()
+
+    chunk_files = sorted(session_dir.glob("chunk_*.part"))
+    if not chunk_files:
+        shutil.rmtree(session_dir, ignore_errors=True)
+        raise HTTPException(status_code=400, detail="The uploaded capture is empty.")
+
+    assembled_path = session_dir / f"assembled{suffix}"
+    total_written = 0
+    with open(assembled_path, "wb") as outfile:
+        for cf in chunk_files:
+            with open(cf, "rb") as infile:
+                while block := infile.read(65536):
+                    outfile.write(block)
+                    total_written += len(block)
+                    if total_written > MAX_UPLOAD_BYTES:
+                        outfile.close()
+                        shutil.rmtree(session_dir, ignore_errors=True)
+                        raise HTTPException(
+                            status_code=413,
+                            detail=f"Capture exceeds the maximum allowed upload limit ({MAX_PCAP_UPLOAD_SIZE}).",
+                        )
+
+    try:
+        from model_service.jobs import validate_pcap_file
+        validate_pcap_file(assembled_path, filename)
+    except ResourceLimitExceededError:
+        shutil.rmtree(session_dir, ignore_errors=True)
+        raise HTTPException(
+            status_code=413,
+            detail=f"Capture exceeds the maximum allowed upload limit ({MAX_PCAP_UPLOAD_SIZE}).",
+        )
+    except ValueError as err:
+        shutil.rmtree(session_dir, ignore_errors=True)
+        raise HTTPException(status_code=400, detail=str(err))
+    except RuntimeError:
+        shutil.rmtree(session_dir, ignore_errors=True)
+        raise HTTPException(status_code=422, detail="The file could not be parsed as a supported PCAP/PCAPNG capture.")
+
+    job = JOB_MANAGER.create_job(filename=filename, file_path=assembled_path)
+    for cf in chunk_files:
+        cf.unlink(missing_ok=True)
+    meta_path.unlink(missing_ok=True)
+    return job.to_status_dict()
+
+
+@app.post("/api/pcap/upload/abort", status_code=200)
+async def abort_chunked_upload(payload: ChunkCompleteRequest) -> dict[str, Any]:
+    upload_id = payload.upload_id
+    session_dir = CHUNKS_DIR / upload_id
+    if session_dir.exists():
+        shutil.rmtree(session_dir, ignore_errors=True)
+    return {"upload_id": upload_id, "status": "ABORTED"}
+
+
 @app.post("/api/pcap/upload", status_code=202)
 @app.post("/jobs", status_code=202)
 async def create_processing_job(file: UploadFile = File(...)) -> dict[str, Any]:
     """Asynchronously ingest and analyze an uploaded PCAP/PCAPNG capture."""
     raw_filename = file.filename or "capture.pcap"
     suffix = Path(raw_filename).suffix.lower()
-    
+
     # Path traversal and extension validation
     if Path(raw_filename).name != raw_filename or suffix not in ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=415, detail="Only .pcap and .pcapng captures are supported.")
-    
-    content = await file.read(MAX_UPLOAD_BYTES + 1)
-    if len(content) > MAX_UPLOAD_BYTES:
-        raise HTTPException(status_code=413, detail=f"Capture exceeds the {MAX_UPLOAD_BYTES // (1024 * 1024)} MB upload limit.")
-    if not content:
+
+    CHUNK_SIZE = 64 * 1024
+    total_bytes = 0
+    with tempfile.NamedTemporaryFile(suffix=suffix, dir=RUNTIME_DIR, delete=False) as tmp:
+        temp_path = Path(tmp.name)
+        try:
+            while True:
+                chunk = await file.read(CHUNK_SIZE)
+                if not chunk:
+                    break
+                total_bytes += len(chunk)
+                if total_bytes > MAX_UPLOAD_BYTES:
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"Capture exceeds the maximum allowed upload limit ({MAX_PCAP_UPLOAD_SIZE}).",
+                    )
+                tmp.write(chunk)
+        except Exception:
+            tmp.close()
+            temp_path.unlink(missing_ok=True)
+            raise
+
+    if total_bytes == 0:
+        temp_path.unlink(missing_ok=True)
         raise HTTPException(status_code=400, detail="The uploaded capture is empty.")
-    if content[:4] not in PCAP_MAGICS:
+
+    with open(temp_path, "rb") as f:
+        magic = f.read(4)
+    if magic not in PCAP_MAGICS:
+        temp_path.unlink(missing_ok=True)
         raise HTTPException(status_code=422, detail="The file could not be parsed as a supported PCAP/PCAPNG capture.")
 
-    job = JOB_MANAGER.create_job(raw_filename, content)
+    job = JOB_MANAGER.create_job(raw_filename, file_path=temp_path)
     return job.to_status_dict()
 
 
@@ -521,13 +706,37 @@ async def get_demo_scenario_report_html(scenario_id: str) -> Response:
 async def analyze_pcap(file: UploadFile = File(...)) -> dict[str, Any]:
     """Analyze an uploaded capture without writing to production data."""
     filename = file.filename or "capture.pcap"
-    if Path(filename).name != filename or Path(filename).suffix.lower() not in ALLOWED_EXTENSIONS:
+    suffix = Path(filename).suffix.lower()
+    if Path(filename).name != filename or suffix not in ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=415, detail="Only .pcap and .pcapng captures are supported.")
-    content = await file.read(MAX_UPLOAD_BYTES + 1)
-    if len(content) > MAX_UPLOAD_BYTES:
-        raise HTTPException(status_code=413, detail=f"Capture exceeds the {MAX_UPLOAD_BYTES // (1024 * 1024)} MB upload limit.")
+
+    CHUNK_SIZE = 64 * 1024
+    total_bytes = 0
+    with tempfile.NamedTemporaryFile(suffix=suffix, dir=RUNTIME_DIR, delete=False) as tmp:
+        temp_path = Path(tmp.name)
+        try:
+            while True:
+                chunk = await file.read(CHUNK_SIZE)
+                if not chunk:
+                    break
+                total_bytes += len(chunk)
+                if total_bytes > MAX_UPLOAD_BYTES:
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"Capture exceeds the maximum allowed upload limit ({MAX_PCAP_UPLOAD_SIZE}).",
+                    )
+                tmp.write(chunk)
+        except Exception:
+            tmp.close()
+            temp_path.unlink(missing_ok=True)
+            raise
+
+    if total_bytes == 0:
+        temp_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail="The uploaded capture is empty.")
+
     try:
-        res = analyze_uploaded_capture(filename, content)
+        res = analyze_uploaded_capture(filename, file_path=temp_path)
         set_current_analysis(res["analysis_id"], res)
         return res
     except ValueError as error:
@@ -536,6 +745,8 @@ async def analyze_pcap(file: UploadFile = File(...)) -> dict[str, Any]:
         raise HTTPException(status_code=503, detail=str(error)) from error
     except RuntimeError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
+    finally:
+        temp_path.unlink(missing_ok=True)
 
 
 @app.delete("/api/analysis/{analysis_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)

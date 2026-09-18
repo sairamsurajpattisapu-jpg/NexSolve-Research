@@ -49,7 +49,7 @@ describe('End-to-End Analysis Experience & Product Journey (Prompt 3)', () => {
     // Primary upload action and specifications
     expect(screen.getByText(/Upload PCAP/i)).toBeInTheDocument()
     expect(screen.getByText(/\.pcap, \.pcapng/i)).toBeInTheDocument()
-    expect(screen.getByText(/250 MB/i)).toBeInTheDocument()
+    expect(screen.getByText(/1 GiB/i)).toBeInTheDocument()
   })
 
   it('3. File dropzone enforces .pcap/.pcapng validation and rejects invalid extensions', () => {

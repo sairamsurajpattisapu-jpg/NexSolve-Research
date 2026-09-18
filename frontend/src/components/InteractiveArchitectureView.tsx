@@ -30,7 +30,7 @@ const ARCHITECTURE_NODES: ArchitectureNode[] = [
     subtitle: 'Passive packet capture',
     layer: 'OBSERVE',
     icon: FileCode2,
-    details: 'Ingests standard .pcap / .pcapng files up to 64MB without requiring intrusive kernel drivers or active scanning.',
+    details: 'Ingests standard .pcap / .pcapng files up to 1 GiB without requiring intrusive kernel drivers or active scanning.',
     contract: 'Zero packet modification; sanitized parsing via Scapy/libpcap fallback.',
   },
   {

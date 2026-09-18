@@ -26,8 +26,10 @@ NEXSOLVE_LOG_LEVEL: str = os.getenv("NEXSOLVE_LOG_LEVEL", "info")
 # RESOURCE LIMITS (Configurable via environment variables with safe defaults)
 # =============================================================================
 
-# Maximum file size for uploaded PCAP/PCAPNG (default: 64 MB)
-MAX_UPLOAD_BYTES: int = int(os.getenv("NEXSOLVE_MAX_UPLOAD_BYTES", 64 * 1024 * 1024))
+# Maximum file size for uploaded PCAP/PCAPNG (default: 1 GiB = 1,073,741,824 bytes)
+MAX_PCAP_UPLOAD_BYTES: int = int(os.getenv("NEXSOLVE_MAX_UPLOAD_BYTES", 1024 * 1024 * 1024))
+MAX_UPLOAD_BYTES: int = MAX_PCAP_UPLOAD_BYTES
+MAX_PCAP_UPLOAD_SIZE: str = "1 GiB"
 
 # Maximum packets processed per single capture to prevent memory exhaustion (default: 100,000)
 MAX_PACKETS: int = int(os.getenv("NEXSOLVE_MAX_PACKETS", 100_000))

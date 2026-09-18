@@ -9,6 +9,8 @@ import type {
   JobStatusResponse,
 } from '../types/api'
 
+import { CHUNK_SIZE_BYTES, MAX_PCAP_UPLOAD_BYTES } from '../config/constants'
+
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 
 export class ApiError extends Error {
@@ -23,7 +25,9 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response
-  const timeoutMs = 45000
+  // Allow longer timeout for large payloads / uploads
+  const isUpload = Boolean(init?.body && (init.body instanceof FormData || typeof init.body === 'string'))
+  const timeoutMs = isUpload ? 180000 : 45000
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
 
@@ -99,10 +103,127 @@ export const api = {
     body.append('file', file)
     return request<UploadedAnalysisResponse>('/api/pcap/analyze', { method: 'POST', body })
   },
-  createJob: (file: File) => {
+  uploadPcapChunked: async (
+    file: File,
+    onProgress?: (progress: { loaded: number; total: number; percentage: number }) => void,
+    signal?: AbortSignal
+  ): Promise<JobStatusResponse> => {
+    // 1. Initialize session
+    const initRes = await request<{
+      upload_id: string
+      filename: string
+      chunk_size: number
+      max_size_bytes: number
+      status: string
+    }>('/api/pcap/upload/init', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filename: file.name,
+        total_size: file.size,
+        chunk_size: CHUNK_SIZE_BYTES,
+      }),
+      signal,
+    })
+
+    const uploadId = initRes.upload_id
+    const chunkSize = initRes.chunk_size || CHUNK_SIZE_BYTES
+    const totalChunks = Math.ceil(file.size / chunkSize)
+    let uploadedBytes = 0
+
+    onProgress?.({ loaded: 0, total: file.size, percentage: 0 })
+
+    // 2. Transmit each chunk with retry logic
+    for (let i = 0; i < totalChunks; i++) {
+      if (signal?.aborted) {
+        await request('/api/pcap/upload/abort', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ upload_id: uploadId }),
+        }).catch(() => {})
+        throw new ApiError('Upload cancelled.', 0)
+      }
+
+      const start = i * chunkSize
+      const end = Math.min(file.size, start + chunkSize)
+      const chunkBlob = file.slice(start, end)
+
+      let attempts = 0
+      const maxRetries = 3
+      let chunkUploaded = false
+
+      while (!chunkUploaded) {
+        try {
+          attempts++
+          const formData = new FormData()
+          formData.append('upload_id', uploadId)
+          formData.append('chunk_index', i.toString())
+          formData.append('chunk', chunkBlob, file.name)
+
+          await request<{ upload_id: string; chunk_index: number; status: string }>(
+            '/api/pcap/upload/chunk',
+            {
+              method: 'POST',
+              body: formData,
+              signal,
+            }
+          )
+          chunkUploaded = true
+          uploadedBytes += (end - start)
+          const percentage = Math.min(100, Math.round((uploadedBytes / file.size) * 100))
+          onProgress?.({ loaded: uploadedBytes, total: file.size, percentage })
+        } catch (err) {
+          if (
+            err instanceof ApiError &&
+            (err.status === 413 || err.status === 415 || err.status === 400 || err.status === 422)
+          ) {
+            throw err
+          }
+          if (attempts >= maxRetries || signal?.aborted) {
+            await request('/api/pcap/upload/abort', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ upload_id: uploadId }),
+            }).catch(() => {})
+            throw err
+          }
+          await new Promise((resolve) => setTimeout(resolve, attempts * 400))
+        }
+      }
+    }
+
+    // 3. Complete chunked upload
+    return request<JobStatusResponse>('/api/pcap/upload/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ upload_id: uploadId }),
+      signal,
+    })
+  },
+  createJob: async (
+    file: File,
+    onProgress?: (progress: { loaded: number; total: number; percentage: number }) => void,
+    signal?: AbortSignal
+  ): Promise<JobStatusResponse> => {
+    // For captures larger than 5 MB, use chunked upload to protect memory and avoid reverse proxy timeouts
+    if (file.size > CHUNK_SIZE_BYTES) {
+      try {
+        return await api.uploadPcapChunked(file, onProgress, signal)
+      } catch (err) {
+        // If chunked endpoints are not available (e.g. legacy backend returning 404), fall back to direct upload
+        if (err instanceof ApiError && err.status === 404) {
+          const body = new FormData()
+          body.append('file', file)
+          return request<JobStatusResponse>('/jobs', { method: 'POST', body, signal })
+        }
+        throw err
+      }
+    }
+
     const body = new FormData()
     body.append('file', file)
-    return request<JobStatusResponse>('/jobs', { method: 'POST', body })
+    onProgress?.({ loaded: file.size, total: file.size, percentage: 100 })
+    return request<JobStatusResponse>('/jobs', { method: 'POST', body, signal })
   },
   getJobStatus: (jobId: string) => request<JobStatusResponse>(`/jobs/${jobId}`),
   getJobResult: (jobId: string) => request<UploadedAnalysisResponse>(`/jobs/${jobId}/result`),

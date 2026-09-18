@@ -20,7 +20,7 @@ const PIPELINE_STEPS = [
     eyebrow: 'Boundary Verification',
     description:
       'Reads raw microsecond packet streams or packet captures (.pcap, .pcapng). Enforces snaplen bounds clamping, strict magic-byte verification, and packet deduplication without payload tampering.',
-    tech: 'libpcap wire ingestion · Zero payload modification · 250 MB boundary clamping',
+    tech: 'libpcap wire ingestion · Zero payload modification · 1 GiB boundary clamping',
   },
   {
     id: 'normalize',

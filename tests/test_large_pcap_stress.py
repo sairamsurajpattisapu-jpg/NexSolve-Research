@@ -1,4 +1,4 @@
-﻿"""Deterministic automated regression tests for large-PCAP stress, performance, and resource limits."""
+"""Deterministic automated regression tests for large-PCAP stress, performance, and resource limits."""
 from __future__ import annotations
 
 import tempfile
@@ -133,16 +133,18 @@ def test_case_c_high_density_10windows_stress():
     assert check_runtime_leaks() - initial_leaks == 0
 
 
-def test_case_d_oversized_upload_rejection_at_ingress():
+def test_case_d_oversized_upload_rejection_at_ingress(monkeypatch):
     """Upload exceeding MAX_UPLOAD_BYTES is rejected at ingress before parsing."""
-    oversized_content = b"\xd4\xc3\xb2\xa1" + b"\x00" * (MAX_UPLOAD_BYTES + 10)
+    import model_service.jobs as jobs_mod
+    monkeypatch.setattr(jobs_mod, "MAX_UPLOAD_BYTES", 64)
+    oversized_content = b"\xd4\xc3\xb2\xa1" + b"\x00" * 70
     with pytest.raises(ResourceLimitExceededError) as exc_info:
         validate_pcap_bytes("large_capture.pcap", oversized_content)
 
     err = exc_info.value
     assert err.resource == "upload_bytes"
-    assert err.limit == MAX_UPLOAD_BYTES
-    assert err.observed > MAX_UPLOAD_BYTES
+    assert err.limit == 64
+    assert err.observed > 64
 
 
 def test_case_d_packet_count_limit_exceeded(monkeypatch):
