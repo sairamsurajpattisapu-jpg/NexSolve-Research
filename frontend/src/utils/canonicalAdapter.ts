@@ -163,7 +163,7 @@ export function adaptToCanonical(
           behavioralRationale: String(attrObj.behavioral_rationale ?? attrObj.behavioralRationale ?? ''),
           topObservableDrivers: topObs,
           epistemicCertainty: String(attrObj.epistemic_certainty ?? attrObj.epistemicCertainty ?? 'HIGH_CONFIDENCE'),
-          supportingSignals: Array.isArray(attrObj.supporting_signals ?? attrObj.supportingSignals) ? (attrObj.supporting_signals ?? attrObj.supportingSignals).map(String) : [],
+          supportingSignals: (() => { const rawSignals: unknown = attrObj.supporting_signals ?? attrObj.supportingSignals; return Array.isArray(rawSignals) ? rawSignals.map(String) : [] })(),
         }
       }
 

@@ -12,8 +12,6 @@ import {
   Compass,
   Radio,
   HelpCircle,
-  Activity,
-  ArrowRight,
 } from 'lucide-react'
 
 interface IncidentStoryPanelProps {
