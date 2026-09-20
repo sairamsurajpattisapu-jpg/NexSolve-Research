@@ -37,7 +37,7 @@ export function Threats() {
   return (
     <div className="page-stack page-enter">
       <SectionHeading eyebrow="Threats / Evidence" title="Detection findings & Forecast Trust Layer" description={`Traffic-derived indicators, attack horizon, and deterministic evidence chain from ${data.results.source?.name ?? 'the completed packet analysis'}.`} action={<span className="method-badge">PREDICTIVE INTELLIGENCE</span>} />
-      <ForecastTrustPanel initialResponse={trustResponse} allowFixtureSwitching={!trustResponse || Boolean(data.results.is_demo)} />
+      <ForecastTrustPanel initialResponse={trustResponse} allowFixtureSwitching={!trustResponse} />
       <Panel className="filter-panel">
         <div className="search-field"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search findings or evidence" aria-label="Search findings" /></div>
         <div className="select-wrap"><SlidersHorizontal size={15} /><select value={severity} onChange={(event) => setSeverity(event.target.value)} aria-label="Filter severity"><option value="all">All severity</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>

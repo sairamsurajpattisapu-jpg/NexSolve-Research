@@ -178,3 +178,57 @@ def test_serialization_deterministic():
     story2 = build_incident_story(windows=[{"window_index": 0}, {"window_index": 1}], observed_findings=findings, window_count=2)
 
     assert story1.to_dict() == story2.to_dict()
+
+
+def test_multi_horizon_and_escalation_events():
+    findings = [
+        {"finding_id": "f1", "source_ip": "192.168.1.50", "attack_category": "Port Scan", "window_index": 1}
+    ]
+
+    class DummyForecastPoint:
+        def __init__(self, h, state="RECONNAISSANCE", prob=0.95):
+            self.horizon_minutes = h
+            self.horizon = h
+            self.predicted_state = state
+            self.predicted_technique = "T1046"
+            self.prediction_type = "STATE_PERSISTENCE"
+            self.transition_probability = prob
+            self.lead_time_seconds = h * 60
+            self.abstained = False
+            self.supporting_evidence = ("dummy_evidence",)
+
+    class DummyProgression:
+        verdict = "SUPPORTED"
+        forecast_points = [DummyForecastPoint(1), DummyForecastPoint(2), DummyForecastPoint(3)]
+
+    class DummyAttackHorizon:
+        state = "SUSTAINED_ATTACK_FORECAST"
+        escalation_horizon = 2
+        lead_time_to_escalation_seconds = 120
+        lead_time_seconds = 60
+        horizon_windows = 4
+
+    story = build_incident_story(
+        windows=[{"window_index": 0}, {"window_index": 1}],
+        observed_findings=findings,
+        attack_progression=DummyProgression(),
+        attack_horizon=DummyAttackHorizon(),
+        window_count=2,
+    )
+    assert story is not None
+
+    # Check forecast events generated for horizons T+1, T+2, T+3
+    fc_events = [e for e in story.events if e.event_type == IncidentEventType.FORECAST_AVAILABLE]
+    assert len(fc_events) == 3
+    assert [e.window_index for e in fc_events] == [3, 4, 5]
+
+    # Check dedicated escalation event
+    esc_events = [e for e in story.events if e.event_type == IncidentEventType.ESCALATION_PREDICTED]
+    assert len(esc_events) == 1
+    assert esc_events[0].window_index == 4  # total_windows(2) + escalation_horizon(2)
+    assert "SUSTAINED_ATTACK_FORECAST" in esc_events[0].observed_facts[0]
+    assert "120s" in esc_events[0].observed_facts[0]
+
+    # Check narrative paragraphs include multi-step forecast and attack horizon notes
+    assert any("Multi-step Markovian progression" in p for p in story.narrative_paragraphs)
+    assert any("Attack Horizon determination confirms state SUSTAINED_ATTACK_FORECAST" in p for p in story.narrative_paragraphs)

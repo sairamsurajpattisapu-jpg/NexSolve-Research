@@ -36,7 +36,20 @@ class BeaconingSignal:
     explanation: str
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {
+            "src_ip": self.src_ip,
+            "dst_ip": self.dst_ip,
+            "dst_port": self.dst_port,
+            "protocol": self.protocol,
+            "connection_count": self.connection_count,
+            "mean_interval_seconds": self.mean_interval_seconds,
+            "std_interval_seconds": self.std_interval_seconds,
+            "coefficient_of_variation": self.coefficient_of_variation,
+            "score": self.score,
+            "confidence": self.confidence,
+            "is_beaconing": self.is_beaconing,
+            "explanation": self.explanation,
+        }
 
 
 @dataclass(frozen=True)
@@ -50,7 +63,14 @@ class DnsEntropySignal:
     explanation: str
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {
+            "domain": self.domain,
+            "query_count": self.query_count,
+            "shannon_entropy": self.shannon_entropy,
+            "mean_length": self.mean_length,
+            "is_suspicious": self.is_suspicious,
+            "explanation": self.explanation,
+        }
 
 
 @dataclass(frozen=True)

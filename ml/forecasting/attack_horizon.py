@@ -70,11 +70,23 @@ class AttackHorizonResult:
     evidence_chain: list[dict[str, Any]]
     abstention_reason: str | None
     summary: str
+    current_stage: str | None = None
+    escalation_horizon: int | None = None
+    lead_time_to_escalation_seconds: int | None = None
+    corroborating_findings: list[str] | None = None
+    transition_interval_bounds: tuple[int, int] | None = None  # [lower_bound_sec, upper_bound_sec]
+    trajectory_stability: str = "MODERATE"  # "HIGH", "MODERATE", "LOW"
+    evidence_density: str = "NORMAL"  # "HIGH", "NORMAL", "SPARSE"
 
     def to_dict(self) -> dict[str, Any]:
         result = asdict(self)
         result["state"] = self.state.value
+        if self.corroborating_findings is None:
+            result["corroborating_findings"] = []
+        if self.transition_interval_bounds is not None:
+            result["transition_interval_bounds"] = list(self.transition_interval_bounds)
         return result
+
 
 
 def parse_timestamp(timestamp: int | float | str | datetime) -> tuple[int, str]:
@@ -132,6 +144,9 @@ def compute_attack_horizon(
     abstention_reason: str | None = None,
     calibration_status: str = "UNSUPPORTED",
     uncertainty_band: float = 0.03,
+    observed_findings: Sequence[Mapping[str, Any]] | None = None,
+    attack_progression: Any = None,
+    behavioral_report: Any = None,
 ) -> AttackHorizonResult:
     """Compute attack horizon, lead time, and temporal persistence.
 
@@ -151,6 +166,12 @@ def compute_attack_horizon(
         Calibration evaluation status of forecasting model.
     uncertainty_band : float, default 0.03
         Score proximity to threshold considered hovering uncertainty.
+    observed_findings : Sequence[Mapping[str, Any]] | None, optional
+        Observed detection findings at T_0.
+    attack_progression : Any, optional
+        Markovian attack progression forecast.
+    behavioral_report : Any, optional
+        Behavioral intelligence report.
     """
     epoch_0, iso_0 = parse_timestamp(current_timestamp)
 
@@ -338,6 +359,55 @@ def compute_attack_horizon(
             f"duration isolated to {horizon_sec}s (1 window). Temporal consistency: {consistency:.2f}."
         )
 
+    # 7. Synthesize Multi-Modal Context (Progression, Observed Findings, Behavioral Signals)
+    current_stage = None
+    escalation_h = None
+    lead_time_to_escalation = None
+    corroborating_findings: list[str] = []
+
+    if attack_progression is not None:
+        obs_st = getattr(attack_progression, "observed_state", None)
+        if obs_st is not None:
+            current_stage = obs_st.value if hasattr(obs_st, "value") else str(obs_st)
+        pts = getattr(attack_progression, "forecast_points", ()) or ()
+        for pt in pts:
+            pred_type = getattr(pt, "prediction_type", None)
+            pt_type_val = pred_type.value if hasattr(pred_type, "value") else str(pred_type)
+            if pt_type_val == "DOWNSTREAM_PROGRESSION" and not getattr(pt, "abstained", False):
+                h_min = getattr(pt, "horizon_minutes", 1)
+                escalation_h = int(h_min)
+                lead_time_to_escalation = int(getattr(pt, "lead_time_seconds", escalation_h * window_seconds))
+                break
+
+    if observed_findings:
+        for f in observed_findings:
+            f_cat = str(f.get("attack_category") or f.get("category") or "").strip()
+            f_rule = str(f.get("rule_id") or f.get("finding_id") or "").strip()
+            desc = f"{f_rule}: {f_cat}" if f_rule and f_cat else (f_cat or f_rule)
+            if desc and desc not in corroborating_findings:
+                corroborating_findings.append(desc)
+
+    # Enrich summary if escalation was identified
+    if escalation_h is not None and lead_time_to_escalation is not None:
+        summary += f" Downstream escalation projected at T+{escalation_h} (lead time {lead_time_to_escalation}s)."
+
+    # 8. Compute probabilistic bounds, trajectory stability, and evidence density
+    transition_interval_bounds = (max(0, lead_time_sec - 120), lead_time_sec + 180)
+    if consistency >= 0.85:
+        trajectory_stability = "HIGH"
+    elif consistency >= 0.50:
+        trajectory_stability = "MODERATE"
+    else:
+        trajectory_stability = "LOW"
+
+    total_evidence_count = len(parsed_evidence) + len(corroborating_findings)
+    if total_evidence_count >= 5:
+        evidence_density = "HIGH"
+    elif total_evidence_count >= 2:
+        evidence_density = "NORMAL"
+    else:
+        evidence_density = "SPARSE"
+
     return AttackHorizonResult(
         state=state,
         onset_horizon=onset_h,
@@ -354,6 +424,13 @@ def compute_attack_horizon(
         evidence_chain=[e.to_dict() for e in parsed_evidence],
         abstention_reason=None,
         summary=summary,
+        current_stage=current_stage,
+        escalation_horizon=escalation_h,
+        lead_time_to_escalation_seconds=lead_time_to_escalation,
+        corroborating_findings=corroborating_findings,
+        transition_interval_bounds=transition_interval_bounds,
+        trajectory_stability=trajectory_stability,
+        evidence_density=evidence_density,
     )
 
 

@@ -1,5 +1,5 @@
 export type Severity = 'high' | 'medium' | 'low'
-export type AnalysisProvenance = 'reference' | 'uploaded' | 'demo'
+export type AnalysisProvenance = 'reference' | 'uploaded'
 
 export interface HealthResponse {
   service_status: string
@@ -170,11 +170,6 @@ export interface AnalysisResults {
   unknown_behavior?: UnknownBehaviorPayload | null
   unknownBehavior?: UnknownBehaviorPayload | null
   abstention?: ForecastAbstentionPayload | null
-  is_demo?: boolean
-  demo_scenario_id?: string
-  demo_scenario_name?: string
-  demo_scenario_description?: string
-  demo_expected_behavior?: string
   processing_metrics?: Record<string, number>
 }
 
@@ -275,11 +270,6 @@ export interface UploadedAnalysisResponse {
   unknown_behavior?: UnknownBehaviorPayload | null
   unknownBehavior?: UnknownBehaviorPayload | null
   abstention?: ForecastAbstentionPayload | null
-  is_demo?: boolean
-  demo_scenario_id?: string
-  demo_scenario_name?: string
-  demo_scenario_description?: string
-  demo_expected_behavior?: string
   processing_metrics?: Record<string, number>
 }
 
@@ -325,6 +315,27 @@ export interface AttackHorizonPayload {
   evidence_chain: HorizonEvidence[]
   abstention_reason: string | null
   summary: string
+  current_stage?: string | null
+  escalation_horizon?: number | null
+  lead_time_to_escalation_seconds?: number | null
+  corroborating_findings?: string[]
+}
+
+export interface EvidenceAttributionPayload {
+  predicted_stage: string
+  mitre_technique: string
+  behavioral_rationale: string
+  top_observable_drivers: Array<{
+    feature: string
+    current_value: number
+    predicted_value: number
+    direction: string
+    relative_change: number
+    importance: string
+    interpretation: string
+  }>
+  epistemic_certainty: string
+  supporting_signals: string[]
 }
 
 export interface ForecastPoint {
@@ -346,6 +357,7 @@ export interface ForecastPoint {
     importance: string
     interpretation: string
   }>
+  evidenceAttribution?: EvidenceAttributionPayload | null
 }
 
 export type PredictionType = 'STATE_PERSISTENCE' | 'DOWNSTREAM_PROGRESSION' | 'ABSTAINED'
@@ -372,6 +384,18 @@ export interface AttackProgressionForecast {
   unsupported_horizons: number[]
   verdict: 'PARTIALLY_SUPPORTED' | 'SUPPORTED' | 'ABSTAINED'
   summary: string
+  continuous_timeline?: Array<{
+    step: number
+    horizon_label: string
+    horizon_minutes: number
+    lead_time_seconds: number
+    stage: string
+    techniques: string[]
+    prediction_type: string
+    probability: number | null
+    status: string
+    evidence: string[]
+  }>
 }
 
 export interface EvidenceItemPayload {
@@ -490,6 +514,18 @@ export interface EvidenceChainItem {
   mitre_technique_id?: string | null
 }
 
+export interface EntityDossierPayload {
+  entity_key: string
+  total_associated_nodes: number
+  inbound_peers: string[]
+  outbound_peers: string[]
+  targeted_ports: number[]
+  attack_states: GraphNodePayload[]
+  findings: GraphNodePayload[]
+  sessions: GraphNodePayload[]
+  behavior_signals: GraphNodePayload[]
+}
+
 export interface EvidenceGraphPayload {
   statistics: {
     total_nodes: number
@@ -503,6 +539,7 @@ export interface EvidenceGraphPayload {
   nodes: GraphNodePayload[]
   edges: GraphEdgePayload[]
   chains: EvidenceChainItem[]
+  dossiers?: Record<string, EntityDossierPayload>
 }
 
 export interface BehavioralEpisodePayload {

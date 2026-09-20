@@ -55,7 +55,10 @@ class InvestigationFinding:
     provenance: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        d = getattr(self, "_dict_cache", None)
+        if d is not None:
+            return d
+        d = {
             "finding_id": self.finding_id,
             "title": self.title,
             "category": self.category,
@@ -67,6 +70,8 @@ class InvestigationFinding:
             "supporting_evidence_keys": list(self.supporting_evidence_keys),
             "provenance": self.provenance,
         }
+        object.__setattr__(self, "_dict_cache", d)
+        return d
 
 
 @dataclass(frozen=True)
@@ -84,11 +89,15 @@ class InvestigationRelationship:
     provenance: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        d = getattr(self, "_dict_cache", None)
+        if d is not None:
+            return d
+        rel_type = self.relationship_type.value if hasattr(self.relationship_type, "value") else self.relationship_type
+        d = {
             "relationship_id": self.relationship_id,
             "source_entity": self.source_entity,
             "target_entity": self.target_entity,
-            "relationship_type": self.relationship_type.value,
+            "relationship_type": rel_type,
             "supporting_reasons": list(self.supporting_reasons),
             "supporting_evidence": list(self.supporting_evidence),
             "first_seen": self.first_seen,
@@ -96,6 +105,8 @@ class InvestigationRelationship:
             "observed_status": self.observed_status,
             "provenance": self.provenance,
         }
+        object.__setattr__(self, "_dict_cache", d)
+        return d
 
 
 @dataclass(frozen=True)
@@ -115,7 +126,10 @@ class InvestigationTimelineEvent:
     provenance: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        d = getattr(self, "_dict_cache", None)
+        if d is not None:
+            return d
+        d = {
             "event_id": self.event_id,
             "timestamp": self.timestamp,
             "window_index": self.window_index,
@@ -129,6 +143,8 @@ class InvestigationTimelineEvent:
             "supporting_evidence_keys": list(self.supporting_evidence_keys),
             "provenance": self.provenance,
         }
+        object.__setattr__(self, "_dict_cache", d)
+        return d
 
 
 @dataclass(frozen=True)
@@ -149,9 +165,13 @@ class InvestigationSubject:
     provenance: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        d = getattr(self, "_dict_cache", None)
+        if d is not None:
+            return d
+        sub_type = self.subject_type.value if hasattr(self.subject_type, "value") else self.subject_type
+        d = {
             "subject_id": self.subject_id,
-            "subject_type": self.subject_type.value,
+            "subject_type": sub_type,
             "label": self.label,
             "first_seen": self.first_seen,
             "last_seen": self.last_seen,
@@ -164,6 +184,8 @@ class InvestigationSubject:
             "summary": self.summary,
             "provenance": self.provenance,
         }
+        object.__setattr__(self, "_dict_cache", d)
+        return d
 
 
 @dataclass(frozen=True)

@@ -67,6 +67,7 @@ class IncidentEventType(str, Enum):
     CAPTURE_BOUNDARY = "CAPTURE_BOUNDARY"
     FORECAST_AVAILABLE = "FORECAST_AVAILABLE"
     FORECAST_ABSTAINED = "FORECAST_ABSTAINED"
+    ESCALATION_PREDICTED = "ESCALATION_PREDICTED"
     CONTRADICTION_DETECTED = "CONTRADICTION_DETECTED"
 
 
@@ -359,6 +360,7 @@ def build_incident_story(
     contradictions: Sequence[Any] | None = None,
     attack_progression: Any = None,
     forecast_points: Sequence[Mapping[str, Any]] | None = None,
+    attack_horizon: Any = None,
     analyst_decisions: Sequence[Any] | None = None,
     window_count: int = 1,
 ) -> IncidentStory | None:
@@ -628,7 +630,7 @@ def build_incident_story(
         explanation=boundary_explanation,
     ))
 
-    # Event: Forecast Available or Abstained
+    # Event: Multi-Horizon Forecast Points (T+1 to T+5) and Escalation Horizon
     forecast_text = None
     if attack_progression:
         pred_pts = getattr(attack_progression, "forecast_points", ())
@@ -636,26 +638,81 @@ def build_incident_story(
         if pred_pts and verdict == "SUPPORTED":
             first_pt = pred_pts[0]
             pred_st = getattr(first_pt, "predicted_state", "STATE")
-            prob = getattr(first_pt, "transition_probability", 0.0)
-            forecast_text = f"T+1 Markovian forecast predicts {pred_st} (Empirical probability: {prob*100:.1f}%)."
-            raw_events.append(IncidentEvent(
-                event_id=deterministic_id("evt", "FORECAST", total_windows + 1),
-                timestamp=float((total_windows + 1) * 60.0),
-                window_index=total_windows + 1,
-                event_type=IncidentEventType.FORECAST_AVAILABLE,
-                actor="FORECAST_MODEL",
-                target=None,
-                observed_facts=(forecast_text,),
-                supporting_evidence_ids=("attack_progression_k1",),
-                supporting_graph_nodes=(),
-                supporting_graph_edges=(),
-                attack_state=str(pred_st),
-                mitre_technique=getattr(first_pt, "predicted_technique", None),
-                grounding=EvidenceGroundingState.FORECAST_ONLY,
-                epistemic_status=IncidentEventEpistemicStatus.FORECAST,
-                uncertainty=IncidentUncertaintyLevel.LOW,
-                explanation="Statistically empirical attack-stage persistence model projection.",
-            ))
+            pred_st_val = getattr(pred_st, "value", str(pred_st))
+            prob = getattr(first_pt, "transition_probability", 0.0) or 0.0
+            pred_type = getattr(first_pt, "prediction_type", None)
+            pred_type_val = getattr(pred_type, "value", str(pred_type or "STATE_PERSISTENCE"))
+            forecast_text = f"T+1 Markovian forecast predicts {pred_st_val} ({pred_type_val}, Empirical probability: {prob*100:.1f}%)."
+
+            # Roll out all supported horizon points (T+1 .. T+5)
+            for pt in pred_pts:
+                h_min = getattr(pt, "horizon_minutes", getattr(pt, "horizon", 1))
+                if getattr(pt, "abstained", False):
+                    continue
+                pt_state = getattr(pt, "predicted_state", "STATE")
+                pt_state_val = getattr(pt_state, "value", str(pt_state))
+                pt_prob = getattr(pt, "transition_probability", 0.0) or 0.0
+                pt_type = getattr(pt, "prediction_type", None)
+                pt_type_val = getattr(pt_type, "value", str(pt_type or "STATE_PERSISTENCE"))
+                pt_tech = getattr(pt, "predicted_technique", None)
+                pt_lead = getattr(pt, "lead_time_seconds", h_min * 60)
+
+                pt_desc = (
+                    f"T+{h_min} forecast ({h_min*60}s forward): predicts {pt_state_val} via {pt_type_val} "
+                    f"(empirical transition probability: {pt_prob*100:.1f}%, lead time: {pt_lead}s)."
+                )
+
+                raw_events.append(IncidentEvent(
+                    event_id=deterministic_id("evt", "FORECAST", total_windows + h_min),
+                    timestamp=float((total_windows + h_min) * 60.0),
+                    window_index=total_windows + h_min,
+                    event_type=IncidentEventType.FORECAST_AVAILABLE,
+                    actor="FORECAST_MODEL",
+                    target=None,
+                    observed_facts=(pt_desc,),
+                    supporting_evidence_ids=(f"attack_progression_k{h_min}",),
+                    supporting_graph_nodes=(),
+                    supporting_graph_edges=(),
+                    attack_state=pt_state_val,
+                    mitre_technique=pt_tech,
+                    grounding=EvidenceGroundingState.FORECAST_ONLY,
+                    epistemic_status=IncidentEventEpistemicStatus.FORECAST,
+                    uncertainty=IncidentUncertaintyLevel.LOW if h_min <= 3 else IncidentUncertaintyLevel.MODERATE,
+                    explanation=f"Markovian progression model projection at T+{h_min} ({pt_type_val}).",
+                ))
+
+            # If Attack Horizon predicts escalation or early signal, log dedicated ESCALATION_PREDICTED event
+            if attack_horizon:
+                ah_state = getattr(attack_horizon, "state", None) or (attack_horizon.get("state") if isinstance(attack_horizon, dict) else None)
+                ah_state_val = getattr(ah_state, "value", str(ah_state or ""))
+                esc_h = getattr(attack_horizon, "escalation_horizon", None) or (attack_horizon.get("escalation_horizon") if isinstance(attack_horizon, dict) else None)
+                esc_lead = getattr(attack_horizon, "lead_time_to_escalation_seconds", None) or (attack_horizon.get("lead_time_to_escalation_seconds") if isinstance(attack_horizon, dict) else None)
+
+                if ah_state_val in ("SUSTAINED_ATTACK_FORECAST", "EARLY_SIGNAL") or esc_h:
+                    lead_str = f"{esc_lead}s" if esc_lead else "imminent"
+                    esc_window = total_windows + (esc_h or 1)
+                    esc_fact = (
+                        f"Attack Horizon predicts {ah_state_val} with escalation at horizon T+{esc_h or 1} "
+                        f"(lead time to escalation: {lead_str})."
+                    )
+                    raw_events.append(IncidentEvent(
+                        event_id=deterministic_id("evt", "ESCALATION_PRED", esc_window),
+                        timestamp=float(esc_window * 60.0),
+                        window_index=esc_window,
+                        event_type=IncidentEventType.ESCALATION_PREDICTED,
+                        actor="ATTACK_HORIZON_ENGINE",
+                        target=None,
+                        observed_facts=(esc_fact,),
+                        supporting_evidence_ids=("attack_horizon_escalation",),
+                        supporting_graph_nodes=(),
+                        supporting_graph_edges=(),
+                        attack_state="ESCALATION_PREDICTED",
+                        mitre_technique=None,
+                        grounding=EvidenceGroundingState.FORECAST_ONLY,
+                        epistemic_status=IncidentEventEpistemicStatus.FORECAST,
+                        uncertainty=IncidentUncertaintyLevel.LOW,
+                        explanation=f"Attack Horizon state {ah_state_val}; analyst attention warranted within {lead_str}.",
+                    ))
         else:
             raw_events.append(IncidentEvent(
                 event_id=deterministic_id("evt", "FORECAST_ABSTAIN", total_windows + 1),
@@ -871,7 +928,42 @@ def build_incident_story(
         f"No host compromise or lateral movement was directly observed within the inspected network packets."
     )
 
-    paragraphs = (p1, p2, p3)
+    story_paragraphs = [p1, p2, p3]
+
+    # Grounded Predictive Forecast Paragraph (T+1 .. T+5)
+    if attack_progression and getattr(attack_progression, "verdict", None) == "SUPPORTED":
+        pred_pts = getattr(attack_progression, "forecast_points", ())
+        if pred_pts:
+            p_steps = []
+            for pt in pred_pts[:3]:
+                h_idx = getattr(pt, "horizon_minutes", getattr(pt, "horizon", 1))
+                p_st = getattr(pt, "predicted_state", "STATE")
+                p_st_val = getattr(p_st, "value", str(p_st))
+                p_prob = getattr(pt, "transition_probability", 0.0) or 0.0
+                p_steps.append(f"T+{h_idx}: {p_st_val} ({p_prob*100:.1f}%)")
+            steps_str = ", ".join(p_steps)
+            story_paragraphs.append(
+                f"Multi-step Markovian progression forecasting projects future stage trajectory across horizons "
+                f"[{steps_str}]. Transitions are constrained by empirical benchmark state transition matrices without heuristic score averaging."
+            )
+
+    # Grounded Attack Horizon & Escalation Lead-Time Paragraph
+    if attack_horizon:
+        ah_state = getattr(attack_horizon, "state", None) or (attack_horizon.get("state") if isinstance(attack_horizon, dict) else None)
+        ah_state_val = getattr(ah_state, "value", str(ah_state or ""))
+        ah_lead = getattr(attack_horizon, "lead_time_seconds", None) or (attack_horizon.get("lead_time_seconds") if isinstance(attack_horizon, dict) else None)
+        ah_esc_lead = getattr(attack_horizon, "lead_time_to_escalation_seconds", None) or (attack_horizon.get("lead_time_to_escalation_seconds") if isinstance(attack_horizon, dict) else None)
+        ah_h_win = getattr(attack_horizon, "horizon_windows", 0) or (attack_horizon.get("horizon_windows", 0) if isinstance(attack_horizon, dict) else 0)
+
+        if ah_state_val and ah_state_val != "ABSTAINED":
+            esc_note = f" Escalation lead time is evaluated at {ah_esc_lead}s." if ah_esc_lead else ""
+            lead_note = f" (onset lead time: {ah_lead}s, sustained span: {ah_h_win} window(s))" if ah_lead is not None else ""
+            story_paragraphs.append(
+                f"Attack Horizon determination confirms state {ah_state_val}{lead_note}.{esc_note} "
+                f"Analysts should monitor for downstream stage divergence beyond the current capture boundary."
+            )
+
+    paragraphs = tuple(story_paragraphs)
     exec_summary = (
         f"Observed reconnaissance incident involving {primary_actors_str} targeting {total_targets_cnt} internal host(s). "
         f"Activity remains active at the capture boundary without observed termination."

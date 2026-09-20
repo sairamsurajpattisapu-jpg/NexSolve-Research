@@ -77,11 +77,7 @@ async function fetchData(targetAnalysisId?: string) {
       localStorage.removeItem(STORAGE_ACTIVE_KEY)
     }
 
-    const provenance: AnalysisProvenance = results.is_demo
-      ? 'demo'
-      : isProd
-      ? 'reference'
-      : 'uploaded'
+    const provenance: AnalysisProvenance = isProd ? 'reference' : 'uploaded'
 
     state = {
       data: { results: { ...results, traffic }, status, report, health },
@@ -158,11 +154,7 @@ export async function setUploadedAnalysis(uploaded: UploadedAnalysisResponse): P
     }),
   ])
 
-  const provenance: AnalysisProvenance = uploaded.is_demo
-    ? 'demo'
-    : isProd
-    ? 'reference'
-    : 'uploaded'
+  const provenance: AnalysisProvenance = isProd ? 'reference' : 'uploaded'
 
   state = {
     data: {
@@ -180,8 +172,6 @@ export async function setUploadedAnalysis(uploaded: UploadedAnalysisResponse): P
         confidence: uploaded.confidence,
         unknown_behavior: uploaded.unknown_behavior ?? uploaded.unknownBehavior,
         abstention: uploaded.abstention,
-        is_demo: uploaded.is_demo,
-        demo_scenario_name: uploaded.demo_scenario_name,
       },
       status: {
         analysis_id: uploaded.analysis_id,

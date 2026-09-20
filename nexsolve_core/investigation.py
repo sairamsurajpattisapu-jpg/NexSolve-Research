@@ -43,7 +43,30 @@ class SessionInvestigationRecord:
     risk_level: str  # "LOW", "MEDIUM", "HIGH", "CRITICAL"
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {
+            "session_id": self.session_id,
+            "src_ip": self.src_ip,
+            "src_port": self.src_port,
+            "dst_ip": self.dst_ip,
+            "dst_port": self.dst_port,
+            "protocol": self.protocol,
+            "first_seen": self.first_seen,
+            "last_seen": self.last_seen,
+            "duration_seconds": self.duration_seconds,
+            "forward_packets": self.forward_packets,
+            "reverse_packets": self.reverse_packets,
+            "total_packets": self.total_packets,
+            "forward_bytes": self.forward_bytes,
+            "reverse_bytes": self.reverse_bytes,
+            "total_bytes": self.total_bytes,
+            "packet_rate": self.packet_rate,
+            "byte_rate": self.byte_rate,
+            "completeness": self.completeness,
+            "behavioral_tags": list(self.behavioral_tags),
+            "signature_alerts": list(self.signature_alerts),
+            "mitre_techniques": list(self.mitre_techniques),
+            "risk_level": self.risk_level,
+        }
 
 
 def build_session_investigation_records(

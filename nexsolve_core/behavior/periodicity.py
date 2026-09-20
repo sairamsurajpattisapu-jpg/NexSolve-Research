@@ -58,9 +58,27 @@ class PeriodicityGroupResult:
     explanation: str
 
     def to_dict(self) -> dict[str, Any]:
-        res = asdict(self)
-        res["classification"] = self.classification.value
-        return res
+        return {
+            "src_ip": self.src_ip,
+            "dst_ip": self.dst_ip,
+            "dst_port": self.dst_port,
+            "protocol": self.protocol,
+            "event_count": self.event_count,
+            "observation_duration_seconds": self.observation_duration_seconds,
+            "interval_count": self.interval_count,
+            "median_interval_seconds": self.median_interval_seconds,
+            "mad_interval_seconds": self.mad_interval_seconds,
+            "mean_interval_seconds": self.mean_interval_seconds,
+            "std_interval_seconds": self.std_interval_seconds,
+            "coefficient_of_variation": self.coefficient_of_variation,
+            "jitter_seconds": self.jitter_seconds,
+            "bowley_skewness": self.bowley_skewness,
+            "interval_entropy": self.interval_entropy,
+            "regularity_score": self.regularity_score,
+            "destination_consistency": self.destination_consistency,
+            "classification": self.classification.value if hasattr(self.classification, "value") else str(self.classification),
+            "explanation": self.explanation,
+        }
 
 
 @dataclass(frozen=True)

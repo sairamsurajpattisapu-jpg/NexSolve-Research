@@ -146,6 +146,17 @@ def build_evidence_intelligence_graph(
                     rule_id='R002',
                 ))
 
+            # Explicit link from session to destination IP
+            g.add_edge(GraphEdge(
+                id=deterministic_id('edge', sess_node_id, dst_node_id, EdgeType.TARGETS.value),
+                source_id=sess_node_id,
+                target_id=dst_node_id,
+                edge_type=EdgeType.TARGETS,
+                scope=Scope.OBSERVED,
+                reason="TCP session targets destination IP host",
+                rule_id='R001',
+            ))
+
     # 3. Ingest Behavioral & Periodicity Signals (RITA-inspired)
     if behavioral_report and hasattr(behavioral_report, 'periodicity_summary'):
         psum = behavioral_report.periodicity_summary
@@ -364,6 +375,19 @@ def build_evidence_intelligence_graph(
                     reason=trans.explanation,
                     rule_id='R014',
                 ))
+
+                # Explicitly link entity IP to the attack state
+                ip_node_id = deterministic_id('ip', ent)
+                if g.get_node(ip_node_id):
+                    g.add_edge(GraphEdge(
+                        id=deterministic_id('edge', ip_node_id, s2_id, EdgeType.EXHIBITS_STATE.value),
+                        source_id=ip_node_id,
+                        target_id=s2_id,
+                        edge_type=EdgeType.EXHIBITS_STATE,
+                        scope=Scope.OBSERVED,
+                        reason=f"Entity {ent} exhibits attack state {trans.to_state.value}",
+                        rule_id='R017',
+                    ))
 
     # 9. Ingest Forecast Signals (Strictly FORECAST scope)
     if forecast_points:

@@ -75,7 +75,6 @@ describe('Dashboard', () => {
       ...fixture,
       results: {
         ...fixture.results,
-        is_demo: false,
         source: { name: 'sample_capture.pcap', kind: 'uploaded_pcap' },
         analysis_id: 'job-987654321',
       },
@@ -86,24 +85,6 @@ describe('Dashboard', () => {
     expect(screen.getAllByText('LIVE PCAP ANALYSIS').length).toBeGreaterThan(0)
     expect(screen.getAllByText('sample_capture.pcap').length).toBeGreaterThan(0)
     expect(screen.getAllByText(/job-987654321/i).length).toBeGreaterThan(0)
-  })
-
-  it('renders demo data and verified reference dataset labels in demo mode', () => {
-    const demoFixture = {
-      ...fixture,
-      results: {
-        ...fixture.results,
-        is_demo: true,
-        demo_scenario_name: 'Port Scan Progression',
-        analysis_id: 'demo-port_scan_progression',
-      },
-    }
-    hookState = { data: demoFixture, loading: false, error: null, analysisSource: 'uploaded' }
-    renderPage(<Dashboard />)
-    expect(screen.getByTestId('provenance-banner-demo')).toBeInTheDocument()
-    expect(screen.getAllByText('DEMO DATA').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('VERIFIED REFERENCE DATASET').length).toBeGreaterThan(0)
-    expect(screen.getAllByText(/Port Scan Progression/i).length).toBeGreaterThan(0)
   })
 })
 

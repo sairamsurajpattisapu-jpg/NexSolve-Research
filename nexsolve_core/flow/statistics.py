@@ -57,7 +57,33 @@ class FlowStatisticalProfile:
     is_asymmetric_flood: bool
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {
+            "flow_id": self.flow_id,
+            "src_ip": self.src_ip,
+            "src_port": self.src_port,
+            "dst_ip": self.dst_ip,
+            "dst_port": self.dst_port,
+            "protocol": self.protocol,
+            "duration_seconds": self.duration_seconds,
+            "total_packets": self.total_packets,
+            "forward_packets": self.forward_packets,
+            "reverse_packets": self.reverse_packets,
+            "total_bytes": self.total_bytes,
+            "forward_bytes": self.forward_bytes,
+            "reverse_bytes": self.reverse_bytes,
+            "packet_asymmetry_ratio": self.packet_asymmetry_ratio,
+            "byte_asymmetry_ratio": self.byte_asymmetry_ratio,
+            "packet_rate_per_sec": self.packet_rate_per_sec,
+            "byte_rate_per_sec": self.byte_rate_per_sec,
+            "mean_packet_size_bytes": self.mean_packet_size_bytes,
+            "syn_count": self.syn_count,
+            "ack_count": self.ack_count,
+            "fin_count": self.fin_count,
+            "rst_count": self.rst_count,
+            "retransmission_count": self.retransmission_count,
+            "is_single_packet_flow": self.is_single_packet_flow,
+            "is_asymmetric_flood": self.is_asymmetric_flood,
+        }
 
 
 @dataclass(frozen=True)

@@ -59,7 +59,7 @@ export function Dashboard() {
           effectiveResult.detection?.findings?.[0]?.timestamp ||
           new Date().toISOString(),
         status: 'COMPLETED',
-        provenance: effectiveResult.is_demo ? 'demo' : 'uploaded',
+        provenance: 'uploaded',
         peakRiskPct: effectiveResult.detection?.risk_score,
         predictedStage: (effectiveResult as any).attack_progression?.current_stage,
       })
@@ -185,27 +185,6 @@ export function Dashboard() {
           description="Upload network telemetry to reconstruct the current network state and forecast future attack progression."
           action={
             <div className="heading-actions">
-              <button
-                type="button"
-                className="button button-quiet"
-                onClick={() => navigate('/console/demo')}
-                style={{ fontSize: '12px', gap: '6px' }}
-              >
-                <Sparkles size={14} color="var(--accent)" /> Try Demo
-                <span
-                  style={{
-                    fontSize: '9px',
-                    fontFamily: 'var(--mono)',
-                    padding: '1px 5px',
-                    borderRadius: '3px',
-                    background: 'rgba(242, 187, 113, 0.2)',
-                    color: '#eda850',
-                    fontWeight: 700,
-                  }}
-                >
-                  DEMO DATA
-                </span>
-              </button>
               <button
                 type="button"
                 className="button button-quiet"
@@ -443,7 +422,7 @@ export function Dashboard() {
       )}
 
       {/* 3. Completed Job Full Result View */}
-      {effectiveResult && !effectiveResult.is_demo && (
+      {effectiveResult && (
         <div className="provenance-banner live-mode" data-testid="provenance-banner-live">
           <div className="provenance-badge-group">
             <span className="provenance-pill live-pill">LIVE PCAP ANALYSIS</span>
@@ -453,21 +432,6 @@ export function Dashboard() {
           <div className="provenance-details">
             <p>
               Source: <strong>{effectiveResult.source?.name || 'Uploaded Capture'}</strong> &middot; Verified wire telemetry under 45-feature canonical contract.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {effectiveResult && effectiveResult.is_demo && (
-        <div className="provenance-banner demo-mode" data-testid="provenance-banner-demo">
-          <div className="provenance-badge-group">
-            <span className="provenance-pill demo-pill">DEMO DATA</span>
-            <span className="provenance-pill reference-pill">VERIFIED REFERENCE DATASET</span>
-            <span className="provenance-pill dataset-pill">{effectiveResult.demo_scenario_name || 'Evaluation Scenario'}</span>
-          </div>
-          <div className="provenance-details">
-            <p>
-              Evaluation sandbox: <strong>{effectiveResult.demo_scenario_name}</strong> &middot; Deterministic benchmark validation.
             </p>
           </div>
         </div>

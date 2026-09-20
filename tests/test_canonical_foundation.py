@@ -122,3 +122,79 @@ def test_scapy_packet_conversion_is_skipped_without_dependency():
     assert icmp is not None and icmp.protocol == "ICMP" and icmp.src_port is None
     arp = packet_record_from_pkt(ethernet() / scapy.ARP(psrc="10.0.0.1", pdst="10.0.0.2"), packet_index=10, capture_id="capture-test")
     assert arp is not None and arp.protocol == "ARP" and arp.src_port is None
+
+
+def test_network_evidence_multi_sensor_factories():
+    from nexsolve_core.schemas import NetworkEvidence, SensorType, EvidenceDirection
+    from nexsolve_core.evidence.suricata import SuricataAlertRecord
+    from nexsolve_core.network.session_state import TCPSessionRecord, TCPConnectionState, ObservationBoundaryStatus
+
+    # 1. Packet Record
+    p = packet(1, 100.0, "192.168.1.5", "10.0.0.1", protocol="TCP", source_port=5000, destination_port=80, length=120)
+    ev_pkt = NetworkEvidence.from_packet_record(p)
+    assert ev_pkt.sensor_type == SensorType.PCAP_WIRE
+    assert ev_pkt.direction == EvidenceDirection.INTERNAL_LATERAL
+    assert ev_pkt.bytes_count == 120
+    assert ev_pkt.packets_count == 1
+    assert "payload_length" not in ev_pkt.missing_fields
+
+    # 2. Suricata Alert Record
+    alert = SuricataAlertRecord(
+        timestamp=105.0,
+        gid=1,
+        signature_id=2001,
+        rev=1,
+        signature="ET SCAN Potential Nmap Scan",
+        category="Attempted Information Leak",
+        severity=1,
+        action="allowed",
+        src_ip="192.168.1.5",
+        dst_ip="10.0.0.1",
+        src_port=5000,
+        dst_port=80,
+        protocol="TCP",
+        mitre_technique_id="T1046",
+        metadata={},
+    )
+    ev_sur = NetworkEvidence.from_suricata_alert(alert)
+    assert ev_sur.sensor_type == SensorType.SURICATA_EVE
+    assert ev_sur.confidence == 0.90
+    assert "T1046" in ev_sur.mitre_techniques
+    assert "bytes_count" in ev_sur.missing_fields
+
+    # 3. TCP Session Record
+    sess = TCPSessionRecord(
+        session_id="s_test",
+        src_ip="192.168.1.5",
+        dst_ip="10.0.0.1",
+        src_port=5000,
+        dst_port=80,
+        first_seen=100.0,
+        last_seen=105.0,
+        duration_seconds=5.0,
+        forward_packets=10,
+        reverse_packets=10,
+        total_packets=20,
+        forward_bytes=1000,
+        reverse_bytes=1000,
+        total_bytes=2000,
+        orig_syn=True,
+        orig_ack=True,
+        orig_fin=False,
+        orig_rst=False,
+        resp_syn=True,
+        resp_ack=True,
+        resp_fin=False,
+        resp_rst=False,
+        handshake_completed=True,
+        connection_state=TCPConnectionState.ESTABLISHED,
+        boundary_status=ObservationBoundaryStatus.COMPLETE_LIFECYCLE,
+        zeek_equivalent_state="SF",
+        history_string="ShADaFf",
+    )
+    ev_zk = NetworkEvidence.from_tcp_session(sess)
+    assert ev_zk.sensor_type == SensorType.ZEEK_CONN
+    assert ev_zk.bytes_count == 2000
+    assert ev_zk.packets_count == 20
+    assert ev_zk.duration_seconds == 5.0
+

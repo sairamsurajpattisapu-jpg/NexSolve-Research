@@ -1,5 +1,5 @@
 export type RiskClassification = 'LOW' | 'MODERATE' | 'ELEVATED' | 'CRITICAL' | 'WITHHELD'
-export type AnalysisProvenance = 'live' | 'reference' | 'demo'
+export type AnalysisProvenance = 'live' | 'reference'
 export type TelemetryFormat = 'pcap' | 'pcapng' | 'csv' | 'parquet' | 'reference'
 
 export interface FeatureDescriptor {
@@ -31,6 +31,22 @@ export interface CanonicalForecastPoint {
     importance: string
     interpretation: string
   }>
+  evidenceAttribution?: {
+    predictedStage: string
+    mitreTechnique: string
+    behavioralRationale: string
+    topObservableDrivers: Array<{
+      feature: string
+      currentValue: number
+      predictedValue: number
+      direction: string
+      relativeChange: number
+      importance: string
+      interpretation: string
+    }>
+    epistemicCertainty: string
+    supportingSignals: string[]
+  } | null
 }
 
 export interface EarlyWarningComposite {
@@ -53,6 +69,8 @@ export interface ProgressionStage {
   evidence: string[]
   abstained: boolean
   abstentionReason?: string | null
+  mitreTechnique?: string | null
+  behavioralRationale?: string | null
 }
 
 export interface MitreTechniqueMapping {
@@ -91,8 +109,6 @@ export interface CanonicalAnalysis {
   id: string
   status: 'completed' | 'processing' | 'failed' | 'abstained'
   createdAt: string
-  isDemo: boolean
-  demoScenarioId?: string
   provenance: AnalysisProvenance
   provenanceLabel: string
 
@@ -150,6 +166,18 @@ export interface CanonicalAnalysis {
       uncertaintyLevel: string
       meanConfidence: number | null
     }
+    alternativeTrajectories?: Array<{
+      scenarioName: string
+      scenarioProbability: number
+      description: string
+      projectedRiskProfile: number[]
+      projectedStages: string[]
+    }>
+    counterfactualSimulations?: Record<string, {
+      description: string
+      simulatedTrajectory: number[]
+      expectedImpact: string
+    }>
   }
 
   progression: {

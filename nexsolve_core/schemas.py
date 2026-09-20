@@ -225,8 +225,9 @@ class ModelCompatibilityError(ValueError):
 def _endpoint_key(packet: PacketRecord) -> tuple[Any, ...]:
     left = (packet.src_ip, packet.src_port)
     right = (packet.dst_ip, packet.dst_port)
-    endpoints = tuple(sorted((left, right)))
-    return (packet.protocol, packet.ip_version, *endpoints)
+    if left <= right:
+        return (packet.protocol, packet.ip_version, left, right)
+    return (packet.protocol, packet.ip_version, right, left)
 
 
 def _direction(packet: PacketRecord, origin: tuple[Any, ...]) -> bool:
@@ -248,50 +249,120 @@ def _flow_completeness(protocol: str | None, packets: list[PacketRecord]) -> str
     return "UNKNOWN"
 
 
-def build_flows(packets: Iterable[PacketRecord], capture_id: str = "unknown") -> tuple[FlowRecord, ...]:
+def build_flows(
+    packets: Iterable[PacketRecord],
+    capture_id: str = "unknown",
+    *,
+    retransmission_packet_indexes: set[int] | None = None,
+) -> tuple[FlowRecord, ...]:
     grouped: dict[tuple[Any, ...], list[PacketRecord]] = {}
     for packet in packets:
         grouped.setdefault(_endpoint_key(packet), []).append(packet)
     flows: list[FlowRecord] = []
     for index, key in enumerate(sorted(grouped, key=str), start=1):
         members = sorted(grouped[key], key=lambda item: (item.timestamp, item.packet_index if item.packet_index is not None else -1))
-        origin = (members[0].src_ip, members[0].src_port)
-        forward = [packet for packet in members if _direction(packet, origin)]
-        reverse = [packet for packet in members if not _direction(packet, origin)]
-        start = min(packet.timestamp for packet in members)
-        end = max(packet.timestamp for packet in members)
+        first = members[0]
+        origin = (first.src_ip, first.src_port)
+        start = first.timestamp
+        end = first.timestamp
+        forward_bytes = 0
+        reverse_bytes = 0
+        forward_packet_count = 0
+        reverse_packet_count = 0
+        syn_count = 0
+        ack_count = 0
+        fin_count = 0
+        rst_count = 0
+        packet_indexes = []
+        timestamps = []
+
+        saw_syn = False
+        saw_syn_ack = False
+        saw_handshake_ack = False
+        saw_termination = False
+        is_tcp = (first.protocol == "TCP")
+        retrans_count = 0
+
+        for packet in members:
+            ts = packet.timestamp
+            if ts < start:
+                start = ts
+            if ts > end:
+                end = ts
+            timestamps.append(ts)
+            if packet.packet_index is not None:
+                packet_indexes.append(packet.packet_index)
+                if retransmission_packet_indexes is not None and packet.packet_index in retransmission_packet_indexes:
+                    retrans_count += 1
+
+            plen = packet.packet_length or 0
+            if (packet.src_ip, packet.src_port) == origin:
+                forward_packet_count += 1
+                forward_bytes += plen
+            else:
+                reverse_packet_count += 1
+                reverse_bytes += plen
+
+            flags = packet.tcp_flags or 0
+            if flags:
+                if flags & 0x02:
+                    syn_count += 1
+                if flags & 0x10:
+                    ack_count += 1
+                if flags & 0x01:
+                    fin_count += 1
+                if flags & 0x04:
+                    rst_count += 1
+
+                if is_tcp:
+                    if flags & 0x02:
+                        saw_syn = True
+                    if (flags & 0x12) == 0x12:
+                        saw_syn_ack = True
+                    if (flags & 0x10) and not (flags & 0x02):
+                        saw_handshake_ack = True
+                    if flags & 0x05:
+                        saw_termination = True
+
         duration = max(0.0, end - start)
-        forward_bytes = sum(packet.packet_length or 0 for packet in forward)
-        reverse_bytes = sum(packet.packet_length or 0 for packet in reverse)
-        flags = [packet.tcp_flags or 0 for packet in members]
-        packet_indexes = tuple(packet.packet_index for packet in members if packet.packet_index is not None)
-        timestamps = tuple(packet.timestamp for packet in members)
+        total_packets = len(members)
+        total_bytes = forward_bytes + reverse_bytes
         flow_id = f"flow-{index:06d}"
-        provenance = Provenance(capture_id, packet_indexes, (flow_id,), (), timestamps, "flow_reconstruction")
+        provenance = Provenance(capture_id, tuple(packet_indexes), (flow_id,), (), tuple(timestamps), "flow_reconstruction")
+
+        if not is_tcp:
+            completeness = "not_applicable"
+        elif saw_syn and saw_syn_ack and saw_handshake_ack and saw_termination:
+            completeness = "COMPLETE"
+        elif saw_syn:
+            completeness = "INCOMPLETE"
+        else:
+            completeness = "UNKNOWN"
+
         flows.append(FlowRecord(
             flow_id=flow_id,
             start_timestamp=start,
             end_timestamp=end,
             duration_seconds=duration,
-            src_ip=members[0].src_ip,
-            src_port=members[0].src_port,
-            dst_ip=members[0].dst_ip,
-            dst_port=members[0].dst_port,
-            protocol=members[0].protocol,
-            forward_packet_count=len(forward),
-            reverse_packet_count=len(reverse),
-            total_packet_count=len(members),
+            src_ip=first.src_ip,
+            src_port=first.src_port,
+            dst_ip=first.dst_ip,
+            dst_port=first.dst_port,
+            protocol=first.protocol,
+            forward_packet_count=forward_packet_count,
+            reverse_packet_count=reverse_packet_count,
+            total_packet_count=total_packets,
             forward_bytes=forward_bytes,
             reverse_bytes=reverse_bytes,
-            total_bytes=forward_bytes + reverse_bytes,
-            packet_rate=(len(members) / duration) if duration > 0 else None,
-            byte_rate=((forward_bytes + reverse_bytes) / duration) if duration > 0 else None,
-            syn_count=sum(bool(value & 0x02) for value in flags),
-            ack_count=sum(bool(value & 0x10) for value in flags),
-            fin_count=sum(bool(value & 0x01) for value in flags),
-            rst_count=sum(bool(value & 0x04) for value in flags),
-            retransmission_count=0,
-            completeness=_flow_completeness(members[0].protocol, members),
+            total_bytes=total_bytes,
+            packet_rate=(total_packets / duration) if duration > 0 else None,
+            byte_rate=(total_bytes / duration) if duration > 0 else None,
+            syn_count=syn_count,
+            ack_count=ack_count,
+            fin_count=fin_count,
+            rst_count=rst_count,
+            retransmission_count=retrans_count,
+            completeness=completeness,
             provenance=provenance,
         ))
     return tuple(flows)
@@ -325,25 +396,52 @@ def make_capture_quality(
     capture_id: str = "unknown",
 ) -> CaptureQuality:
     records = tuple(packets)
-    protocols = {packet.protocol for packet in records}
     total = total_packets_observed if total_packets_observed is not None else len(records)
-    fragmented_packets = sum(bool(packet.fragment_offset or packet.more_fragments) for packet in records)
+
+    ipv4_count = 0
+    ipv6_count = 0
+    tcp_count = 0
+    udp_count = 0
+    icmp_count = 0
+    arp_count = 0
+    vlan_count = 0
+    fragmented_packets = 0
+    for packet in records:
+        v = packet.ip_version
+        if v == 4:
+            ipv4_count += 1
+        elif v == 6:
+            ipv6_count += 1
+        proto = packet.protocol
+        if proto == "TCP":
+            tcp_count += 1
+        elif proto == "UDP":
+            udp_count += 1
+        elif proto in {"ICMP", "ICMPv6"}:
+            icmp_count += 1
+        elif proto == "ARP":
+            arp_count += 1
+        if packet.vlan_id is not None:
+            vlan_count += 1
+        if packet.fragment_offset or packet.more_fragments:
+            fragmented_packets += 1
+
     status, reason = _quality_status(total, len(records), malformed_packets, unsupported_packets, truncated_packets, truncation_unknown_count, timestamp_anomalies, duplicate_packets, fragmented_packets, incomplete_flow_count)
     return CaptureQuality(
-        total_packets_observed=total_packets_observed if total_packets_observed is not None else len(records),
+        total_packets_observed=total,
         parsed_packets=len(records),
         malformed_packets=malformed_packets,
         unsupported_packets=unsupported_packets,
         truncated_packets=truncated_packets,
         timestamp_anomalies=timestamp_anomalies,
         duplicate_packets=duplicate_packets,
-        ipv4_count=sum(packet.ip_version == 4 for packet in records),
-        ipv6_count=sum(packet.ip_version == 6 for packet in records),
-        tcp_count=sum(packet.protocol == "TCP" for packet in records),
-        udp_count=sum(packet.protocol == "UDP" for packet in records),
-        icmp_count=sum(packet.protocol in {"ICMP", "ICMPv6"} for packet in records),
-        arp_count=sum(packet.protocol == "ARP" for packet in records),
-        vlan_count=sum(packet.vlan_id is not None for packet in records),
+        ipv4_count=ipv4_count,
+        ipv6_count=ipv6_count,
+        tcp_count=tcp_count,
+        udp_count=udp_count,
+        icmp_count=icmp_count,
+        arp_count=arp_count,
+        vlan_count=vlan_count,
         fragmented_packet_count=fragmented_packets,
         incomplete_flow_count=incomplete_flow_count,
         status=status,
@@ -377,16 +475,35 @@ def build_temporal_windows(
     windows: list[TemporalWindow] = []
     for bucket in sorted(packet_groups):
         original_members = tuple(packet_groups[bucket])
-        members = tuple(sorted(original_members, key=lambda item: (item.timestamp, item.packet_index if item.packet_index is not None else -1)))
+        is_sorted = True
+        for i in range(1, len(original_members)):
+            prev = original_members[i - 1]
+            curr = original_members[i]
+            if (prev.timestamp, prev.packet_index if prev.packet_index is not None else -1) > (curr.timestamp, curr.packet_index if curr.packet_index is not None else -1):
+                is_sorted = False
+                break
+        if is_sorted:
+            members = original_members
+            ordering = "original_capture_order_preserved"
+        else:
+            members = tuple(sorted(original_members, key=lambda item: (item.timestamp, item.packet_index if item.packet_index is not None else -1)))
+            ordering = "timestamp_sorted_within_deterministic_bucket"
+
         start = bucket * window_seconds
         flow_members = tuple(sorted({flow.flow_id: flow for flow in flow_groups.get(bucket, ())}.values(), key=lambda item: item.flow_id))
         packet_indexes = tuple(packet.packet_index for packet in members if packet.packet_index is not None)
         timestamps = tuple(packet.timestamp for packet in members)
         window_id = f"window-{bucket:012d}"
         provenance = Provenance(quality.capture_id, packet_indexes, tuple(flow.flow_id for flow in flow_members), (window_id,), timestamps, "temporal_windowing")
-        fingerprints = {(packet.timestamp, packet.src_ip, packet.dst_ip, packet.protocol, packet.src_port, packet.dst_port, packet.packet_length, packet.tcp_seq) for packet in members}
-        ordering = "timestamp_sorted_within_deterministic_bucket" if members != original_members else "original_capture_order_preserved"
-        windows.append(TemporalWindow(window_id, start, start + window_seconds, window_seconds, len(members), len(flow_members), members, flow_members, {}, {}, quality, ordering, provenance, len(members), len(fingerprints)))
+        
+        has_duplicates = any(packet.duplicate_of_index is not None or packet.parsing_status == "duplicate" for packet in members)
+        if not has_duplicates:
+            deduplicated_count = len(members)
+        else:
+            fingerprints = {(packet.timestamp, packet.src_ip, packet.dst_ip, packet.protocol, packet.src_port, packet.dst_port, packet.packet_length, packet.tcp_seq) for packet in members}
+            deduplicated_count = len(fingerprints)
+
+        windows.append(TemporalWindow(window_id, start, start + window_seconds, window_seconds, len(members), len(flow_members), members, flow_members, {}, {}, quality, ordering, provenance, len(members), deduplicated_count))
     return tuple(windows)
 
 
@@ -412,3 +529,198 @@ def temporal_windows_to_network_states(windows: Iterable[TemporalWindow], featur
         groups = [dict((name, float(features[name])) for name in feature_schema[group]) for group in ("flow_features", "packet_features", "temporal_features")]
         states.append(NetworkState(window.start_timestamp, groups[0], groups[1], groups[2], None, True))
     return tuple(states)
+
+
+# ---------------------------------------------------------------------------
+# SENSOR FABRIC & UNIFIED NETWORK EVIDENCE MODEL (BATCH 1)
+# ---------------------------------------------------------------------------
+
+class SensorType(StrEnum):
+    PCAP_WIRE = "PCAP_WIRE"
+    ZEEK_CONN = "ZEEK_CONN"
+    ZEEK_DNS = "ZEEK_DNS"
+    ZEEK_HTTP = "ZEEK_HTTP"
+    ZEEK_SSL = "ZEEK_SSL"
+    SURICATA_EVE = "SURICATA_EVE"
+    NETFLOW_IPFIX = "NETFLOW_IPFIX"
+    NFSTREAM = "NFSTREAM"
+    DERIVED_ANALYTIC = "DERIVED_ANALYTIC"
+
+
+class EvidenceDirection(StrEnum):
+    OUTBOUND = "OUTBOUND"
+    INBOUND = "INBOUND"
+    INTERNAL_LATERAL = "INTERNAL_LATERAL"
+    UNKNOWN = "UNKNOWN"
+
+
+@dataclass(frozen=True)
+class NetworkEvidence:
+    """Canonical multi-sensor evidence record preserving ground-truth telemetry,
+
+    sensor source, missingness masks, and provenance without fabrication.
+    """
+    evidence_id: str
+    timestamp: float
+    sensor_type: SensorType
+    src_entity: str
+    dst_entity: str
+    src_port: int | None = None
+    dst_port: int | None = None
+    protocol: str = "UNKNOWN"
+    direction: EvidenceDirection = EvidenceDirection.UNKNOWN
+    bytes_count: int | None = None
+    packets_count: int | None = None
+    duration_seconds: float | None = None
+    session_id: str | None = None
+    application_metadata: dict[str, Any] = None
+    detection_findings: tuple[str, ...] = ()
+    mitre_techniques: tuple[str, ...] = ()
+    threat_intel_indicators: tuple[str, ...] = ()
+    confidence: float = 1.0
+    provenance: Provenance | None = None
+    missing_fields: tuple[str, ...] = ()
+
+    def __post_init__(self):
+        if self.application_metadata is None:
+            object.__setattr__(self, "application_metadata", {})
+
+    @classmethod
+    def from_packet_record(cls, packet: PacketRecord, sensor_type: SensorType = SensorType.PCAP_WIRE) -> NetworkEvidence:
+        missing = []
+        if packet.payload_length is None:
+            missing.append("payload_length")
+        if packet.src_port is None:
+            missing.append("src_port")
+        if packet.dst_port is None:
+            missing.append("dst_port")
+
+        direction = EvidenceDirection.UNKNOWN
+        if packet.src_ip and packet.dst_ip:
+            src_is_priv = packet.src_ip.startswith(("10.", "192.168.", "172.16.", "172.17.", "172.18.", "172.19.", "172.20.", "172.21.", "172.22.", "172.23.", "172.24.", "172.25.", "172.26.", "172.27.", "172.28.", "172.29.", "172.30.", "172.31."))
+            dst_is_priv = packet.dst_ip.startswith(("10.", "192.168.", "172.16.", "172.17.", "172.18.", "172.19.", "172.20.", "172.21.", "172.22.", "172.23.", "172.24.", "172.25.", "172.26.", "172.27.", "172.28.", "172.29.", "172.30.", "172.31."))
+            if src_is_priv and dst_is_priv:
+                direction = EvidenceDirection.INTERNAL_LATERAL
+            elif src_is_priv and not dst_is_priv:
+                direction = EvidenceDirection.OUTBOUND
+            elif not src_is_priv and dst_is_priv:
+                direction = EvidenceDirection.INBOUND
+
+        import hashlib
+        raw_key = f"{packet.timestamp}:{sensor_type}:{packet.src_ip}:{packet.dst_ip}:{packet.src_port}:{packet.dst_port}:{packet.protocol}"
+        evidence_id = "ev_" + hashlib.sha256(raw_key.encode("utf-8")).hexdigest()[:14]
+
+        return cls(
+            evidence_id=evidence_id,
+            timestamp=packet.timestamp,
+            sensor_type=sensor_type,
+            src_entity=packet.src_ip or "unknown",
+            dst_entity=packet.dst_ip or "unknown",
+            src_port=packet.src_port,
+            dst_port=packet.dst_port,
+            protocol=packet.protocol or "UNKNOWN",
+            direction=direction,
+            bytes_count=packet.packet_length,
+            packets_count=1,
+            duration_seconds=0.0,
+            session_id=None,
+            application_metadata={
+                "tcp_flags": packet.tcp_flags,
+                "tcp_window": packet.tcp_window,
+                "ttl": getattr(packet, "ttl", None),
+                "ip_version": packet.ip_version,
+            },
+            provenance=packet.provenance,
+            missing_fields=tuple(missing),
+        )
+
+    @classmethod
+    def from_suricata_alert(cls, alert: Any) -> NetworkEvidence:
+        """Create canonical NetworkEvidence from SuricataAlertRecord."""
+        import hashlib
+        raw_key = f"{alert.timestamp}:SURICATA:{alert.src_ip}:{alert.dst_ip}:{alert.signature_id}"
+        ev_id = "ev_sur_" + hashlib.sha256(raw_key.encode("utf-8")).hexdigest()[:12]
+        
+        techs = (alert.mitre_technique_id,) if getattr(alert, "mitre_technique_id", None) else ()
+        findings = (alert.signature,) if getattr(alert, "signature", None) else ()
+        
+        return cls(
+            evidence_id=ev_id,
+            timestamp=float(alert.timestamp) if isinstance(alert.timestamp, (int, float)) else 0.0,
+            sensor_type=SensorType.SURICATA_EVE,
+            src_entity=alert.src_ip or "unknown",
+            dst_entity=alert.dst_ip or "unknown",
+            src_port=alert.src_port,
+            dst_port=alert.dst_port,
+            protocol=alert.protocol or "UNKNOWN",
+            direction=EvidenceDirection.UNKNOWN,
+            bytes_count=None,
+            packets_count=None,
+            duration_seconds=None,
+            session_id=None,
+            application_metadata={"gid": alert.gid, "sid": alert.signature_id, "rev": alert.rev, "category": alert.category},
+            detection_findings=findings,
+            mitre_techniques=techs,
+            threat_intel_indicators=(),
+            confidence=0.90 if getattr(alert, "severity", 3) == 1 else 0.75,
+            provenance=None,
+            missing_fields=("bytes_count", "packets_count", "duration_seconds"),
+        )
+
+    @classmethod
+    def from_tcp_session(cls, sess: Any) -> NetworkEvidence:
+        """Create canonical NetworkEvidence from TCPSessionRecord."""
+        import hashlib
+        raw_key = f"{sess.first_seen}:ZEEK_CONN:{sess.src_ip}:{sess.dst_ip}:{sess.src_port}:{sess.dst_port}"
+        ev_id = "ev_zk_" + hashlib.sha256(raw_key.encode("utf-8")).hexdigest()[:12]
+        
+        return cls(
+            evidence_id=ev_id,
+            timestamp=sess.first_seen,
+            sensor_type=SensorType.ZEEK_CONN,
+            src_entity=sess.src_ip or "unknown",
+            dst_entity=sess.dst_ip or "unknown",
+            src_port=sess.src_port,
+            dst_port=sess.dst_port,
+            protocol="TCP",
+            direction=EvidenceDirection.UNKNOWN,
+            bytes_count=sess.total_bytes,
+            packets_count=sess.total_packets,
+            duration_seconds=sess.duration_seconds,
+            session_id=sess.session_id,
+            application_metadata={
+                "connection_state": getattr(sess.connection_state, "value", str(sess.connection_state)),
+                "zeek_state": getattr(sess, "zeek_equivalent_state", "OTH"),
+                "history": getattr(sess, "history_string", ""),
+            },
+            detection_findings=(),
+            mitre_techniques=(),
+            threat_intel_indicators=(),
+            confidence=0.95,
+            provenance=None,
+            missing_fields=(),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "evidence_id": self.evidence_id,
+            "timestamp": self.timestamp,
+            "sensor_type": self.sensor_type.value,
+            "src_entity": self.src_entity,
+            "dst_entity": self.dst_entity,
+            "src_port": self.src_port,
+            "dst_port": self.dst_port,
+            "protocol": self.protocol,
+            "direction": self.direction.value,
+            "bytes_count": self.bytes_count,
+            "packets_count": self.packets_count,
+            "duration_seconds": self.duration_seconds,
+            "session_id": self.session_id,
+            "application_metadata": self.application_metadata,
+            "detection_findings": list(self.detection_findings),
+            "mitre_techniques": list(self.mitre_techniques),
+            "threat_intel_indicators": list(self.threat_intel_indicators),
+            "confidence": self.confidence,
+            "missing_fields": list(self.missing_fields),
+        }
+

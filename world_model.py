@@ -36,6 +36,10 @@ PACKET_NAMES = [
 TEMPORAL_NAMES = ["delta_flow_count", "delta_total_bytes", "delta_total_packets", "delta_ports", "delta_iat", "rolling_total_bytes"]
 FEATURE_NAMES = FLOW_NAMES + PACKET_NAMES + TEMPORAL_NAMES
 FEATURE_NAMES_45 = FLOW_NAMES_45 + PACKET_NAMES + TEMPORAL_NAMES
+_FLOW_NAMES_SET = set(FLOW_NAMES)
+_PACKET_NAMES_SET = set(PACKET_NAMES)
+_TEMPORAL_NAMES_SET = set(TEMPORAL_NAMES)
+_LOADED_MODELS: dict[Path, tuple["NumpyLSTM", np.ndarray, np.ndarray]] = {}
 
 
 @dataclass
@@ -205,16 +209,32 @@ def infer(sequence: list[NetworkState], model: NumpyLSTM, scaler_mean: np.ndarra
     current = sequence[-1].to_dict() if sequence else None; forecasts = []
     if len(sequence) < LOOKBACK:
         return {"current_state": current, "forecasts": [{"horizon": step, "attack_probability": None, "predicted_state": None, "confidence": 0.0, "abstained": True, "reason": "insufficient history"} for step in range(1, k + 1)]}
-    rolling = list(sequence[-LOOKBACK:])
-    flow_names = [n for n in feat_names if n in set(FLOW_NAMES)]
-    packet_names = [n for n in feat_names if n in set(PACKET_NAMES)]
-    temporal_names = [n for n in feat_names if n in set(TEMPORAL_NAMES)]
+    
+    # Vectorized preallocated trajectory rollout
+    buf = np.zeros((LOOKBACK + k, len(feat_names)), dtype=np.float64)
+    for i, s in enumerate(sequence[-LOOKBACK:]):
+        buf[i] = s.encode(feat_names)
+
+    flow_subset = FLOW_NAMES_45 if len(feat_names) == 45 else FLOW_NAMES
+    n_flow = len(flow_subset)
+    n_pkt = len(PACKET_NAMES)
+
     for step in range(1, k + 1):
-        matrix = np.asarray([state.encode(feat_names) for state in rolling[-LOOKBACK:]])
-        scaled = (matrix - scaler_mean) / scaler_scale; predicted_scaled, probability = model.predict(scaled); vector = predicted_scaled * scaler_scale + scaler_mean
-        confidence = float(abs(probability - 0.5) * 2); predicted = {name: float(value) for name, value in zip(feat_names, vector)}
+        window = buf[step - 1 : step - 1 + LOOKBACK]
+        scaled = (window - scaler_mean) / scaler_scale
+        predicted_scaled, probability = model.predict(scaled)
+        vector = predicted_scaled * scaler_scale + scaler_mean
+        confidence = float(abs(probability - 0.5) * 2)
+        predicted = {name: float(value) for name, value in zip(feat_names, vector)}
         forecasts.append({"horizon": step, "attack_probability": probability, "predicted_state": predicted, "confidence": confidence, "abstained": False})
-        rolling.append(NetworkState(rolling[-1].timestamp + WINDOW_SECONDS, {n: predicted.get(n, 0.0) for n in flow_names}, {n: predicted.get(n, 0.0) for n in packet_names}, {n: predicted.get(n, 0.0) for n in temporal_names}, int(probability >= 0.5), rolling[-1].packet_features_available))
+
+        # Roll vector into preallocated buffer with exact dictionary key overwrite semantics
+        sim_vec = np.zeros(len(feat_names), dtype=np.float64)
+        sim_vec[:n_flow] = [predicted.get(n, 0.0) for n in flow_subset]
+        sim_vec[n_flow:n_flow + n_pkt] = [predicted.get(n, 0.0) for n in PACKET_NAMES]
+        sim_vec[n_flow + n_pkt:] = [predicted.get(n, 0.0) for n in TEMPORAL_NAMES]
+        buf[LOOKBACK - 1 + step] = sim_vec
+
     return {"current_state": current, "forecasts": forecasts}
 
 
@@ -240,9 +260,13 @@ def explain(sequence: list[NetworkState], model: NumpyLSTM, mean: np.ndarray, sc
 
 
 def load_model(package_dir: Path | None = None) -> tuple[NumpyLSTM, np.ndarray, np.ndarray]:
-    package_dir = package_dir or (ROOT / "models" / "nexsolve_world_model")
-    scaler = np.load(package_dir / "preprocessing.npz")
-    return NumpyLSTM.load(package_dir / "model.npz"), scaler["mean"], scaler["scale"]
+    p = (package_dir or (ROOT / "models" / "nexsolve_world_model")).resolve()
+    if p in _LOADED_MODELS:
+        return _LOADED_MODELS[p]
+    scaler = np.load(p / "preprocessing.npz")
+    loaded = (NumpyLSTM.load(p / "model.npz"), scaler["mean"], scaler["scale"])
+    _LOADED_MODELS[p] = loaded
+    return loaded
 
 
 def predict(sequence: list[NetworkState], package_dir: Path | None = None) -> dict:

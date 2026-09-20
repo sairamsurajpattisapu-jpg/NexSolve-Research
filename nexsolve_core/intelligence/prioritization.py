@@ -18,6 +18,7 @@ from enum import Enum
 from typing import Any, Mapping, Sequence
 
 from nexsolve_core.graph.models import deterministic_id
+from nexsolve_core.intelligence.entity_profile import EntityBehavioralRole
 
 
 class ThreatPriorityLevel(str, Enum):
@@ -140,20 +141,23 @@ def decompose_threat_risk(
     elif curr_state_val == "DISCOVERY":
         state_contrib = 40
         drivers.append("Host/service discovery probing observed")
-    elif prof and any("SCANNER" in str(r) for r in getattr(prof, "roles", ())):
-        state_contrib = 45
-        drivers.append("Entity exhibits active port scanning behavior")
-    elif prof and any("BEACON" in str(r) for r in getattr(prof, "roles", ())):
-        state_contrib = 50
-        drivers.append("Entity exhibits periodic beaconing communication")
-    elif prof and any("RESET_HEAVY" in str(r) for r in getattr(prof, "roles", ())):
-        state_contrib = 30
-        drivers.append("Entity generates high volume of rejected or reset connection attempts")
+    elif prof:
+        prof_roles = getattr(prof, "roles", ())
+        if EntityBehavioralRole.SCANNER in prof_roles or "SCANNER" in prof_roles:
+            state_contrib = 45
+            drivers.append("Entity exhibits active port scanning behavior")
+        elif EntityBehavioralRole.BEACON in prof_roles or "BEACON" in prof_roles:
+            state_contrib = 50
+            drivers.append("Entity exhibits periodic beaconing communication")
+        elif EntityBehavioralRole.RESET_HEAVY in prof_roles or "RESET_HEAVY" in prof_roles:
+            state_contrib = 30
+            drivers.append("Entity generates high volume of rejected or reset connection attempts")
 
     kinematic_contrib = 0
     ent_changes = [c for c in changes if getattr(c, "entity", "") == entity]
     for c in ent_changes:
-        c_type = str(getattr(c, "change_type", ""))
+        raw_ctype = getattr(c, "change_type", "")
+        c_type = raw_ctype.value if hasattr(raw_ctype, "value") else str(raw_ctype)
         if "PORT_FANOUT" in c_type:
             kinematic_contrib += 25
             drivers.append(f"Sudden port fanout expansion (magnitude {getattr(c, 'magnitude', 0):.1f})")
@@ -248,6 +252,12 @@ def prioritize_threats(
         for ent in getattr(c, "primary_entities", ()):
             entity_cmp_map[ent] = getattr(c, "campaign_id", "cmp")
 
+    entity_changes_map: dict[str, list[Any]] = {}
+    for c in changes:
+        c_ent = getattr(c, "entity", "")
+        if c_ent:
+            entity_changes_map.setdefault(str(c_ent), []).append(c)
+
     for ent, prof in profiles.items():
         traj = kinematics.get(ent)
         curr_state = getattr(traj, "current_state", "BENIGN") if traj else "BENIGN"
@@ -280,23 +290,26 @@ def prioritize_threats(
             severity_score += 40
             drivers.append("Host/service discovery probing observed")
             evidence_count += 1
-        elif any("SCANNER" in str(r) for r in getattr(prof, "roles", ())):
-            severity_score += 45
-            drivers.append("Entity exhibits active port scanning behavior")
-            evidence_count += 1
-        elif any("BEACON" in str(r) for r in getattr(prof, "roles", ())):
-            severity_score += 50
-            drivers.append("Entity exhibits periodic beaconing communication")
-            evidence_count += 2
-        elif any("RESET_HEAVY" in str(r) for r in getattr(prof, "roles", ())):
-            severity_score += 30
-            drivers.append("Entity generates high volume of rejected or reset connection attempts")
-            evidence_count += 1
+        else:
+            prof_roles = getattr(prof, "roles", ())
+            if EntityBehavioralRole.SCANNER in prof_roles or "SCANNER" in prof_roles:
+                severity_score += 45
+                drivers.append("Entity exhibits active port scanning behavior")
+                evidence_count += 1
+            elif EntityBehavioralRole.BEACON in prof_roles or "BEACON" in prof_roles:
+                severity_score += 50
+                drivers.append("Entity exhibits periodic beaconing communication")
+                evidence_count += 2
+            elif EntityBehavioralRole.RESET_HEAVY in prof_roles or "RESET_HEAVY" in prof_roles:
+                severity_score += 30
+                drivers.append("Entity generates high volume of rejected or reset connection attempts")
+                evidence_count += 1
 
         # Dimension 2: Behavioral Changes
-        ent_changes = [c for c in changes if getattr(c, "entity", "") == ent]
+        ent_changes = entity_changes_map.get(ent, [])
         for c in ent_changes:
-            c_type = str(getattr(c, "change_type", ""))
+            raw_ctype = getattr(c, "change_type", "")
+            c_type = raw_ctype.value if hasattr(raw_ctype, "value") else str(raw_ctype)
             if "PORT_FANOUT" in c_type:
                 severity_score += 25
                 drivers.append(f"Sudden port fanout expansion (magnitude {getattr(c, 'magnitude', 0):.1f})")

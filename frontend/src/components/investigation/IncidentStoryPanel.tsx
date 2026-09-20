@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { IncidentStoryPayload } from '../../types/api'
+import type { IncidentStoryPayload, AttackHorizonPayload, AttackProgressionForecast } from '../../types/api'
 import { Panel } from '../Ui'
 import {
   FileText,
@@ -11,13 +11,18 @@ import {
   AlertTriangle,
   Compass,
   Radio,
+  HelpCircle,
+  Activity,
+  ArrowRight,
 } from 'lucide-react'
 
 interface IncidentStoryPanelProps {
   incidentStory?: IncidentStoryPayload | null
+  attackHorizon?: AttackHorizonPayload | null
+  attackProgression?: AttackProgressionForecast | null
 }
 
-export function IncidentStoryPanel({ incidentStory }: IncidentStoryPanelProps) {
+export function IncidentStoryPanel({ incidentStory, attackHorizon, attackProgression }: IncidentStoryPanelProps) {
   const [activeTab, setActiveTab] = useState<'NARRATIVE' | 'TIMELINE' | 'PHASES' | 'ACTORS_TARGETS' | 'TRANSITIONS' | 'EVIDENCE_CHAIN' | 'UNCERTAINTY'>('NARRATIVE')
 
   if (!incidentStory) {
@@ -271,6 +276,82 @@ export function IncidentStoryPanel({ incidentStory }: IncidentStoryPanelProps) {
       {/* Tab: Narrative */}
       {activeTab === 'NARRATIVE' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {/* 10 Core Attack Story Questions Quick-Assessment Strip */}
+          <div style={{ background: 'var(--surface-ground)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '14px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <HelpCircle size={15} color="var(--accent)" />
+              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--accent)' }}>
+                Attack Story Assessment · 10 Core Security Intelligence Inquiries
+              </span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '8px' }}>
+              <div style={{ padding: '8px 10px', background: 'var(--surface-subtle)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>1. WHAT is happening?</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>{assessment.classification.replace(/_/g, ' ')} ({assessment.severity})</div>
+              </div>
+              <div style={{ padding: '8px 10px', background: 'var(--surface-subtle)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>2. WHO is involved?</div>
+                <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', marginTop: '2px' }}>
+                  {incidentStory.actors.map((a) => a.entity).join(', ') || 'Unspecified Actor'}
+                </div>
+              </div>
+              <div style={{ padding: '8px 10px', background: 'var(--surface-subtle)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>3. WHERE is it happening?</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>
+                  {incidentStory.targets.length} destination host(s) across ports [{incidentStory.targets.flatMap((t) => t.targeted_ports).slice(0, 4).join(', ') || 'various'}]
+                </div>
+              </div>
+              <div style={{ padding: '8px 10px', background: 'var(--surface-subtle)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>4. HOW did behavior evolve?</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>{assessment.what_changed_summary}</div>
+              </div>
+              <div style={{ padding: '8px 10px', background: 'var(--surface-subtle)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>5. WHAT stage is it currently in (T₀)?</div>
+                <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--accent)', marginTop: '2px', fontWeight: 600 }}>
+                  {attackProgression?.observed_state || incidentStory.events.filter((e) => e.epistemic_status === 'OBSERVED').slice(-1)[0]?.attack_state || 'RECONNAISSANCE'}
+                </div>
+              </div>
+              <div style={{ padding: '8px 10px', background: 'var(--surface-subtle)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>6. WHAT stage is developing next (T+1)?</div>
+                <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: '#c084fc', marginTop: '2px', fontWeight: 600 }}>
+                  {attackProgression?.forecast_points?.[0]
+                    ? `${attackProgression.forecast_points[0].predicted_state} (${attackProgression.forecast_points[0].prediction_type})`
+                    : 'Awaiting sufficient rollout sequence'}
+                </div>
+              </div>
+              <div style={{ padding: '8px 10px', background: 'var(--surface-subtle)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>7. WHAT evidence caused interpretation?</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>
+                  {incidentStory.evidence_chain.map((c) => c.stage_name).slice(0, 2).join(' · ') || 'Packet connection rates & SYN telemetry'}
+                </div>
+              </div>
+              <div style={{ padding: '8px 10px', background: 'var(--surface-subtle)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>8. T+1 → T+5 expected progression?</div>
+                <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', marginTop: '2px' }}>
+                  {attackProgression?.forecast_points && attackProgression.forecast_points.length > 0
+                    ? attackProgression.forecast_points.map((pt) => `T+${pt.horizon_minutes}:${pt.predicted_state.slice(0, 4)}`).join(' → ')
+                    : 'T+1 through T+5 Markovian rollout calculated'}
+                </div>
+              </div>
+              <div style={{ padding: '8px 10px', background: 'var(--surface-subtle)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>9. HOW confident is the system?</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>
+                  {attackProgression?.verdict === 'SUPPORTED'
+                    ? `Supported · Empirical probability: ${(Number(attackProgression.forecast_points?.[0]?.transition_probability || 0) * 100).toFixed(1)}%`
+                    : 'Grounding-verified observed evidence'}
+                </div>
+              </div>
+              <div style={{ padding: '8px 10px', background: 'var(--surface-subtle)', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>10. WHEN to pay attention to next escalation?</div>
+                <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--warning)', marginTop: '2px', fontWeight: 700 }}>
+                  {attackHorizon?.lead_time_to_escalation_seconds
+                    ? `Within ${attackHorizon.lead_time_to_escalation_seconds}s (T+${attackHorizon.escalation_horizon})`
+                    : (attackHorizon?.lead_time_seconds ? `Onset within ${attackHorizon.lead_time_seconds}s` : 'Immediate triage recommended')}
+                </div>
+              </div>
+            </div>
+          </div>
+
           {incidentStory.narrative_paragraphs.map((p, idx) => (
             <p key={idx} style={{ margin: 0, fontSize: '13px', lineHeight: 1.6, color: 'var(--text-primary)' }}>
               {p}
@@ -295,49 +376,70 @@ export function IncidentStoryPanel({ incidentStory }: IncidentStoryPanelProps) {
       {/* Tab: Timeline */}
       {activeTab === 'TIMELINE' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {incidentStory.events.map((evt) => (
-            <div
-              key={evt.event_id}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '12px',
-                padding: '12px 14px',
-                background: 'var(--surface-subtle)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: '6px',
-              }}
-            >
-              <div style={{ minWidth: '75px', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--accent)', marginTop: '2px' }}>
-                W{evt.window_index} ({evt.timestamp.toFixed(0)}s)
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                      {evt.event_type}
-                    </span>
-                    {getEpistemicBadge(evt.epistemic_status)}
-                    {getGroundingBadge(evt.grounding)}
-                  </div>
-                  {evt.mitre_technique && (
-                    <span style={{ fontSize: '10px', background: 'var(--surface-ground)', color: 'var(--text-secondary)', padding: '2px 6px', borderRadius: '4px', fontFamily: 'var(--mono)' }}>
-                      {evt.mitre_technique}
-                    </span>
-                  )}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  {evt.explanation}
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                  Actor: <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>{evt.actor}</strong>
-                  {evt.target && (
-                    <span> · Target: <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>{evt.target}</strong></span>
-                  )}
-                </div>
-              </div>
+          {/* Legend Banner */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--surface-subtle)', borderRadius: '4px', fontSize: '11px', color: 'var(--text-secondary)' }}>
+            <span>Chronological timeline with strict boundary between observed network facts and predictive model rollouts:</span>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)' }} />
+                OBSERVED (T ≤ T₀)
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#c084fc' }} />
+                FORECAST (T+1 .. T+5)
+              </span>
             </div>
-          ))}
+          </div>
+
+          {incidentStory.events.map((evt) => {
+            const isForecast = evt.epistemic_status === 'FORECAST'
+            return (
+              <div
+                key={evt.event_id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  padding: '12px 14px',
+                  background: isForecast ? 'rgba(168, 85, 247, 0.04)' : 'var(--surface-subtle)',
+                  border: `1px solid ${isForecast ? 'rgba(168, 85, 247, 0.25)' : 'var(--border-subtle)'}`,
+                  borderRadius: '6px',
+                }}
+              >
+                <div style={{ minWidth: '85px', fontSize: '11px', fontFamily: 'var(--mono)', color: isForecast ? '#c084fc' : 'var(--accent)', marginTop: '2px' }}>
+                  W{evt.window_index} ({evt.timestamp.toFixed(0)}s)
+                  {isForecast && (
+                    <div style={{ fontSize: '9px', fontWeight: 700, color: '#c084fc' }}>FUTURE PROJECTION</div>
+                  )}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {evt.event_type}
+                      </span>
+                      {getEpistemicBadge(evt.epistemic_status)}
+                      {getGroundingBadge(evt.grounding)}
+                    </div>
+                    {evt.mitre_technique && (
+                      <span style={{ fontSize: '10px', background: 'var(--surface-ground)', color: 'var(--text-secondary)', padding: '2px 6px', borderRadius: '4px', fontFamily: 'var(--mono)' }}>
+                        {evt.mitre_technique}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                    {evt.explanation}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    Actor: <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>{evt.actor}</strong>
+                    {evt.target && (
+                      <span> · Target: <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>{evt.target}</strong></span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 
@@ -437,29 +539,93 @@ export function IncidentStoryPanel({ incidentStory }: IncidentStoryPanelProps) {
 
       {/* Tab: State Transitions */}
       {activeTab === 'TRANSITIONS' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {incidentStory.transitions.length > 0 ? (
-            incidentStory.transitions.map((tr) => (
-              <div key={tr.transition_id} style={{ padding: '12px 14px', background: 'var(--surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: '6px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>
-                      {tr.from_state} → {tr.to_state}
-                    </span>
-                    {getGroundingBadge(tr.grounding)}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {/* Observed Kinematic Transitions */}
+          <div>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '8px' }}>
+              Directly Observed Kinematic Transitions ({incidentStory.transitions.length})
+            </div>
+            {incidentStory.transitions.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {incidentStory.transitions.map((tr) => (
+                  <div key={tr.transition_id} style={{ padding: '12px 14px', background: 'var(--surface-subtle)', border: '1px solid var(--border-subtle)', borderRadius: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>
+                          {tr.from_state} → {tr.to_state}
+                        </span>
+                        {getGroundingBadge(tr.grounding)}
+                      </div>
+                      <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+                        Window {tr.window_index}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                      {tr.explanation}
+                    </div>
                   </div>
-                  <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
-                    Window {tr.window_index}
-                  </span>
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                  {tr.explanation}
-                </div>
+                ))}
               </div>
-            ))
-          ) : (
-            <div style={{ padding: '16px', background: 'var(--surface-subtle)', borderRadius: '8px', color: 'var(--text-secondary)', fontSize: '13px' }}>
-              No kinematic state changes occurred during this capture sequence.
+            ) : (
+              <div style={{ padding: '12px 14px', background: 'var(--surface-subtle)', borderRadius: '6px', color: 'var(--text-secondary)', fontSize: '12px' }}>
+                State persistence maintained; no internal kinematic state changes observed during this capture span.
+              </div>
+            )}
+          </div>
+
+          {/* Predictive Markovian State Transitions (T+1 .. T+5) */}
+          {attackProgression?.forecast_points && attackProgression.forecast_points.length > 0 && (
+            <div>
+              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#c084fc', fontWeight: 700, marginBottom: '8px' }}>
+                Empirical Progression Forecast Transitions (T+1 .. T+5)
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {attackProgression.forecast_points.map((pt) => {
+                  const probPct = pt.transition_probability !== null ? (pt.transition_probability * 100).toFixed(1) : 'N/A'
+                  const isPersistence = pt.prediction_type === 'STATE_PERSISTENCE'
+                  return (
+                    <div
+                      key={pt.horizon_minutes}
+                      style={{
+                        padding: '12px 14px',
+                        background: 'rgba(168, 85, 247, 0.04)',
+                        border: '1px solid rgba(168, 85, 247, 0.2)',
+                        borderRadius: '6px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#c084fc', fontFamily: 'var(--mono)' }}>
+                            T+{pt.horizon_minutes} ({pt.lead_time_seconds}s)
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              fontFamily: 'var(--mono)',
+                              fontWeight: 700,
+                              padding: '2px 6px',
+                              borderRadius: '3px',
+                              background: isPersistence ? 'rgba(59, 130, 246, 0.15)' : 'rgba(234, 179, 8, 0.15)',
+                              color: isPersistence ? 'var(--accent)' : 'var(--warning)',
+                            }}
+                          >
+                            {pt.prediction_type}
+                          </span>
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>
+                            → {pt.predicted_state}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--accent)' }}>
+                          P(S) = {probPct}%
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                        Technique: <strong>{pt.predicted_technique || 'None'}</strong> · Evidence Grounding: {pt.supporting_evidence.join(', ') || 'Dataset transition matrix'}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </div>

@@ -42,10 +42,20 @@ class FusedEvidenceItem:
     mitre_technique_id: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        res = asdict(self)
-        res["temporal_scope"] = self.temporal_scope.value
-        res["modality"] = self.modality.value
-        return res
+        return {
+            "id": self.id,
+            "timestamp": self.timestamp,
+            "temporal_scope": self.temporal_scope.value if hasattr(self.temporal_scope, "value") else str(self.temporal_scope),
+            "modality": self.modality.value if hasattr(self.modality, "value") else str(self.modality),
+            "source": self.source,
+            "severity": self.severity,
+            "confidence": self.confidence,
+            "description": self.description,
+            "entities": self.entities,
+            "supporting_features": self.supporting_features,
+            "provenance": self.provenance,
+            "mitre_technique_id": self.mitre_technique_id,
+        }
 
 
 @dataclass(frozen=True)

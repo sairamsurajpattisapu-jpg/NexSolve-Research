@@ -31,6 +31,5 @@ export function useProductionData() {
     provenance: snapshot.provenance,
     isReferenceDataset: snapshot.provenance === 'reference',
     isLiveCapture: snapshot.provenance === 'uploaded',
-    isDemo: snapshot.provenance === 'demo',
   }
 }

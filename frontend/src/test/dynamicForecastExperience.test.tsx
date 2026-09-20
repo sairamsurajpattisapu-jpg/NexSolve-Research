@@ -111,9 +111,8 @@ describe('Dynamic Forecast Experience Suite', () => {
     )
 
     expect(screen.getByText(/NO ANALYSIS SELECTED/i)).toBeInTheDocument()
-    expect(screen.getByText(/Run an analysis or open a demonstration scenario/i)).toBeInTheDocument()
+    expect(screen.getByText(/Run a PCAP analysis to explore forecast intelligence/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /NEW ANALYSIS/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /(OPEN DEMO|SAMPLE SCENARIOS)/i })).toBeInTheDocument()
   })
 
   it('renders error state on Forecast page when error occurs', () => {

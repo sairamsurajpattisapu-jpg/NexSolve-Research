@@ -8,6 +8,7 @@ Generates deterministic, evidence-backed narrative investigation stories:
 """
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Sequence
 
@@ -89,6 +90,17 @@ def generate_threat_stories(
     pats = patterns or []
     changes = change_signals or []
 
+    changes_by_entity: dict[str, list[Any]] = defaultdict(list)
+    for c in changes:
+        ent_name = getattr(c, "entity", "")
+        if ent_name:
+            changes_by_entity[str(ent_name)].append(c)
+
+    patterns_by_entity: dict[str, list[Any]] = defaultdict(list)
+    for p in pats:
+        for pe in getattr(p, "primary_entities", ()):
+            patterns_by_entity[str(pe)].append(p)
+
     # Process all entities with behavioral profiles
     for ent, prof in profiles.items():
         # Check if entity exhibits non-trivial security behavior
@@ -117,7 +129,7 @@ def generate_threat_stories(
         stages.append(NarrativeStage("Initial Observation", init_w, init_text, (f"win_{init_w}",)))
 
         # 2. Behavior Change Signals
-        ent_changes = [c for c in changes if getattr(c, "entity", "") == ent]
+        ent_changes = changes_by_entity.get(ent, [])
         for c in ent_changes:
             desc = getattr(c, "description", "Significant behavioral shift observed.")
             w_after = getattr(c, "window_after", 0)
@@ -134,7 +146,7 @@ def generate_threat_stories(
                 supporting.extend(getattr(t, "supporting_evidence_ids", ()))
 
         # 4. Multi-Entity Pattern Alignment
-        ent_patterns = [p for p in pats if ent in getattr(p, "primary_entities", ())]
+        ent_patterns = patterns_by_entity.get(ent, [])
         for p in ent_patterns:
             p_desc = getattr(p, "explanation", "")
             stages.append(NarrativeStage("Attack Pattern Manifestation", getattr(p, "time_window_range", (0, 0))[0], p_desc, (getattr(p, "pattern_id", "pat"),)))

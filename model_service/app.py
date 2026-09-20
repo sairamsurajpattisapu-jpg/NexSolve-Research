@@ -137,6 +137,11 @@ async def lifespan(app: FastAPI):
         init_db()
     except Exception:
         pass
+    try:
+        from model_service.jobs import cleanup_stale_runtime_files
+        cleanup_stale_runtime_files()
+    except Exception:
+        pass
     yield
 
 
@@ -207,16 +212,7 @@ def analysis_for_id(analysis_id: str) -> dict[str, Any]:
     if job is not None and job.status == "COMPLETED" and job.result is not None:
         return job.result
 
-    # 3. Check demo scenarios
-    if analysis_id.startswith("demo-"):
-        scenario_id = analysis_id[5:].upper()
-        try:
-            from demo.scenarios import get_demo_scenario
-            return get_demo_scenario(scenario_id)
-        except Exception:
-            pass
-
-    # 4. Check database persistence
+    # 3. Check database persistence
     uploaded = get_uploaded_analysis(analysis_id)
     if uploaded is not None:
         return uploaded
@@ -539,29 +535,6 @@ async def get_job_status(job_id: str) -> dict[str, Any]:
                 }
         except Exception:
             pass
-        if job_id.startswith("demo-"):
-            scenario_id = job_id[5:].upper()
-            try:
-                from demo.scenarios import get_demo_scenario
-                res = get_demo_scenario(scenario_id)
-                return {
-                    "job_id": job_id,
-                    "status": "COMPLETED",
-                    "progress": 1.0,
-                    "stage": "COMPLETE",
-                    "created_at": "2026-09-10T08:00:00Z",
-                    "started_at": "2026-09-10T08:00:00Z",
-                    "completed_at": "2026-09-10T08:00:01Z",
-                    "error": None,
-                    "processing_statistics": {
-                        "packets_processed": res["packet_count"],
-                        "flows_processed": res["traffic"].get("flows", 0),
-                        "windows_processed": res["window_count"],
-                        "processing_seconds": 0.081,
-                    },
-                }
-            except Exception:
-                pass
         raise HTTPException(status_code=404, detail="Job not found.")
     return job.to_status_dict()
 
@@ -578,13 +551,6 @@ async def get_job_result(job_id: str) -> dict[str, Any]:
                 return persisted
         except Exception:
             pass
-        if job_id.startswith("demo-"):
-            scenario_id = job_id[5:].upper()
-            try:
-                from demo.scenarios import get_demo_scenario
-                return get_demo_scenario(scenario_id)
-            except Exception:
-                raise HTTPException(status_code=404, detail="Demo scenario not found.")
         raise HTTPException(status_code=404, detail="Job not found.")
     if job.status in ("QUEUED", "PROCESSING"):
         raise HTTPException(status_code=409, detail=f"Job is still {job.status.lower()}.")
@@ -597,7 +563,7 @@ async def get_job_result(job_id: str) -> dict[str, Any]:
 
 @app.get("/jobs/{job_id}/report.json")
 async def get_job_report_json(job_id: str) -> Response:
-    """Download structured JSON forensic & predictive intelligence report."""
+    """Download structured JSON predictive intelligence report."""
     job = JOB_MANAGER.get_job(job_id)
     if job is None:
         try:
@@ -613,17 +579,6 @@ async def get_job_report_json(job_id: str) -> Response:
                 )
         except Exception:
             pass
-        if job_id.startswith("demo-"):
-            scenario_id = job_id[5:].upper()
-            try:
-                from demo.scenarios import get_demo_report_json
-                return Response(
-                    content=get_demo_report_json(scenario_id),
-                    media_type="application/json",
-                    headers={"Content-Disposition": f'attachment; filename="nexsolve-demo-{scenario_id.lower()}-report.json"'},
-                )
-            except Exception:
-                raise HTTPException(status_code=404, detail="Demo scenario not found.")
         raise HTTPException(status_code=404, detail="Job not found.")
     if job.status != "COMPLETED" or job.report_json is None:
         raise HTTPException(status_code=409, detail=f"Report is not ready (job is {job.status.lower()}).")
@@ -636,7 +591,7 @@ async def get_job_report_json(job_id: str) -> Response:
 
 @app.get("/jobs/{job_id}/report.html")
 async def get_job_report_html(job_id: str) -> Response:
-    """View or download standalone printable HTML forensic & predictive intelligence report."""
+    """View or download standalone printable HTML predictive intelligence report."""
     job = JOB_MANAGER.get_job(job_id)
     if job is None:
         try:
@@ -648,58 +603,10 @@ async def get_job_report_html(job_id: str) -> Response:
                 return HTMLResponse(content=generate_html_report(rep), media_type="text/html")
         except Exception:
             pass
-        if job_id.startswith("demo-"):
-            scenario_id = job_id[5:].upper()
-            try:
-                from demo.scenarios import get_demo_report_html
-                return HTMLResponse(content=get_demo_report_html(scenario_id), media_type="text/html")
-            except Exception:
-                raise HTTPException(status_code=404, detail="Demo scenario not found.")
         raise HTTPException(status_code=404, detail="Job not found.")
     if job.status != "COMPLETED" or job.report_html is None:
         raise HTTPException(status_code=409, detail=f"Report is not ready (job is {job.status.lower()}).")
     return HTMLResponse(content=job.report_html, media_type="text/html")
-
-
-@app.get("/api/demo/scenarios")
-async def list_demo_scenarios() -> list[dict[str, Any]]:
-    """List all available deterministic SIH demo scenarios."""
-    from demo.scenarios import get_demo_scenarios_metadata
-    return get_demo_scenarios_metadata()
-
-
-@app.get("/api/demo/scenarios/{scenario_id}")
-async def get_demo_scenario_endpoint(scenario_id: str) -> dict[str, Any]:
-    """Retrieve full analysis result for a deterministic demo scenario."""
-    from demo.scenarios import get_demo_scenario
-    try:
-        return get_demo_scenario(scenario_id)
-    except ValueError as err:
-        raise HTTPException(status_code=404, detail=str(err))
-
-
-@app.get("/api/demo/scenarios/{scenario_id}/report.json")
-async def get_demo_scenario_report_json(scenario_id: str) -> Response:
-    """Download JSON report for a deterministic demo scenario."""
-    from demo.scenarios import get_demo_report_json
-    try:
-        return Response(
-            content=get_demo_report_json(scenario_id),
-            media_type="application/json",
-            headers={"Content-Disposition": f'attachment; filename="nexsolve-demo-{scenario_id.lower()}-report.json"'},
-        )
-    except ValueError as err:
-        raise HTTPException(status_code=404, detail=str(err))
-
-
-@app.get("/api/demo/scenarios/{scenario_id}/report.html")
-async def get_demo_scenario_report_html(scenario_id: str) -> Response:
-    """Download HTML report for a deterministic demo scenario."""
-    from demo.scenarios import get_demo_report_html
-    try:
-        return HTMLResponse(content=get_demo_report_html(scenario_id), media_type="text/html")
-    except ValueError as err:
-        raise HTTPException(status_code=404, detail=str(err))
 
 
 @app.post("/api/pcap/analyze")
@@ -1387,7 +1294,7 @@ async def run_what_if_simulation(req: SimulationRequest) -> dict[str, Any]:
     try:
         base_res = analysis_for_id(target_id)
     except Exception:
-        # Fallback to current analysis or demo
+        # Fallback to current analysis
         base_res = analysis_for_id(get_current_analysis_id())
 
     # 2. Extract baseline forecast points

@@ -17,7 +17,7 @@ const STAGE_LABELS: Record<JobStageType, string> = {
   NETWORK_STATE: 'Computing Canonical Network State',
   FORECAST: 'Evaluating Attack Forecasting Models',
   EVIDENCE: 'Corroborating Observable Evidence Chain',
-  REPORT: 'Compiling Forensic & Predictive Report',
+  REPORT: 'Compiling Predictive Assessment Report',
   COMPLETE: 'Processing Complete',
 }
 

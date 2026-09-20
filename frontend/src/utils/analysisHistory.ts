@@ -4,7 +4,7 @@ export interface AnalysisHistoryEntry {
   filesize?: string
   timestamp: string
   status: 'COMPLETED' | 'PROCESSING' | 'FAILED'
-  provenance: 'uploaded' | 'demo' | 'reference'
+  provenance: 'uploaded' | 'reference'
   peakRiskPct?: number
   predictedStage?: string
 }

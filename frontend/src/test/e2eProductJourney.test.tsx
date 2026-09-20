@@ -27,7 +27,6 @@ vi.mock('../hooks/useProductionData', () => ({
     analysisId: 'job-e2e-test-123',
     isReferenceDataset: false,
     isLiveCapture: true,
-    isDemo: false,
   }),
 }))
 

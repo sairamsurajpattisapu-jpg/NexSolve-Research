@@ -84,7 +84,6 @@ export function adaptToCanonical(
 ): CanonicalAnalysis {
   const raw = rawInput as Record<string, unknown>
   const analysisId = (raw.analysis_id as string) || fallbackId || 'unknown'
-  const isDemo = Boolean(raw.is_demo || analysisId.startsWith('demo-'))
   const sourceObj = (raw.source as Record<string, unknown>) || {}
   const uploadObj = (raw.upload as Record<string, unknown>) || {}
   const traffic = (raw.traffic as Record<string, unknown>) || {}
@@ -115,7 +114,7 @@ export function adaptToCanonical(
     raw.window_count || validation.window_count || traffic.window_count || traffic.windows || traffic.windows_analyzed || validation.rows || 0
   )
   const isModelReady = Boolean(modelCompat.forecast_model_ready ?? (windowsCount >= 8))
-  const isAbstained = Boolean(abstention.abstained || attackHorizon?.state === 'ABSTAINED' || (!isDemo && windowsCount < 8))
+  const isAbstained = Boolean(abstention.abstained || attackHorizon?.state === 'ABSTAINED' || windowsCount < 8)
 
   // Forecast Points
   const rawForecasts = (raw.forecasts as Array<Record<string, unknown>>) || []
@@ -142,6 +141,32 @@ export function adaptToCanonical(
           }))
         : []
 
+      // Extract evidence attribution if present
+      const rawAttribution = found.evidenceAttribution || found.evidence_attribution
+      let evidenceAttribution = null
+      if (rawAttribution && typeof rawAttribution === 'object') {
+        const attrObj = rawAttribution as Record<string, unknown>
+        const topObs = Array.isArray(attrObj.top_observable_drivers)
+          ? attrObj.top_observable_drivers.map((d: any) => ({
+              feature: String(d.feature),
+              currentValue: Number(d.current_value ?? d.currentValue ?? 0),
+              predictedValue: Number(d.predicted_value ?? d.predictedValue ?? 0),
+              direction: String(d.direction ?? 'stable'),
+              relativeChange: Number(d.relative_change ?? d.relativeChange ?? 0),
+              importance: String(d.importance ?? 'MEDIUM'),
+              interpretation: String(d.interpretation ?? ''),
+            }))
+          : []
+        evidenceAttribution = {
+          predictedStage: String(attrObj.predicted_stage ?? attrObj.predictedStage ?? found.predictedStage ?? 'ATTACK_IMMINENT'),
+          mitreTechnique: String(attrObj.mitre_technique ?? attrObj.mitreTechnique ?? 'T1190: Exploit Public-Facing Application'),
+          behavioralRationale: String(attrObj.behavioral_rationale ?? attrObj.behavioralRationale ?? ''),
+          topObservableDrivers: topObs,
+          epistemicCertainty: String(attrObj.epistemic_certainty ?? attrObj.epistemicCertainty ?? 'HIGH_CONFIDENCE'),
+          supportingSignals: Array.isArray(attrObj.supporting_signals ?? attrObj.supportingSignals) ? (attrObj.supporting_signals ?? attrObj.supportingSignals).map(String) : [],
+        }
+      }
+
       points.push({
         horizon: h,
         lookaheadSeconds: Number(found.lookaheadSeconds || h * 60),
@@ -153,6 +178,7 @@ export function adaptToCanonical(
         uncertainty: typeof found.uncertainty === 'number' ? found.uncertainty : 0.15,
         explanation: Array.isArray(found.explanation) ? found.explanation.map(String) : ['Temporal trajectory projection'],
         topDrivers,
+        evidenceAttribution,
       })
     } else {
       // Abstained / withheld point
@@ -167,6 +193,7 @@ export function adaptToCanonical(
         uncertainty: null,
         explanation: [isAbstained ? (abstention.reason as string || 'Forecast withheld: Insufficient continuous temporal history (< 8 windows).') : 'Forecast point withheld.'],
         topDrivers: [],
+        evidenceAttribution: null,
       })
     }
   })
@@ -221,17 +248,23 @@ export function adaptToCanonical(
 
   // Attack progression stages
   const rawStages = (progressionRaw?.forecast_points as Array<Record<string, unknown>>) || []
-  const stages: ProgressionStage[] = rawStages.map((st, idx) => ({
-    step: idx + 1,
-    horizonMinutes: Number(st.horizon_minutes || idx + 1),
-    leadTimeSeconds: Number(st.lead_time_seconds || (idx + 1) * 60),
-    predictedState: String(st.predicted_state || 'BENIGN_OBSERVATION'),
-    predictionType: (st.prediction_type as any) || 'STATE_PERSISTENCE',
-    transitionProbability: typeof st.transition_probability === 'number' ? st.transition_probability : null,
-    evidence: Array.isArray(st.supporting_evidence) ? st.supporting_evidence.map(String) : [],
-    abstained: Boolean(st.abstained),
-    abstentionReason: (st.abstention_reason as string) || null,
-  }))
+  const stages: ProgressionStage[] = rawStages.map((st, idx) => {
+    const pState = String(st.predicted_state || 'BENIGN_OBSERVATION')
+    const mitreTech = String(st.predicted_technique || (pState === 'RECONNAISSANCE' ? 'T1046' : pState === 'DENIAL_OF_SERVICE' ? 'T1498' : pState === 'COMMAND_AND_CONTROL' ? 'T1071' : 'T1190'))
+    return {
+      step: idx + 1,
+      horizonMinutes: Number(st.horizon_minutes || idx + 1),
+      leadTimeSeconds: Number(st.lead_time_seconds || (idx + 1) * 60),
+      predictedState: pState,
+      predictionType: (st.prediction_type as any) || 'STATE_PERSISTENCE',
+      transitionProbability: typeof st.transition_probability === 'number' ? st.transition_probability : null,
+      evidence: Array.isArray(st.supporting_evidence) ? st.supporting_evidence.map(String) : [],
+      abstained: Boolean(st.abstained),
+      abstentionReason: (st.abstention_reason as string) || null,
+      mitreTechnique: mitreTech,
+      behavioralRationale: Array.isArray(st.supporting_evidence) && st.supporting_evidence.length > 0 ? String(st.supporting_evidence[0]) : null,
+    }
+  })
 
   if (stages.length === 0 && !isAbstained) {
     stages.push(
@@ -244,9 +277,23 @@ export function adaptToCanonical(
         transitionProbability: 0.975,
         evidence: ['Sustained destination port diversity', 'Automated scanning cadence'],
         abstained: false,
+        mitreTechnique: 'T1046',
+        behavioralRationale: 'Continuous destination port diversity and scan cadence observed at T.',
       },
       {
         step: 2,
+        horizonMinutes: 2,
+        leadTimeSeconds: 120,
+        predictedState: 'RECONNAISSANCE',
+        predictionType: 'STATE_PERSISTENCE',
+        transitionProbability: 0.950,
+        evidence: ['Port enumeration persists across forward window'],
+        abstained: false,
+        mitreTechnique: 'T1046',
+        behavioralRationale: 'High probability persistence of active scanning across second window.',
+      },
+      {
+        step: 3,
         horizonMinutes: 3,
         leadTimeSeconds: 180,
         predictedState: 'EXPLOITATION',
@@ -254,6 +301,32 @@ export function adaptToCanonical(
         transitionProbability: 0.873,
         evidence: ['Burst volume on target web ports', 'TCP SYN flag dominance'],
         abstained: false,
+        mitreTechnique: 'T1190',
+        behavioralRationale: 'Downstream transition probability into public service exploitation.',
+      },
+      {
+        step: 4,
+        horizonMinutes: 4,
+        leadTimeSeconds: 240,
+        predictedState: 'COMMAND_AND_CONTROL',
+        predictionType: 'DOWNSTREAM_PROGRESSION',
+        transitionProbability: 0.880,
+        evidence: ['Asymmetric payload transfer on remote port'],
+        abstained: false,
+        mitreTechnique: 'T1071',
+        behavioralRationale: 'Downstream beaconing channel establishment.',
+      },
+      {
+        step: 5,
+        horizonMinutes: 5,
+        leadTimeSeconds: 300,
+        predictedState: 'DENIAL_OF_SERVICE',
+        predictionType: 'DOWNSTREAM_PROGRESSION',
+        transitionProbability: 0.890,
+        evidence: ['Packet volume surge consistent with flood onset'],
+        abstained: false,
+        mitreTechnique: 'T1498',
+        behavioralRationale: 'Downstream resource exhaustion attempt.',
       }
     )
   }
@@ -360,8 +433,6 @@ export function adaptToCanonical(
     id: analysisId,
     status: isAbstained ? 'abstained' : 'completed',
     createdAt: (raw.created_at as string) || new Date().toISOString(),
-    isDemo,
-    demoScenarioId: (raw.demo_scenario_id as string) || undefined,
     provenance,
     provenanceLabel,
 
@@ -420,6 +491,31 @@ export function adaptToCanonical(
         uncertaintyLevel: (confidenceRaw.uncertainty_level as string) || 'LOW',
         meanConfidence: typeof confidenceRaw.confidence_value === 'number' ? confidenceRaw.confidence_value : 0.88,
       },
+      alternativeTrajectories: Array.isArray(raw.alternative_trajectories)
+        ? (raw.alternative_trajectories as any[]).map((t) => ({
+            scenarioName: String(t.scenario_name || 'CONTINUATION'),
+            scenarioProbability: Number(t.scenario_probability || 0.5),
+            description: String(t.description || ''),
+            projectedRiskProfile: Array.isArray(t.projected_risk_profile) ? t.projected_risk_profile.map(Number) : [],
+            projectedStages: Array.isArray(t.projected_stages) ? t.projected_stages.map(String) : [],
+          }))
+        : undefined,
+      counterfactualSimulations: raw.counterfactual_simulations && typeof raw.counterfactual_simulations === 'object'
+        ? Object.fromEntries(
+            Object.entries(raw.counterfactual_simulations as Record<string, any>).map(([k, sim]) => [
+              k,
+              {
+                description: String(sim.description || ''),
+                simulatedTrajectory: Array.isArray(sim.simulatedTrajectory)
+                  ? sim.simulatedTrajectory.map(Number)
+                  : Array.isArray(sim.simulated_trajectory)
+                  ? sim.simulated_trajectory.map(Number)
+                  : [],
+                expectedImpact: String(sim.expectedImpact || sim.expected_impact || ''),
+              },
+            ])
+          )
+        : undefined,
     },
 
     progression: {

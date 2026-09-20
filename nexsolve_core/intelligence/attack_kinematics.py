@@ -28,6 +28,7 @@ Every transition is strictly evidence-backed and explainable. No manufactured tr
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
+from collections import defaultdict
 from enum import Enum
 from typing import Any, Mapping, Sequence
 
@@ -222,26 +223,59 @@ def analyze_attack_kinematics(
     changes = change_signals or []
     beacons = beaconing_signals or []
 
-    # Collect candidate entities
-    entities = set()
+    # Pre-index data by entity
+    entities: set[str] = set()
     if entity_histories:
-        entities.update(entity_histories.keys())
-    for f in findings:
-        src = f.get("source_ip")
-        dst = f.get("destination_ip")
-        if src: entities.add(str(src))
-        if dst: entities.add(str(dst))
+        entities.update(str(k) for k in entity_histories.keys())
+
+    sessions_by_entity: dict[str, list[Any]] = defaultdict(list)
     for s in sessions:
         src = getattr(s, "src_ip", None)
         dst = getattr(s, "dst_ip", None)
-        if src: entities.add(str(src))
-        if dst: entities.add(str(dst))
+        if src:
+            src_str = str(src)
+            entities.add(src_str)
+            sessions_by_entity[src_str].append(s)
+        if dst:
+            dst_str = str(dst)
+            entities.add(dst_str)
+            if dst_str != src:
+                sessions_by_entity[dst_str].append(s)
+
+    findings_by_entity: dict[str, list[Any]] = defaultdict(list)
+    for f in findings:
+        src = f.get("source_ip")
+        dst = f.get("destination_ip")
+        if src:
+            src_str = str(src)
+            entities.add(src_str)
+            findings_by_entity[src_str].append(f)
+        if dst:
+            dst_str = str(dst)
+            entities.add(dst_str)
+            if dst_str != src:
+                findings_by_entity[dst_str].append(f)
+
+    changes_by_entity: dict[str, list[Any]] = defaultdict(list)
+    for c in changes:
+        ent_name = getattr(c, "entity", "")
+        if ent_name:
+            changes_by_entity[str(ent_name)].append(c)
+
+    beacons_by_entity: dict[str, list[Any]] = defaultdict(list)
+    for b in beacons:
+        src = getattr(b, "src_ip", "")
+        dst = getattr(b, "dst_ip", "")
+        if src:
+            beacons_by_entity[str(src)].append(b)
+        if dst and dst != src:
+            beacons_by_entity[str(dst)].append(b)
 
     for ent in sorted(entities):
-        ent_sessions = [s for s in sessions if getattr(s, "src_ip", None) == ent or getattr(s, "dst_ip", None) == ent]
-        ent_findings = [f for f in findings if str(f.get("source_ip")) == ent or str(f.get("destination_ip")) == ent]
-        ent_changes = [c for c in changes if getattr(c, "entity", "") == ent]
-        ent_beacons = [b for b in beacons if getattr(b, "src_ip", "") == ent or getattr(b, "dst_ip", "") == ent]
+        ent_sessions = sessions_by_entity.get(ent, [])
+        ent_findings = findings_by_entity.get(ent, [])
+        ent_changes = changes_by_entity.get(ent, [])
+        ent_beacons = beacons_by_entity.get(ent, [])
 
         if not ent_sessions and not ent_findings and not ent_changes:
             continue

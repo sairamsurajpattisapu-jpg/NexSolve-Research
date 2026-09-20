@@ -146,6 +146,14 @@ RULES: dict[str, CorrelationRule] = {
         target_node_type=NodeType.BASELINE_CHANGE,
         edge_type=EdgeType.DEVIATES_FROM,
     ),
+    'R017_ENTITY_EXHIBITS_STATE': CorrelationRule(
+        rule_id='R017',
+        name='Entity Exhibits Attack State',
+        description='An entity exhibits an observable attack kinematic state.',
+        source_node_type=NodeType.IP,
+        target_node_type=NodeType.ATTACK_STATE,
+        edge_type=EdgeType.EXHIBITS_STATE,
+    ),
 }
 
 

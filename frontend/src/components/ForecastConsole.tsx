@@ -254,7 +254,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             className="button button-quiet"
             onClick={() => navigate(`/console/reports/${analysis.id}`)}
             style={{ fontSize: '12px', height: '34px', gap: '6px' }}
-            title="Export forensic incident report"
+            title="Export incident report"
           >
             <Download size={13} /> Export Report
           </button>
@@ -810,8 +810,14 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
                   {formatDisplayLabel(st.predictedState)}
                 </div>
 
+                {st.mitreTechnique && (
+                  <div style={{ display: 'inline-block', alignSelf: 'flex-start', padding: '2px 6px', borderRadius: '3px', background: 'rgba(237, 128, 111, 0.12)', border: '1px solid rgba(237, 128, 111, 0.3)', color: 'var(--danger)', fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 600 }}>
+                    {st.mitreTechnique}
+                  </div>
+                )}
+
                 <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                  {st.evidence.slice(0, 2).join(' &middot; ')}
+                  {st.behavioralRationale || st.evidence.slice(0, 2).join(' &middot; ')}
                 </div>
 
                 <div style={{ marginTop: 'auto', paddingTop: '8px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--mono)' }}>
@@ -858,6 +864,57 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             <Sliders size={14} /> View All Features
           </button>
         </div>
+
+        {/* Selected Horizon Evidence Attribution Rationale */}
+        {activePoint.evidenceAttribution && (
+          <div
+            style={{
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border)',
+              borderLeft: '4px solid var(--accent)',
+              borderRadius: '6px',
+              padding: '14px 18px',
+              marginBottom: '16px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--accent)' }}>
+                  HORIZON T+{activePoint.horizon} ATTRIBUTION
+                </span>
+                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 6px', borderRadius: '3px', background: 'rgba(237, 128, 111, 0.15)', color: 'var(--danger)', fontWeight: 600 }}>
+                  {activePoint.evidenceAttribution.mitreTechnique}
+                </span>
+              </div>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                Epistemic Certainty: <strong style={{ color: 'var(--text-primary)' }}>{activePoint.evidenceAttribution.epistemicCertainty.toUpperCase()}</strong>
+              </span>
+            </div>
+            <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--text-primary)', lineHeight: 1.5, fontWeight: 500 }}>
+              {activePoint.evidenceAttribution.behavioralRationale}
+            </p>
+            {activePoint.evidenceAttribution.supportingSignals && activePoint.evidenceAttribution.supportingSignals.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {activePoint.evidenceAttribution.supportingSignals.map((sig, idx) => (
+                  <span
+                    key={idx}
+                    style={{
+                      fontSize: '10.5px',
+                      fontFamily: 'var(--mono)',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border)',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    &bull; {sig}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', marginBottom: '20px' }}>
           {explanations.drivers.slice(0, 4).map((d) => {
@@ -943,6 +1000,85 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             <span>+50% (Amplified)</span>
           </div>
         </div>
+
+        {/* Alternative Future Trajectories (Batch 2 & 5) */}
+        {forecast.alternativeTrajectories && forecast.alternativeTrajectories.length > 0 && (
+          <div style={{ marginTop: '16px' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
+              PROBABILISTIC ALTERNATIVE FUTURE TRAJECTORIES
+            </span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+              {forecast.alternativeTrajectories.map((alt, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                    padding: '12px 14px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '12px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      {alt.scenarioName}
+                    </span>
+                    <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)', padding: '2px 6px', background: 'var(--bg-surface)', borderRadius: '4px' }}>
+                      P={Math.round(alt.scenarioProbability * 100)}%
+                    </span>
+                  </div>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '11.5px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                    {alt.description}
+                  </p>
+                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                    {alt.projectedStages.map((st, sIdx) => (
+                      <span key={sIdx} style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', padding: '2px 5px', borderRadius: '3px', background: 'var(--bg-surface)', color: 'var(--text-muted)' }}>
+                        T+{sIdx + 1}: {st}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Counterfactual Simulations (What-If?) (Batch 5) */}
+        {forecast.counterfactualSimulations && Object.keys(forecast.counterfactualSimulations).length > 0 && (
+          <div style={{ marginTop: '16px' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--danger)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
+              WHAT-IF? BEHAVIORAL COUNTERFACTUAL SIMULATIONS
+            </span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+              {Object.entries(forecast.counterfactualSimulations).map(([k, sim]) => (
+                <div
+                  key={k}
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border)',
+                    borderLeft: '3px solid var(--danger)',
+                    borderRadius: '8px',
+                    padding: '12px 14px',
+                  }}
+                >
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                    {sim.description}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                    <strong>Expected Impact:</strong> {sim.expectedImpact}
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>Risk Profile:</span>
+                    {sim.simulatedTrajectory.map((r, rIdx) => (
+                      <span key={rIdx} style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 600, color: r >= 0.5 ? 'var(--danger)' : 'var(--accent)' }}>
+                        T+{rIdx + 1}: {Math.round(r * 100)}%
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* 6. NETWORK STATE / TECHNICAL EVIDENCE */}

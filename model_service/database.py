@@ -62,6 +62,10 @@ Index("ix_findings_analysis_id", FindingRecord.analysis_id)
 Index("ix_findings_severity", FindingRecord.severity)
 
 
+_ENGINES: dict[str, Any] = {}
+_SESSION_FACTORIES: dict[str, Any] = {}
+
+
 def _engine():
     url = os.getenv("DATABASE_URL")
     if not url:
@@ -70,16 +74,25 @@ def _engine():
         url = "postgresql+psycopg://" + url.removeprefix("postgres://")
     elif url.startswith("postgresql://"):
         url = "postgresql+psycopg://" + url.removeprefix("postgresql://")
+    if url in _ENGINES:
+        return _ENGINES[url]
+
     options: dict[str, Any] = {"pool_pre_ping": True}
     if url.startswith("sqlite"):
         options["connect_args"] = {"check_same_thread": False}
     else:
         options.update(pool_size=5, max_overflow=5)
-    return create_engine(url, **options)
+    eng = create_engine(url, **options)
+    _ENGINES[url] = eng
+    return eng
 
 
 def _session_factory():
-    return sessionmaker(bind=_engine(), expire_on_commit=False)
+    eng = _engine()
+    url = str(eng.url)
+    if url not in _SESSION_FACTORIES:
+        _SESSION_FACTORIES[url] = sessionmaker(bind=eng, expire_on_commit=False)
+    return _SESSION_FACTORIES[url]
 
 
 def init_db() -> bool:

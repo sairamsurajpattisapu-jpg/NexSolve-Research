@@ -265,3 +265,95 @@ def compute_entity_baselines(
         )
 
     return baselines
+
+
+@dataclass
+class EntityBehavioralRegime:
+    """Persistent entity profile tracking historical communication peers, ports, and regime departure."""
+    entity: str
+    known_peers: set[str] = field(default_factory=set)
+    known_ports: set[int] = field(default_factory=set)
+    known_protocols: set[str] = field(default_factory=set)
+    total_bytes_observed: int = 0
+    total_packets_observed: int = 0
+    first_seen_timestamp: float = 0.0
+    last_seen_timestamp: float = 0.0
+    baseline_divergence_score: float = 0.0
+    active_regime_label: str = "BENIGN_EQUILIBRIUM"
+
+    def record_observation(
+        self,
+        peer: str,
+        port: int | None,
+        protocol: str,
+        bytes_count: int,
+        timestamp: float,
+    ) -> None:
+        if self.first_seen_timestamp == 0.0:
+            self.first_seen_timestamp = timestamp
+        self.last_seen_timestamp = max(self.last_seen_timestamp, timestamp)
+        self.total_bytes_observed += bytes_count
+        self.total_packets_observed += 1
+
+        is_novel_peer = peer not in self.known_peers and len(self.known_peers) > 0
+        is_novel_port = port is not None and port not in self.known_ports and len(self.known_ports) > 0
+
+        self.known_peers.add(peer)
+        if port is not None:
+            self.known_ports.add(port)
+        self.known_protocols.add(protocol)
+
+        if is_novel_peer or is_novel_port:
+            self.baseline_divergence_score = min(1.0, self.baseline_divergence_score + 0.15)
+        else:
+            self.baseline_divergence_score = max(0.0, self.baseline_divergence_score - 0.02)
+
+        if self.baseline_divergence_score >= 0.70:
+            self.active_regime_label = "SEVERE_REGIME_DEPARTURE"
+        elif self.baseline_divergence_score >= 0.35:
+            self.active_regime_label = "ELEVATED_NOVELTY"
+        else:
+            self.active_regime_label = "BENIGN_EQUILIBRIUM"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "entity": self.entity,
+            "peer_count": len(self.known_peers),
+            "port_count": len(self.known_ports),
+            "protocols": list(self.known_protocols),
+            "total_bytes": self.total_bytes_observed,
+            "total_packets": self.total_packets_observed,
+            "divergence_score": round(self.baseline_divergence_score, 3),
+            "active_regime": self.active_regime_label,
+            "first_seen": self.first_seen_timestamp,
+            "last_seen": self.last_seen_timestamp,
+        }
+
+
+class EntityMemoryStore:
+    """Thread-safe persistent entity memory across temporal batches."""
+    def __init__(self) -> None:
+        self._profiles: dict[str, EntityBehavioralRegime] = {}
+
+    def get_or_create(self, entity: str) -> EntityBehavioralRegime:
+        if entity not in self._profiles:
+            self._profiles[entity] = EntityBehavioralRegime(entity=entity)
+        return self._profiles[entity]
+
+    def update_from_evidence(self, evidences: Sequence[Any]) -> None:
+        for ev in evidences:
+            src = getattr(ev, "src_entity", None) or getattr(ev, "src_ip", None)
+            dst = getattr(ev, "dst_entity", None) or getattr(ev, "dst_ip", None)
+            port = getattr(ev, "dst_port", None)
+            proto = getattr(ev, "protocol", "UNKNOWN")
+            b_cnt = getattr(ev, "bytes_count", 0) or getattr(ev, "packet_length", 0) or 0
+            ts = getattr(ev, "timestamp", 0.0)
+
+            if src:
+                self.get_or_create(src).record_observation(str(dst), port, proto, b_cnt, ts)
+            if dst:
+                self.get_or_create(dst).record_observation(str(src), getattr(ev, "src_port", None), proto, b_cnt, ts)
+
+    def summary(self) -> dict[str, Any]:
+        return {k: v.to_dict() for k, v in self._profiles.items()}
+

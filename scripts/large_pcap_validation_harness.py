@@ -1,4 +1,4 @@
-﻿"""Automated large-PCAP stress, performance, stability, and resource-safety validation harness for NexSolve.
+"""Automated large-PCAP stress, performance, stability, and resource-safety validation harness for NexSolve.
 
 Measures:
 - file size
@@ -76,14 +76,17 @@ class PcapValidationMetrics:
 
 
 def check_runtime_leaks() -> int:
-    """Return count of leftover files/directories in runtime/ (excluding database)."""
+    """Return count of leftover files/directories in runtime/ (excluding database and empty chunks directory)."""
     runtime_dir = ROOT / "runtime"
     if not runtime_dir.exists():
         return 0
     leaked = [
         item for item in runtime_dir.iterdir()
-        if item.name not in ("nexsolve.db", "nexsolve.db-journal")
+        if item.name not in ("nexsolve.db", "nexsolve.db-journal", "chunks")
     ]
+    chunks_dir = runtime_dir / "chunks"
+    if chunks_dir.exists():
+        leaked.extend(list(chunks_dir.iterdir()))
     return len(leaked)
 
 

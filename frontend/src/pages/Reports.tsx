@@ -71,13 +71,13 @@ export function Reports() {
             </div>
             <div>
               <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                REPORTS & FORENSICS
+                REPORTS
               </span>
               <h2 style={{ margin: '4px 0 8px 0', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
                 No Analysis Report Available
               </h2>
               <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--text-secondary)', maxWidth: '440px', lineHeight: 1.55 }}>
-                Execute a PCAP analysis to compile and export an executive forensic assessment report.
+                Execute a PCAP analysis to compile and export an executive assessment report.
               </p>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '6px' }}>
@@ -146,7 +146,7 @@ export function Reports() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `nexsolve-forensic-report-${reportId}.json`
+    a.download = `nexsolve-report-${reportId}.json`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

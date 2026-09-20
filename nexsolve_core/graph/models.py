@@ -62,12 +62,16 @@ class EdgeType(str, Enum):
     SHARES_TARGET_PATTERN = 'SHARES_TARGET_PATTERN'
     SHARES_INFRASTRUCTURE_PATTERN = 'SHARES_INFRASTRUCTURE_PATTERN'
     EVOLVES_FROM = 'EVOLVES_FROM'
+    EXHIBITS_STATE = 'EXHIBITS_STATE'
 
 class Scope(str, Enum):
     OBSERVED = 'OBSERVED'
     FORECAST = 'FORECAST'
     METADATA = 'METADATA'
 
+import functools
+
+@functools.lru_cache(maxsize=65536)
 def deterministic_id(prefix: str, *components: Any) -> str:
     raw = ':'.join(str(c).strip() for c in components)
     digest = hashlib.sha256(raw.encode('utf-8')).hexdigest()[:12]
@@ -145,3 +149,51 @@ class EvidenceChain:
             'explanation': self.explanation,
             'mitre_technique_id': self.mitre_technique_id,
         }
+
+
+@dataclass
+class PredictiveAttackGraph:
+    """Three-tiered temporal attack graph explicitly separating OBSERVED, INFERRED, and PREDICTED layers."""
+
+    nodes: dict[str, GraphNode] = field(default_factory=dict)
+    edges: dict[str, GraphEdge] = field(default_factory=dict)
+
+    def add_node(self, node: GraphNode) -> None:
+        self.nodes[node.id] = node
+
+    def add_edge(self, edge: GraphEdge) -> None:
+        self.edges[edge.id] = edge
+
+    def get_layer(self, scope: Scope) -> tuple[list[GraphNode], list[GraphEdge]]:
+        """Returns isolated sub-graph corresponding strictly to the requested scope tier."""
+        layer_nodes = [n for n in self.nodes.values() if n.scope == scope]
+        node_ids = {n.id for n in layer_nodes}
+        layer_edges = [e for e in self.edges.values() if e.source_id in node_ids or e.target_id in node_ids or e.scope == scope]
+        return layer_nodes, layer_edges
+
+    def to_dict(self) -> dict[str, Any]:
+        obs_nodes, obs_edges = self.get_layer(Scope.OBSERVED)
+        inf_nodes, inf_edges = self.get_layer(Scope.METADATA)
+        pred_nodes, pred_edges = self.get_layer(Scope.FORECAST)
+        return {
+            "summary": {
+                "total_nodes": len(self.nodes),
+                "total_edges": len(self.edges),
+                "observed_nodes": len(obs_nodes),
+                "inferred_nodes": len(inf_nodes),
+                "predicted_nodes": len(pred_nodes),
+            },
+            "observed_layer": {
+                "nodes": [n.to_dict() for n in obs_nodes],
+                "edges": [e.to_dict() for e in obs_edges],
+            },
+            "inferred_layer": {
+                "nodes": [n.to_dict() for n in inf_nodes],
+                "edges": [e.to_dict() for e in inf_edges],
+            },
+            "predicted_layer": {
+                "nodes": [n.to_dict() for n in pred_nodes],
+                "edges": [e.to_dict() for e in pred_edges],
+            },
+        }
+

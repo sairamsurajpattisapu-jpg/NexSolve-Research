@@ -60,30 +60,14 @@ export function JobResult({ result, onReset }: JobResultProps) {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
               <span className="eyebrow" style={{ color: 'var(--accent)', margin: 0 }}>
-                {result.is_demo ? 'Deterministic Demo Assessment' : 'Analysis complete'}
+                Analysis complete
               </span>
-              {result.is_demo && (
-                <span
-                  style={{
-                    background: 'var(--accent-muted)',
-                    color: 'var(--accent)',
-                    border: '1px solid var(--accent)',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    fontSize: '10px',
-                    fontFamily: 'var(--mono)',
-                    fontWeight: 700,
-                  }}
-                >
-                  DEMO MODE
-                </span>
-              )}
             </div>
             <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-              {result.is_demo ? `Deterministic Scenario: ${result.demo_scenario_name ?? result.source?.name}` : (result.source?.name || 'Uploaded Capture')}
+              {result.source?.name || 'Uploaded Capture'}
             </h2>
             <div style={{ display: 'none' }}>
-              <h3>Network Forensic & Predictive Assessment</h3>
+              <h3>Network Predictive Assessment</h3>
             </div>
             <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
               {traffic?.packets?.toLocaleString() ?? 0} packets &middot; {(traffic?.flows ?? 0).toLocaleString()} flows &middot; {result.window_count ?? traffic?.windows ?? 1} windows
@@ -91,32 +75,6 @@ export function JobResult({ result, onReset }: JobResultProps) {
           </div>
           <ReportActions jobId={jobId} onReset={onReset} />
         </div>
-
-        {/* Demo Scenario Guidance */}
-        {result.is_demo && (
-          <div
-            style={{
-              marginTop: '12px',
-              padding: '10px 12px',
-              background: 'var(--accent-muted)',
-              borderLeft: '3px solid var(--accent)',
-              borderRadius: '4px',
-              fontSize: '11px',
-            }}
-          >
-            <strong style={{ color: 'var(--accent)', display: 'block', marginBottom: '2px' }}>
-              Scenario Context & Evaluation Guidance:
-            </strong>
-            <p style={{ margin: '0 0 4px 0', color: 'var(--text-secondary)' }}>
-              {result.demo_scenario_description}
-            </p>
-            {result.demo_expected_behavior && (
-              <small style={{ display: 'block', color: 'var(--text-primary)', fontFamily: 'var(--mono)', fontSize: '10px' }}>
-                Key Observation: {result.demo_expected_behavior}
-              </small>
-            )}
-          </div>
-        )}
 
         {/* Measured Processing Metrics */}
         {result.processing_metrics && (
@@ -313,7 +271,11 @@ export function JobResult({ result, onReset }: JobResultProps) {
 
       {/* 2b-ii. Deterministic Incident Reconstruction & Attack Story Engine */}
       {result.incident_story && (
-        <IncidentStoryPanel incidentStory={result.incident_story} />
+        <IncidentStoryPanel
+          incidentStory={result.incident_story}
+          attackHorizon={attackHorizon}
+          attackProgression={attackProgression}
+        />
       )}
 
       {/* 2b-ii. Temporal Network State Model & Intelligence State Engine */}

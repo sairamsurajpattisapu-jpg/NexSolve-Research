@@ -264,7 +264,7 @@ describe('JobResult Component', () => {
 
     render(<JobResult result={mockResult} />)
 
-    expect(screen.getByText('Network Forensic & Predictive Assessment')).toBeInTheDocument()
+    expect(screen.getByText('Network Predictive Assessment')).toBeInTheDocument()
     expect(screen.getByText('test_traffic.pcap')).toBeInTheDocument()
     expect(screen.getByText('500 pkts')).toBeInTheDocument()
     expect(screen.getByText('45 flows')).toBeInTheDocument()

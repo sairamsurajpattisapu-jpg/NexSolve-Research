@@ -1,18 +1,16 @@
 import { useState, type DragEvent } from 'react'
-import { AlertCircle, FileUp, Sparkles, Upload } from 'lucide-react'
+import { AlertCircle, FileUp, Upload } from 'lucide-react'
 import { Panel } from './Ui'
 import { MAX_PCAP_UPLOAD_LABEL, validatePcapFile } from '../config/constants'
 
 interface PcapUploaderProps {
   onFileSelected: (file: File) => void
-  onDemoSelected?: (scenarioId: string) => void
   disabled?: boolean
   error?: string | null
 }
 
 export function PcapUploader({
   onFileSelected,
-  onDemoSelected,
   disabled = false,
   error = null,
 }: PcapUploaderProps) {
@@ -113,18 +111,6 @@ export function PcapUploader({
               }}
             />
           </label>
-
-          {onDemoSelected && (
-            <button
-              type="button"
-              className="button button-quiet"
-              disabled={disabled}
-              onClick={() => onDemoSelected('EARLY_ATTACK_SIGNAL')}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            >
-              <Sparkles size={13} color="var(--accent)" /> Load Demo Attack
-            </button>
-          )}
         </div>
 
         {(validationError || error) && (

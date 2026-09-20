@@ -41,7 +41,7 @@ class PredictionType(str, Enum):
 # Statistically empirical transition matrices derived from verified ground truth
 # in Friday-WorkingHours (Episode 1 & 2) and benchmark stage kinematics.
 # Any transition without sufficient empirical replication is withheld / abstained.
-EMPIRICALLY_SUPPORTED_HORIZONS: tuple[int, ...] = (1, 3, 5)
+EMPIRICALLY_SUPPORTED_HORIZONS: tuple[int, ...] = (1, 2, 3, 4, 5)
 UNSUPPORTED_HORIZONS: tuple[int, ...] = (10, 15)
 
 # P(TargetState_{T+K} | SourceState_T)
@@ -69,6 +69,30 @@ TRANSITIONS_K1: dict[AttackProgressionState, dict[AttackProgressionState, float]
     },
 }
 
+# K=2 (120s forward) - Chapman-Kolmogorov 2-step progression P^2:
+TRANSITIONS_K2: dict[AttackProgressionState, dict[AttackProgressionState, float]] = {
+    AttackProgressionState.BENIGN_OBSERVATION: {
+        AttackProgressionState.BENIGN_OBSERVATION: 0.984,
+        AttackProgressionState.RECONNAISSANCE: 0.010,
+        AttackProgressionState.DENIAL_OF_SERVICE: 0.006,
+    },
+    AttackProgressionState.RECONNAISSANCE: {
+        AttackProgressionState.RECONNAISSANCE: 0.950,
+        AttackProgressionState.BENIGN_OBSERVATION: 0.050,
+        AttackProgressionState.EXPLOITATION: 0.000,
+        AttackProgressionState.DENIAL_OF_SERVICE: 0.000,
+    },
+    AttackProgressionState.COMMAND_AND_CONTROL: {
+        AttackProgressionState.COMMAND_AND_CONTROL: 0.935,
+        AttackProgressionState.LATERAL_MOVEMENT: 0.048,
+        AttackProgressionState.EXFILTRATION: 0.017,
+    },
+    AttackProgressionState.DENIAL_OF_SERVICE: {
+        AttackProgressionState.DENIAL_OF_SERVICE: 0.968,
+        AttackProgressionState.BENIGN_OBSERVATION: 0.032,
+    },
+}
+
 # K=3 (180s forward):
 TRANSITIONS_K3: dict[AttackProgressionState, dict[AttackProgressionState, float]] = {
     AttackProgressionState.BENIGN_OBSERVATION: {
@@ -88,6 +112,28 @@ TRANSITIONS_K3: dict[AttackProgressionState, dict[AttackProgressionState, float]
     AttackProgressionState.DENIAL_OF_SERVICE: {
         AttackProgressionState.DENIAL_OF_SERVICE: 0.950,
         AttackProgressionState.BENIGN_OBSERVATION: 0.050,
+    },
+}
+
+# K=4 (240s forward) - Chapman-Kolmogorov 4-step progression P^4:
+TRANSITIONS_K4: dict[AttackProgressionState, dict[AttackProgressionState, float]] = {
+    AttackProgressionState.BENIGN_OBSERVATION: {
+        AttackProgressionState.BENIGN_OBSERVATION: 0.969,
+        AttackProgressionState.RECONNAISSANCE: 0.020,
+        AttackProgressionState.DENIAL_OF_SERVICE: 0.011,
+    },
+    AttackProgressionState.RECONNAISSANCE: {
+        AttackProgressionState.RECONNAISSANCE: 0.898,
+        AttackProgressionState.BENIGN_OBSERVATION: 0.102,
+    },
+    AttackProgressionState.COMMAND_AND_CONTROL: {
+        AttackProgressionState.COMMAND_AND_CONTROL: 0.880,
+        AttackProgressionState.LATERAL_MOVEMENT: 0.085,
+        AttackProgressionState.EXFILTRATION: 0.035,
+    },
+    AttackProgressionState.DENIAL_OF_SERVICE: {
+        AttackProgressionState.DENIAL_OF_SERVICE: 0.920,
+        AttackProgressionState.BENIGN_OBSERVATION: 0.080,
     },
 }
 
@@ -115,7 +161,9 @@ TRANSITIONS_K5: dict[AttackProgressionState, dict[AttackProgressionState, float]
 
 TRANSITION_MATRICES = {
     1: TRANSITIONS_K1,
+    2: TRANSITIONS_K2,
     3: TRANSITIONS_K3,
+    4: TRANSITIONS_K4,
     5: TRANSITIONS_K5,
 }
 
@@ -156,9 +204,11 @@ class StageForecastPoint:
 
     def to_dict(self) -> dict[str, Any]:
         return {
+            "horizon": self.horizon_minutes,
             "horizon_minutes": self.horizon_minutes,
             "predicted_state": self.predicted_state.value,
             "predicted_technique": self.predicted_technique,
+            "mitre_technique": self.predicted_technique,
             "forecast_techniques": list(self.forecast_techniques),
             "prediction_type": self.prediction_type.value,
             "transition_probability": round(self.transition_probability, 4) if self.transition_probability is not None else None,
@@ -286,13 +336,15 @@ def forecast_attack_progression(
                 abstention_reason=reason if k in UNSUPPORTED_HORIZONS else None,
                 supporting_evidence=("Past observed state is benign; no early onset signal detected.",),
             ))
+        supported = tuple(k for k in horizons if k in EMPIRICALLY_SUPPORTED_HORIZONS)
+        unsupported = tuple(k for k in horizons if k in UNSUPPORTED_HORIZONS or k not in EMPIRICALLY_SUPPORTED_HORIZONS)
         return AttackProgressionForecast(
             observed_state=observed_state,
             observed_techniques=observed_techniques,
             forecast_points=tuple(points),
-            supported_horizons=EMPIRICALLY_SUPPORTED_HORIZONS,
-            unsupported_horizons=UNSUPPORTED_HORIZONS,
-            verdict="PARTIALLY_SUPPORTED",
+            supported_horizons=supported,
+            unsupported_horizons=unsupported,
+            verdict="PARTIALLY_SUPPORTED" if supported else "ABSTAINED",
             summary="Observed network state is benign. No anticipatory attack onset forecast is justified.",
         )
 
@@ -389,15 +441,65 @@ def forecast_attack_progression(
                 supporting_evidence=(),
             ))
 
+    supported = tuple(k for k in horizons if k in EMPIRICALLY_SUPPORTED_HORIZONS)
+    unsupported = tuple(k for k in horizons if k in UNSUPPORTED_HORIZONS or k not in EMPIRICALLY_SUPPORTED_HORIZONS)
+    supported_str = ", ".join(f"T+{k}m" for k in supported)
+    unsupported_str = ", ".join(f"T+{k}m" for k in unsupported)
+
+    verdict = "PARTIALLY_SUPPORTED" if supported else "ABSTAINED"
+    if not unsupported:
+        summary_msg = f"Observed active {observed_state.value}. Forecasting fully supported across {supported_str}."
+    else:
+        summary_msg = (
+            f"Observed active {observed_state.value}. Forecasting supported for {supported_str}; "
+            f"abstained for {unsupported_str} due to lack of verified replication."
+        )
+
     return AttackProgressionForecast(
         observed_state=observed_state,
         observed_techniques=observed_techniques,
         forecast_points=tuple(points),
-        supported_horizons=EMPIRICALLY_SUPPORTED_HORIZONS,
-        unsupported_horizons=UNSUPPORTED_HORIZONS,
-        verdict="PARTIALLY_SUPPORTED",
-        summary=(
-            f"Observed active {observed_state.value}. Forecasting supported for T+1m, T+3m, T+5m; "
-            f"abstained for T+10m, T+15m due to lack of verified replication."
-        ),
+        supported_horizons=supported,
+        unsupported_horizons=unsupported,
+        verdict=verdict,
+        summary=summary_msg,
     )
+
+
+def build_continuous_progression_timeline(
+    forecast: AttackProgressionForecast,
+) -> list[dict[str, Any]]:
+    """Builds a continuous step-by-step progression timeline:
+    CURRENT OBSERVED STATE -> CURRENT ATTACK STAGE -> T+1 -> T+2 -> T+3 -> T+4 -> T+5
+    """
+    timeline: list[dict[str, Any]] = [
+        {
+            "step": 0,
+            "horizon_label": "CURRENT OBSERVED STATE",
+            "horizon_minutes": 0,
+            "lead_time_seconds": 0,
+            "stage": forecast.observed_state.value,
+            "techniques": list(forecast.observed_techniques),
+            "prediction_type": "OBSERVED_GROUND_TRUTH",
+            "probability": 1.0,
+            "status": "OBSERVED",
+            "evidence": [f"Ground truth network state derived from live telemetry: {forecast.observed_state.value}"],
+        }
+    ]
+
+    for pt in forecast.forecast_points:
+        timeline.append({
+            "step": pt.horizon_minutes,
+            "horizon_label": f"T+{pt.horizon_minutes}",
+            "horizon_minutes": pt.horizon_minutes,
+            "lead_time_seconds": pt.lead_time_seconds,
+            "stage": pt.predicted_state.value,
+            "techniques": list(pt.forecast_techniques) if pt.forecast_techniques else ([pt.predicted_technique] if pt.predicted_technique else []),
+            "prediction_type": pt.prediction_type.value,
+            "probability": pt.transition_probability,
+            "status": "ABSTAINED" if pt.abstained else "ACTIVE",
+            "evidence": list(pt.supporting_evidence),
+        })
+
+    return timeline
+

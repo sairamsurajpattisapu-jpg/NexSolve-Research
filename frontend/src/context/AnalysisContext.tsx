@@ -43,7 +43,6 @@ export interface AnalysisContextValue {
   forecastAvailability: boolean
   evidenceAvailability: boolean
   reportAvailability: boolean
-  isDemo: boolean
   provenance: AnalysisProvenance
 
   // Authoritative Payloads
@@ -97,7 +96,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
   const [activeJobId, setActiveJobId] = useState<string | null>(() => {
     try {
       const id = sessionStorage.getItem(STORAGE_ACTIVE_ID) || localStorage.getItem(STORAGE_ACTIVE_ID)
-      return id && id !== ANALYSIS_ID && !id.startsWith('demo-') ? id : null
+      return id && id !== ANALYSIS_ID ? id : null
     } catch {
       return null
     }
@@ -370,7 +369,6 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
   }, [stopPolling])
 
   // Compute Authoritative Metadata
-  const isDemo = false
   const rawResults = storeState.data?.results ?? null
   const report = storeState.data?.report ?? null
   const filename = canonical?.input.filename || rawResults?.source?.filename || rawResults?.source?.name || 'capture.pcap'
@@ -399,7 +397,6 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     forecastAvailability,
     evidenceAvailability,
     reportAvailability,
-    isDemo,
     provenance: storeState.provenance,
     canonical,
     rawResults,

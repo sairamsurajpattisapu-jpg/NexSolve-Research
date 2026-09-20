@@ -116,16 +116,32 @@ def analyze_uploaded_capture(
     traffic = traffic_summary(windows)
     detection = analyze_packet_windows(windows)
     duration_seconds = max(0, int(windows[-1]["window_end"]) - int(windows[0]["window_start"]))
-    packet_ts = [p.timestamp for p in _packets if p.timestamp is not None]
-    packet_span_seconds = round(max(packet_ts) - min(packet_ts), 4) if packet_ts else 0.0
+    min_ts = float("inf")
+    max_ts = float("-inf")
+    src_ips: set[str] = set()
+    dst_ips: set[str] = set()
+    dst_ports: set[int] = set()
+    for p in _packets:
+        ts = p.timestamp
+        if ts is not None:
+            if ts < min_ts:
+                min_ts = ts
+            if ts > max_ts:
+                max_ts = ts
+        if p.src_ip:
+            src_ips.add(p.src_ip)
+        if p.dst_ip:
+            dst_ips.add(p.dst_ip)
+        if p.dst_port is not None:
+            dst_ports.add(p.dst_port)
+    packet_span_seconds = round(max_ts - min_ts, 4) if min_ts <= max_ts else 0.0
     traffic["duration_seconds"] = duration_seconds
     traffic["packet_timestamp_span_seconds"] = packet_span_seconds
     traffic["temporal_window_coverage_seconds"] = duration_seconds
     traffic["packet_span_seconds"] = packet_span_seconds
-    if _packets:
-        traffic["unique_src_ips"] = len({p.src_ip for p in _packets if p.src_ip})
-        traffic["unique_dst_ips"] = len({p.dst_ip for p in _packets if p.dst_ip})
-        traffic["unique_dst_ports"] = len({p.dst_port for p in _packets if p.dst_port is not None})
+    traffic["unique_src_ips"] = len(src_ips)
+    traffic["unique_dst_ips"] = len(dst_ips)
+    traffic["unique_dst_ports"] = len(dst_ports)
     if canonical_windows:
         all_flow_ids = {flow.flow_id for cw in canonical_windows for flow in cw.flows}
         if all_flow_ids:
@@ -178,6 +194,7 @@ def analyze_uploaded_capture(
                     "uncertainty": pt.uncertainty,
                     "explanation": [d.interpretation for d in pt.top_drivers] if pt.top_drivers else [pt.behavioral_interpretation],
                     "topDrivers": [d.to_dict() for d in pt.top_drivers],
+                    "evidenceAttribution": pt.evidence_attribution.to_dict() if pt.evidence_attribution is not None else None,
                 })
         except Exception:
             for h in (1, 2, 3, 4, 5):
@@ -262,6 +279,25 @@ def analyze_uploaded_capture(
         observed_findings=detection.get("findings", []),
         behavioral_report=behavioral_report,
         history_window_count=len(windows),
+    )
+    progression_dict = progression_forecast.to_dict()
+    from ml.forecasting.attack_progression import build_continuous_progression_timeline
+    progression_dict["continuous_timeline"] = build_continuous_progression_timeline(progression_forecast)
+
+    # Re-assemble forecast intelligence with full multi-modal context (progression, findings, behavioral report)
+    intelligence = assemble_forecast_intelligence(
+        sequence=state_dicts,
+        forecast_points=forecast_points,
+        capture_quality=quality,
+        provenance_info={"capture_id": analysis_id, "source": filename, "schema_variant": schema_variant},
+        min_sequence_length=8,
+        required_features=active_flow_features,
+        calibration_status="UNSUPPORTED",
+        decision_threshold=0.5,
+        window_seconds=60,
+        observed_findings=detection.get("findings", []),
+        attack_progression=progression_forecast,
+        behavioral_report=behavioral_report,
     )
     threat_assessment = fuse_threat_assessment(
         observed_findings=detection.get("findings", []),
@@ -384,6 +420,20 @@ def analyze_uploaded_capture(
     incident_investigations = []
     mitigation_recommendations = []
 
+    threat_risk_breakdowns = {}
+    risk_breakdown_objs = {}
+    for p_threat in prioritized_threats:
+        ent = p_threat.entity
+        rb = decompose_threat_risk(
+            entity=ent,
+            entity_profiles=entity_profiles,
+            attack_kinematics=attack_kinematics,
+            campaigns=campaigns,
+            change_signals=change_signals,
+        )
+        risk_breakdown_objs[ent] = rb
+        threat_risk_breakdowns[ent] = rb.to_dict()
+
     for p_threat in prioritized_threats[:10]:
         ent = p_threat.entity
         inv_ctx = investigate_entity(
@@ -405,7 +455,7 @@ def analyze_uploaded_capture(
         entity_investigations[ent] = inv_ctx.to_dict()
 
         # Build Incident-Level Investigation Dossier
-        rb = decompose_threat_risk(
+        rb = risk_breakdown_objs.get(ent) or decompose_threat_risk(
             entity=ent,
             entity_profiles=entity_profiles,
             attack_kinematics=attack_kinematics,
@@ -444,18 +494,6 @@ def analyze_uploaded_capture(
             patterns=patterns,
         )
         campaign_investigations[cmp.campaign_id] = c_inv.to_dict()
-
-    threat_risk_breakdowns = {}
-    for p_threat in prioritized_threats:
-        ent = p_threat.entity
-        rb = decompose_threat_risk(
-            entity=ent,
-            entity_profiles=entity_profiles,
-            attack_kinematics=attack_kinematics,
-            campaigns=campaigns,
-            change_signals=change_signals,
-        )
-        threat_risk_breakdowns[ent] = rb.to_dict()
 
     # Security Analyst Decision Engine Synthesis
     from nexsolve_core.intelligence import build_analyst_decisions
@@ -496,6 +534,7 @@ def analyze_uploaded_capture(
         contradictions=threat_assessment.evidence,
         attack_progression=progression_forecast,
         forecast_points=forecast_points,
+        attack_horizon=intelligence.attack_horizon,
         analyst_decisions=analyst_decisions,
         window_count=len(windows),
     )
@@ -654,8 +693,8 @@ def analyze_uploaded_capture(
         "early_warning": trajectory_result.early_warning.to_dict() if trajectory_result else None,
         "attack_horizon": intelligence.attack_horizon,
         "attackHorizon": intelligence.attack_horizon,
-        "attack_progression": progression_forecast.to_dict(),
-        "attackProgression": progression_forecast.to_dict(),
+        "attack_progression": progression_dict,
+        "attackProgression": progression_dict,
         "evidence_chain": intelligence.evidence_chain,
         "evidenceChain": intelligence.evidence_chain,
         "confidence": intelligence.confidence,

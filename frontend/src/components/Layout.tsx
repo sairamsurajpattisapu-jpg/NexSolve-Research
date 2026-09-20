@@ -23,7 +23,7 @@ export function Layout({
 }: {
   status: string
   source?: 'production' | 'uploaded'
-  provenance?: 'reference' | 'uploaded' | 'demo'
+  provenance?: 'reference' | 'uploaded'
 }) {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
@@ -273,7 +273,6 @@ export function Layout({
                   </NavLink>
                   <NavLink to="/console/reports" onClick={() => setOpen(false)} className={({ isActive }) => `drawer-link ${isActive ? 'active' : ''}`}>
                     <span>Reports</span>
-                    <span className="drawer-badge" aria-hidden="true">Forensic</span>
                   </NavLink>
                   <NavLink to="/console/settings" onClick={() => setOpen(false)} className={({ isActive }) => `drawer-link ${isActive ? 'active' : ''}`}>
                     <span>Settings</span>

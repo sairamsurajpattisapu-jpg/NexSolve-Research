@@ -11,7 +11,15 @@ from __future__ import annotations
 from collections import defaultdict, deque
 from typing import Any, Iterable, Sequence
 
-from nexsolve_core.graph.models import EdgeType, EvidenceChain, GraphEdge, GraphNode, NodeType, Scope
+from nexsolve_core.graph.models import (
+    EdgeType,
+    EvidenceChain,
+    GraphEdge,
+    GraphNode,
+    NodeType,
+    Scope,
+    deterministic_id,
+)
 
 
 class EvidenceGraph:
@@ -111,6 +119,72 @@ class EvidenceGraph:
             'findings': [f.to_dict() for f in findings],
             'sessions': [s.to_dict() for s in sessions],
             'behavioral_signals': [b.to_dict() for b in behaviors],
+        }
+
+    def get_entity_dossier(self, entity_key: str) -> dict[str, Any]:
+        """Gather full multi-modal relational intelligence for an entity IP or key."""
+        nodes = self.get_nodes_for_entity(entity_key)
+        inbound_peers: set[str] = set()
+        outbound_peers: set[str] = set()
+        targeted_ports: set[int] = set()
+        attack_states: list[dict[str, Any]] = []
+        findings: list[dict[str, Any]] = []
+        sessions: list[dict[str, Any]] = []
+        behavior_signals: list[dict[str, Any]] = []
+
+        ip_node_id = deterministic_id('ip', entity_key)
+        # Check outbound edges from entity IP node
+        for e in self.get_out_edges(ip_node_id):
+            tgt = self.get_node(e.target_id)
+            if not tgt:
+                continue
+            if tgt.node_type == NodeType.TCP_SESSION:
+                # Find where this session goes
+                for sess_edge in self.get_out_edges(tgt.id):
+                    dest = self.get_node(sess_edge.target_id)
+                    if dest:
+                        if dest.node_type == NodeType.IP and dest.entity_key != entity_key:
+                            outbound_peers.add(dest.entity_key)
+                        elif dest.node_type == NodeType.PORT:
+                            try:
+                                targeted_ports.add(int(dest.entity_key))
+                            except ValueError:
+                                pass
+            elif tgt.node_type == NodeType.ATTACK_STATE:
+                attack_states.append(tgt.to_dict())
+
+        # Check inbound edges to entity IP node
+        for e in self.get_in_edges(ip_node_id):
+            src = self.get_node(e.source_id)
+            if not src:
+                continue
+            if src.node_type == NodeType.TCP_SESSION:
+                # Find who initiated this session
+                for sess_in in self.get_in_edges(src.id):
+                    init_node = self.get_node(sess_in.source_id)
+                    if init_node and init_node.node_type == NodeType.IP and init_node.entity_key != entity_key:
+                        inbound_peers.add(init_node.entity_key)
+
+        for n in nodes:
+            if n.node_type == NodeType.FINDING:
+                findings.append(n.to_dict())
+            elif n.node_type == NodeType.TCP_SESSION:
+                sessions.append(n.to_dict())
+            elif n.node_type == NodeType.BEHAVIOR_SIGNAL:
+                behavior_signals.append(n.to_dict())
+            elif n.node_type == NodeType.ATTACK_STATE and n.to_dict() not in attack_states:
+                attack_states.append(n.to_dict())
+
+        return {
+            'entity_key': entity_key,
+            'total_associated_nodes': len(nodes),
+            'inbound_peers': sorted(list(inbound_peers)),
+            'outbound_peers': sorted(list(outbound_peers)),
+            'targeted_ports': sorted(list(targeted_ports)),
+            'attack_states': attack_states,
+            'findings': findings,
+            'sessions': sessions,
+            'behavior_signals': behavior_signals,
         }
 
     def get_preceding_evidence(self, node_id: str) -> tuple[GraphNode, ...]:
@@ -286,6 +360,10 @@ class EvidenceGraph:
         for e in self._edges.values():
             edges_by_type_count[e.edge_type.value] += 1
 
+        # Generate entity dossiers for primary IP entities
+        ip_nodes = self.get_nodes_by_type(NodeType.IP)
+        dossiers = {n.entity_key: self.get_entity_dossier(n.entity_key) for n in ip_nodes[:20]}
+
         return {
             'statistics': {
                 'total_nodes': len(self._nodes),
@@ -299,5 +377,6 @@ class EvidenceGraph:
             'nodes': [n.to_dict() for n in self._nodes.values()],
             'edges': [e.to_dict() for e in self._edges.values()],
             'chains': [c.to_dict() for c in self._chains],
+            'dossiers': dossiers,
         }
 

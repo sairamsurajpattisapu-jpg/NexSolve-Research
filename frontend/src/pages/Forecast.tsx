@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   FileUp,
   Radio,
-  Sparkles,
 } from 'lucide-react'
 import { ForecastConsole } from '../components/ForecastConsole'
 import { AnalysisPipelineVisualizer } from '../components/AnalysisPipelineVisualizer'
@@ -165,7 +164,7 @@ export function Forecast() {
             NO ANALYSIS SELECTED
           </h2>
           <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)', maxWidth: '420px' }}>
-            Run an analysis or open a demonstration scenario.
+            Run a PCAP analysis to explore forecast intelligence.
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '8px' }}>
             <button
@@ -175,14 +174,6 @@ export function Forecast() {
               style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <FileUp size={14} /> NEW ANALYSIS
-            </button>
-            <button
-              type="button"
-              className="button button-quiet"
-              onClick={() => navigate('/console/demo')}
-              style={{ fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              <Sparkles size={14} /> SAMPLE SCENARIOS
             </button>
           </div>
         </div>

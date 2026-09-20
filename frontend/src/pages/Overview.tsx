@@ -294,11 +294,6 @@ export function Overview() {
                     <StatusPill tone={item.status === 'COMPLETED' ? 'success' : 'neutral'}>
                       {item.status}
                     </StatusPill>
-                    {item.provenance === 'demo' && (
-                      <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', padding: '1px 5px', borderRadius: '3px', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-                        BENCHMARK
-                      </span>
-                    )}
                   </div>
                   <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
                     {new Date(item.timestamp).toLocaleString()} &middot; ID: {item.id.slice(0, 10)}

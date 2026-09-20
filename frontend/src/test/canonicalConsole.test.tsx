@@ -164,7 +164,7 @@ describe('Canonical Adapter & ForecastConsole Integration', () => {
     // Verify Early Warning Composite
     expect(screen.getByText(/EARLY WARNING INDICATOR/i)).toBeInTheDocument()
     expect(screen.getByText(/ONSET LEAD TIME/i)).toBeInTheDocument()
-    expect(screen.getByText(/120s/)).toBeInTheDocument()
+    expect(screen.getAllByText(/120s/).length).toBeGreaterThanOrEqual(1)
 
     // Verify Scientific Model Governance Notice
     expect(screen.getByText('CHAMPION MODEL')).toBeInTheDocument()
@@ -211,6 +211,40 @@ describe('Canonical Adapter & ForecastConsole Integration', () => {
     expect(screen.queryByText(/Feature Attribution & Influence Directory/i)).not.toBeInTheDocument()
   })
 
+  it('renders Horizon Evidence Attribution and MITRE technique badge when present', () => {
+    const payloadWithAttribution = {
+      ...mockUploadedPayload,
+      forecasts: [
+        {
+          horizon: 1,
+          lookaheadSeconds: 60,
+          attackProbability: 0.82,
+          cumulativeRisk: 0.82,
+          riskLevel: 'CRITICAL',
+          predictedStage: 'RECONNAISSANCE',
+          confidence: 0.88,
+          uncertainty: 0.12,
+          evidenceAttribution: {
+            predictedStage: 'RECONNAISSANCE',
+            mitreTechnique: 'T1046: Network Service Discovery',
+            behavioralRationale: 'Persistent horizontal port sweeps across 48 distinct ports.',
+            topObservableDrivers: [],
+            epistemicCertainty: 'HIGH_CONFIDENCE',
+            supportingSignals: ['Anomalous unique port dispersion'],
+          },
+        },
+      ],
+    }
+    const canonical = adaptToCanonical(payloadWithAttribution, 'job-attribution-test')
+    render(<ForecastConsole analysis={canonical} />)
+
+    expect(screen.getByText(/HORIZON T\+1 ATTRIBUTION/i)).toBeInTheDocument()
+    expect(screen.getByText('T1046: Network Service Discovery')).toBeInTheDocument()
+    expect(screen.getByText(/Persistent horizontal port sweeps across 48 distinct ports/i)).toBeInTheDocument()
+    expect(screen.getByText(/HIGH_CONFIDENCE/i)).toBeInTheDocument()
+    expect(screen.getByText(/Anomalous unique port dispersion/i)).toBeInTheDocument()
+  })
+
   it('renders CSV Requirements Modal with column contracts', () => {
     const onClose = () => {}
     render(<CsvRequirementsModal isOpen={true} onClose={onClose} />)
@@ -219,5 +253,36 @@ describe('Canonical Adapter & ForecastConsole Integration', () => {
     expect(screen.getByText(/Temporal Requirements/i)).toBeInTheDocument()
     expect(screen.getByText(/Required Core Telemetry Columns/i)).toBeInTheDocument()
     expect(screen.getByText(/Scientific Honesty & Feature Imputation Policy/i)).toBeInTheDocument()
+  })
+
+  it('renders Alternative Future Trajectories and Counterfactual Simulations when present in forecast', () => {
+    const payloadWithScenarios = {
+      ...mockUploadedPayload,
+      alternative_trajectories: [
+        {
+          scenario_name: 'ESCALATION',
+          scenario_probability: 0.72,
+          description: 'Attack velocity accelerates through rapid target port dispersion.',
+          projected_risk_profile: [0.65, 0.75, 0.85, 0.92, 0.95],
+          projected_stages: ['RECONNAISSANCE', 'EXPLOITATION', 'EXPLOITATION', 'LATERAL_MOVEMENT', 'C2'],
+        },
+      ],
+      counterfactual_simulations: {
+        cessation_of_suspicious_flows: {
+          description: 'What if suspicious connection terminates immediately?',
+          simulated_trajectory: [0.15, 0.10, 0.08, 0.05, 0.04],
+          expected_impact: 'Immediate risk attenuation to nominal baseline equilibrium.',
+        },
+      },
+    }
+    const canonical = adaptToCanonical(payloadWithScenarios, 'job-scenarios-test')
+    render(<ForecastConsole analysis={canonical} />)
+
+    expect(screen.getByText(/PROBABILISTIC ALTERNATIVE FUTURE TRAJECTORIES/i)).toBeInTheDocument()
+    expect(screen.getByText('ESCALATION')).toBeInTheDocument()
+    expect(screen.getByText('P=72%')).toBeInTheDocument()
+    expect(screen.getByText(/WHAT-IF\? BEHAVIORAL COUNTERFACTUAL SIMULATIONS/i)).toBeInTheDocument()
+    expect(screen.getByText(/What if suspicious connection terminates immediately\?/i)).toBeInTheDocument()
+    expect(screen.getByText(/Immediate risk attenuation to nominal baseline equilibrium/i)).toBeInTheDocument()
   })
 })

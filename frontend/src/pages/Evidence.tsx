@@ -91,9 +91,6 @@ export function Evidence() {
             <Link to={jobId ? `/console/forecast/${jobId}` : '/console/forecast'} className="button button-quiet">
               Forecast Console
             </Link>
-            <Link to={jobId ? `/console/reports/${jobId}` : '/console/reports'} className="button">
-              Forensic Report
-            </Link>
           </div>
         }
       />
@@ -113,7 +110,7 @@ export function Evidence() {
         </div>
         <div className="provenance-details">
           <p>
-            {`Active forensic telemetry reconstructed from capture ${input.filename}. All features, state vectors, and progression curves are derived directly from observed network traffic.`}
+            {`Active telemetry reconstructed from capture ${input.filename}. All features, state vectors, and progression curves are derived directly from observed network traffic.`}
           </p>
         </div>
       </div>
@@ -619,7 +616,7 @@ export function Evidence() {
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)' }}>
-              FORENSIC EVIDENCE NODES: SUPPORTING VS CONTRADICTORY
+              EVIDENCE NODES: SUPPORTING VS CONTRADICTORY
             </span>
 
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>

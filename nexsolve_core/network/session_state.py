@@ -90,10 +90,35 @@ class TCPSessionRecord:
     history_string: str         # Zeek-style history: S=orig SYN, h=resp SYN-ACK, A=orig ACK, F=orig FIN, etc.
 
     def to_dict(self) -> dict[str, Any]:
-        res = asdict(self)
-        res["connection_state"] = self.connection_state.value
-        res["boundary_status"] = self.boundary_status.value
-        return res
+        return {
+            "session_id": self.session_id,
+            "src_ip": self.src_ip,
+            "dst_ip": self.dst_ip,
+            "src_port": self.src_port,
+            "dst_port": self.dst_port,
+            "first_seen": self.first_seen,
+            "last_seen": self.last_seen,
+            "duration_seconds": self.duration_seconds,
+            "forward_packets": self.forward_packets,
+            "reverse_packets": self.reverse_packets,
+            "total_packets": self.total_packets,
+            "forward_bytes": self.forward_bytes,
+            "reverse_bytes": self.reverse_bytes,
+            "total_bytes": self.total_bytes,
+            "orig_syn": self.orig_syn,
+            "orig_ack": self.orig_ack,
+            "orig_fin": self.orig_fin,
+            "orig_rst": self.orig_rst,
+            "resp_syn": self.resp_syn,
+            "resp_ack": self.resp_ack,
+            "resp_fin": self.resp_fin,
+            "resp_rst": self.resp_rst,
+            "handshake_completed": self.handshake_completed,
+            "connection_state": self.connection_state.value if hasattr(self.connection_state, "value") else str(self.connection_state),
+            "boundary_status": self.boundary_status.value if hasattr(self.boundary_status, "value") else str(self.boundary_status),
+            "zeek_equivalent_state": self.zeek_equivalent_state,
+            "history_string": self.history_string,
+        }
 
 
 class _TCPSessionBuilder:
@@ -282,22 +307,18 @@ class _TCPSessionBuilder:
 
 def track_tcp_sessions(packets: Iterable[PacketRecord]) -> tuple[TCPSessionRecord, ...]:
     """Reconstruct bidirectional TCP conversations into stateful session records."""
-    sessions: dict[tuple[str, int, str, int], _TCPSessionBuilder] = {}
-    pair_map: dict[tuple[Any, ...], tuple[str, int, str, int]] = {}
+    sessions: dict[tuple[tuple[str, int], tuple[str, int]], _TCPSessionBuilder] = {}
 
     for pkt in packets:
         if pkt.protocol != "TCP" or not pkt.src_ip or not pkt.dst_ip or pkt.src_port is None or pkt.dst_port is None:
             continue
 
-        endpoint_pair = tuple(sorted([
-            (pkt.src_ip, pkt.src_port),
-            (pkt.dst_ip, pkt.dst_port),
-        ]))
+        left = (pkt.src_ip, pkt.src_port)
+        right = (pkt.dst_ip, pkt.dst_port)
+        endpoint_pair = (left, right) if left <= right else (right, left)
 
-        if endpoint_pair not in pair_map:
-            # First packet defines originator direction
-            canonical_key = (pkt.src_ip, pkt.src_port, pkt.dst_ip, pkt.dst_port)
-            pair_map[endpoint_pair] = canonical_key
+        builder = sessions.get(endpoint_pair)
+        if builder is None:
             sess_id = f"tcp-{pkt.src_ip}:{pkt.src_port}-{pkt.dst_ip}:{pkt.dst_port}-{int(pkt.timestamp)}"
             builder = _TCPSessionBuilder(
                 session_id=sess_id,
@@ -307,11 +328,9 @@ def track_tcp_sessions(packets: Iterable[PacketRecord]) -> tuple[TCPSessionRecor
                 resp_port=pkt.dst_port,
                 first_time=pkt.timestamp,
             )
-            sessions[canonical_key] = builder
+            sessions[endpoint_pair] = builder
             is_orig = True
         else:
-            canonical_key = pair_map[endpoint_pair]
-            builder = sessions[canonical_key]
             is_orig = (pkt.src_ip == builder.orig_ip and pkt.src_port == builder.orig_port)
 
         builder.update(pkt, is_orig=is_orig)
@@ -342,7 +361,21 @@ class TCPSessionSummaryMetrics:
     incomplete_ratio: float           # incomplete / total (0.0 if total == 0)
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {
+            "total_tcp_sessions": self.total_tcp_sessions,
+            "attempted_sessions": self.attempted_sessions,
+            "established_sessions": self.established_sessions,
+            "closed_sessions": self.closed_sessions,
+            "rejected_sessions": self.rejected_sessions,
+            "reset_sessions": self.reset_sessions,
+            "reset_attempt_sessions": self.reset_attempt_sessions,
+            "incomplete_sessions": self.incomplete_sessions,
+            "syn_only_sessions": self.syn_only_sessions,
+            "failed_connection_ratio": self.failed_connection_ratio,
+            "establishment_ratio": self.establishment_ratio,
+            "reset_ratio": self.reset_ratio,
+            "incomplete_ratio": self.incomplete_ratio,
+        }
 
 
 def aggregate_tcp_session_metrics(sessions: Sequence[TCPSessionRecord]) -> TCPSessionSummaryMetrics:

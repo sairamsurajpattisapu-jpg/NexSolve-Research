@@ -161,6 +161,14 @@ export function AttackHorizonCard({
         <p style={{ fontSize: '11px', color: 'var(--subtle)', margin: 0, lineHeight: 1.5 }}>
           {payload.summary}
         </p>
+        {payload.current_stage && (
+          <div style={{ marginTop: '6px', fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+            Observed Stage @ T0: <strong style={{ color: 'var(--teal)' }}>{payload.current_stage}</strong>
+            {payload.escalation_horizon && (
+              <> &middot; Impending Escalation: <strong style={{ color: 'var(--red)' }}>T+{payload.escalation_horizon} ({payload.lead_time_to_escalation_seconds}s lead time)</strong></>
+            )}
+          </div>
+        )}
         {payload.abstention_reason && (
           <small style={{ display: 'block', marginTop: '6px', color: 'var(--amber)', fontFamily: 'var(--mono)', fontSize: '10px' }}>
             Abstention reason: {payload.abstention_reason}

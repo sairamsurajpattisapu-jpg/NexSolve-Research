@@ -95,7 +95,7 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
             {progression.summary}
           </p>
           <div style={{ marginTop: '8px', fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--amber)' }}>
-            Supported: T+1m, T+3m, T+5m &middot; Withheld: T+10m, T+15m
+            Supported: {progression.supported_horizons.map(h => `T+${h}m`).join(', ') || 'None'} {progression.unsupported_horizons.length > 0 && `· Withheld: ${progression.unsupported_horizons.map(h => `T+${h}m`).join(', ')}`}
           </div>
         </div>
       </div>
@@ -103,7 +103,7 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
       {/* Multi-Horizon Progression Rollout Grid */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
         <span className="eyebrow" style={{ margin: 0 }}>
-          Forward Progression Trajectory (T+1 .. T+15)
+          Continuous Temporal Progression Trajectory (T+1 .. T+5)
         </span>
         <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
           Strictly Past-Conditioned: P(S_T+K | S_T)

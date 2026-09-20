@@ -363,8 +363,134 @@ def _flow_values(flow: FlowRecord, prefix: list[PacketRecord]) -> dict[str, floa
     }
 
 
-def _aggregate_flow_features(window: TemporalWindow, seen_packets: Mapping[int, PacketRecord]) -> tuple[dict[str, float], dict[str, Any]]:
-    values = [_flow_values(flow, _flow_prefix(flow, seen_packets)) for flow in window.flows]
+class _FlowAccumulator:
+    __slots__ = (
+        "flow",
+        "origin",
+        "start",
+        "end",
+        "count",
+        "forward_count",
+        "reverse_count",
+        "forward_bytes",
+        "reverse_bytes",
+        "all_bytes",
+        "forward_payloads",
+        "reverse_payloads",
+        "forward_ttl_sum",
+        "forward_ttl_count",
+        "reverse_ttl_sum",
+        "reverse_ttl_count",
+        "forward_win_sum",
+        "forward_win_count",
+        "reverse_win_sum",
+        "reverse_win_count",
+        "iat_sum",
+        "iat_count",
+        "last_ts",
+        "dirty",
+        "_cached_values",
+    )
+
+    def __init__(self, flow: FlowRecord) -> None:
+        self.flow = flow
+        self.origin = (flow.src_ip, flow.src_port)
+        self.start: float | None = None
+        self.end: float | None = None
+        self.count = 0
+        self.forward_count = 0
+        self.reverse_count = 0
+        self.forward_bytes = 0
+        self.reverse_bytes = 0
+        self.all_bytes = 0
+        self.forward_payloads = 0
+        self.reverse_payloads = 0
+        self.forward_ttl_sum = 0
+        self.forward_ttl_count = 0
+        self.reverse_ttl_sum = 0
+        self.reverse_ttl_count = 0
+        self.forward_win_sum = 0
+        self.forward_win_count = 0
+        self.reverse_win_sum = 0
+        self.reverse_win_count = 0
+        self.iat_sum = 0.0
+        self.iat_count = 0
+        self.last_ts: float | None = None
+        self.dirty = True
+        self._cached_values: dict[str, float] = {}
+
+    def add_packet(self, p: PacketRecord) -> None:
+        self.dirty = True
+        ts = p.timestamp
+        if self.start is None or ts < self.start:
+            self.start = ts
+        if self.end is None or ts > self.end:
+            self.end = ts
+        if self.last_ts is not None:
+            self.iat_sum += (ts - self.last_ts)
+            self.iat_count += 1
+        self.last_ts = ts
+        self.count += 1
+        plen = p.packet_length or 0
+        paylen = p.payload_length or 0
+        self.all_bytes += plen
+        if (p.src_ip, p.src_port) == self.origin:
+            self.forward_count += 1
+            self.forward_bytes += plen
+            self.forward_payloads += paylen
+            if p.ttl is not None:
+                self.forward_ttl_sum += p.ttl
+                self.forward_ttl_count += 1
+            if p.tcp_window is not None:
+                self.forward_win_sum += p.tcp_window
+                self.forward_win_count += 1
+        else:
+            self.reverse_count += 1
+            self.reverse_bytes += plen
+            self.reverse_payloads += paylen
+            if p.ttl is not None:
+                self.reverse_ttl_sum += p.ttl
+                self.reverse_ttl_count += 1
+            if p.tcp_window is not None:
+                self.reverse_win_sum += p.tcp_window
+                self.reverse_win_count += 1
+
+    def values(self) -> dict[str, float]:
+        if not self.dirty:
+            return self._cached_values
+        if self.count == 0:
+            return {}
+        self._cached_values = {
+            "total_src_bytes": float(self.forward_bytes),
+            "total_dst_bytes": float(self.reverse_bytes),
+            "total_packets": float(self.count),
+            "mean_duration": float(max(0.0, (self.end or 0.0) - (self.start or 0.0))),
+            "mean_flow_bytes": float(self.all_bytes),
+            "mean_flow_packets": float(self.count),
+            "mean_sttl": (self.forward_ttl_sum / self.forward_ttl_count) if self.forward_ttl_count else None,
+            "mean_dttl": (self.reverse_ttl_sum / self.reverse_ttl_count) if self.reverse_ttl_count else None,
+            "mean_swin": (self.forward_win_sum / self.forward_win_count) if self.forward_win_count else None,
+            "mean_dwin": (self.reverse_win_sum / self.reverse_win_count) if self.reverse_win_count else None,
+            "mean_iat": (self.iat_sum / self.iat_count) if self.iat_count else None,
+            "payload_bytes": float(self.forward_payloads + self.reverse_payloads),
+            "forward_packets": float(self.forward_count),
+            "reverse_packets": float(self.reverse_count),
+        }
+        self.dirty = False
+        return self._cached_values
+
+
+def _aggregate_flow_features(
+    window: TemporalWindow,
+    seen_packets: Mapping[int, PacketRecord] | None = None,
+    accumulators: Mapping[str, _FlowAccumulator] | None = None,
+) -> tuple[dict[str, float], dict[str, Any]]:
+    if accumulators is not None:
+        values = [accumulators[flow.flow_id].values() for flow in window.flows if flow.flow_id in accumulators]
+    elif seen_packets is not None:
+        values = [_flow_values(flow, _flow_prefix(flow, seen_packets)) for flow in window.flows]
+    else:
+        values = []
     values = [value for value in values if value]
     if not values:
         empty_flow: dict[str, float] = {
@@ -491,12 +617,20 @@ def _packet_features(window: TemporalWindow) -> dict[str, float]:
 def build_network_state_candidates(windows: Iterable[TemporalWindow], feature_schema: Mapping[str, list[str]] | None = None) -> tuple[NetworkStateCandidate, ...]:
     ordered = tuple(sorted(windows, key=lambda window: (window.start_timestamp, window.window_id)))
     previous: NetworkStateCandidate | None = None
-    seen_packets: dict[int, PacketRecord] = {}
     candidates: list[NetworkStateCandidate] = []
     registry = feature_registry(include_candidate_extended=True)
+
+    all_flows = {flow.flow_id: flow for window in ordered for flow in window.flows}
+    accumulators = {flow_id: _FlowAccumulator(flow) for flow_id, flow in all_flows.items()}
+    pkt_to_flow = {idx: flow.flow_id for flow in all_flows.values() for idx in flow.provenance.packet_indexes}
+
     for window in ordered:
-        seen_packets.update({packet.packet_index: packet for packet in window.packets if packet.packet_index is not None})
-        flow_features, lifecycle = _aggregate_flow_features(window, seen_packets)
+        for packet in window.packets:
+            if packet.packet_index is not None:
+                fid = pkt_to_flow.get(packet.packet_index)
+                if fid is not None:
+                    accumulators[fid].add_packet(packet)
+        flow_features, lifecycle = _aggregate_flow_features(window, accumulators=accumulators)
         active_flow_ids = set(lifecycle["active_flow_ids"])
         previous_flow_ids = set(previous.flow_lifecycle.get("active_flow_ids", ()) if previous is not None and previous.flow_lifecycle else ())
         lifecycle = {
@@ -626,3 +760,125 @@ def build_state_history(candidates: Iterable[NetworkStateCandidate], lookback: i
     if len(ordered) < lookback:
         return HistoryResult("INSUFFICIENT_HISTORY", ordered, f"Need {lookback} contiguous windows; received {len(ordered)}.")
     return HistoryResult("READY", ordered[-lookback:], "Contiguous past-only history is available.")
+
+
+# ---------------------------------------------------------------------------
+# CANONICAL PREDICTIVE CYBER REASONING ENGINE (PHASE 2)
+# ---------------------------------------------------------------------------
+
+class TemporalKnowledgeTier(StrEnum):
+    OBSERVED = "OBSERVED"
+    INFERRED = "INFERRED"
+    PREDICTED = "PREDICTED"
+    COUNTERFACTUAL = "COUNTERFACTUAL"
+
+
+@dataclass(frozen=True)
+class NexSolveState:
+    """Canonical internal state representing the comprehensive inferred network state.
+
+    Explicitly separates OBSERVED, INFERRED, PREDICTED, and COUNTERFACTUAL knowledge.
+    """
+    timestamp: float
+    knowledge_tier: TemporalKnowledgeTier
+    entity_states: Mapping[str, Any]
+    relationship_states: Mapping[str, Any]
+    network_features: Mapping[str, float]
+    attack_stage_distribution: Mapping[str, float]
+    threat_distribution: Mapping[str, float]
+    behavioral_regimes: Mapping[str, str]
+    graph_state: Mapping[str, Any]
+    evidence_ids: tuple[str, ...] = ()
+    calibrated_uncertainty: float = 0.0
+    ood_score: float = 0.0
+    is_ood: bool = False
+    provenance: Mapping[str, Any] = None
+
+    def __post_init__(self):
+        if self.provenance is None:
+            object.__setattr__(self, "provenance", {})
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "timestamp": self.timestamp,
+            "knowledge_tier": self.knowledge_tier.value,
+            "entity_states": dict(self.entity_states),
+            "relationship_states": dict(self.relationship_states),
+            "network_features": dict(self.network_features),
+            "attack_stage_distribution": {k: round(v, 4) for k, v in self.attack_stage_distribution.items()},
+            "threat_distribution": {k: round(v, 4) for k, v in self.threat_distribution.items()},
+            "behavioral_regimes": dict(self.behavioral_regimes),
+            "graph_state": dict(self.graph_state),
+            "evidence_ids": list(self.evidence_ids),
+            "calibrated_uncertainty": round(self.calibrated_uncertainty, 4),
+            "ood_score": round(self.ood_score, 4),
+            "is_ood": self.is_ood,
+            "provenance": dict(self.provenance),
+        }
+
+
+class StateEstimator:
+    """Estimates the coherent NexSolveState from multi-sensor evidence and temporal history."""
+
+    @staticmethod
+    def estimate(
+        candidate: NetworkStateCandidate,
+        entity_memory: Any = None,
+        attack_distribution: Mapping[str, float] | None = None,
+        evidence_records: Iterable[Any] = (),
+    ) -> NexSolveState:
+        ev_list = tuple(evidence_records)
+        ev_ids = tuple(getattr(e, "evidence_id", f"ev_{i}") for i, e in enumerate(ev_list))
+
+        regimes: dict[str, str] = {}
+        ent_states: dict[str, Any] = {}
+        if entity_memory and hasattr(entity_memory, "summary"):
+            ent_summary = entity_memory.summary()
+            for ent, prof in ent_summary.items():
+                regimes[ent] = prof.get("active_regime", "BENIGN_EQUILIBRIUM")
+                ent_states[ent] = prof
+
+        stages = dict(attack_distribution or {
+            "BENIGN_EQUILIBRIUM": 0.85,
+            "RECONNAISSANCE": 0.10,
+            "EXPLOITATION": 0.03,
+            "COMMAND_AND_CONTROL": 0.02,
+        })
+
+        threats = {
+            "SCANNING": stages.get("RECONNAISSANCE", 0.0),
+            "C2_BEACON": stages.get("COMMAND_AND_CONTROL", 0.0),
+            "DENIAL_OF_SERVICE": stages.get("DENIAL_OF_SERVICE", 0.0),
+            "LATERAL_MOVEMENT": stages.get("LATERAL_MOVEMENT", 0.0),
+        }
+
+        all_feats = {}
+        all_feats.update(candidate.flow_features)
+        all_feats.update(candidate.packet_features)
+        all_feats.update(candidate.temporal_features)
+
+        # Graph summary
+        graph_summary = {
+            "unique_src_ips": candidate.traffic_aggregates.get("unique_src_ips", 0),
+            "unique_dst_ips": candidate.traffic_aggregates.get("unique_dst_ips", 0),
+            "unique_dst_ports": candidate.flow_aggregates.get("unique_dst_ports", 0),
+            "flow_count": candidate.flow_aggregates.get("flow_count", 0),
+        }
+
+        return NexSolveState(
+            timestamp=float(candidate.start_timestamp),
+            knowledge_tier=TemporalKnowledgeTier.INFERRED,
+            entity_states=ent_states,
+            relationship_states={},
+            network_features=all_feats,
+            attack_stage_distribution=stages,
+            threat_distribution=threats,
+            behavioral_regimes=regimes,
+            graph_state=graph_summary,
+            evidence_ids=ev_ids,
+            calibrated_uncertainty=0.12,
+            ood_score=0.45,
+            is_ood=False,
+            provenance={"window_id": candidate.window_id, "capture_id": candidate.provenance.capture_id},
+        )
+

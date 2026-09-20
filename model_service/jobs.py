@@ -304,6 +304,17 @@ class JobManager:
             except Exception as error:
                 raise RuntimeError("The file could not be parsed as a supported PCAP/PCAPNG capture.") from error
             pcap_parsing_ms = round((time.perf_counter() - t_parse_start) * 1000, 2)
+            if work_dir:
+                try:
+                    import shutil
+                    shutil.rmtree(work_dir, ignore_errors=True)
+                    if Path(work_dir).exists():
+                        import gc
+                        gc.collect()
+                        shutil.rmtree(work_dir, ignore_errors=True)
+                except Exception:
+                    pass
+                work_dir = None
             with self._lock:
                 job_rec = self._jobs.get(job_id)
                 if job_rec:
@@ -431,6 +442,7 @@ class JobManager:
                             "uncertainty": pt.uncertainty,
                             "explanation": [d.interpretation for d in pt.top_drivers] if pt.top_drivers else [pt.behavioral_interpretation],
                             "topDrivers": [d.to_dict() for d in pt.top_drivers],
+                            "evidenceAttribution": pt.evidence_attribution.to_dict() if pt.evidence_attribution is not None else None,
                         })
                 except Exception:
                     # Model evaluation fallback to abstained points
@@ -508,7 +520,24 @@ class JobManager:
             progression_forecast = forecast_attack_progression(
                 observed_findings=detection.get("findings", []),
                 behavioral_report=behavioral_report,
+                horizons=(1, 2, 3, 4, 5),
                 history_window_count=len(windows),
+            )
+
+            # Re-assemble forecast intelligence with full multi-modal context (progression, findings, behavioral report)
+            intelligence = assemble_forecast_intelligence(
+                sequence=state_dicts,
+                forecast_points=forecast_points,
+                capture_quality=quality,
+                provenance_info={"capture_id": job_id, "source": clean_name, "schema_variant": schema_variant},
+                min_sequence_length=8,
+                required_features=active_flow_features,
+                calibration_status="UNSUPPORTED",
+                decision_threshold=0.5,
+                window_seconds=60,
+                observed_findings=detection.get("findings", []),
+                attack_progression=progression_forecast,
+                behavioral_report=behavioral_report,
             )
             threat_assessment = fuse_threat_assessment(
                 observed_findings=detection.get("findings", []),
@@ -752,13 +781,63 @@ class JobManager:
                         "processing_seconds": round(time.perf_counter() - start_time, 3),
                     }
         finally:
+            import gc
+            gc.collect()
             # Clean up isolated temporary directory
             if work_dir:
                 try:
                     import shutil
                     shutil.rmtree(work_dir, ignore_errors=True)
+                    if Path(work_dir).exists():
+                        time.sleep(0.05)
+                        gc.collect()
+                        shutil.rmtree(work_dir, ignore_errors=True)
                 except Exception:
                     pass
+            if file_path:
+                try:
+                    fp = Path(file_path)
+                    fp.unlink(missing_ok=True)
+                    parent = fp.parent
+                    if parent.name.startswith("upl-") and parent.parent == RUNTIME_DIR / "chunks":
+                        import shutil
+                        shutil.rmtree(parent, ignore_errors=True)
+                        if parent.exists():
+                            time.sleep(0.05)
+                            gc.collect()
+                            shutil.rmtree(parent, ignore_errors=True)
+                except Exception:
+                    pass
+
+
+def cleanup_stale_runtime_files() -> None:
+    """Clean up stale temporary directories, chunk directories, and scratch files from runtime/."""
+    try:
+        if RUNTIME_DIR.exists():
+            for item in RUNTIME_DIR.iterdir():
+                if item.name in ("nexsolve.db", "nexsolve.db-journal"):
+                    continue
+                if item.name == "chunks":
+                    for chunk_item in item.iterdir():
+                        try:
+                            if chunk_item.is_dir():
+                                import shutil
+                                shutil.rmtree(chunk_item, ignore_errors=True)
+                            else:
+                                chunk_item.unlink(missing_ok=True)
+                        except Exception:
+                            pass
+                    continue
+                try:
+                    if item.is_dir():
+                        import shutil
+                        shutil.rmtree(item, ignore_errors=True)
+                    else:
+                        item.unlink(missing_ok=True)
+                except Exception:
+                    pass
+    except Exception:
+        pass
 
 
 # Global singleton job manager

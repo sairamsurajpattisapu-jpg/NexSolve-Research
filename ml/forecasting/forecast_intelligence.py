@@ -64,6 +64,9 @@ def assemble_forecast_intelligence(
     calibration_status: str = "UNSUPPORTED",
     decision_threshold: float = 0.50,
     window_seconds: int = 60,
+    observed_findings: Sequence[Mapping[str, Any]] | None = None,
+    attack_progression: Any = None,
+    behavioral_report: Any = None,
 ) -> ForecastIntelligenceResult:
     """Run full intelligence pipeline server-side and assemble the unified response.
 
@@ -87,6 +90,12 @@ def assemble_forecast_intelligence(
         Binary classification threshold.
     window_seconds : int, default 60
         Window interval duration in seconds.
+    observed_findings : Sequence[Mapping[str, Any]] | None, optional
+        Observed detection findings at T_0.
+    attack_progression : Any, optional
+        Markovian attack progression forecast.
+    behavioral_report : Any, optional
+        Behavioral intelligence report.
     """
     # 1. Evaluate Pre-Rollout Abstention Check
     abstention_check = evaluate_forecast_abstention(
@@ -102,7 +111,7 @@ def assemble_forecast_intelligence(
     if isinstance(curr_state, Mapping) and "timestamp" in curr_state:
         curr_ts = curr_state["timestamp"]
 
-    # 2. Compute Attack Horizon
+    # 2. Compute Attack Horizon with multi-modal context
     horizon_res = compute_attack_horizon(
         current_timestamp=curr_ts,
         forecasts=forecast_points,
@@ -110,6 +119,9 @@ def assemble_forecast_intelligence(
         window_seconds=window_seconds,
         abstention_reason=abstention_check.reason if abstention_check.abstained else None,
         calibration_status=calibration_status,
+        observed_findings=observed_findings,
+        attack_progression=attack_progression,
+        behavioral_report=behavioral_report,
     )
 
     # 3. Extract Evidence Intelligence
