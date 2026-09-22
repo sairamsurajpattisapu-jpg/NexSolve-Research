@@ -508,6 +508,14 @@ async def create_processing_job(file: UploadFile = File(...)) -> dict[str, Any]:
     return job.to_status_dict()
 
 
+
+@app.delete("/api/jobs/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def cancel_processing_job(job_id: str):
+    if JOB_MANAGER.cancel_job(job_id):
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    else:
+        raise HTTPException(status_code=404, detail="Job not found or not cancellable.")
+
 @app.get("/jobs/{job_id}")
 async def get_job_status(job_id: str) -> dict[str, Any]:
     """Poll job status, progress, stage, and processing statistics."""

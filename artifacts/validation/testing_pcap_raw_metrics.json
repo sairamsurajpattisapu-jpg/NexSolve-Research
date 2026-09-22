@@ -1,0 +1,12 @@
+{
+  "capture_name": "testing.pcap",
+  "file_size_bytes": 6200914,
+  "raw_packet_count": 11636,
+  "duration_seconds": 1326.69,
+  "raw_unique_source_ips": 101,
+  "raw_unique_destination_ips": 108,
+  "raw_unique_dst_ip_port_pairs": 523,
+  "directional_5tuples": 867,
+  "canonical_bidirectional_flows": 436,
+  "nexsolve_reconstructed_flows": 453
+}

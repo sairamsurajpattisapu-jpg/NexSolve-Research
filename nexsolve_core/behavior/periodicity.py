@@ -179,20 +179,11 @@ def calculate_interval_entropy(intervals: Sequence[float], num_bins: int = 10) -
     return round(entropy, 4)
 
 
-def analyze_periodicity_groups(
-    flows: Iterable[FlowRecord],
+def analyze_periodicity_from_timestamps(
+    grouped_timestamps: dict[tuple[str, str, int | None, str | None], list[float]],
+    src_total_counts: dict[str, int],
     min_connections: int = 4,
 ) -> PeriodicitySummary:
-    """Evaluate temporal interval periodicity for all communication pairs in flows."""
-    grouped_timestamps: dict[tuple[str, str, int | None, str | None], list[float]] = defaultdict(list)
-    src_total_counts: dict[str, int] = defaultdict(int)
-
-    for flow in flows:
-        if flow.src_ip and flow.dst_ip:
-            src_total_counts[flow.src_ip] += 1
-            key = (flow.src_ip, flow.dst_ip, flow.dst_port, flow.protocol)
-            grouped_timestamps[key].append(flow.start_timestamp)
-
     results: list[PeriodicityGroupResult] = []
     insufficient = 0
     irregular = 0
@@ -329,6 +320,27 @@ def analyze_periodicity_groups(
         periodic_groups=periodic,
         highly_periodic_groups=highly_periodic,
         groups=tuple(results),
+    )
+
+
+def analyze_periodicity_groups(
+    flows: Iterable[FlowRecord],
+    min_connections: int = 4,
+) -> PeriodicitySummary:
+    """Evaluate temporal interval periodicity for all communication pairs in flows."""
+    grouped_timestamps: dict[tuple[str, str, int | None, str | None], list[float]] = defaultdict(list)
+    src_total_counts: dict[str, int] = defaultdict(int)
+
+    for flow in flows:
+        if flow.src_ip and flow.dst_ip:
+            src_total_counts[flow.src_ip] += 1
+            key = (flow.src_ip, flow.dst_ip, flow.dst_port, flow.protocol)
+            grouped_timestamps[key].append(flow.start_timestamp)
+
+    return analyze_periodicity_from_timestamps(
+        grouped_timestamps=grouped_timestamps,
+        src_total_counts=src_total_counts,
+        min_connections=min_connections,
     )
 
 

@@ -1,0 +1,29 @@
+{
+  "groups": [
+    {
+      "name": "traffic_volume",
+      "features": 8,
+      "status": "CRITICAL"
+    },
+    {
+      "name": "flow_statistics",
+      "features": 12,
+      "status": "HIGH_IMPORTANCE"
+    },
+    {
+      "name": "inter_arrival_time",
+      "features": 10,
+      "status": "MEDIUM_IMPORTANCE"
+    },
+    {
+      "name": "tcp_flags",
+      "features": 8,
+      "status": "HIGH_IMPORTANCE"
+    },
+    {
+      "name": "temporal_deltas",
+      "features": 7,
+      "status": "ENHANCEMENT"
+    }
+  ]
+}

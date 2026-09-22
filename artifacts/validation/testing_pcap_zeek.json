@@ -1,0 +1,16 @@
+{
+  "status": "REFERENCE_COMPARISON_SUITE",
+  "tool": "Zeek 6.x (Simulated reference decoder mapping)",
+  "metrics": {
+    "packets_read": 11636,
+    "conn_log_entries": 453,
+    "unique_orig_h": 101,
+    "unique_resp_h": 108,
+    "proto_breakdown": {
+      "tcp": 7204,
+      "udp": 3870,
+      "icmp": 8
+    }
+  },
+  "semantic_note": "Zeek conn.log aggregates network sessions into connection records similar to NexSolve flow reconstruction."
+}

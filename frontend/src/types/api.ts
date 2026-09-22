@@ -906,6 +906,12 @@ export interface JobStatusResponse {
   status: JobStatusType
   progress: number
   stage: JobStageType
+  bytes_processed?: number
+  bytes_total?: number
+  packets_processed?: number
+  throughput_mbps?: number
+  estimated_remaining_seconds?: number
+  last_progress_timestamp?: number
   created_at: string
   started_at: string | null
   completed_at: string | null

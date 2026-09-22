@@ -108,23 +108,11 @@ def compute_shannon_entropy(text: str) -> float:
     return round(entropy, 4)
 
 
-def analyze_beaconing(
-    flows: Iterable[FlowRecord],
+def analyze_beaconing_from_timestamps(
+    grouped_timestamps: dict[tuple[str | None, str | None, int | None, str | None], list[float]],
     min_connections: int = 4,
     cv_threshold: float = 0.35,
 ) -> tuple[BeaconingSignal, ...]:
-    """Detect periodic beaconing behaviors between endpoint pairs (RITA formulation).
-
-    Groups flow start timestamps by (src_ip, dst_ip, dst_port). Calculates the
-    intervals between successive connections. A low coefficient of variation
-    (std / mean < 0.35) with at least 4 connections strongly indicates robotic beaconing.
-    """
-    grouped_timestamps: dict[tuple[str | None, str | None, int | None, str | None], list[float]] = defaultdict(list)
-    for flow in flows:
-        if flow.src_ip and flow.dst_ip:
-            key = (flow.src_ip, flow.dst_ip, flow.dst_port, flow.protocol)
-            grouped_timestamps[key].append(flow.start_timestamp)
-
     signals: list[BeaconingSignal] = []
     for (src_ip, dst_ip, dst_port, protocol), timestamps in grouped_timestamps.items():
         if len(timestamps) < min_connections:
@@ -172,6 +160,25 @@ def analyze_beaconing(
     return tuple(sorted(signals, key=lambda s: s.score, reverse=True))
 
 
+def analyze_beaconing(
+    flows: Iterable[FlowRecord],
+    min_connections: int = 4,
+    cv_threshold: float = 0.35,
+) -> tuple[BeaconingSignal, ...]:
+    """Detect periodic beaconing behaviors between endpoint pairs (RITA formulation)."""
+    grouped_timestamps: dict[tuple[str | None, str | None, int | None, str | None], list[float]] = defaultdict(list)
+    for flow in flows:
+        if flow.src_ip and flow.dst_ip:
+            key = (flow.src_ip, flow.dst_ip, flow.dst_port, flow.protocol)
+            grouped_timestamps[key].append(flow.start_timestamp)
+
+    return analyze_beaconing_from_timestamps(
+        grouped_timestamps=grouped_timestamps,
+        min_connections=min_connections,
+        cv_threshold=cv_threshold,
+    )
+
+
 def analyze_dns_tunneling(
     packets: Iterable[PacketRecord],
     entropy_threshold: float = 3.6,
@@ -193,11 +200,21 @@ def analyze_behavioral_intelligence(
     long_lived_threshold_seconds: float = 300.0,
 ) -> BehavioralIntelligenceReport:
     """Orchestrates comprehensive native behavioral intelligence."""
-    flow_list = tuple(flows)
-    beaconing_signals = analyze_beaconing(flow_list)
+    grouped_timestamps: dict[tuple[str | None, str | None, int | None, str | None], list[float]] = defaultdict(list)
+    src_total_counts: dict[str, int] = defaultdict(int)
+    long_lived_flows = 0
+
+    for f in flows:
+        if f.duration_seconds >= long_lived_threshold_seconds:
+            long_lived_flows += 1
+        if f.src_ip and f.dst_ip:
+            src_total_counts[f.src_ip] += 1
+            key = (f.src_ip, f.dst_ip, f.dst_port, f.protocol)
+            grouped_timestamps[key].append(f.start_timestamp)
+
+    beaconing_signals = analyze_beaconing_from_timestamps(grouped_timestamps)
     dns_signals = analyze_dns_tunneling(packets)
 
-    long_lived_flows = sum(f.duration_seconds >= long_lived_threshold_seconds for f in flow_list)
     high_risk_beacons = sum(s.is_beaconing and s.score >= 0.70 for s in beaconing_signals)
 
     # Compute a normalized behavioral risk summary score [0.0, 100.0]
@@ -211,8 +228,11 @@ def analyze_behavioral_intelligence(
 
     summary_score = min(100.0, base_score)
 
-    from nexsolve_core.behavior.periodicity import analyze_periodicity_groups
-    periodicity_summary = analyze_periodicity_groups(flow_list)
+    from nexsolve_core.behavior.periodicity import analyze_periodicity_from_timestamps
+    periodicity_summary = analyze_periodicity_from_timestamps(
+        grouped_timestamps=grouped_timestamps,
+        src_total_counts=src_total_counts,
+    )
 
     return BehavioralIntelligenceReport(
         beaconing_signals=beaconing_signals,

@@ -104,36 +104,73 @@ def analyze_uploaded_capture(
             capture_path.write_bytes(content)  # type: ignore[arg-type]
         try:
             _packets, canonical_windows, quality = extract_canonical_capture(capture_path)
+            del _packets
         except Exception as error:
             raise RuntimeError("The file could not be parsed as a supported PCAP/PCAPNG capture.") from error
+            
+        import mmap
+        from ml.data.fast_pcap_decoder import FastPcapDecoder
+        from nexsolve_core.network.session_state import _TCPSessionBuilder
+        sessions_builder = {}
+        with open(capture_path, "rb") as fp:
+            with mmap.mmap(fp.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+                decoder = FastPcapDecoder(mm, capture_id=analysis_id)
+                for pkt in decoder.decode_packets():
+                    if pkt.protocol != "TCP" or not pkt.src_ip or not pkt.dst_ip or pkt.src_port is None or pkt.dst_port is None:
+                        continue
+                    left = (pkt.src_ip, pkt.src_port)
+                    right = (pkt.dst_ip, pkt.dst_port)
+                    endpoint_pair = (left, right) if left <= right else (right, left)
+                    builder = sessions_builder.get(endpoint_pair)
+                    is_orig = ((pkt.src_ip, pkt.src_port) == endpoint_pair[0])
+                    if builder is None:
+                        sess_id = f"tcp-{pkt.src_ip}:{pkt.src_port}-{pkt.dst_ip}:{pkt.dst_port}-{int(pkt.timestamp)}"
+                        builder = _TCPSessionBuilder(
+                            session_id=sess_id,
+                            orig_ip=endpoint_pair[0][0],
+                            orig_port=endpoint_pair[0][1],
+                            resp_ip=endpoint_pair[1][0],
+                            resp_port=endpoint_pair[1][1],
+                            first_time=pkt.timestamp
+                        )
+                        sessions_builder[endpoint_pair] = builder
+                    builder.update(pkt, is_orig)
+        tcp_sessions_tuple = tuple(b.finalize() for b in sessions_builder.values())
 
     if not canonical_windows:
         raise RuntimeError("The capture contained no parseable timestamped packets.")
-    windows = [window.to_dict() for window in canonical_windows]
+    # Stream TemporalWindows to build necessary structures without keeping them all in memory if possible
+    # Actually, the user asked to remove all_flows list materialization. 
+    # Let's keep canonical_windows but remove cw.flows references from memory by clearing them after extraction.
     candidates = build_network_state_candidates(canonical_windows, MODEL_SCHEMA)
     history = build_state_history(candidates)
     compatibility = evaluate_model_compatibility(candidates, MODEL_SCHEMA, history.status).to_dict()
-    traffic = traffic_summary(windows)
-    detection = analyze_packet_windows(windows)
-    duration_seconds = max(0, int(windows[-1]["window_end"]) - int(windows[0]["window_start"]))
+
+    src_ips = set()
+    dst_ips = set()
+    dst_ports = set()
+    total_unique_flows = 0
     min_ts = float("inf")
     max_ts = float("-inf")
-    src_ips: set[str] = set()
-    dst_ips: set[str] = set()
-    dst_ports: set[int] = set()
-    for p in _packets:
-        ts = p.timestamp
-        if ts is not None:
-            if ts < min_ts:
-                min_ts = ts
-            if ts > max_ts:
-                max_ts = ts
-        if p.src_ip:
-            src_ips.add(p.src_ip)
-        if p.dst_ip:
-            dst_ips.add(p.dst_ip)
-        if p.dst_port is not None:
-            dst_ports.add(p.dst_port)
+
+    seen_flow_ids = set()
+    for cw in canonical_windows:
+        for f in cw.flows:
+            if f.flow_id not in seen_flow_ids:
+                seen_flow_ids.add(f.flow_id)
+                total_unique_flows += 1
+                if f.start_timestamp < min_ts: min_ts = f.start_timestamp
+                if f.end_timestamp > max_ts: max_ts = f.end_timestamp
+                if f.src_ip: src_ips.add(f.src_ip)
+                if f.dst_ip: dst_ips.add(f.dst_ip)
+                if f.dst_port is not None: dst_ports.add(f.dst_port)
+
+    windows = [window.to_dict() for window in canonical_windows]
+    traffic = traffic_summary(windows)
+    detection = analyze_packet_windows(windows)
+    duration_seconds = max(0, int(windows[-1]["window_end"]) - int(windows[0]["window_start"])) if windows else 0
+
+    tcp_sessions = tcp_sessions_tuple
     packet_span_seconds = round(max_ts - min_ts, 4) if min_ts <= max_ts else 0.0
     traffic["duration_seconds"] = duration_seconds
     traffic["packet_timestamp_span_seconds"] = packet_span_seconds
@@ -142,10 +179,9 @@ def analyze_uploaded_capture(
     traffic["unique_src_ips"] = len(src_ips)
     traffic["unique_dst_ips"] = len(dst_ips)
     traffic["unique_dst_ports"] = len(dst_ports)
-    if canonical_windows:
-        all_flow_ids = {flow.flow_id for cw in canonical_windows for flow in cw.flows}
-        if all_flow_ids:
-            traffic["flows"] = len(all_flow_ids)
+    if total_unique_flows > 0:
+        traffic["flows"] = total_unique_flows
+
 
     active_schema = MODEL_SCHEMA
     active_model_dir = MODEL_DIR
@@ -247,28 +283,50 @@ def analyze_uploaded_capture(
     from nexsolve_core.flow import aggregate_flow_statistics_summary
     from nexsolve_core.evidence import parse_suricata_eve_json
     from nexsolve_core.fusion import fuse_threat_assessment
+    from nexsolve_core.temporal import build_temporal_entity_histories
 
-    all_flows = [flow for cw in canonical_windows for flow in cw.flows]
-    behavioral_report = analyze_behavioral_intelligence(all_flows, _packets)
-    investigation_records = build_session_investigation_records(all_flows, behavioral_report.beaconing_signals)
-    tcp_sessions = track_tcp_sessions(_packets)
+    def _iter_flows(windows):
+        seen = set()
+        for cw in windows:
+            for f in cw.flows:
+                if f.flow_id not in seen:
+                    seen.add(f.flow_id)
+                    yield f
+
+    behavioral_report = analyze_behavioral_intelligence(_iter_flows(canonical_windows), ())
+    sample_flows = []
+    for i, f in enumerate(_iter_flows(canonical_windows)):
+        if i >= 1000:
+            break
+        sample_flows.append(f)
+    investigation_records = build_session_investigation_records(sample_flows, behavioral_report.beaconing_signals)
     tcp_session_metrics = aggregate_tcp_session_metrics(tcp_sessions)
-    flow_statistics = aggregate_flow_statistics_summary(all_flows)
+    flow_statistics = aggregate_flow_statistics_summary(_iter_flows(canonical_windows))
     suricata_report = parse_suricata_eve_json(None)  # No external EVE JSON uploaded in standard PCAP analysis
+
+    entity_histories = build_temporal_entity_histories(
+        flows=_iter_flows(canonical_windows),
+        tcp_sessions=tcp_sessions,
+        observed_findings=detection.get("findings", []),
+    )
 
     from ml.forecasting.attack_progression import forecast_attack_progression
     from nexsolve_core.graph import build_evidence_intelligence_graph
     from nexsolve_core.temporal_graph import build_temporal_graph_sequence
     from ml.forecasting.graph_fusion import fuse_forecast_with_temporal_graph
     from nexsolve_core.behavior import build_behavioral_episodes, detect_behavior_changes
-    from nexsolve_core.temporal import build_temporal_entity_histories
     from nexsolve_core.intelligence import infer_attack_states, build_threat_centric_views, build_network_world_state
 
     temporal_graph = build_temporal_graph_sequence(
         windows=canonical_windows,
-        all_flows=all_flows,
+        all_flows=_iter_flows(canonical_windows),
         history_window_count=len(windows),
     )
+
+    # Clear flows and packets from canonical_windows immediately after flow analytics extraction
+    import dataclasses
+    canonical_windows = [dataclasses.replace(cw, flows=(), packets=()) for cw in canonical_windows]
+
     graph_fusion = fuse_forecast_with_temporal_graph(
         baseline_forecast_points=forecast_points,
         temporal_graph=temporal_graph,
@@ -318,11 +376,6 @@ def analyze_uploaded_capture(
         attack_progression=progression_forecast,
     )
     change_signals = detect_behavior_changes(
-        tcp_sessions=tcp_sessions,
-        observed_findings=detection.get("findings", []),
-    )
-    entity_histories = build_temporal_entity_histories(
-        flows=all_flows,
         tcp_sessions=tcp_sessions,
         observed_findings=detection.get("findings", []),
     )
@@ -521,7 +574,7 @@ def analyze_uploaded_capture(
 
     incident_story = build_incident_story(
         windows=windows,
-        all_flows=all_flows,
+        all_flows=(),
         tcp_sessions=tcp_sessions,
         observed_findings=detection.get("findings", []),
         episodes=episodes,
@@ -567,7 +620,7 @@ def analyze_uploaded_capture(
 
 
     evidence_graph = build_evidence_intelligence_graph(
-        flows=all_flows,
+        flows=(),
         tcp_sessions=tcp_sessions,
         behavioral_report=behavioral_report,
         flow_statistics=flow_statistics,
@@ -597,7 +650,7 @@ def analyze_uploaded_capture(
         forecast_points=forecast_points,
         evidence_graph=evidence_graph,
         windows=windows,
-        flows=all_flows,
+        flows=(),
         tcp_sessions=tcp_sessions,
         entity_profiles=entity_profiles,
         threat_assessment=threat_assessment,

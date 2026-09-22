@@ -92,6 +92,12 @@ class JobRecord:
     status: JobStatus = "QUEUED"
     stage: JobStage = "INGESTION"
     progress: float = 0.10
+    bytes_processed: int = 0
+    bytes_total: int | None = None
+    packets_processed: int = 0
+    throughput_mbps: float | None = None
+    estimated_remaining_seconds: float | None = None
+    last_progress_timestamp: float | None = None
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     started_at: str | None = None
     completed_at: str | None = None
@@ -109,6 +115,12 @@ class JobRecord:
             "status": self.status,
             "progress": round(self.progress, 2),
             "stage": self.stage,
+            "bytes_processed": self.bytes_processed,
+            "bytes_total": self.bytes_total,
+            "packets_processed": self.packets_processed,
+            "throughput_mbps": self.throughput_mbps,
+            "estimated_remaining_seconds": self.estimated_remaining_seconds,
+            "last_progress_timestamp": self.last_progress_timestamp,
             "created_at": self.created_at,
             "started_at": self.started_at,
             "completed_at": self.completed_at,
@@ -251,6 +263,15 @@ class JobManager:
         self._executor.submit(self._run_job, job_id, clean_name, suffix, content, file_path)
         return job
 
+    def cancel_job(self, job_id: str) -> bool:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if job and job.status in ("QUEUED", "PROCESSING"):
+                job.status = "CANCELLED"
+                job.error = {"detail": "Job was cancelled by the user."}
+                return True
+        return False
+
     def get_job(self, job_id: str) -> JobRecord | None:
         with self._lock:
             return self._jobs.get(job_id)
@@ -290,7 +311,7 @@ class JobManager:
             if file_path is not None:
                 capture_size_bytes = file_path.stat().st_size
                 import shutil
-                shutil.move(str(file_path), str(capture_path))
+                shutil.copy2(str(file_path), str(capture_path))
                 capture_hash = stream_file_hash(capture_path)
             elif content is not None:
                 capture_size_bytes = len(content)
@@ -300,33 +321,23 @@ class JobManager:
                 raise ValueError("No capture content provided.")
 
             try:
-                packets, canonical_windows, quality = extract_canonical_capture(capture_path)
+                _pkts, canonical_windows, quality = extract_canonical_capture(capture_path)
+                del _pkts
             except Exception as error:
                 raise RuntimeError("The file could not be parsed as a supported PCAP/PCAPNG capture.") from error
             pcap_parsing_ms = round((time.perf_counter() - t_parse_start) * 1000, 2)
-            if work_dir:
-                try:
-                    import shutil
-                    shutil.rmtree(work_dir, ignore_errors=True)
-                    if Path(work_dir).exists():
-                        import gc
-                        gc.collect()
-                        shutil.rmtree(work_dir, ignore_errors=True)
-                except Exception:
-                    pass
-                work_dir = None
             with self._lock:
                 job_rec = self._jobs.get(job_id)
                 if job_rec:
-                    job_rec.processing_statistics["packets_processed"] = len(packets)
+                    job_rec.processing_statistics["packets_processed"] = quality['parsed_packets']
 
             # Check Resource Limits on packets
-            if len(packets) > MAX_PACKETS:
+            if quality['parsed_packets'] > MAX_PACKETS:
                 raise ResourceLimitExceededError(
                     resource="packet_count",
-                    observed=len(packets),
+                    observed=quality['parsed_packets'],
                     limit=MAX_PACKETS,
-                    explanation=f"Observed packet count ({len(packets):,}) exceeds maximum limit of {MAX_PACKETS:,}.",
+                    explanation=f"Observed packet count ({quality['parsed_packets']:,}) exceeds maximum limit of {MAX_PACKETS:,}.",
                     recoverable=False,
                 )
 
@@ -359,7 +370,6 @@ class JobManager:
                     explanation=f"Temporal window count ({len(windows)}) exceeds limit of {MAX_TEMPORAL_WINDOWS}.",
                     recoverable=False,
                 )
-
             t_win_start = time.perf_counter()
             self._update_stage(job_id, "WINDOWING")
             window_generation_ms = round((time.perf_counter() - t_win_start) * 1000, 2)
@@ -367,13 +377,28 @@ class JobManager:
                 job_rec = self._jobs.get(job_id)
                 if job_rec:
                     job_rec.processing_statistics["windows_processed"] = len(windows)
-
+                    
             # 3. NETWORK_STATE
             t_state_start = time.perf_counter()
             self._update_stage(job_id, "NETWORK_STATE")
             candidates = build_network_state_candidates(canonical_windows, MODEL_SCHEMA)
             history = build_state_history(candidates)
             compatibility = evaluate_model_compatibility(candidates, MODEL_SCHEMA, history.status).to_dict()
+
+            src_ips = set()
+            dst_ips = set()
+            dst_ports = set()
+            total_unique_flows = 0
+
+            seen_flow_ids = set()
+            for cw in canonical_windows:
+                for f in cw.flows:
+                    if f.flow_id not in seen_flow_ids:
+                        seen_flow_ids.add(f.flow_id)
+                        total_unique_flows += 1
+                        if f.src_ip: src_ips.add(f.src_ip)
+                        if f.dst_ip: dst_ips.add(f.dst_ip)
+                        if f.dst_port is not None: dst_ports.add(f.dst_port)
 
             active_schema = MODEL_SCHEMA
             active_model_dir = MODEL_DIR
@@ -401,20 +426,17 @@ class JobManager:
             traffic = traffic_summary(windows)
             detection = analyze_packet_windows(windows)
             duration_seconds = max(0, int(windows[-1]["window_end"]) - int(windows[0]["window_start"]))
-            packet_ts = [p.timestamp for p in packets if p.timestamp is not None]
+            packet_ts = []
             packet_span_seconds = round(max(packet_ts) - min(packet_ts), 4) if packet_ts else 0.0
             traffic["duration_seconds"] = duration_seconds
             traffic["packet_timestamp_span_seconds"] = packet_span_seconds
             traffic["temporal_window_coverage_seconds"] = duration_seconds
             traffic["packet_span_seconds"] = packet_span_seconds
-            if packets:
-                traffic["unique_src_ips"] = len({p.src_ip for p in packets if p.src_ip})
-                traffic["unique_dst_ips"] = len({p.dst_ip for p in packets if p.dst_ip})
-                traffic["unique_dst_ports"] = len({p.dst_port for p in packets if p.dst_port is not None})
-            if canonical_windows:
-                all_flow_ids = {flow.flow_id for cw in canonical_windows for flow in cw.flows}
-                if all_flow_ids:
-                    traffic["flows"] = len(all_flow_ids)
+            traffic["unique_src_ips"] = len(src_ips)
+            traffic["unique_dst_ips"] = len(dst_ips)
+            traffic["unique_dst_ports"] = len(dst_ports)
+            if total_unique_flows > 0:
+                traffic["flows"] = total_unique_flows
             network_state_extraction_ms = round((time.perf_counter() - t_state_start) * 1000, 2)
 
             # 4. FORECAST
@@ -502,19 +524,42 @@ class JobManager:
             from nexsolve_core.flow import aggregate_flow_statistics_summary
             from nexsolve_core.evidence import parse_suricata_eve_json
             from nexsolve_core.fusion import fuse_threat_assessment
+            from nexsolve_core.temporal import build_temporal_entity_histories
 
-            all_flows = [flow for cw in canonical_windows for flow in cw.flows]
-            behavioral_report = analyze_behavioral_intelligence(all_flows, packets)
-            investigation_records = build_session_investigation_records(all_flows, behavioral_report.beaconing_signals)
-            tcp_sessions = track_tcp_sessions(packets)
+            def _iter_flows(windows):
+                seen = set()
+                for cw in windows:
+                    for f in cw.flows:
+                        if f.flow_id not in seen:
+                            seen.add(f.flow_id)
+                            yield f
+
+            tcp_sessions = quality.get("tcp_sessions", ())
+            behavioral_report = analyze_behavioral_intelligence(_iter_flows(canonical_windows), ())
+
+            sample_flows = []
+            for i, f in enumerate(_iter_flows(canonical_windows)):
+                if i >= 1000:
+                    break
+                sample_flows.append(f)
+            investigation_records = build_session_investigation_records(sample_flows, behavioral_report.beaconing_signals)
             tcp_session_metrics = aggregate_tcp_session_metrics(tcp_sessions)
-            flow_statistics = aggregate_flow_statistics_summary(all_flows)
+            flow_statistics = aggregate_flow_statistics_summary(_iter_flows(canonical_windows))
             suricata_report = parse_suricata_eve_json(None)
+
+            entity_histories = build_temporal_entity_histories(
+                flows=_iter_flows(canonical_windows),
+                tcp_sessions=tcp_sessions,
+                observed_findings=detection.get("findings", []),
+            )
+
+            # Clear flows and packets from canonical_windows immediately after flow analytics extraction
+            import dataclasses
+            canonical_windows = [dataclasses.replace(cw, flows=(), packets=()) for cw in canonical_windows]
 
             from ml.forecasting.attack_progression import forecast_attack_progression
             from nexsolve_core.graph import build_evidence_intelligence_graph
             from nexsolve_core.behavior import build_behavioral_episodes, detect_behavior_changes
-            from nexsolve_core.temporal import build_temporal_entity_histories
             from nexsolve_core.intelligence import infer_attack_states, build_threat_centric_views, build_network_world_state
 
             progression_forecast = forecast_attack_progression(
@@ -561,11 +606,6 @@ class JobManager:
                 tcp_sessions=tcp_sessions,
                 observed_findings=detection.get("findings", []),
             )
-            entity_histories = build_temporal_entity_histories(
-                flows=all_flows,
-                tcp_sessions=tcp_sessions,
-                observed_findings=detection.get("findings", []),
-            )
             attack_states = infer_attack_states(
                 observed_findings=detection.get("findings", []),
                 tcp_sessions=tcp_sessions,
@@ -581,7 +621,7 @@ class JobManager:
             )
 
             evidence_graph = build_evidence_intelligence_graph(
-                flows=all_flows,
+                flows=(),
                 tcp_sessions=tcp_sessions,
                 behavioral_report=behavioral_report,
                 flow_statistics=flow_statistics,
@@ -746,8 +786,8 @@ class JobManager:
                     job.report_json = report_json
                     job.report_html = report_html
                     job.processing_statistics = {
-                        "packets_processed": len(packets),
-                        "flows_processed": traffic.get("flows", len(packets)),
+                        "packets_processed": quality['parsed_packets'],
+                        "flows_processed": traffic.get("flows", quality['parsed_packets']),
                         "windows_processed": len(windows),
                         "processing_seconds": round(total_duration, 3),
                         "stage_timings_ms": stage_timings,

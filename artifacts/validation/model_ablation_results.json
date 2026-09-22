@@ -1,0 +1,16 @@
+{
+  "sequence_lengths": {
+    "L=4": {
+      "test_samples": 21,
+      "note": "Shorter lookback misses historical context"
+    },
+    "L=8": {
+      "test_samples": 17,
+      "note": "Canonical baseline sequence length"
+    },
+    "L=12": {
+      "test_samples": 13,
+      "note": "Reduces evaluation window support on short test sequences"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "generated_at_utc": "2026-09-22T16:08:09.020985+00:00",
+  "audit_status": "PASSED \u2014 ZERO TEMPORAL LEAKAGE DETECTED",
+  "checks": [
+    {
+      "rule": "Strict Chronological Split",
+      "status": "PASSED",
+      "details": "Train (states 0..594), Val (states 595..743), Test (states 744..768)"
+    },
+    {
+      "rule": "Input Window Boundary",
+      "status": "PASSED",
+      "details": "Feature inputs end strictly at T_0; targets start at T+1"
+    },
+    {
+      "rule": "Scaler Scope",
+      "status": "PASSED",
+      "details": "Mean and standard deviation fit strictly on training set"
+    },
+    {
+      "rule": "No Future Information",
+      "status": "PASSED",
+      "details": "Zero access to future packet or window features"
+    }
+  ]
+}

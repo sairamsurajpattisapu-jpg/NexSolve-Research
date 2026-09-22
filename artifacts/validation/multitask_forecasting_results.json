@@ -1,0 +1,6 @@
+{
+  "generated_at_utc": "2026-09-22T16:46:51.497002+00:00",
+  "architecture": "Shared LSTM Encoder + Multi-Horizon State Head + Attack Onset Head",
+  "status": "PROTOTYPED \u2014 NOT IN FINAL BENCHMARK",
+  "note": "Multitask architecture prototyped for future research; final benchmark relies strictly on locked single-encoder LSTM."
+}

@@ -1,0 +1,38 @@
+{
+  "generated_at_utc": "2026-09-22T16:08:09.019986+00:00",
+  "dataset": "UNSW-NB15",
+  "total_sequences": 769,
+  "chronological_splits": {
+    "train_period": {
+      "states": 595,
+      "attack_states": 118,
+      "benign_states": 477
+    },
+    "validation_period": {
+      "states": 149,
+      "attack_states": 0,
+      "benign_states": 149
+    },
+    "test_period": {
+      "states": 25,
+      "attack_states": 15,
+      "benign_states": 10
+    }
+  },
+  "evaluation_window_subset": {
+    "lookback": 8,
+    "evaluated_samples": 17,
+    "positive_attack_samples": 11,
+    "negative_benign_samples": 6
+  },
+  "sequence_length": 8,
+  "forecast_horizons": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "feature_count": 45,
+  "default_threshold": 0.5
+}

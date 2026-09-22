@@ -12,6 +12,7 @@ canonical FlowRecord and PacketRecord extractions:
 
 All metrics are EVIDENCE ONLY (`EVIDENCE_ONLY (UNTOUCHED_45)`).
 Zero NFStream C/CFFI runtime dependencies required.
+canonical FlowRecord and PacketRecord extractions.
 """
 from __future__ import annotations
 
@@ -97,11 +98,14 @@ class FlowStatisticsSummary:
     mean_packet_asymmetry: float
     mean_byte_asymmetry: float
     high_asymmetry_flow_count: int  # Flows with |asymmetry| >= 0.90
+    high_asymmetry_flow_count: int
     total_retransmissions: int
     retransmission_ratio: float  # retransmissions / total_packets
+    retransmission_ratio: float
     mean_packet_rate: float
     mean_byte_rate: float
     bursty_flow_count: int  # Flows with packet_rate >= 100 pkts/sec
+    bursty_flow_count: int
     profiles: tuple[FlowStatisticalProfile, ...]
 
     def to_dict(self) -> dict[str, Any]:
@@ -173,30 +177,84 @@ def compute_flow_statistical_profile(flow: FlowRecord) -> FlowStatisticalProfile
         is_asymmetric_flood=is_asym_flood,
     )
 
+class FlowStatisticsAccumulator:
+    def __init__(self, keep_profiles: bool = True):
+        self.total_flows = 0
+        self.single_pkts = 0
+        self.high_asym = 0
+        self.tot_retrans = 0
+        self.tot_pkts = 0
+        self.bursty = 0
+        self.sum_duration = 0.0
+        self.sum_pkt_asym = 0.0
+        self.sum_byte_asym = 0.0
+        self.sum_pkt_rate = 0.0
+        self.sum_byte_rate = 0.0
+        self.durations = []  # For median calculation, keep bounded or let it grow a bit
+        self.profiles = []
+        self.keep_profiles = keep_profiles
+
+    def update(self, flows: Iterable[FlowRecord]):
+        for f in flows:
+            p = compute_flow_statistical_profile(f)
+            if self.keep_profiles and len(self.profiles) < 10000:
+                self.profiles.append(p)
+            self.total_flows += 1
+            if len(self.durations) < 10000:
+                self.durations.append(p.duration_seconds)
+            self.sum_pkt_asym += p.packet_asymmetry_ratio
+            self.sum_byte_asym += p.byte_asymmetry_ratio
+            if p.is_single_packet_flow:
+                self.single_pkts += 1
+            if abs(p.packet_asymmetry_ratio) >= 0.90:
+                self.high_asym += 1
+            self.tot_retrans += p.retransmission_count
+            self.tot_pkts += p.total_packets
+            self.sum_pkt_rate += p.packet_rate_per_sec
+            self.sum_byte_rate += p.byte_rate_per_sec
+            if p.packet_rate_per_sec >= 100.0 and p.total_packets >= 10:
+                self.bursty += 1
+            self.sum_duration += p.duration_seconds
+
+    def finalize(self) -> FlowStatisticsSummary:
+        if self.total_flows == 0:
+            return FlowStatisticsSummary(
+                total_flows=0, single_packet_flows=0, single_packet_flow_ratio=0.0,
+                mean_flow_duration_seconds=0.0, median_flow_duration_seconds=0.0,
+                mean_packet_asymmetry=0.0, mean_byte_asymmetry=0.0, high_asymmetry_flow_count=0,
+                total_retransmissions=0, retransmission_ratio=0.0, mean_packet_rate=0.0,
+                mean_byte_rate=0.0, bursty_flow_count=0, profiles=()
+            )
+            
+        n_flows = self.total_flows
+        self.durations.sort()
+        mid = len(self.durations) // 2
+        med_dur = (self.durations[mid] if len(self.durations) % 2 == 1 else (self.durations[mid - 1] + self.durations[mid]) / 2.0) if self.durations else 0.0
+
+        return FlowStatisticsSummary(
+            total_flows=n_flows,
+            single_packet_flows=self.single_pkts,
+            single_packet_flow_ratio=round(self.single_pkts / n_flows, 4),
+            mean_flow_duration_seconds=round(self.sum_duration / n_flows, 4),
+            median_flow_duration_seconds=round(med_dur, 4),
+            mean_packet_asymmetry=round(self.sum_pkt_asym / n_flows, 4),
+            mean_byte_asymmetry=round(self.sum_byte_asym / n_flows, 4),
+            high_asymmetry_flow_count=self.high_asym,
+            total_retransmissions=self.tot_retrans,
+            retransmission_ratio=round(self.tot_retrans / max(1, self.tot_pkts), 4),
+            mean_packet_rate=round(self.sum_pkt_rate / n_flows, 2),
+            mean_byte_rate=round(self.sum_byte_rate / n_flows, 2),
+            bursty_flow_count=self.bursty,
+            profiles=tuple(self.profiles),
+        )
 
 def aggregate_flow_statistics_summary(
     flows: Iterable[FlowRecord],
 ) -> FlowStatisticsSummary:
     """Aggregate flow intelligence across all observed conversations."""
-    flow_list = tuple(flows)
-    n_flows = len(flow_list)
-    if n_flows == 0:
-        return FlowStatisticsSummary(
-            total_flows=0,
-            single_packet_flows=0,
-            single_packet_flow_ratio=0.0,
-            mean_flow_duration_seconds=0.0,
-            median_flow_duration_seconds=0.0,
-            mean_packet_asymmetry=0.0,
-            mean_byte_asymmetry=0.0,
-            high_asymmetry_flow_count=0,
-            total_retransmissions=0,
-            retransmission_ratio=0.0,
-            mean_packet_rate=0.0,
-            mean_byte_rate=0.0,
-            bursty_flow_count=0,
-            profiles=(),
-        )
+    acc = FlowStatisticsAccumulator()
+    acc.update(flows)
+    return acc.finalize()
 
     profiles: list[FlowStatisticalProfile] = []
     durations: list[float] = []

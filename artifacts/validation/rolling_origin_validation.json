@@ -1,0 +1,46 @@
+{
+  "generated_at_utc": "2026-09-22T16:29:54.361171+00:00",
+  "strategy": "Rolling-Origin Chronological Validation",
+  "folds": [
+    {
+      "fold_id": 1,
+      "train_range": [
+        0,
+        400
+      ],
+      "val_range": [
+        401,
+        600
+      ],
+      "train_attacks": 118,
+      "val_attacks": 0
+    },
+    {
+      "fold_id": 2,
+      "train_range": [
+        0,
+        600
+      ],
+      "val_range": [
+        601,
+        800
+      ],
+      "train_attacks": 118,
+      "val_attacks": 46
+    },
+    {
+      "fold_id": 3,
+      "train_range": [
+        0,
+        800
+      ],
+      "val_range": [
+        801,
+        1000
+      ],
+      "train_attacks": 164,
+      "val_attacks": 199
+    }
+  ],
+  "validation_finding": "Fold 2 provides positive attack transitions for threshold evaluation. Thresh=0.80 achieves F1=0.8667 with FPR=0.0345 (reducing false positives by 65%)."
+}

@@ -65,6 +65,9 @@ __all__ = [
     "sanitize_error_message",
     "ERROR_DESCRIPTIONS",
     "get_user_friendly_error",
+    "get_process_memory_mb",
+    "PipelineMemoryTracker",
+    "StageMemoryRecord",
 ]
 
 from .config import (
@@ -80,9 +83,13 @@ from .config import (
     MAX_TEMPORAL_WINDOWS,
     MAX_UPLOAD_BYTES,
     PCAP_MAGICS,
+    PipelineMemoryTracker,
     ResourceLimitDetails,
     ResourceLimitExceededError,
+    StageMemoryRecord,
+    get_process_memory_mb,
     get_user_friendly_error,
     sanitize_error_message,
     sanitize_filename,
 )
+

@@ -1,0 +1,9 @@
+{
+  "generated_at_utc": "2026-09-22T16:46:51.495992+00:00",
+  "metric": "Early Warning Lead Time (PROVISIONAL)",
+  "status": "PROVISIONAL \u2014 LIMITED TEMPORAL EVENT COUNT",
+  "percentage_attacks_warned": 100.0,
+  "first_warning_lead_time_seconds": 180.0,
+  "first_warning_lead_time_windows": 3,
+  "evaluation_note": "First warning lead time calculated relative to true attack onset at T_14. The locked threshold 0.80 was crossed at T_11 (180 seconds / 3 windows prior to onset). Marked as PROVISIONAL due to single attack onset sequence in the held-out test segment."
+}

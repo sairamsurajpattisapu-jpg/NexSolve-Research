@@ -1,0 +1,61 @@
+{
+  "generated_at_utc": "2026-09-22T16:46:51.497002+00:00",
+  "dataset": "UNSW-NB15",
+  "chronological_split": "Train (states 0..594), Val (states 595..743), Test (states 744..768)",
+  "validation_methodology": "Rolling-Origin 3-Fold Chronological Validation",
+  "validation_threshold": 0.8,
+  "locked_test_threshold": 0.8,
+  "sample_counts": {
+    "total_sequences": 769,
+    "test_evaluation_sequences": 17,
+    "positive_attack_onset_events": 1
+  },
+  "forecasting_metrics_by_horizon": {
+    "T+1": {
+      "persistence_f1": 0.9524,
+      "lstm_f1": 0.7857,
+      "lstm_recall": 1.0,
+      "onset_f1_thresh_080": 0.4
+    },
+    "T+2": {
+      "persistence_f1": 0.9,
+      "lstm_f1": 0.8148,
+      "lstm_recall": 1.0,
+      "onset_f1_thresh_080": 0.3333
+    },
+    "T+3": {
+      "persistence_f1": 0.8421,
+      "lstm_f1": 0.8462,
+      "lstm_recall": 1.0,
+      "onset_f1_thresh_080": 0.5714
+    },
+    "T+4": {
+      "persistence_f1": 0.7778,
+      "lstm_f1": 0.88,
+      "lstm_recall": 1.0,
+      "onset_f1_thresh_080": 0.75
+    },
+    "T+5": {
+      "persistence_f1": 0.7059,
+      "lstm_f1": 0.9167,
+      "lstm_recall": 1.0,
+      "onset_f1_thresh_080": 0.6667
+    }
+  },
+  "early_warning_lead_time": {
+    "status": "PROVISIONAL",
+    "lead_time_seconds": 180.0,
+    "lead_time_windows": 3
+  },
+  "leakage_audit": {
+    "status": "PASSED",
+    "future_leakage": false,
+    "scaler_leakage": false
+  },
+  "model_version": "nexsolve_world_model_45_v1",
+  "classifications": {
+    "VAL": "VALIDATED: Chronological rolling-origin validation and threshold selection (0.80).",
+    "PROV": "PROVISIONAL: Early warning lead time (180s) based on available test onset event.",
+    "NOT_VAL": "NOT VALIDATED: testing.pcap forecast accuracy (no future labeled continuation)."
+  }
+}

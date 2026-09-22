@@ -168,6 +168,18 @@ export function Dashboard() {
     }
   }
 
+
+  const handleCancelJob = async () => {
+    if (activeJob) {
+      try {
+        await api.cancelJob(activeJob.job_id)
+      } catch (err) {
+        console.error('Failed to cancel job:', err)
+      }
+    }
+    resetJobView()
+  }
+
   const resetJobView = () => {
     setActiveJob(null)
     setJobResult(null)
@@ -418,7 +430,7 @@ export function Dashboard() {
 
       {/* 2. Active Job Progress */}
       {activeJob && !jobResult && (
-        <JobProgress job={activeJob} onCancel={resetJobView} />
+        <JobProgress job={activeJob} onCancel={handleCancelJob} />
       )}
 
       {/* 3. Completed Job Full Result View */}

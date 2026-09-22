@@ -1,0 +1,15 @@
+{
+  "status": "REFERENCE_COMPARISON_SUITE",
+  "tool": "CICFlowMeter 4.0 / ISCX Feature Engine",
+  "feature_mapping": {
+    "flow_duration": "flow_duration_ms",
+    "tot_fwd_pkts": "fwd_packet_count",
+    "tot_bwd_pkts": "bwd_packet_count",
+    "tot_len_fwd_pkts": "fwd_byte_count",
+    "tot_len_bwd_pkts": "bwd_byte_count",
+    "flow_iat_mean": "mean_flow_iat",
+    "syn_flag_cnt": "syn_count",
+    "ack_flag_cnt": "ack_count"
+  },
+  "semantic_note": "NexSolve 45-feature schema covers all major traffic volume, IAT, packet size, and TCP flag statistics present in CICFlowMeter."
+}

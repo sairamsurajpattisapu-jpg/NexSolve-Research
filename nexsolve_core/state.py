@@ -485,6 +485,18 @@ def _aggregate_flow_features(
     seen_packets: Mapping[int, PacketRecord] | None = None,
     accumulators: Mapping[str, _FlowAccumulator] | None = None,
 ) -> tuple[dict[str, float], dict[str, Any]]:
+    # FIRST check if window.aggregate_features already contains our flow features!
+    if window.aggregate_features and "mean_duration" in window.aggregate_features:
+        from nexsolve_core.state import FLOW_NAMES
+        numeric = {k: window.aggregate_features[k] for k in FLOW_NAMES if k in window.aggregate_features}
+        # Extended flow features
+        for k in ("flow_duration_variance", "byte_ratio_src_dst", "packet_ratio_src_dst", "single_packet_flow_ratio", "active_flow_rate", "flow_iat_variance", "flow_iat_max", "flow_iat_min", "tcp_syn_ack_ratio", "tcp_rst_ack_ratio", "udp_flow_ratio", "port_entropy", "mean_payload_bytes"):
+            if k in window.aggregate_features:
+                numeric[k] = window.aggregate_features[k]
+        
+        lifecycle = window.aggregate_features.get("lifecycle", {"active_flow_ids": (), "new_flow_ids": (), "ended_flow_ids": ()})
+        return numeric, lifecycle
+        
     if accumulators is not None:
         values = [accumulators[flow.flow_id].values() for flow in window.flows if flow.flow_id in accumulators]
     elif seen_packets is not None:

@@ -146,13 +146,12 @@ def run_capture_validation(
                 notes="Safely rejected oversized capture at ingress without disk/memory exhaustion.",
             )
 
-    content = path.read_bytes()
     initial_leaks = check_runtime_leaks()
     tracemalloc.start()
     t_start = time.perf_counter()
 
     if use_async_job:
-        job = JOB_MANAGER.create_job(path.name, content)
+        job = JOB_MANAGER.create_job(path.name, file_path=path)
         job_id = job.job_id
         deadline = time.perf_counter() + timeout_seconds
         while time.perf_counter() < deadline:
@@ -306,12 +305,20 @@ def main() -> None:
     print("NEXSOLVE LARGE PCAP STRESS & PERFORMANCE VALIDATION HARNESS")
     print("=" * 80)
 
+    slice_pcap = Path(r"C:\Users\saira\Downloads\friday_10windows_slice.pcap")
+    if not slice_pcap.exists():
+        slice_pcap = ROOT / "data" / "test_slices" / "friday_10windows_slice.pcap"
+
+    huge_pcap = Path(r"C:\Users\saira\Downloads\Friday-WorkingHours.pcap")
+    if not huge_pcap.exists():
+        huge_pcap = Path(r"C:\Users\saira\Downloads\friday_exact_10windows.pcap")
+
     captures = [
         ("Case A: Small PCAP", Path(r"C:\Users\saira\Downloads\nexsolve_test_small.pcap"), "valid"),
-        ("Case B: Real PCAP 10-Windows", Path(r"C:\Users\saira\Downloads\friday_10windows_slice.pcap"), "valid"),
+        ("Case B: Real PCAP 10-Windows", slice_pcap, "valid"),
         ("Case C: Stress 10k PCAP (3-Win)", Path(r"C:\Users\saira\Downloads\friday_stress_10k.pcap"), "valid"),
         ("Case C: Stress 9k PCAP (10-Win)", Path(r"C:\Users\saira\Downloads\friday_stress_10windows_9k.pcap"), "valid"),
-        ("Case D: Oversized Capture (>64MB)", Path(r"C:\Users\saira\Downloads\friday_exact_10windows.pcap"), "oversized"),
+        ("Case D: Oversized Capture (>1GB / >100k pkts)", huge_pcap, "oversized"),
     ]
 
     results = []

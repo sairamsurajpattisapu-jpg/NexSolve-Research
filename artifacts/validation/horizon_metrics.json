@@ -1,0 +1,29 @@
+{
+  "horizons": {
+    "T+1": {
+      "persistence_f1": 0.9524,
+      "lstm_f1": 0.7857,
+      "lstm_recall": 1.0
+    },
+    "T+2": {
+      "persistence_f1": 0.9,
+      "lstm_f1": 0.8148,
+      "lstm_recall": 1.0
+    },
+    "T+3": {
+      "persistence_f1": 0.8421,
+      "lstm_f1": 0.8462,
+      "lstm_recall": 1.0
+    },
+    "T+4": {
+      "persistence_f1": 0.7778,
+      "lstm_f1": 0.88,
+      "lstm_recall": 1.0
+    },
+    "T+5": {
+      "persistence_f1": 0.7059,
+      "lstm_f1": 0.9167,
+      "lstm_recall": 1.0
+    }
+  }
+}

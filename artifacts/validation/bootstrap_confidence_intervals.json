@@ -1,0 +1,6 @@
+{
+  "generated_at_utc": "2026-09-22T16:29:54.365811+00:00",
+  "evaluated_cases": 17,
+  "status": "ESTIMATE_UNSTABLE_LIMITED_SAMPLES",
+  "note": "Bootstrap confidence intervals calculated over 17 test sequences reflect high sample variance (95% CI F1 [0.615, 0.909]). Larger temporal datasets (e.g. CIC-IDS2017) are required for tight confidence bounds."
+}

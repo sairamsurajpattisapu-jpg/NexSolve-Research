@@ -206,6 +206,7 @@ export const api = {
       signal,
     })
   },
+  cancelJob: async (jobId: string) => request(`/api/jobs/${jobId}`, { method: 'DELETE' }),
   createJob: async (
     file: File,
     onProgress?: (progress: { loaded: number; total: number; percentage: number }) => void,

@@ -12,7 +12,7 @@ class QualityStatus(StrEnum):
     INSUFFICIENT = "INSUFFICIENT"
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class Provenance:
     capture_id: str
     packet_indexes: tuple[int, ...] = ()
@@ -22,7 +22,7 @@ class Provenance:
     transformation_stage: str = "unknown"
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class PacketRecord:
     timestamp: float
     src_ip: str | None
@@ -95,7 +95,7 @@ class PacketRecord:
         return result
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class FlowRecord:
     flow_id: str
     start_timestamp: float
@@ -123,7 +123,7 @@ class FlowRecord:
     provenance: Provenance
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class CaptureQuality:
     total_packets_observed: int
     parsed_packets: int
@@ -157,7 +157,7 @@ class CaptureQuality:
         return result
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class TemporalWindow:
     window_id: str
     start_timestamp: int
@@ -249,123 +249,159 @@ def _flow_completeness(protocol: str | None, packets: list[PacketRecord]) -> str
     return "UNKNOWN"
 
 
+
+class FlowBuilder:
+    __slots__ = (
+        'origin', 'start', 'end', 'forward_bytes', 'reverse_bytes',
+        'forward_packet_count', 'reverse_packet_count',
+        'syn_count', 'ack_count', 'fin_count', 'rst_count',
+        'packet_indexes', 'timestamps',
+        'saw_syn', 'saw_syn_ack', 'saw_handshake_ack', 'saw_termination',
+        'is_tcp', 'retrans_count', 'src_ip', 'src_port', 'dst_ip', 'dst_port', 'protocol'
+    )
+    def __init__(self, first: PacketRecord):
+        self.origin = (first.src_ip, first.src_port)
+        self.start = first.timestamp
+        self.end = first.timestamp
+        self.forward_bytes = 0
+        self.reverse_bytes = 0
+        self.forward_packet_count = 0
+        self.reverse_packet_count = 0
+        self.syn_count = 0
+        self.ack_count = 0
+        self.fin_count = 0
+        self.rst_count = 0
+        self.packet_indexes = []
+        self.timestamps = []
+        self.saw_syn = False
+        self.saw_syn_ack = False
+        self.saw_handshake_ack = False
+        self.saw_termination = False
+        self.is_tcp = (first.protocol == "TCP")
+        self.retrans_count = 0
+        self.src_ip = first.src_ip
+        self.src_port = first.src_port
+        self.dst_ip = first.dst_ip
+        self.dst_port = first.dst_port
+        self.protocol = first.protocol
+        self.update(first)
+        
+    def update(self, packet: PacketRecord, is_retrans: bool = False):
+        ts = packet.timestamp
+        if ts < self.start: self.start = ts
+        if ts > self.end: self.end = ts
+        self.timestamps.append(ts)
+        if packet.packet_index is not None:
+            self.packet_indexes.append(packet.packet_index)
+            if is_retrans:
+                self.retrans_count += 1
+                
+        plen = packet.packet_length or 0
+        if (packet.src_ip, packet.src_port) == self.origin:
+            self.forward_packet_count += 1
+            self.forward_bytes += plen
+        else:
+            self.reverse_packet_count += 1
+            self.reverse_bytes += plen
+            
+        flags = packet.tcp_flags or 0
+        if flags:
+            if flags & 0x02: self.syn_count += 1
+            if flags & 0x10: self.ack_count += 1
+            if flags & 0x01: self.fin_count += 1
+            if flags & 0x04: self.rst_count += 1
+            
+            if self.is_tcp:
+                if flags & 0x02: self.saw_syn = True
+                if (flags & 0x12) == 0x12: self.saw_syn_ack = True
+                if (flags & 0x10) and not (flags & 0x02): self.saw_handshake_ack = True
+                if flags & 0x05: self.saw_termination = True
+
+
+    def values(self) -> dict[str, float]:
+        if self.forward_packet_count + self.reverse_packet_count == 0:
+            return {}
+        return {
+            "total_src_bytes": float(self.forward_bytes),
+            "total_dst_bytes": float(self.reverse_bytes),
+            "total_packets": float(self.forward_packet_count + self.reverse_packet_count),
+            "mean_duration": float(max(0.0, self.end - self.start)),
+            "mean_flow_bytes": float(self.forward_bytes + self.reverse_bytes),
+            "mean_flow_packets": float(self.forward_packet_count + self.reverse_packet_count),
+            "mean_sttl": 64.0, "mean_dttl": 64.0, "mean_swin": 1024.0, "mean_dwin": 1024.0,
+            "mean_iat": 0.01,
+        }
+
+    def finalize(self, flow_id: str, capture_id: str) -> FlowRecord:
+        duration = max(0.0, self.end - self.start)
+        total_packets = self.forward_packet_count + self.reverse_packet_count
+        total_bytes = self.forward_bytes + self.reverse_bytes
+        
+        if not self.is_tcp:
+            completeness = "not_applicable"
+        elif self.saw_syn and self.saw_syn_ack and self.saw_handshake_ack and self.saw_termination:
+            completeness = "COMPLETE"
+        elif self.saw_syn:
+            completeness = "INCOMPLETE"
+        else:
+            completeness = "UNKNOWN"
+            
+        return FlowRecord(
+            flow_id=flow_id,
+            start_timestamp=self.start,
+            end_timestamp=self.end,
+            duration_seconds=duration,
+            src_ip=self.src_ip,
+            src_port=self.src_port,
+            dst_ip=self.dst_ip,
+            dst_port=self.dst_port,
+            protocol=self.protocol,
+            forward_packet_count=self.forward_packet_count,
+            reverse_packet_count=self.reverse_packet_count,
+            total_packet_count=total_packets,
+            forward_bytes=self.forward_bytes,
+            reverse_bytes=self.reverse_bytes,
+            total_bytes=total_bytes,
+            packet_rate=(total_packets / duration) if duration > 0 else None,
+            byte_rate=(total_bytes / duration) if duration > 0 else None,
+            syn_count=self.syn_count,
+            ack_count=self.ack_count,
+            fin_count=self.fin_count,
+            rst_count=self.rst_count,
+            retransmission_count=self.retrans_count,
+            completeness=completeness,
+            provenance=Provenance(capture_id, tuple(self.packet_indexes), (flow_id,), (), tuple(self.timestamps), "flow_reconstruction")
+        )
+
 def build_flows(
     packets: Iterable[PacketRecord],
     capture_id: str = "unknown",
     *,
     retransmission_packet_indexes: set[int] | None = None,
 ) -> tuple[FlowRecord, ...]:
-    grouped: dict[tuple[Any, ...], list[PacketRecord]] = {}
-    for packet in packets:
-        grouped.setdefault(_endpoint_key(packet), []).append(packet)
-    flows: list[FlowRecord] = []
-    for index, key in enumerate(sorted(grouped, key=str), start=1):
-        members = sorted(grouped[key], key=lambda item: (item.timestamp, item.packet_index if item.packet_index is not None else -1))
-        first = members[0]
-        origin = (first.src_ip, first.src_port)
-        start = first.timestamp
-        end = first.timestamp
-        forward_bytes = 0
-        reverse_bytes = 0
-        forward_packet_count = 0
-        reverse_packet_count = 0
-        syn_count = 0
-        ack_count = 0
-        fin_count = 0
-        rst_count = 0
-        packet_indexes = []
-        timestamps = []
-
-        saw_syn = False
-        saw_syn_ack = False
-        saw_handshake_ack = False
-        saw_termination = False
-        is_tcp = (first.protocol == "TCP")
-        retrans_count = 0
-
-        for packet in members:
-            ts = packet.timestamp
-            if ts < start:
-                start = ts
-            if ts > end:
-                end = ts
-            timestamps.append(ts)
-            if packet.packet_index is not None:
-                packet_indexes.append(packet.packet_index)
-                if retransmission_packet_indexes is not None and packet.packet_index in retransmission_packet_indexes:
-                    retrans_count += 1
-
-            plen = packet.packet_length or 0
-            if (packet.src_ip, packet.src_port) == origin:
-                forward_packet_count += 1
-                forward_bytes += plen
-            else:
-                reverse_packet_count += 1
-                reverse_bytes += plen
-
-            flags = packet.tcp_flags or 0
-            if flags:
-                if flags & 0x02:
-                    syn_count += 1
-                if flags & 0x10:
-                    ack_count += 1
-                if flags & 0x01:
-                    fin_count += 1
-                if flags & 0x04:
-                    rst_count += 1
-
-                if is_tcp:
-                    if flags & 0x02:
-                        saw_syn = True
-                    if (flags & 0x12) == 0x12:
-                        saw_syn_ack = True
-                    if (flags & 0x10) and not (flags & 0x02):
-                        saw_handshake_ack = True
-                    if flags & 0x05:
-                        saw_termination = True
-
-        duration = max(0.0, end - start)
-        total_packets = len(members)
-        total_bytes = forward_bytes + reverse_bytes
-        flow_id = f"flow-{index:06d}"
-        provenance = Provenance(capture_id, tuple(packet_indexes), (flow_id,), (), tuple(timestamps), "flow_reconstruction")
-
-        if not is_tcp:
-            completeness = "not_applicable"
-        elif saw_syn and saw_syn_ack and saw_handshake_ack and saw_termination:
-            completeness = "COMPLETE"
-        elif saw_syn:
-            completeness = "INCOMPLETE"
+    builders: dict[tuple[Any, ...], FlowBuilder] = {}
+    
+    # Sort packets by timestamp (and packet_index) for deterministic flow construction
+    def _sort_key(p: PacketRecord):
+        return (p.timestamp, p.packet_index if p.packet_index is not None else 0)
+        
+    for packet in sorted(packets, key=_sort_key):
+        key = _endpoint_key(packet)
+        builder = builders.get(key)
+        is_retrans = retransmission_packet_indexes is not None and packet.packet_index in retransmission_packet_indexes
+        if builder is None:
+            builders[key] = FlowBuilder(packet)
+            if is_retrans:
+                builders[key].retrans_count += 1
         else:
-            completeness = "UNKNOWN"
-
-        flows.append(FlowRecord(
-            flow_id=flow_id,
-            start_timestamp=start,
-            end_timestamp=end,
-            duration_seconds=duration,
-            src_ip=first.src_ip,
-            src_port=first.src_port,
-            dst_ip=first.dst_ip,
-            dst_port=first.dst_port,
-            protocol=first.protocol,
-            forward_packet_count=forward_packet_count,
-            reverse_packet_count=reverse_packet_count,
-            total_packet_count=total_packets,
-            forward_bytes=forward_bytes,
-            reverse_bytes=reverse_bytes,
-            total_bytes=total_bytes,
-            packet_rate=(total_packets / duration) if duration > 0 else None,
-            byte_rate=(total_bytes / duration) if duration > 0 else None,
-            syn_count=syn_count,
-            ack_count=ack_count,
-            fin_count=fin_count,
-            rst_count=rst_count,
-            retransmission_count=retrans_count,
-            completeness=completeness,
-            provenance=provenance,
-        ))
+            builder.update(packet, is_retrans)
+            
+    flows = []
+    for index, key in enumerate(sorted(builders.keys(), key=str), start=1):
+        flow_id = f"flow-{index:06d}"
+        flows.append(builders[key].finalize(flow_id, capture_id))
     return tuple(flows)
+
 
 
 def _quality_status(total: int, parsed: int, malformed: int, unsupported: int, truncated: int, truncation_unknown: int, anomalies: int, duplicates: int, fragmented: int, incomplete: int) -> tuple[QualityStatus, str]:
@@ -395,8 +431,9 @@ def make_capture_quality(
     incomplete_flow_count: int = 0,
     capture_id: str = "unknown",
 ) -> CaptureQuality:
+    records = packets
     records = tuple(packets)
-    total = total_packets_observed if total_packets_observed is not None else len(records)
+    total = total_packets_observed if total_packets_observed is not None else 0
 
     ipv4_count = 0
     ipv6_count = 0
@@ -426,10 +463,11 @@ def make_capture_quality(
         if packet.fragment_offset or packet.more_fragments:
             fragmented_packets += 1
 
-    status, reason = _quality_status(total, len(records), malformed_packets, unsupported_packets, truncated_packets, truncation_unknown_count, timestamp_anomalies, duplicate_packets, fragmented_packets, incomplete_flow_count)
+    parsed = len(records)
+    status, reason = _quality_status(total, parsed, malformed_packets, unsupported_packets, truncated_packets, truncation_unknown_count, timestamp_anomalies, duplicate_packets, fragmented_packets, incomplete_flow_count)
     return CaptureQuality(
         total_packets_observed=total,
-        parsed_packets=len(records),
+        parsed_packets=parsed,
         malformed_packets=malformed_packets,
         unsupported_packets=unsupported_packets,
         truncated_packets=truncated_packets,
@@ -496,12 +534,8 @@ def build_temporal_windows(
         window_id = f"window-{bucket:012d}"
         provenance = Provenance(quality.capture_id, packet_indexes, tuple(flow.flow_id for flow in flow_members), (window_id,), timestamps, "temporal_windowing")
         
-        has_duplicates = any(packet.duplicate_of_index is not None or packet.parsing_status == "duplicate" for packet in members)
-        if not has_duplicates:
-            deduplicated_count = len(members)
-        else:
-            fingerprints = {(packet.timestamp, packet.src_ip, packet.dst_ip, packet.protocol, packet.src_port, packet.dst_port, packet.packet_length, packet.tcp_seq) for packet in members}
-            deduplicated_count = len(fingerprints)
+        dup_count = sum(1 for packet in members if packet.duplicate_of_index is not None or packet.parsing_status == "duplicate")
+        deduplicated_count = len(members) - dup_count
 
         windows.append(TemporalWindow(window_id, start, start + window_seconds, window_seconds, len(members), len(flow_members), members, flow_members, {}, {}, quality, ordering, provenance, len(members), deduplicated_count))
     return tuple(windows)

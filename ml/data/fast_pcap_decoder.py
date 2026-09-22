@@ -58,10 +58,30 @@ IPV6_EXT_NAMES = {
 
 # Pre-formatted IP octet strings to avoid repetitive string formatting
 _OCTET_STRINGS = [str(i) for i in range(256)]
+_IPV4_CACHE: dict[tuple[int, int, int, int], str] = {}
+_STR_CACHE: dict[str, str] = {}
 
 
 def _fast_ipv4_str(b0: int, b1: int, b2: int, b3: int) -> str:
-    return f"{_OCTET_STRINGS[b0]}.{_OCTET_STRINGS[b1]}.{_OCTET_STRINGS[b2]}.{_OCTET_STRINGS[b3]}"
+    key = (b0, b1, b2, b3)
+    cached = _IPV4_CACHE.get(key)
+    if cached is not None:
+        return cached
+    s = f"{_OCTET_STRINGS[b0]}.{_OCTET_STRINGS[b1]}.{_OCTET_STRINGS[b2]}.{_OCTET_STRINGS[b3]}"
+    if len(_IPV4_CACHE) < 16384:
+        _IPV4_CACHE[key] = s
+    return s
+
+
+def _intern_str(s: str | None) -> str | None:
+    if s is None:
+        return None
+    cached = _STR_CACHE.get(s)
+    if cached is not None:
+        return cached
+    if len(_STR_CACHE) < 4096:
+        _STR_CACHE[s] = s
+    return s
 
 
 class FastPcapDecoder:
@@ -77,6 +97,7 @@ class FastPcapDecoder:
         "capture_id",
         "valid",
         "fallback_needed",
+        "current_offset",
     )
 
     def __init__(self, data: bytes | memoryview, capture_id: str = "capture.pcap") -> None:
@@ -89,6 +110,7 @@ class FastPcapDecoder:
         self.capture_id = capture_id
         self.valid = False
         self.fallback_needed = False
+        self.current_offset = 0
         self._init_header()
 
     def _init_header(self) -> None:
@@ -184,6 +206,7 @@ class FastPcapDecoder:
                 packet_index=packet_index,
                 capture_start=capture_start,
             )
+            self.current_offset = offset
             yield record
             packet_index += 1
 
@@ -197,8 +220,9 @@ class FastPcapDecoder:
         buf = self.buf
         endian = self.endian
         packet_index = 0
-        if_tsresol = 1e-6
-        epb_hdr_fmt = endian + "IIIIII"
+        interfaces: dict[int, float] = {}  # interface_id -> if_tsresol
+        current_interface_id = 0
+        default_tsresol = 1e-6
 
         while offset + 8 <= file_size:
             if max_packets is not None and packet_index >= max_packets:
@@ -210,13 +234,14 @@ class FastPcapDecoder:
 
             if block_type == BLOCK_EPB:
                 if offset + 32 <= file_size:
-                    _btype, _blen, _iface_id, ts_high, ts_low, caplen, origlen = struct.unpack_from(
+                    _btype, _blen, iface_id, ts_high, ts_low, caplen, origlen = struct.unpack_from(
                         endian + "IIIIIII", buf, offset
                     )
                     pkt_offset = offset + 28
                     if pkt_offset + caplen <= file_size:
                         raw_ts = (ts_high << 32) | ts_low
-                        timestamp = raw_ts * if_tsresol
+                        tsresol = interfaces.get(iface_id, default_tsresol)
+                        timestamp = raw_ts * tsresol
                         pkt_bytes = buf[pkt_offset : pkt_offset + caplen]
 
                         record = self._parse_frame(
@@ -227,12 +252,35 @@ class FastPcapDecoder:
                             packet_index=packet_index,
                             capture_start=capture_start,
                         )
+                        self.current_offset = offset + block_len
+                        yield record
+                        packet_index += 1
+
+            elif block_type == BLOCK_SPB:
+                if offset + 16 <= file_size:
+                    _btype, _blen, origlen = struct.unpack_from(
+                        endian + "III", buf, offset
+                    )
+                    caplen = min(origlen, block_len - 16)
+                    pkt_offset = offset + 12
+                    if pkt_offset + caplen <= file_size:
+                        pkt_bytes = buf[pkt_offset : pkt_offset + caplen]
+                        # SPB has no timestamp; fallback to 0.0 or elapsed
+                        record = self._parse_frame(
+                            pkt_bytes=pkt_bytes,
+                            incl_len=caplen,
+                            orig_len=origlen,
+                            timestamp=0.0,
+                            packet_index=packet_index,
+                            capture_start=capture_start,
+                        )
                         yield record
                         packet_index += 1
 
             elif block_type == BLOCK_IDB:
                 link_type = struct.unpack_from(endian + "H", buf, offset + 8)[0]
                 self.link_type = link_type
+                if_tsresol = default_tsresol
                 opt_offset = offset + 16
                 block_end = offset + block_len - 4
                 while opt_offset + 4 <= block_end:
@@ -247,6 +295,8 @@ class FastPcapDecoder:
                         else:
                             if_tsresol = 10.0 ** -tsresol_byte
                     opt_offset = opt_val_offset + ((opt_len + 3) & ~3)
+                interfaces[current_interface_id] = if_tsresol
+                current_interface_id += 1
 
             offset += block_len
 
@@ -516,7 +566,7 @@ class FastPcapDecoder:
             src_ip=src_ip,
             dst_ip=dst_ip,
             ip_version=ip_version,
-            protocol=protocol,
+            protocol=_intern_str(protocol),
             src_port=src_port,
             dst_port=dst_port,
             packet_length=incl_len,
@@ -540,9 +590,9 @@ class FastPcapDecoder:
             vlan_ids=tuple(vlan_ids),
             packet_index=packet_index,
             capture_relative_timestamp=rel_ts,
-            parsing_status=parsing_status,
-            unsupported_reason=unsupported_reason,
-            truncation_status=truncation_status,
+            parsing_status=_intern_str(parsing_status),
+            unsupported_reason=_intern_str(unsupported_reason),
+            truncation_status=_intern_str(truncation_status),
             provenance=Provenance(
                 self.capture_id,
                 (packet_index,),

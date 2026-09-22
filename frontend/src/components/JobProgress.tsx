@@ -40,6 +40,13 @@ export function JobProgress({ job, onCancel }: JobProgressProps) {
   const isComplete = job.status === 'COMPLETED'
   const percent = Math.min(100, Math.max(0, Math.round(job.progress * 100)))
 
+  const isStalled = job.last_progress_timestamp && (Date.now() / 1000 - job.last_progress_timestamp > 15)
+
+  const formatBytes = (b?: number) => {
+    if (b == null) return ''
+    return (b / (1024 * 1024)).toFixed(1) + ' MB'
+  }
+
   useEffect(() => {
     if (isComplete || isFailed || isLimitExceeded) return
     const timer = setInterval(() => {
@@ -53,6 +60,10 @@ export function JobProgress({ job, onCancel }: JobProgressProps) {
     progress: job.progress,
     stage: job.stage,
     status: job.status,
+    backendEtaSeconds: job.estimated_remaining_seconds,
+    bytesProcessed: job.bytes_processed,
+    totalBytes: job.bytes_total,
+    packetsProcessed: job.packets_processed,
   })
 
   return (
@@ -111,9 +122,20 @@ export function JobProgress({ job, onCancel }: JobProgressProps) {
           />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
-          <span>Stage: {job.stage}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <span>Stage: {job.stage}</span>
+            {job.bytes_total && job.bytes_processed != null && (
+              <span style={{ color: 'var(--text-secondary)' }}>{formatBytes(job.bytes_processed)} / {formatBytes(job.bytes_total)}</span>
+            )}
+            {job.throughput_mbps != null && job.throughput_mbps > 0 && (
+              <span style={{ color: 'var(--text-secondary)' }}>{job.throughput_mbps} MB/s</span>
+            )}
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            {isStalled && !isComplete && !isFailed && !isLimitExceeded && (
+              <span style={{ color: '#f59e0b' }}>Processing continues - no progress reported</span>
+            )}
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <Clock size={12} /> Elapsed: {elapsedSeconds}s
             </span>

@@ -1,0 +1,7 @@
+{
+  "capture_name": "testing.pcap",
+  "forecast_validation_status": "NOT VALIDATED \u2014 no future ground-truth segment available",
+  "reason": "Single standalone capture without future ground-truth label continuation",
+  "score_type": "Uncalibrated Signal Strength Score (0-100)",
+  "monotonicity_enforced": true
+}

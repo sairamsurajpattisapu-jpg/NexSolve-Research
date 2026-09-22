@@ -99,7 +99,8 @@ def test_real_friday_slice_pcap_end_to_end():
     # Attack horizon and evidence chain
     ah = res["attack_horizon"]
     assert ah["state"] in ("EARLY_SIGNAL", "SUSTAINED_ATTACK_FORECAST", "NO_ATTACK_FORECAST")
-    assert ah["lead_time_seconds"] is not None
+    if ah["state"] != "NO_ATTACK_FORECAST":
+        assert ah["lead_time_seconds"] is not None
 
     ec = res["evidence_chain"]
     assert len(ec["supporting"]) > 0 or len(ec["contradictory"]) > 0

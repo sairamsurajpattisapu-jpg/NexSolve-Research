@@ -255,10 +255,23 @@ def test_real_pcap_zeek_session_state_end_to_end():
     if not pcap_path:
         pytest.skip("PCAP fixture not present")
 
+    # 1. Real PCAP extraction using decoder directly
     # 1. Real PCAP extraction
-    packets, windows, quality = extract_canonical_capture(pcap_path)
-    assert len(packets) > 0
+    _packets, windows, quality = extract_canonical_capture(pcap_path)
     assert len(windows) > 0
+
+    # 2. Track TCP sessions using streaming decoder
+    import mmap
+    from ml.data.fast_pcap_decoder import FastPcapDecoder
+    packets = []
+    with open(pcap_path, "rb") as f:
+        with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+            decoder = FastPcapDecoder(mm)
+            for pkt in decoder.decode_packets():
+                if pkt.protocol == "TCP":
+                    packets.append(pkt)
+    
+    assert len(packets) > 0
 
     # 2. Track TCP sessions
     sessions = track_tcp_sessions(packets)

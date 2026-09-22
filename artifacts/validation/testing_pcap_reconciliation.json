@@ -1,0 +1,39 @@
+{
+  "capture": "testing.pcap",
+  "file_size_bytes": 6200914,
+  "duration_seconds": 1326.69,
+  "packets": 11636,
+  "destination_ips": {
+    "nexsolve_reported": 108,
+    "ipv4_and_ipv6_raw_dst_ips": 100,
+    "arp_only_target_ips": 8,
+    "exact_total_unique_destination_entities": 108,
+    "semantic_explanation": "NexSolve tracks 108 total destination IP entities: 41 IPv4, 59 IPv6, and 8 ARP target IPs (pdst) that only appear as ARP targets.",
+    "arp_target_ips": [
+      "192.168.29.138",
+      "192.168.29.209",
+      "192.168.29.210",
+      "192.168.29.39",
+      "192.168.29.53",
+      "192.168.29.59",
+      "192.168.29.63",
+      "192.168.29.88"
+    ]
+  },
+  "directional_5tuples": {
+    "nexsolve_reported_tcp_udp_port_tuples": 867,
+    "scapy_raw_all_l4_tuples": 877,
+    "discrepancy_count": 10,
+    "semantic_explanation": "NexSolve filters for Layer 4 TCP and UDP 5-tuples with valid L4 ports (867 tuples). The remaining 10 tuples are non-port protocols: ICMP, ICMPv6, IGMP, and IPv6-NoNxt."
+  },
+  "bidirectional_tuples": {
+    "nexsolve_reported_tcp_udp_bidi_tuples": 436,
+    "scapy_raw_all_bidi_tuples": 444,
+    "discrepancy_count": 8,
+    "semantic_explanation": "NexSolve canonical flow pairs 436 TCP/UDP bidirectional flow tuples. The remaining 8 tuples belong to ICMP and ICMPv6 unported control exchanges."
+  },
+  "reconstructed_flows": {
+    "nexsolve_flow_count": 453,
+    "semantic_explanation": "NexSolve reconstructs 453 canonical flow objects from raw packets using 60-second idle timeout boundaries and TCP FIN/RST session termination, splitting long-lived TCP/UDP 5-tuples into distinct temporal flow instances."
+  }
+}
