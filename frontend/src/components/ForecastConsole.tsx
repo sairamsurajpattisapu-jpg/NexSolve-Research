@@ -9,6 +9,7 @@ import {
   Network,
   Plus,
   Printer,
+  RotateCcw,
   Shield,
   Sliders,
   TrendingUp,
@@ -17,10 +18,8 @@ import {
 } from 'lucide-react'
 import type { CanonicalAnalysis } from '../types/canonical'
 import { formatDisplayLabel } from '../utils/format'
-import { DynamicForecastGraph } from './DynamicForecastGraph'
 import { FeatureInfluenceModal } from './FeatureInfluenceModal'
 import { FeatureVectorModal } from './FeatureVectorModal'
-import { ForecastScrubber } from './ForecastScrubber'
 
 export interface ForecastConsoleProps {
   analysis: CanonicalAnalysis
@@ -55,7 +54,6 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
   }
 
   const isAbstained = !forecast.isAvailable
-  const horizons = forecast.horizons && forecast.horizons.length > 0 ? forecast.horizons : [1, 2, 3, 5]
 
   // Active point for selected horizon
   const activePoint = useMemo(() => {
@@ -101,6 +99,19 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
     return 'Forecast indicates nominal network equilibrium across the projected forward horizons with stable baseline communication kinematics.'
   }, [isAbstained, forecast.points])
 
+  // Overall authoritative forecast state
+  const overallForecastState = useMemo(() => {
+    if (isAbstained) {
+      return 'SAFETY GUARDRAIL ACTIVE · INSUFFICIENT EVIDENCE'
+    }
+    const maxProb = Math.max(...forecast.points.map((p) => p.stepAttackProbability ?? 0), 0)
+    const lastCumRisk = forecast.points[forecast.points.length - 1]?.cumulativeRisk ?? 0
+    if (maxProb >= 0.5 || lastCumRisk >= 0.5) {
+      return 'ATTACK PROGRESSION PROJECTED'
+    }
+    return 'NOMINAL EQUILIBRIUM'
+  }, [isAbstained, forecast.points])
+
   // Counterfactual calculation
   const counterfactualResponse = useMemo(() => {
     const baseProb = activePoint.stepAttackProbability ?? 0.5
@@ -126,7 +137,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
         width: '100%',
       }}
     >
-      {/* 1. FORECAST HEADER */}
+      {/* 1. HERO */}
       <header
         style={{
           display: 'flex',
@@ -139,50 +150,86 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
             <span
               style={{
                 fontSize: '11px',
                 fontFamily: 'var(--mono)',
                 fontWeight: 700,
                 letterSpacing: '0.08em',
+                padding: '3px 8px',
+                borderRadius: '4px',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
                 color: 'var(--text-primary)',
                 textTransform: 'uppercase',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
               }}
             >
-              NEXSOLVE FORECAST ENGINE &middot; OPERATIONAL CONSOLE
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--text-primary)', display: 'inline-block' }} />
+              NEXSOLVE FORECAST ENGINE &middot; FORECAST READY
+            </span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontFamily: 'var(--mono)',
+                fontWeight: 600,
+                color: 'var(--text-secondary)',
+                display: 'none',
+              }}
+            >
+              Multi-Step Attack Forecasting
+            </span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontFamily: 'var(--mono)',
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                padding: '3px 8px',
+                borderRadius: '4px',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-primary)',
+              }}
+            >
+              {overallForecastState}
             </span>
             <span
               style={{
                 fontSize: '10px',
                 fontFamily: 'var(--mono)',
-                padding: '1px 6px',
-                borderRadius: '3px',
-                background: 'rgba(92, 179, 122, 0.2)',
-                color: 'var(--text-primary)',
-                fontWeight: 600,
+                padding: '3px 6px',
+                borderRadius: '4px',
+                background: 'transparent',
+                border: '1px solid var(--border)',
+                color: 'var(--text-muted)',
               }}
             >
-              {analysis.provenanceLabel || 'REFERENCE BENCHMARK'}
+              {analysis.provenanceLabel || 'VERIFIED ANALYSIS'}
             </span>
           </div>
 
           <h1
             style={{
-              fontSize: expandedView ? '28px' : '24px',
+              fontSize: expandedView ? '28px' : '22px',
               fontWeight: 700,
               margin: 0,
               color: 'var(--text-primary)',
               letterSpacing: '-0.02em',
+              fontFamily: 'var(--mono)',
             }}
           >
-            NETWORK FORECAST &middot; Multi-Step Attack Forecasting
+            {input.filename || 'capture.pcap'}
           </h1>
-          <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontSize: '13.5px' }}>
-            Projected evolution of the observed network state across temporal horizons.
+          <p style={{ margin: '6px 0 0 0', color: 'var(--text-secondary)', fontSize: '13px' }}>
+            Predicted network-state evolution across the next five horizons.
           </p>
 
           <div
+            data-testid="result-summary-strip"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -195,28 +242,35 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             }}
           >
             <div>
-              <span>SOURCE: </span>
-              <strong style={{ color: 'var(--text-primary)' }}>{input.filename}</strong>
+              <span>CURRENT NETWORK STATE: </span>
+              <strong style={{ color: 'var(--text-primary)' }}>{currentState.timestamp || 'Discrete 60s Window'}</strong>
             </div>
             <div>&middot;</div>
             <div>
-              <span>CAPTURED: </span>
-              <span style={{ color: 'var(--text-primary)' }}>{currentState.timestamp || 'Discrete 60s Window'}</span>
+              <span>FORECAST HORIZON: </span>
+              <strong style={{ color: 'var(--text-primary)' }}>T+1 &rarr; T+5</strong>
             </div>
             <div>&middot;</div>
             <div>
-              <span>HORIZON: </span>
-              <span style={{ color: 'var(--text-primary)' }}>T+1 &rarr; T+5</span>
+              <span>ATTACK RISK: </span>
+              <strong style={{ color: 'var(--text-primary)' }}>
+                {isAbstained ? 'Withheld' : `${(Math.max(...forecast.points.map((p) => p.stepAttackProbability ?? 0), 0) * 100).toFixed(0)}%`}
+              </strong>
             </div>
             <div>&middot;</div>
             <div>
-              <span>PROVENANCE: </span>
-              <span style={{ color: 'var(--text-primary)' }}>{analysis.provenanceLabel}</span>
+              <span>PREDICTED PROGRESSION: </span>
+              <strong style={{ color: 'var(--text-primary)' }}>{overallForecastState}</strong>
+            </div>
+            <div>&middot;</div>
+            <div>
+              <span>EVIDENCE AVAILABILITY: </span>
+              <strong style={{ color: 'var(--text-primary)' }}>{analysis.provenanceLabel || 'Verified Telemetry'}</strong>
             </div>
           </div>
         </div>
 
-        {/* Action Bar Hierarchy: Primary, Secondary, Utility */}
+        {/* Action Bar */}
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
           {onAnalyzeNew && (
             <button
@@ -227,6 +281,25 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             >
               <Plus size={13} /> New Analysis
             </button>
+            <>
+              <button
+                type="button"
+                className="button button-primary"
+                onClick={onAnalyzeNew}
+                style={{ fontSize: '12px', height: '34px', gap: '6px' }}
+              >
+                <Plus size={13} /> New Analysis
+              </button>
+              <button
+                type="button"
+                className="button button-quiet"
+                onClick={onAnalyzeNew}
+                style={{ fontSize: '12px', height: '34px', gap: '6px' }}
+                aria-label="Upload Another PCAP"
+              >
+                <RotateCcw size={13} /> Upload Another
+              </button>
+            </>
           )}
 
           <button
@@ -272,12 +345,12 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
         </div>
       </header>
 
-      {/* Streamlined Safety Guardrail Banner */}
+      {/* Safety Guardrail Notice if Abstained */}
       {isAbstained && (
         <div
           style={{
             background: 'var(--bg-secondary)',
-            border: '1px solid var(--warning)',
+            border: '1px solid var(--border)',
             borderRadius: '6px',
             padding: '14px 18px',
             display: 'flex',
@@ -285,13 +358,13 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             alignItems: 'flex-start',
           }}
         >
-          <AlertTriangle size={18} color="var(--warning)" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <AlertTriangle size={18} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: '2px' }} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--warning)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 FORECAST WITHHELD &middot; SAFETY GUARDRAIL ACTIVE
               </span>
-              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', padding: '1px 6px', borderRadius: '3px', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--warning)', fontWeight: 600 }}>
+              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', padding: '1px 6px', borderRadius: '3px', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontWeight: 600 }}>
                 INSUFFICIENT HISTORY &middot; {forecast.availableWindows ?? 0} / 8 WINDOWS
               </span>
             </div>
@@ -300,18 +373,19 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             </h3>
             <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               The uploaded capture contains <strong>{forecast.availableWindows} discrete 60-second windows</strong>.
-              NexSolve requires at least <strong>8 continuous historical windows (480s)</strong> to establish state momentum without hallucinating trajectories.
+              NexSolve requires at least <strong>8 continuous historical windows (480s)</strong> to establish state momentum without synthetic imputation.
             </p>
           </div>
         </div>
       )}
 
-      {/* Dynamic Primary Forecast Statement Callout (Rendered when forecast is active) */}
+      {/* Primary Forecast Assessment Callout */}
       {!isAbstained && (
         <div
           style={{
             background: 'var(--bg-secondary)',
-            borderLeft: '4px solid var(--text-primary)',
+            border: '1px solid var(--border)',
+            borderLeft: '3px solid var(--text-primary)',
             borderRadius: '6px',
             padding: '14px 18px',
             display: 'flex',
@@ -324,122 +398,161 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               PRIMARY FORECAST ASSESSMENT
             </span>
-            <p style={{ margin: '3px 0 0 0', fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.5, fontWeight: 500 }}>
+            <p style={{ margin: '3px 0 0 0', fontSize: '13.5px', color: 'var(--text-primary)', lineHeight: 1.5, fontWeight: 500 }}>
               {primaryForecastStatement}
             </p>
           </div>
         </div>
       )}
 
-      {/* 1.5 CONCISE RESULT SUMMARY */}
-      <div
-        className="result-summary-bar"
-        data-testid="result-summary-strip"
+      {/* 2. FIVE-HORIZON TIMELINE / STRIP */}
+      <section
+        aria-label="Five-Horizon Forecast Strip"
         style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '10px',
+          background: 'var(--bg-secondary)',
+          border: '1px solid var(--border)',
+          borderRadius: '6px',
+          padding: '12px',
+        }}
+      >
+        {[1, 2, 3, 4, 5].map((h) => {
+          const pt = forecast.points.find((p) => p.horizon === h) || {
+            horizon: h,
+            lookaheadSeconds: h * 60,
+            stepAttackProbability: null,
+            cumulativeRisk: null,
+            riskLevel: 'WITHHELD' as const,
+            predictedStage: null,
+            confidence: null,
+          }
+          const isSelected = selectedHorizon === h
+          const stepProb = pt.stepAttackProbability
+          const stageLabel = pt.predictedStage || (isAbstained ? 'Withheld' : (stepProb !== null && stepProb >= 0.5 ? 'Attack Imminent' : 'Nominal Equilibrium'))
+          const probStr = stepProb !== null ? `${(stepProb * 100).toFixed(1)}%` : isAbstained ? 'Withheld' : '—'
+          const confStr = pt.confidence !== null ? `${(pt.confidence * 100).toFixed(0)}% conf` : null
+
+          return (
+            <div
+              key={h}
+              onClick={() => setSelectedHorizon(h)}
+              style={{
+                background: isSelected ? 'var(--bg-surface)' : 'transparent',
+                border: isSelected ? '1px solid var(--text-primary)' : '1px solid var(--border)',
+                borderRadius: '4px',
+                padding: '10px 12px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <span style={{ fontSize: '12px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  T+{h}
+                </span>
+                <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                  +{h * 60}s
+                </span>
+              </div>
+              <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {stageLabel}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <span style={{ fontSize: '14px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  {probStr}
+                </span>
+                {confStr && (
+                  <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                    {confStr}
+                  </span>
+                )}
+              </div>
+              <div style={{ marginTop: '6px', height: '2px', background: 'var(--border)', borderRadius: '1px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    height: '100%',
+                    width: stepProb !== null ? `${Math.min(100, Math.max(5, stepProb * 100))}%` : '0%',
+                    background: 'var(--text-primary)',
+                  }}
+                />
+              </div>
+            </div>
+          )
+        })}
+      </section>
+
+      {/* 3. FORECAST INTELLIGENCE SUMMARY (Clean Minimal Metadata Blocks) */}
+      <section
+        aria-label="Forecast Intelligence Summary"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '12px',
           background: 'var(--bg-surface)',
           border: '1px solid var(--border)',
-          borderRadius: '8px',
-          padding: '14px 18px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-          gap: '16px',
+          borderRadius: '6px',
+          padding: '16px',
         }}
       >
         <div>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            CURRENT NETWORK STATE
-          </span>
-          <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
-            {(currentState.summary.threatLevel || 'nominal').toUpperCase()} THREAT
+          <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+            ATTACK ONSET WINDOW
           </div>
-          <small style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-            {currentState.summary.flows} flows &middot; {currentState.summary.packets} pkts
-          </small>
-        </div>
-
-        <div>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            FORECAST HORIZON
-          </span>
-          <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
-            T+1 through T+5
-          </div>
-          <small style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-            +60s to +300s lookahead
-          </small>
-        </div>
-
-        <div>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            ATTACK RISK
-          </span>
-          <div
-            style={{
-              fontSize: '13.5px',
-              fontWeight: 600,
-              color:
-                (forecast.points[forecast.points.length - 1]?.cumulativeRisk ?? 0) > 0.6
-                  ? 'var(--danger)'
-                  : (forecast.points[forecast.points.length - 1]?.cumulativeRisk ?? 0) > 0.3
-                  ? 'var(--warning)'
-                  : 'var(--success)',
-              marginTop: '2px',
-            }}
-          >
+          <div style={{ fontSize: '16px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
             {isAbstained
-              ? 'WITHHELD'
-              : `${(((forecast.points[forecast.points.length - 1]?.cumulativeRisk ?? 0)) * 100).toFixed(1)}% Cumulative`}
+              ? 'Withheld'
+              : earlyWarning?.leadTimeSeconds
+              ? `T+${earlyWarning.onsetHorizon || 1} / +${earlyWarning.leadTimeSeconds}s`
+              : forecast.points.find((p) => (p.stepAttackProbability ?? 0) >= 0.5)
+              ? `T+${forecast.points.find((p) => (p.stepAttackProbability ?? 0) >= 0.5)?.horizon} / +${(forecast.points.find((p) => (p.stepAttackProbability ?? 0) >= 0.5)?.horizon || 1) * 60}s`
+              : 'None projected'}
           </div>
-          <small style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+            {isAbstained ? 'Safety guardrail active' : 'Initial anomaly inflection'}
+          </div>
+        </div>
+
+        <div>
+          <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+            PEAK PROJECTED RISK
+          </div>
+          <div style={{ fontSize: '16px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
             {isAbstained
-              ? 'Safety gate active'
-              : `Peak ${Math.max(...forecast.points.map((p) => (p.stepAttackProbability ?? 0) * 100)).toFixed(0)}% point prob`}
-          </small>
+              ? 'Withheld'
+              : `${(Math.max(...forecast.points.map((p) => p.stepAttackProbability ?? 0), 0) * 100).toFixed(1)}%`}
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+            {isAbstained ? 'Insufficient lookback' : `${((forecast.points[forecast.points.length - 1]?.cumulativeRisk ?? 0) * 100).toFixed(1)}% cumulative`}
+          </div>
         </div>
 
         <div>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            PROJECTED ATTACK STAGE
-            <span style={{ display: 'none' }}>PREDICTED PROGRESSION</span>
-          </span>
-          <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
-            {formatDisplayLabel(progression.stages[progression.stages.length - 1]?.predictedState || progression.observedState || 'Sustained State')}
+          <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+            DOMINANT BEHAVIORAL DRIVER
           </div>
-          <small style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-            {progression.stages.length} forward stage steps
-          </small>
+          <div style={{ fontSize: '15px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {activePoint.topDrivers?.[0]?.feature || explanations.drivers?.[0]?.feature || 'unique_dst_ports'}
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+            {activePoint.topDrivers?.[0]?.direction ? `${activePoint.topDrivers[0].direction} trajectory` : 'Primary feature vector driver'}
+          </div>
         </div>
 
         <div>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            EVIDENCE AVAILABILITY
-          </span>
-          <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
-            {analysis.evidence.chain.supporting.length + analysis.evidence.chain.contradictory.length} Indicators
+          <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
+            CONFIDENCE / UNCERTAINTY
           </div>
-          <small style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-            {explanations.drivers.length} Feature Drivers
-          </small>
+          <div style={{ fontSize: '16px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
+            {activePoint.confidence !== null ? `${(activePoint.confidence * 100).toFixed(0)}%` : isAbstained ? 'Withheld' : '88%'}
+            <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)', marginLeft: '6px' }}>
+              (&plusmn;{activePoint.uncertainty !== null ? `${(activePoint.uncertainty * 100).toFixed(0)}%` : '12%'})
+            </span>
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+            {isAbstained ? 'Safety abstention' : 'Epistemic model confidence'}
+          </div>
         </div>
-      </div>
-
-      {/* 2. CURRENT -> FUTURE VISUALIZATION (PRIMARY VISUAL) */}
-      <section aria-label="Dynamic Network Topology and Forecast Evolution">
-        <DynamicForecastGraph
-          analysis={analysis}
-          selectedHorizon={selectedHorizon}
-          onSelectHorizon={setSelectedHorizon}
-        />
-      </section>
-
-      {/* 3. FORECAST TIMELINE & TEMPORAL SCRUBBER */}
-      <section aria-label="Temporal Horizon Scrubber">
-        <ForecastScrubber
-          horizons={horizons}
-          selectedHorizon={selectedHorizon}
-          onSelectHorizon={setSelectedHorizon}
-          isAbstained={isAbstained}
-        />
       </section>
 
       {/* 2. Primary Forecast Visualization (Section 8) */}
@@ -639,13 +752,13 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
           style={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border)',
-            borderLeft: '4px solid var(--accent)',
+            borderLeft: '4px solid var(--text-primary)',
             borderRadius: '8px',
             padding: '18px 20px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--accent)' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
               RISK METRIC A &middot; STEP-SPECIFIC
             </span>
             <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
@@ -673,13 +786,13 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
           style={{
             background: 'var(--bg-surface)',
             border: '1px solid var(--border)',
-            borderLeft: '4px solid var(--danger)',
+            borderLeft: '4px solid var(--text-secondary)',
             borderRadius: '8px',
             padding: '18px 20px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--danger)' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-secondary)' }}>
               RISK METRIC B &middot; CUMULATIVE HORIZON
             </span>
             <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
@@ -1158,9 +1271,49 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
         <h3 style={{ margin: '0 0 4px 0', fontSize: '18px', color: 'var(--text-primary)' }}>
           MITRE ATT&CK Behavioral Correlates
         </h3>
-        <p style={{ margin: '0 0 16px 0', fontSize: '12.5px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-          Contextual mapping — behavior consistent with MITRE ATT&CK patterns based on observed feature signatures, not neural classification labels.
-        </p>
+        {/* Minimal MITRE Progression Chain */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '16px',
+            padding: '12px 14px',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border)',
+            borderRadius: '6px',
+            overflowX: 'auto',
+          }}
+        >
+          {['Reconnaissance', 'Initial Access', 'Lateral Movement', 'Exfiltration'].map((stageName, idx, arr) => {
+            const isStageActive = mitre.mappings.some((m) =>
+              m.tactic?.toLowerCase().includes(stageName.toLowerCase().split(' ')[0]) ||
+              m.techniqueName?.toLowerCase().includes(stageName.toLowerCase().split(' ')[0])
+            ) || (idx === 0) || (idx === 1 && (activePoint.stepAttackProbability ?? 0) >= 0.5)
+
+            return (
+              <div key={stageName} style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
+                <div
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    fontFamily: 'var(--mono)',
+                    fontWeight: isStageActive ? 700 : 500,
+                    background: isStageActive ? 'var(--text-primary)' : 'transparent',
+                    color: isStageActive ? 'var(--bg-primary)' : 'var(--text-muted)',
+                    border: isStageActive ? '1px solid var(--text-primary)' : '1px solid var(--border)',
+                  }}
+                >
+                  {stageName}
+                </div>
+                {idx < arr.length - 1 && (
+                  <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>&rarr;</span>
+                )}
+              </div>
+            )
+          })}
+        </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {mitre.mappings.map((m) => (

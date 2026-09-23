@@ -54,7 +54,7 @@ export function MitreBehaviorPanel({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="eyebrow" style={{ color: 'var(--accent)', margin: 0 }}>
+            <span className="eyebrow" style={{ color: 'var(--text-primary)', margin: 0 }}>
               BEHAVIORAL TELEMETRY MAPPING
             </span>
             <span
@@ -63,9 +63,9 @@ export function MitreBehaviorPanel({
                 fontFamily: 'var(--mono)',
                 padding: '2px 6px',
                 borderRadius: '3px',
-                background: 'rgba(242, 187, 113, 0.12)',
-                color: 'var(--warning)',
-                border: '1px solid rgba(242, 187, 113, 0.3)',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-muted)',
+                border: '1px solid var(--border)',
               }}
             >
               BEHAVIORAL INFERENCE · NOT DIRECT CLASSIFICATION
@@ -102,7 +102,7 @@ export function MitreBehaviorPanel({
                     fontFamily: 'var(--mono)',
                     fontSize: '13px',
                     fontWeight: 700,
-                    color: 'var(--accent)',
+                    color: 'var(--text-primary)',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '4px',

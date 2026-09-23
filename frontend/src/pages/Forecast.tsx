@@ -33,13 +33,22 @@ export function Forecast() {
     reload: reloadJob,
   } = useJobPolling(jobId)
 
-  // Local canonical analysis state
-  const [activeAnalysis, setActiveAnalysis] = useState<CanonicalAnalysis | null>(null)
+  // Local canonical analysis state initialized synchronously if store data is present
+  const [activeAnalysis, setActiveAnalysis] = useState<CanonicalAnalysis | null>(() => {
+    if (!jobId && data?.results) {
+      return adaptToCanonical(data.results, data.results.analysis_id)
+    }
+    return null
+  })
+  const [userOpenedForecast, setUserOpenedForecast] = useState<boolean>(false)
 
   useEffect(() => {
     if (jobId) {
       if (polledResult) {
         setActiveAnalysis(polledResult)
+      } else if (data?.results && (data.results.analysis_id === jobId || data.results.analysis_id === 'production-cic-ids2017')) {
+        const canonical = adaptToCanonical(data.results, data.results.analysis_id)
+        setActiveAnalysis(canonical)
       }
     } else if (data?.results) {
       const canonical = adaptToCanonical(data.results, data.results.analysis_id)
@@ -48,7 +57,7 @@ export function Forecast() {
   }, [jobId, polledResult, data])
 
   // CASE 1: Polling an active job that is still processing or completing
-  if (jobId && (isPolling || (job && jobStatus !== 'COMPLETED' && !jobError) || (!activeAnalysis && !jobError))) {
+  if (jobId && !userOpenedForecast && (isPolling || (job && jobStatus !== 'COMPLETED' && !jobError) || (!activeAnalysis && !jobError))) {
     return (
       <AnalysisPipelineVisualizer
         jobId={jobId}
@@ -57,7 +66,8 @@ export function Forecast() {
         job={job}
         isReconnecting={isReconnecting}
         reconnectAttempt={reconnectAttempt}
-        isComplete={isComplete}
+        isComplete={isComplete || jobStatus === 'COMPLETED'}
+        onReady={() => setUserOpenedForecast(true)}
         onCancel={() => navigate('/console/analyze')}
       />
     )
@@ -66,19 +76,70 @@ export function Forecast() {
   // CASE 2: Error in Job Polling or Failed Job
   if (jobId && jobError) {
     return (
-      <AnalysisPipelineVisualizer
-        jobId={jobId}
-        stage={stage}
-        progress={job ? job.progress : progress / 100}
-        job={job}
-        error={jobError}
-        errorCode={(job?.error as any)?.code}
-        isReconnecting={isReconnecting}
-        reconnectAttempt={reconnectAttempt}
-        isComplete={false}
-        onRetry={reloadJob}
-        onCancel={() => navigate('/console/analyze')}
-      />
+      <div className="page-stack page-enter" style={{ maxWidth: '640px', margin: '60px auto', textAlign: 'center' }}>
+        <Panel>
+          <div style={{ padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <AlertTriangle size={20} color="var(--danger)" />
+            </div>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+              Analysis could not be completed.
+            </h2>
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)', maxWidth: '460px', wordBreak: 'break-word' }}>
+              {jobError}
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="button button-primary"
+                onClick={reloadJob}
+                style={{ fontSize: '12px' }}
+              >
+                Retry Analysis
+              </button>
+              <button
+                type="button"
+                className="button button-quiet"
+                onClick={() => navigate('/console/analyze')}
+                style={{ fontSize: '12px' }}
+              >
+                Choose Another File
+              </button>
+              <button
+                type="button"
+                className="button button-quiet"
+                onClick={() => navigate('/console/analyze')}
+                style={{ fontSize: '12px' }}
+              >
+                Return to Console
+              </button>
+            </div>
+
+            {/* Collapsible Technical Diagnostics */}
+            <details
+              style={{
+                marginTop: '16px',
+                textAlign: 'left',
+                width: '100%',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: '6px',
+                padding: '10px 14px',
+                fontSize: '11px',
+                fontFamily: 'var(--mono)',
+              }}
+            >
+              <summary style={{ cursor: 'pointer', color: 'var(--text-muted)', fontWeight: 600 }}>
+                Technical Diagnostics
+              </summary>
+              <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px', color: 'var(--text-secondary)' }}>
+                <div><strong>Job ID:</strong> {jobId}</div>
+                <div><strong>Error Details:</strong> {jobError}</div>
+              </div>
+            </details>
+          </div>
+        </Panel>
+      </div>
     )
   }
 

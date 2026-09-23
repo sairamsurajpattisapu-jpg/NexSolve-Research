@@ -78,19 +78,19 @@ export function ExplainabilityPanel({
             gap: '12px',
             padding: '10px 14px',
             borderRadius: '6px',
-            background: 'rgba(104, 225, 216, 0.05)',
-            border: '1px solid rgba(104, 225, 216, 0.2)',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border)',
             marginBottom: '14px',
             fontSize: '12px',
             fontFamily: 'var(--mono)',
           }}
         >
-          <Lightbulb size={16} color="var(--accent)" />
+          <Lightbulb size={16} color="var(--text-primary)" />
           <span>
             Transition Context:{' '}
             <strong style={{ color: 'var(--text-primary)' }}>{currentStage || 'BASELINE'}</strong>
             {' → '}
-            <strong style={{ color: 'var(--danger)' }}>{predictedStage || 'ATTACK_IMMINENT'}</strong>
+            <strong style={{ color: 'var(--text-primary)' }}>{predictedStage || 'ATTACK_IMMINENT'}</strong>
           </span>
         </div>
       )}
@@ -104,8 +104,8 @@ export function ExplainabilityPanel({
             gap: '10px',
             padding: '12px 14px',
             borderRadius: '6px',
-            background: 'rgba(242, 187, 113, 0.08)',
-            border: '1px solid rgba(242, 187, 113, 0.3)',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border)',
             marginBottom: '14px',
           }}
         >

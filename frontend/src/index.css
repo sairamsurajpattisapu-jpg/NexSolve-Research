@@ -786,13 +786,23 @@ h3, h4 {
   margin: 0;
   border: 1px solid transparent;
   border-radius: 4px;
-  color: var(--text-secondary);
+  color: var(--text-primary) !important;
+  opacity: 0.9 !important;
   font-family: var(--font-sans);
   font-size: 0.85rem;
   font-weight: 500;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   text-transform: none;
-  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  text-decoration: none;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  flex-shrink: 0;
+}
+
+.desktop-nav .nav-link span,
+.mobile-nav .nav-link span {
+  color: inherit !important;
+  display: inline-block;
+  opacity: 1 !important;
 }
 
 .workflow-nav-btn {
@@ -806,17 +816,19 @@ h3, h4 {
 .desktop-nav .nav-link:hover,
 .mobile-nav .nav-link:hover,
 .workflow-nav-btn:hover {
-  color: var(--text-primary);
-  background: var(--button-hover);
-  border-color: var(--border-strong);
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
+  background: var(--button-hover) !important;
+  border-color: var(--border-strong) !important;
 }
 
 .desktop-nav .nav-link.active,
 .mobile-nav .nav-link.active {
-  color: var(--text-primary);
-  background: var(--accent-muted);
-  border-color: var(--border);
-  font-weight: 600;
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
+  background: var(--accent-muted) !important;
+  border-color: var(--border-strong) !important;
+  font-weight: 600 !important;
 }
 
 .workflow-nav-btn.active {
@@ -5398,6 +5410,95 @@ h3, h4 {
   flex-direction: column;
   gap: var(--space-6);
   width: 100%;
+  color: var(--text-primary) !important;
+}
+
+.report-page-container h1,
+.report-page-container h2,
+.report-page-container h3,
+.report-page-container h4,
+.report-page-container h5,
+.report-page-container h6 {
+  color: var(--text-primary) !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  opacity: 1 !important;
+}
+
+.report-page-container .section-heading h2 {
+  color: var(--text-primary) !important;
+  font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+  opacity: 1 !important;
+}
+
+.report-page-container .section-heading p {
+  color: var(--text-secondary) !important;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  opacity: 1 !important;
+}
+
+.report-page-container .eyebrow {
+  color: var(--text-primary) !important;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  opacity: 1 !important;
+}
+
+.report-page-container p {
+  color: var(--text-secondary);
+  opacity: 1 !important;
+}
+
+.report-page-container strong {
+  color: var(--text-primary) !important;
+}
+
+.report-page-container .report-table .table-head span {
+  color: var(--text-secondary) !important;
+  font-weight: 700;
+  font-size: 10px;
+  opacity: 1 !important;
+}
+
+.report-page-container .report-table .table-row strong {
+  color: var(--text-primary) !important;
+  text-align: left !important;
+  font-weight: 700;
+  opacity: 1 !important;
+}
+
+.report-page-container .report-table .table-row span {
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
+}
+
+.report-page-container .button-quiet,
+.report-page-container button.button-quiet {
+  color: var(--text-primary) !important;
+  background: var(--button-secondary-bg) !important;
+  border: 1px solid var(--border-strong) !important;
+  opacity: 1 !important;
+}
+
+.report-page-container .button-quiet:hover,
+.report-page-container button.button-quiet:hover {
+  background: var(--button-hover) !important;
+  border-color: var(--border-strong) !important;
+  color: var(--text-primary) !important;
+}
+
+.report-page-container .button-primary,
+.report-page-container button.button-primary {
+  color: var(--button-primary-text) !important;
+  background: var(--button-primary-bg) !important;
+  border: 1px solid var(--button-primary-bg) !important;
+  opacity: 1 !important;
+}
+
+.report-page-container .button-primary:hover,
+.report-page-container button.button-primary:hover {
+  opacity: 0.9 !important;
 }
 
 .report-print-page {

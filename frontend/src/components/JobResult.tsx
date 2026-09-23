@@ -238,14 +238,14 @@ export function JobResult({ result, onReset }: JobResultProps) {
           justifyContent: 'space-between',
           padding: '16px 20px',
           borderRadius: '8px',
-          border: `1px solid ${isElevated ? 'rgba(237, 128, 111, 0.4)' : 'rgba(16, 185, 129, 0.3)'}`,
-          background: isElevated ? 'rgba(237, 128, 111, 0.08)' : 'rgba(16, 185, 129, 0.06)',
+          border: '1px solid var(--border)',
+          background: 'var(--bg-secondary)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <ShieldAlert size={20} color={isElevated ? 'var(--danger)' : 'var(--success)'} />
+          <ShieldAlert size={20} color="var(--text-primary)" />
           <div>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', textTransform: 'uppercase', color: isElevated ? 'var(--danger)' : 'var(--success)', fontWeight: 700 }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', textTransform: 'uppercase', color: 'var(--text-primary)', fontWeight: 700 }}>
               CURRENT NETWORK STATE (T₀)
             </span>
             <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>

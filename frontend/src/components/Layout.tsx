@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, Moon, Plus, Sun, TrendingUp, X } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { NexSolveBackground } from './background/NexSolveBackground'
 
 import { clearUploadedAnalysis } from '../stores/productionStore'
 import { useProductionData } from '../hooks/useProductionData'
+import { SiteFooter } from './SiteFooter'
 
 // Primary Desktop Navigation (ONLY Analyze, Forecast, Evidence, Reports)
 const primaryNavigation = [
-  { to: '/analyze', label: 'Analyze' },
-  { to: '/forecast', label: 'Forecast' },
-  { to: '/evidence', label: 'Evidence' },
-  { to: '/reports', label: 'Reports' },
+  { to: '/console/analyze', matchPaths: ['/analyze', '/console/analyze', '/analysis', '/console/analysis'], label: 'Analyze' },
+  { to: '/console/forecast', matchPaths: ['/forecast', '/console/forecast'], label: 'Forecast' },
+  { to: '/console/evidence', matchPaths: ['/evidence', '/console/evidence'], label: 'Evidence' },
+  { to: '/console/reports', matchPaths: ['/reports', '/console/reports'], label: 'Reports' },
 ]
 
 
@@ -27,6 +28,7 @@ export function Layout({
 }) {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
   const { isDark, toggleTheme } = useTheme()
   const navRef = useRef<HTMLDivElement>(null)
   const drawerRef = useRef<HTMLElement>(null)
@@ -133,16 +135,21 @@ export function Layout({
           </div>
 
           <nav className="desktop-nav" aria-label="Primary navigation">
-            {primaryNavigation.map(({ to, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={() => setOpen(false)}
-                className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
-              >
-                <span>{label}</span>
-              </NavLink>
-            ))}
+            {primaryNavigation.map(({ to, matchPaths, label }) => {
+              const isCurrentActive = matchPaths.some(
+                (p) => location.pathname === p || location.pathname.startsWith(`${p}/`)
+              )
+              return (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={() => setOpen(false)}
+                  className={`nav-link ${isCurrentActive ? 'active' : ''}`}
+                >
+                  <span>{label}</span>
+                </NavLink>
+              )
+            })}
           </nav>
 
           <div className="navbar-right">
@@ -376,6 +383,8 @@ export function Layout({
         <div className="page-content">
           <Outlet />
         </div>
+
+        <SiteFooter />
       </main>
     </div>
   )

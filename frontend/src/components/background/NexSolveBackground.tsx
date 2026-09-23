@@ -43,8 +43,8 @@ interface CircuitPulse {
 
 export function NexSolveBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const tracesRef = useRef<CircuitTrace[]>([])
-  const viasRef = useRef<SolderVia[]>([])
   const pulsesRef = useRef<CircuitPulse[]>([])
   const animRef = useRef<number>(0)
   const { isDark } = useTheme()
@@ -55,7 +55,7 @@ export function NexSolveBackground() {
       : false
   )
 
-  const buildCircuitEnvironment = useCallback((w: number, h: number) => {
+  const buildCircuitEnvironment = useCallback((w: number, h: number, dpr: number) => {
     const traces: CircuitTrace[] = []
     const vias: SolderVia[] = []
     const pulses: CircuitPulse[] = []
@@ -181,23 +181,67 @@ export function NexSolveBackground() {
       })
     }
 
-    // Traveling signal pulses along bus tracks
-    if (!reducedMotion.current) {
-      const pulseCount = Math.min(9, Math.max(4, Math.floor(traces.length / 3)))
-      for (let i = 0; i < pulseCount; i++) {
+    // Exactly 3 subtle moving signals for minimal animation overhead
+    if (!reducedMotion.current && traces.length > 0) {
+      for (let i = 0; i < 3; i++) {
         pulses.push({
           traceIdx: Math.floor(Math.random() * traces.length),
           progress: Math.random(),
-          speed: 0.00007 + Math.random() * 0.00010,
-          length: 0.06 + Math.random() * 0.06,
+          speed: 0.00008 + Math.random() * 0.00008,
+          length: 0.06 + Math.random() * 0.04,
         })
       }
     }
 
     tracesRef.current = traces
-    viasRef.current = vias
     pulsesRef.current = pulses
-  }, [])
+
+    // Pre-render static circuit tracks and vias to offscreen canvas
+    if (typeof document !== 'undefined') {
+      const offscreen = document.createElement('canvas')
+      offscreen.width = w * dpr
+      offscreen.height = h * dpr
+      const offCtx = offscreen.getContext('2d')
+      if (offCtx) {
+        offCtx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+        const baseTraceColor = isDark ? 'rgba(255, 255, 255, 0.065)' : 'rgba(0, 0, 0, 0.045)'
+        const primaryTraceColor = isDark ? 'rgba(255, 255, 255, 0.095)' : 'rgba(0, 0, 0, 0.07)'
+        const outerRingColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)'
+        const innerPadColor = isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.10)'
+
+        // 1. Draw static circuit trace lines
+        offCtx.lineCap = 'round'
+        offCtx.lineJoin = 'round'
+        for (const t of traces) {
+          if (t.points.length < 2) continue
+          offCtx.strokeStyle = t.isPrimary ? primaryTraceColor : baseTraceColor
+          offCtx.lineWidth = t.width
+          offCtx.beginPath()
+          offCtx.moveTo(t.points[0].x, t.points[0].y)
+          for (let i = 1; i < t.points.length; i++) {
+            offCtx.lineTo(t.points[i].x, t.points[i].y)
+          }
+          offCtx.stroke()
+        }
+
+        // 2. Draw static solder vias
+        for (const v of vias) {
+          offCtx.strokeStyle = outerRingColor
+          offCtx.lineWidth = 0.75
+          offCtx.beginPath()
+          offCtx.arc(v.x, v.y, v.outerRadius, 0, Math.PI * 2)
+          offCtx.stroke()
+
+          offCtx.fillStyle = innerPadColor
+          offCtx.beginPath()
+          offCtx.arc(v.x, v.y, v.innerRadius, 0, Math.PI * 2)
+          offCtx.fill()
+        }
+      }
+      offscreenCanvasRef.current = offscreen
+    }
+  }, [isDark])
 
   const handleResize = useCallback(() => {
     const canvas = canvasRef.current
@@ -209,7 +253,7 @@ export function NexSolveBackground() {
     canvas.height = h * dpr
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
-    buildCircuitEnvironment(w, h)
+    buildCircuitEnvironment(w, h, dpr)
   }, [buildCircuitEnvironment])
 
   useEffect(() => {
@@ -227,69 +271,32 @@ export function NexSolveBackground() {
     let lastTime = 0
 
     const render = (time: number) => {
+      // Pause animation if tab is hidden
+      if (typeof document !== 'undefined' && document.hidden) {
+        animRef.current = requestAnimationFrame(render)
+        return
+      }
+
       const dt = lastTime ? Math.min(100, time - lastTime) : 16
       lastTime = time
 
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
-      const w = canvas.width / dpr
-      const h = canvas.height / dpr
 
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      ctx.clearRect(0, 0, w, h)
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      // Visual color palette matching reference grayscale character
-      const baseTraceColor = isDark ? 'rgba(255, 255, 255, 0.065)' : 'rgba(0, 0, 0, 0.045)'
-      const primaryTraceColor = isDark ? 'rgba(255, 255, 255, 0.095)' : 'rgba(0, 0, 0, 0.07)'
-      const outerRingColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)'
-      const innerPadColor = isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.10)'
-      const pulseColor = isDark ? 'rgba(255, 255, 255, 0.40)' : 'rgba(0, 0, 0, 0.25)'
-
-      // 1. Draw circuit trace lines
-      ctx.lineCap = 'round'
-      ctx.lineJoin = 'round'
-
-      for (const t of tracesRef.current) {
-        if (t.points.length < 2) continue
-        ctx.strokeStyle = t.isPrimary ? primaryTraceColor : baseTraceColor
-        ctx.lineWidth = t.width
-        ctx.beginPath()
-        ctx.moveTo(t.points[0].x, t.points[0].y)
-        for (let i = 1; i < t.points.length; i++) {
-          ctx.lineTo(t.points[i].x, t.points[i].y)
-        }
-        ctx.stroke()
+      // Fast hardware blit of pre-rendered static circuit traces and solder vias
+      if (offscreenCanvasRef.current) {
+        ctx.drawImage(offscreenCanvasRef.current, 0, 0)
       }
 
-      // 2. Draw solder vias (annular rings + solid inner core pads)
-      for (const v of viasRef.current) {
-        // Outer concentric annular ring
-        ctx.strokeStyle = outerRingColor
-        ctx.lineWidth = 0.75
-        ctx.beginPath()
-        ctx.arc(v.x, v.y, v.outerRadius, 0, Math.PI * 2)
-        ctx.stroke()
-
-        // Inner core pad with subtle breathing
-        let alpha = 1
-        if (!reducedMotion.current) {
-          v.phase += 0.0007 * dt
-          alpha = 0.7 + Math.sin(v.phase) * 0.3
-        }
-
-        ctx.fillStyle = innerPadColor
-        ctx.globalAlpha = alpha
-        ctx.beginPath()
-        ctx.arc(v.x, v.y, v.innerRadius, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.globalAlpha = 1
-      }
-
-      // 3. Draw traveling signal pulses with understated Gaussian glow
-      if (!reducedMotion.current && tracesRef.current.length > 0) {
+      // Draw only 3 lightweight traveling signal pulses
+      if (!reducedMotion.current && tracesRef.current.length > 0 && pulsesRef.current.length > 0) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
         ctx.lineWidth = 1.3
-        ctx.strokeStyle = pulseColor
-        ctx.shadowBlur = 5
-        ctx.shadowColor = isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.2)'
+        ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.40)' : 'rgba(0, 0, 0, 0.25)'
+        ctx.shadowBlur = 4
+        ctx.shadowColor = isDark ? 'rgba(255, 255, 255, 0.30)' : 'rgba(0, 0, 0, 0.15)'
 
         for (const pulse of pulsesRef.current) {
           pulse.progress += pulse.speed * dt
@@ -312,7 +319,7 @@ export function NexSolveBackground() {
           const px = p1.x + (p2.x - p1.x) * segFrac
           const py = p1.y + (p2.y - p1.y) * segFrac
 
-          const tailLen = pulse.length * 36
+          const tailLen = pulse.length * 32
           const dx = p2.x - p1.x
           const dy = p2.y - p1.y
           const len = Math.hypot(dx, dy) || 1

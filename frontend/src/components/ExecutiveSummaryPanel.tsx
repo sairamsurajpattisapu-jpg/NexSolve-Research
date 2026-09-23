@@ -34,17 +34,15 @@ export function ExecutiveSummaryPanel({
     <Panel
       className="executive-summary-panel"
       style={{
-        border: `1px solid ${isHigh ? 'rgba(237, 128, 111, 0.45)' : 'rgba(104, 225, 216, 0.4)'}`,
-        background: isHigh
-          ? 'linear-gradient(135deg, rgba(237, 128, 111, 0.12) 0%, var(--bg-surface) 60%)'
-          : 'linear-gradient(135deg, rgba(104, 225, 216, 0.10) 0%, var(--bg-surface) 60%)',
+        border: '1px solid var(--border)',
+        background: 'var(--bg-surface)',
         padding: '20px 24px',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ShieldAlert size={18} color={isHigh ? 'var(--danger)' : 'var(--accent)'} />
-          <span className="eyebrow" style={{ color: isHigh ? 'var(--danger)' : 'var(--accent)', margin: 0, fontWeight: 700 }}>
+          <ShieldAlert size={18} color="var(--text-primary)" />
+          <span className="eyebrow" style={{ color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
             THREAT ASSESSMENT SUMMARY
           </span>
         </div>
@@ -67,7 +65,7 @@ export function ExecutiveSummaryPanel({
       </div>
 
       {isAbstained ? (
-        <div style={{ padding: '14px', background: 'rgba(242, 187, 113, 0.08)', borderRadius: '6px', border: '1px solid rgba(242, 187, 113, 0.3)' }}>
+        <div style={{ padding: '14px', background: 'var(--bg-secondary)', borderRadius: '6px', border: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--warning)', fontWeight: 600, fontSize: '13px' }}>
             <AlertTriangle size={16} />
             <span>FORECAST DELIBERATELY WITHHELD</span>

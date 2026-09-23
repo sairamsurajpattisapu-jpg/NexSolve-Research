@@ -3,7 +3,6 @@ import {
   ArrowRight,
   CheckCircle,
   Clock,
-  LoaderCircle,
   RefreshCw,
   Timer,
   X,
@@ -158,6 +157,42 @@ export const STAGE_INDEX_MAP: Record<string, number> = {
   COMPLETED: 11,
 }
 
+export interface RealPipelineStage {
+  id: string
+  num: string
+  label: string
+  activeTitle: string
+  sublabel: string
+}
+
+// Canonical 8 real pipeline stages requested by user:
+// UPLOAD → VALIDATE → PARSE → FLOWS → FEATURES → DETECT → FORECAST → REPORT
+export const REAL_PIPELINE_8_STAGES: RealPipelineStage[] = [
+  { id: 'UPLOAD', num: '01', label: 'UPLOAD', activeTitle: 'UPLOADING CAPTURE', sublabel: 'Wire stream' },
+  { id: 'VALIDATE', num: '02', label: 'VALIDATE', activeTitle: 'VALIDATING FORMAT', sublabel: 'PCAP boundary check' },
+  { id: 'PARSE', num: '03', label: 'PARSE', activeTitle: 'PARSING WIRE FRAMES', sublabel: 'Ingest & decode frames' },
+  { id: 'FLOWS', num: '04', label: 'FLOWS', activeTitle: 'RECONSTRUCTING FLOWS', sublabel: 'Flows & 60s windows' },
+  { id: 'FEATURES', num: '05', label: 'FEATURES', activeTitle: 'EXTRACTING 45-DIM FEATURES', sublabel: 'Canonical network state' },
+  { id: 'DETECT', num: '06', label: 'DETECT', activeTitle: 'EVALUATING THREAT VECTORS', sublabel: 'Behavioral detection' },
+  { id: 'FORECAST', num: '07', label: 'FORECAST', activeTitle: 'GENERATING FORECAST', sublabel: 'T+1..T+5 Horizon projection' },
+  { id: 'REPORT', num: '08', label: 'REPORT', activeTitle: 'COMPILING FORENSIC REPORT', sublabel: 'Evidence & report synthesis' },
+]
+
+export function mapStageTo8Index(stageStr: string, isSuccess: boolean, isUploading: boolean): number {
+  if (isSuccess) return 7
+  if (isUploading) return 0
+  const s = String(stageStr || '').toUpperCase()
+  if (s === 'UPLOAD' || s === 'UPLOADING') return 0
+  if (s === 'VALIDATE' || s === 'VALIDATING') return 1
+  if (s === 'INGESTION' || s === 'INGEST' || s === 'PARSING' || s === 'NORMALIZE' || s === 'NORMALIZING') return 2
+  if (s === 'FLOW_RECONSTRUCTION' || s === 'FLOWS' || s === 'RECONSTRUCT' || s === 'RECONSTRUCTING' || s === 'WINDOWING' || s === 'WINDOWS' || s === 'TEMPORAL_WINDOWING') return 3
+  if (s === 'NETWORK_STATE' || s === 'FEATURES' || s === 'CANONICAL_FEATURES' || s === 'REPRESENT') return 4
+  if (s === 'THREAT_ANALYSIS' || s === 'THREATS' || s === 'DETECT' || s === 'BEHAVIOR' || s === 'SIMULATION' || s === 'SIMULATE' || s === 'ANALYZE') return 5
+  if (s === 'FORECAST' || s === 'FORECASTING') return 6
+  if (s === 'EVIDENCE' || s === 'EXPLAIN' || s === 'REPORT' || s === 'COMPLETE' || s === 'COMPLETED') return 7
+  return 2
+}
+
 export function AnalysisPipelineVisualizer({
   jobId,
   stage = 'INGEST',
@@ -176,7 +211,6 @@ export function AnalysisPipelineVisualizer({
   const [mountTime] = useState(() => Date.now())
   const [now, setNow] = useState(mountTime)
 
-  // Authoritative status evaluation strictly distinguishing Transport Timeout from Real Job Failure
   const jobStatus = job?.status
   const isTerminalFailed = jobStatus === 'FAILED' || jobStatus === 'ABORTED'
   const isLimitExceeded = jobStatus === 'RESOURCE_LIMIT_EXCEEDED'
@@ -194,7 +228,7 @@ export function AnalysisPipelineVisualizer({
   const isSuccess = isComplete || jobStatus === 'COMPLETED' || String(stage).toUpperCase() === 'COMPLETE'
   const isUploading = String(stage).toUpperCase() === 'UPLOAD' || (!job && !isSuccess && !isFailed && !jobId)
 
-  // Timer loop
+  // Live timer tick
   useEffect(() => {
     if (isSuccess || isFailed) return
     const timer = setInterval(() => {
@@ -203,7 +237,6 @@ export function AnalysisPipelineVisualizer({
     return () => clearInterval(timer)
   }, [isSuccess, isFailed])
 
-  // Preserved elapsed duration from backend started_at if available
   const elapsedSeconds = useMemo(() => {
     if (job?.started_at) {
       const startTime = new Date(job.started_at).getTime()
@@ -220,10 +253,19 @@ export function AnalysisPipelineVisualizer({
     return Math.max(0, Math.floor((now - mountTime) / 1000))
   }, [job?.started_at, job?.completed_at, now, mountTime])
 
-  // Map active stage
-  const stageKey = String(stage || '').toUpperCase()
-  const effectiveIdx = isSuccess ? 11 : (STAGE_INDEX_MAP[stageKey] ?? 2)
-  const activeStageDef = PIPELINE_STAGES[Math.min(effectiveIdx, PIPELINE_STAGES.length - 1)] || PIPELINE_STAGES[0]
+  // Map to 8-stage index
+  const active8Index = mapStageTo8Index(stage || job?.stage || '', isSuccess, isUploading)
+  const active8Stage = REAL_PIPELINE_8_STAGES[active8Index] || REAL_PIPELINE_8_STAGES[0]
+
+  // Active stage definition matching the current stage
+  const activeStageDef = useMemo(() => {
+    const s = String(stage || job?.stage || '').toUpperCase()
+    const idx = STAGE_INDEX_MAP[s]
+    if (idx !== undefined && PIPELINE_STAGES[idx]) {
+      return PIPELINE_STAGES[idx]
+    }
+    return PIPELINE_STAGES.find((st) => st.id === s || st.label === s) || null
+  }, [stage, job?.stage])
 
   // File metadata
   const filename = job?.filename || file?.name || 'capture.pcap'
@@ -231,26 +273,14 @@ export function AnalysisPipelineVisualizer({
   const isCsv = filename.toLowerCase().endsWith('.csv')
   const formatLabel = isPcapng ? 'PCAPNG' : isCsv ? 'CSV' : 'PCAP'
 
-  const fileSizeStr = useMemo(() => {
-    if (file?.size) {
-      return `${(file.size / (1024 * 1024)).toFixed(2)} MB`
-    }
-    const bytes = (job as any)?.upload?.size_bytes || (job as any)?.source?.size_bytes
-    if (bytes) {
-      return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
-    }
-    return null
-  }, [file?.size, job])
-
   const stats = job?.processing_statistics
-  const packetsCount = stats?.packets_processed
+  const packetsCount = stats?.packets_processed ?? (job as any)?.packets_processed
   const totalPackets = (stats as any)?.total_packets
   const flowsCount = (stats as any)?.flows_processed ?? (job as any)?.traffic?.flow_count
-  const windowsCount = stats?.windows_processed
+  const windowsCount = stats?.windows_processed ?? (job as any)?.windows_processed
   const totalWindows = (stats as any)?.total_windows
 
-  // Deterministic progress calculation from real telemetry
-  const hasRealProgress = isSuccess || (job?.progress !== undefined && job.progress > 0) || (progress !== undefined && progress > 0)
+  // Real progress fraction & percentage
   const effectiveProgressFraction = isSuccess
     ? 1.0
     : job?.progress !== undefined && job.progress > 0
@@ -259,13 +289,14 @@ export function AnalysisPipelineVisualizer({
     ? (progress > 1 ? progress / 100 : progress)
     : 0
 
+  const hasRealProgress = isSuccess || (job?.progress !== undefined && job.progress > 0) || progress > 0
   const progressPercent = Math.min(100, Math.max(0, Math.round(effectiveProgressFraction * 100)))
 
   // ETA Calculation strictly from real telemetry
   const { formattedEta, isCalculating: isEtaCalculating } = calculateEta({
     elapsedSeconds,
     progress: effectiveProgressFraction,
-    stage: activeStageDef.id,
+    stage: active8Stage.id,
     status: isSuccess ? 'COMPLETED' : isFailed ? 'FAILED' : isJobTimedOut ? 'TIMED_OUT' : jobStatus,
     backendEtaSeconds: (job as any)?.estimated_remaining_seconds ?? (job as any)?.eta_seconds ?? null,
     packetsProcessed: packetsCount,
@@ -274,55 +305,45 @@ export function AnalysisPipelineVisualizer({
     totalWindows,
   })
 
-  // Authoritative status banner string
+  // Authoritative overall status banner string
   const authoritativeStatus = isJobTimedOut
     ? 'ANALYSIS TIMED OUT'
     : isFailed
     ? 'ANALYSIS FAILED'
     : isSuccess
-    ? 'COMPLETED'
+    ? 'ANALYSIS COMPLETE'
     : isReconnecting
     ? 'PROCESSING CONTINUES'
     : isUploading
     ? 'UPLOADING'
     : 'PROCESSING'
 
-  const currentStepTitle = isJobTimedOut
-    ? 'ANALYSIS TIMED OUT'
-    : isFailed
-    ? effectiveIdx === 0
-      ? 'UPLOAD FAILED'
-      : effectiveIdx === 1
-      ? 'CAPTURE VALIDATION FAILED'
-      : 'ANALYSIS FAILED'
-    : isSuccess
-    ? 'ANALYSIS COMPLETE'
-    : activeStageDef.activeTitle
-
   return (
     <div
       className="page-stack page-enter analysis-pipeline-root"
       style={{
-        maxWidth: '1040px',
-        margin: '24px auto 48px auto',
+        maxWidth: '980px',
+        margin: '20px auto 40px auto',
         width: '100%',
         padding: '0 16px',
+        boxSizing: 'border-box',
       }}
       role="region"
       aria-label="Network Attack Analysis Pipeline"
     >
-      {/* PROCESSING CONTINUES banner when HTTP request times out while background analysis continues */}
+      {/* Reconnection banner if network interrupted while analysis continues */}
       {isReconnecting && !isFailed && !isSuccess && (
         <div
           style={{
             background: 'var(--bg-secondary)',
             border: '1px solid var(--border-strong)',
             borderRadius: '6px',
-            padding: '12px 18px',
-            marginBottom: '16px',
+            padding: '10px 16px',
+            marginBottom: '14px',
             display: 'flex',
-            flexDirection: 'column',
-            gap: '6px',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
             fontSize: '12px',
             fontFamily: 'var(--mono)',
             color: 'var(--text-primary)',
@@ -330,76 +351,94 @@ export function AnalysisPipelineVisualizer({
           role="status"
           aria-live="polite"
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: 'var(--text-primary)' }}>
-              <RefreshCw size={14} className="spin-slow" />
-              <span>PROCESSING CONTINUES</span>
-            </div>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-              Attempt {reconnectAttempt}/10
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <RefreshCw size={13} className="spin-slow" />
+            <strong>PROCESSING CONTINUES</strong>
+            <span style={{ color: 'var(--text-secondary)' }}>
+              — The request exceeded the response window, but the analysis job is still running. Active stage: {active8Stage.label}
             </span>
           </div>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '12.5px', fontFamily: 'var(--font-sans)' }}>
-            The request exceeded the response window, but the analysis job is still running.
-          </div>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-            <strong>CURRENT STEP:</strong> {activeStageDef.activeTitle}
-          </div>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Attempt {reconnectAttempt}/10</span>
         </div>
       )}
 
-      {/* Main Analysis Container */}
+      {/* Compact Cinematic Processing Console */}
       <div
+        className="cinematic-processing-console"
         style={{
           background: 'var(--bg-surface)',
           border: '1px solid var(--border)',
           borderRadius: '8px',
-          padding: '24px 28px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+          padding: '20px 24px',
+          position: 'relative',
+          overflow: 'hidden',
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.4)',
         }}
       >
-        {/* 1. HERO SECTION */}
+        {/* Subtle Top Ambient Activity Line */}
+        {!isSuccess && !isFailed && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '2px',
+              background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.8) 50%, transparent 100%)',
+              animation: 'cinematicScan 2.4s ease-in-out infinite',
+              opacity: 0.7,
+            }}
+          />
+        )}
+
+        {/* 1. COMPACT STATUS HEADER */}
         <div
           style={{
             display: 'flex',
-            alignItems: 'flex-start',
+            alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '20px',
-            paddingBottom: '20px',
+            gap: '14px',
+            paddingBottom: '16px',
             borderBottom: '1px solid var(--border)',
           }}
         >
-          <div style={{ flex: 1, minWidth: '280px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-              <span
-                style={{
-                  fontFamily: 'var(--mono)',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  letterSpacing: '0.12em',
-                  padding: '3px 8px',
-                  borderRadius: '4px',
-                  background: isSuccess
-                    ? 'rgba(255, 255, 255, 0.12)'
-                    : isFailed
-                    ? 'rgba(255, 255, 255, 0.08)'
-                    : 'var(--bg-elevated)',
-                  color: isFailed ? 'var(--danger)' : 'var(--text-primary)',
-                  border: '1px solid var(--border)',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {isSuccess ? 'COMPLETED' : isFailed ? 'ANALYSIS FAILED' : 'ANALYZING'}
-              </span>
+          {/* Status info & filename */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '260px' }}>
+            {/* Live Indicator Dot with Subtle Pulse */}
+            <div
+              style={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                background: isFailed ? 'var(--danger)' : isSuccess ? 'var(--text-primary)' : 'var(--text-primary)',
+                boxShadow: isFailed || isSuccess ? 'none' : '0 0 10px rgba(255, 255, 255, 0.9)',
+                animation: isFailed || isSuccess ? 'none' : 'subtleSignalPulse 1.8s ease-in-out infinite',
+                flexShrink: 0,
+              }}
+            />
 
-              {formatLabel && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--mono)',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    letterSpacing: '0.12em',
+                    color: isFailed ? 'var(--danger)' : 'var(--text-primary)',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {authoritativeStatus}
+                </span>
+
                 <span
                   style={{
                     fontSize: '10px',
                     fontFamily: 'var(--mono)',
                     color: 'var(--text-muted)',
-                    padding: '2px 6px',
+                    padding: '1px 5px',
                     borderRadius: '3px',
                     background: 'var(--bg-secondary)',
                     border: '1px solid var(--border)',
@@ -407,201 +446,59 @@ export function AnalysisPipelineVisualizer({
                 >
                   {formatLabel}
                 </span>
-              )}
 
-              {fileSizeStr && (
-                <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
-                  {fileSizeStr}
-                </span>
-              )}
-
-              {jobId && (
                 <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
-                  · {jobId.slice(0, 14)}
+                  STAGE: <strong style={{ color: 'var(--text-primary)' }}>{active8Stage.label}</strong>
                 </span>
-              )}
-            </div>
 
-            <h1
-              style={{
-                fontSize: '22px',
-                fontWeight: 700,
-                color: isFailed ? 'var(--danger)' : 'var(--text-primary)',
-                margin: '0 0 4px 0',
-                letterSpacing: '-0.02em',
-                fontFamily: 'var(--font-sans)',
-              }}
-              title={filename}
-            >
-              {filename}
-            </h1>
-
-            <div style={{ fontSize: '13px', color: isFailed ? 'var(--danger)' : 'var(--text-secondary)' }}>
-              {isFailed ? 'Analysis could not be completed.' : 'Processing network traffic'}
-            </div>
-
-            <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                STAGE:
-              </span>
-              <span style={{ fontSize: '12px', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--text-primary)' }}>
-                {currentStepTitle}
-              </span>
-            </div>
-
-            {/* Failure state recovery & diagnostics */}
-            {isFailed && (
-              <div style={{ marginTop: '14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                  {onRetry && (
-                    <button
-                      type="button"
-                      className="button button-primary"
-                      onClick={onRetry}
-                      style={{ fontSize: '11px', height: '32px', padding: '0 14px' }}
-                    >
-                      {isUploading ? 'Retry Upload' : 'Retry Analysis'}
-                    </button>
-                  )}
-                  {onCancel && (
-                    <>
-                      <button
-                        type="button"
-                        className="button button-quiet"
-                        onClick={onCancel}
-                        style={{ fontSize: '11px', height: '32px', padding: '0 14px' }}
-                      >
-                        Choose Another File
-                      </button>
-                      <button
-                        type="button"
-                        className="button button-quiet"
-                        onClick={onCancel}
-                        style={{ fontSize: '11px', height: '32px', padding: '0 14px' }}
-                      >
-                        Return to Console
-                      </button>
-                    </>
-                  )}
-                </div>
-
-                <details
-                  style={{
-                    marginTop: '14px',
-                    maxWidth: '620px',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '4px',
-                    padding: '8px 12px',
-                    fontSize: '11px',
-                    fontFamily: 'var(--mono)',
-                  }}
-                >
-                  <summary style={{ cursor: 'pointer', color: 'var(--text-muted)', fontWeight: 600 }}>
-                    Technical Diagnostics
-                  </summary>
-                  <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px', color: 'var(--text-secondary)' }}>
-                    <div><strong>Job ID:</strong> {jobId || 'N/A'}</div>
-                    <div><strong>Failed Stage:</strong> {activeStageDef.label}</div>
-                    <div><strong>Status:</strong> {authoritativeStatus}</div>
-                    <div><strong>Error Details:</strong> {error || (job?.error as any)?.explanation || (job?.error as any)?.message || 'Unspecified execution error.'}</div>
-                  </div>
-                </details>
-              </div>
-            )}
-          </div>
-
-          {/* Progress & Live Time Telemetry */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '22px', flexWrap: 'wrap' }}>
-            <div style={{ textAlign: 'right' }}>
-              <div
-                style={{
-                  fontSize: '10px',
-                  fontFamily: 'var(--mono)',
-                  color: 'var(--text-muted)',
-                  marginBottom: '3px',
-                  letterSpacing: '0.06em',
-                }}
-              >
-                PROGRESS
-              </div>
-              <div
-                style={{
-                  fontSize: '22px',
-                  fontFamily: 'var(--mono)',
-                  fontWeight: 700,
-                  color: 'var(--text-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  justifyContent: 'flex-end',
-                }}
-              >
-                {hasRealProgress ? (
-                  `${progressPercent}%`
-                ) : (
-                  <span style={{ fontSize: '13px', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <LoaderCircle size={13} className="spin-slow" /> PROCESSING
+                {activeStageDef && activeStageDef.activeTitle !== authoritativeStatus && (
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+                    &middot; <span>{activeStageDef.activeTitle}</span>
                   </span>
                 )}
               </div>
-            </div>
 
-            <div style={{ textAlign: 'right' }}>
               <div
                 style={{
-                  fontSize: '10px',
-                  fontFamily: 'var(--mono)',
-                  color: 'var(--text-muted)',
-                  marginBottom: '3px',
-                  letterSpacing: '0.06em',
-                }}
-              >
-                ELAPSED TIME
-              </div>
-              <div
-                style={{
-                  fontSize: '18px',
-                  fontFamily: 'var(--mono)',
+                  fontSize: '13.5px',
                   fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  justifyContent: 'flex-end',
+                  color: isFailed ? 'var(--danger)' : 'var(--text-primary)',
+                  fontFamily: 'var(--mono)',
+                  marginTop: '2px',
+                  wordBreak: 'break-all',
                 }}
+                title={filename}
               >
-                <Clock size={14} color="var(--text-muted)" />
-                {formatElapsedDuration(elapsedSeconds)}
+                {filename}
+              </div>
+            </div>
+          </div>
+
+          {/* Telemetry Numbers & Timer */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px', fontSize: '11.5px', fontFamily: 'var(--mono)' }}>
+            {/* Real Progress % or Processing indicator */}
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '9.5px', color: 'var(--text-muted)', letterSpacing: '0.08em' }}>PROGRESS</div>
+              <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                {hasRealProgress ? `${progressPercent}%` : 'PROCESSING'}
               </div>
             </div>
 
+            {/* Elapsed Time */}
             <div style={{ textAlign: 'right' }}>
-              <div
-                style={{
-                  fontSize: '10px',
-                  fontFamily: 'var(--mono)',
-                  color: 'var(--text-muted)',
-                  marginBottom: '3px',
-                  letterSpacing: '0.06em',
-                }}
-              >
-                ESTIMATED REMAINING
+              <div style={{ fontSize: '9.5px', color: 'var(--text-muted)', letterSpacing: '0.08em' }}>ELAPSED</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-secondary)' }}>
+                <Clock size={12} color="var(--text-muted)" />
+                <span>{formatElapsedDuration(elapsedSeconds)}</span>
               </div>
-              <div
-                style={{
-                  fontSize: '18px',
-                  fontFamily: 'var(--mono)',
-                  fontWeight: 600,
-                  color: isEtaCalculating ? 'var(--text-muted)' : 'var(--text-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  justifyContent: 'flex-end',
-                }}
-              >
-                <Timer size={14} color="var(--text-muted)" />
-                {formattedEta}
+            </div>
+
+            {/* Remaining ETA */}
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '9.5px', color: 'var(--text-muted)', letterSpacing: '0.08em' }}>EST. REMAINING</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: isEtaCalculating ? 'var(--text-muted)' : 'var(--text-primary)' }}>
+                <Timer size={12} color="var(--text-muted)" />
+                <span>{formattedEta}</span>
               </div>
             </div>
 
@@ -610,485 +507,266 @@ export function AnalysisPipelineVisualizer({
                 type="button"
                 className="button button-quiet"
                 onClick={onCancel}
-                style={{ height: '32px', padding: '0 10px', fontSize: '11px', gap: '4px' }}
-                title="Cancel processing job"
+                style={{ height: '30px', padding: '0 10px', fontSize: '11px', gap: '4px', marginLeft: '6px' }}
+                title="Cancel analysis"
               >
-                <X size={13} /> Cancel
+                <X size={12} /> Cancel
               </button>
             )}
           </div>
         </div>
 
-        {/* Subtle Progress Bar */}
-        <div
-          style={{
-            width: '100%',
-            height: '2px',
-            background: 'var(--bg-elevated)',
-            margin: '16px 0',
-            overflow: 'hidden',
-          }}
-        >
+        {/* 2. REAL 8-STAGE EXECUTION CIRCUIT FLOW */}
+        <div style={{ marginTop: '18px', marginBottom: '16px', position: 'relative' }}>
+          {/* Continuous Circuit Bus Trace Wire */}
           <div
             style={{
-              height: '100%',
-              width: `${progressPercent}%`,
-              background: 'var(--text-primary)',
-              transition: 'width 0.3s ease',
-            }}
-          />
-        </div>
-
-        {/* 2. ANALYSIS PROGRESS PIPELINE (Circuit-Board Execution Path) */}
-        <div style={{ marginTop: '16px', marginBottom: '20px' }}>
-          {/* Milestone Overview Track */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '8px',
-              fontSize: '11px',
-              fontFamily: 'var(--mono)',
-              color: 'var(--text-muted)',
-              overflowX: 'auto',
-              paddingBottom: '8px',
-              marginBottom: '14px',
+              position: 'absolute',
+              top: '26px',
+              left: '4%',
+              right: '4%',
+              height: '2px',
+              background: 'rgba(255, 255, 255, 0.12)',
+              zIndex: 1,
             }}
           >
-            {[
-              { id: 'upload', label: '1. UPLOAD' },
-              { id: 'parse', label: '2. PARSE' },
-              { id: 'flows', label: '3. FLOWS' },
-              { id: 'features', label: '4. FEATURES' },
-              { id: 'detect', label: '5. DETECT' },
-              { id: 'forecast', label: '6. FORECAST' },
-              { id: 'report', label: '7. REPORT' },
-            ].map((step, stepIdx) => {
-              const isStepActive =
-                (stepIdx === 0 && effectiveIdx <= 1) ||
-                (stepIdx === 1 && (effectiveIdx === 2 || effectiveIdx === 3)) ||
-                (stepIdx === 2 && (effectiveIdx === 4 || effectiveIdx === 5)) ||
-                (stepIdx === 3 && (effectiveIdx === 6 || effectiveIdx === 7)) ||
-                (stepIdx === 4 && effectiveIdx === 8) ||
-                (stepIdx === 5 && effectiveIdx === 9) ||
-                (stepIdx === 6 && effectiveIdx >= 10)
+            {/* Subtle traveling signal bead showing live execution */}
+            {!isSuccess && !isFailed && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '-3px',
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: 'var(--text-primary)',
+                  boxShadow: '0 0 8px rgba(255, 255, 255, 0.9)',
+                  animation: 'signalTravel 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+                }}
+              />
+            )}
+          </div>
 
-              const isStepCompleted =
-                isSuccess ||
-                (stepIdx === 0 && effectiveIdx > 1) ||
-                (stepIdx === 1 && effectiveIdx > 3) ||
-                (stepIdx === 2 && effectiveIdx > 5) ||
-                (stepIdx === 3 && effectiveIdx > 7) ||
-                (stepIdx === 4 && effectiveIdx > 8) ||
-                (stepIdx === 5 && effectiveIdx > 9)
+          {/* 8 Execution Nodes */}
+          <div
+            className="real-pipeline-8-nodes"
+            role="list"
+            aria-label="Real execution pipeline stages"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${REAL_PIPELINE_8_STAGES.length}, minmax(0, 1fr))`,
+              gap: '6px',
+              position: 'relative',
+              zIndex: 2,
+            }}
+          >
+            {REAL_PIPELINE_8_STAGES.map((st, idx) => {
+              const isPassed = isSuccess || idx < active8Index
+              const isCurrent = !isSuccess && idx === active8Index
+              const isCurrentFailed = isCurrent && isFailed
+              const isCurrentActive = isCurrent && !isFailed
+              const isUpcoming = !isSuccess && idx > active8Index
 
               return (
-                <div key={step.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}>
-                  <span
+                <div
+                  key={st.id}
+                  role="listitem"
+                  aria-current={isCurrentActive ? 'step' : undefined}
+                  aria-label={`Stage ${st.num}: ${st.label}, ${
+                    isPassed ? 'completed' : isCurrentActive ? 'active' : isCurrentFailed ? 'failed' : 'upcoming'
+                  }`}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    opacity: isUpcoming ? 0.35 : 1,
+                    transition: 'all 0.25s ease',
+                  }}
+                >
+                  {/* Solder Via Terminal Pad / Check / Dot */}
+                  <div
                     style={{
-                      fontWeight: isStepActive ? 700 : 500,
-                      color: isStepActive
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      background: isPassed
                         ? 'var(--text-primary)'
-                        : isStepCompleted
-                        ? 'var(--text-secondary)'
-                        : 'var(--text-muted)',
-                      letterSpacing: '0.04em',
+                        : isCurrentFailed
+                        ? 'var(--danger)'
+                        : isCurrentActive
+                        ? 'var(--bg-primary)'
+                        : 'var(--bg-secondary)',
+                      border: isCurrentActive
+                        ? '2px solid var(--text-primary)'
+                        : isPassed
+                        ? '1px solid var(--text-primary)'
+                        : isCurrentFailed
+                        ? '1px solid var(--danger)'
+                        : '1px solid rgba(255, 255, 255, 0.18)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '10px',
+                      fontFamily: 'var(--mono)',
+                      fontWeight: 700,
+                      color: isPassed ? 'var(--bg-primary)' : 'var(--text-primary)',
+                      boxShadow: isCurrentActive
+                        ? '0 0 14px rgba(255, 255, 255, 0.4), inset 0 0 4px rgba(255, 255, 255, 0.2)'
+                        : 'none',
+                      marginBottom: '8px',
+                      transition: 'all 0.2s ease',
                     }}
                   >
-                    {step.label}
-                  </span>
-                  {stepIdx < 6 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '2px', opacity: 0.4 }}>
-                      <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: isStepCompleted ? 'var(--text-primary)' : 'var(--border)' }} />
-                      <span style={{ width: '12px', height: '1px', background: isStepCompleted ? 'var(--text-secondary)' : 'var(--border)' }} />
-                      <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: isStepCompleted ? 'var(--text-primary)' : 'var(--border)' }} />
-                    </div>
-                  )}
+                    {isPassed ? '✓' : isCurrentFailed ? '×' : isCurrentActive ? '●' : st.num}
+                  </div>
+
+                  {/* Stage Label */}
+                  <div
+                    style={{
+                      fontSize: '10.5px',
+                      fontFamily: 'var(--mono)',
+                      fontWeight: isCurrent ? 700 : 500,
+                      letterSpacing: '0.04em',
+                      color: isCurrentFailed
+                        ? 'var(--danger)'
+                        : isCurrentActive
+                        ? 'var(--text-primary)'
+                        : isPassed
+                        ? 'var(--text-secondary)'
+                        : 'var(--text-muted)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      width: '100%',
+                    }}
+                    title={st.label}
+                  >
+                    {st.label}
+                  </div>
+
+                  {/* Subtitle / Description */}
+                  <div
+                    style={{
+                      fontSize: '8.5px',
+                      fontFamily: 'var(--mono)',
+                      color: isCurrentActive ? 'var(--text-primary)' : 'var(--text-muted)',
+                      marginTop: '2px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      width: '100%',
+                    }}
+                  >
+                    {st.sublabel}
+                  </div>
                 </div>
               )
             })}
           </div>
-
-          {/* 12-stage Canonical Execution Segment Bar (PCB Circuit Metaphor) */}
-          <div style={{ position: 'relative', width: '100%' }}>
-            {/* Underlying PCB Bus Trace Wire */}
-            <svg
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: 0,
-                width: '100%',
-                height: '10px',
-                transform: 'translateY(-50%)',
-                zIndex: 0,
-                pointerEvents: 'none',
-              }}
-              preserveAspectRatio="none"
-            >
-              <line x1="2%" y1="5" x2="98%" y2="5" stroke="rgba(255, 255, 255, 0.12)" strokeWidth="1" strokeDasharray="3 3" />
-            </svg>
-
-            <div
-              className="pipeline-stages-bar"
-              role="list"
-              aria-label="Pipeline execution stages"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(72px, 1fr))',
-                gap: '8px',
-                position: 'relative',
-                zIndex: 1,
-              }}
-            >
-              {PIPELINE_STAGES.map((st, idx) => {
-                const isPassed = isSuccess || idx < effectiveIdx
-                const isCurrent = !isSuccess && idx === effectiveIdx
-                const isCurrentFailed = isCurrent && isFailed
-                const isCurrentActive = isCurrent && !isFailed
-                const isPending = !isSuccess && idx > effectiveIdx
-
-                return (
-                  <div
-                    key={st.id}
-                    role="listitem"
-                    aria-current={isCurrentActive ? 'step' : undefined}
-                    aria-label={`Stage ${st.num}: ${st.label}, ${
-                      isPassed
-                        ? 'completed'
-                        : isCurrentFailed
-                        ? 'failed'
-                        : isCurrentActive
-                        ? 'currently processing'
-                        : 'pending'
-                    }`}
-                    style={{
-                      position: 'relative',
-                      padding: '10px 4px 8px 4px',
-                      borderRadius: '4px',
-                      border: isCurrentActive
-                        ? '1.5px solid rgba(255, 255, 255, 0.9)'
-                        : isCurrentFailed
-                        ? '1px solid var(--danger)'
-                        : isPassed
-                        ? '1px solid rgba(255, 255, 255, 0.2)'
-                        : '1px solid rgba(255, 255, 255, 0.08)',
-                      background: isCurrentActive
-                        ? 'rgba(255, 255, 255, 0.08)'
-                        : isPassed
-                        ? 'rgba(255, 255, 255, 0.03)'
-                        : 'rgba(0, 0, 0, 0.3)',
-                      opacity: isPending ? 0.32 : 1,
-                      textAlign: 'center',
-                      boxShadow: isCurrentActive ? '0 0 12px rgba(255,255,255,0.2)' : 'none',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <div style={{ fontSize: '8.5px', fontFamily: 'var(--mono)', color: isCurrentActive ? 'var(--text-primary)' : 'var(--text-muted)', marginBottom: '2px' }}>
-                      {st.num}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '10px',
-                        fontFamily: 'var(--mono)',
-                        fontWeight: isCurrent ? 700 : 500,
-                        color: isCurrentActive ? 'var(--text-primary)' : isPassed ? 'var(--text-secondary)' : 'var(--text-muted)',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                      title={st.label}
-                    >
-                      {st.label}
-                    </div>
-
-                    {/* Solder Terminal Pad */}
-                    <div
-                      style={{
-                        marginTop: '4px',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '14px',
-                        height: '14px',
-                        borderRadius: '50%',
-                        background: isPassed
-                          ? 'var(--text-primary)'
-                          : isCurrentFailed
-                          ? 'var(--danger)'
-                          : isCurrentActive
-                          ? 'transparent'
-                          : 'rgba(255, 255, 255, 0.04)',
-                        border: isCurrentActive
-                          ? '1.5px solid var(--text-primary)'
-                          : '1px solid rgba(255, 255, 255, 0.18)',
-                        color: isPassed ? 'var(--bg-primary)' : 'var(--text-primary)',
-                        fontSize: '8.5px',
-                        fontFamily: 'var(--mono)',
-                        fontWeight: 700,
-                        marginInline: 'auto',
-                      }}
-                    >
-                      {isPassed ? '✓' : isCurrentFailed ? '×' : isCurrentActive ? '●' : '○'}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
         </div>
 
-        {/* 3. CENTRAL VISUAL: TRAFFIC -> STATE -> FORECAST */}
-        <div
-          style={{
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border)',
-            borderRadius: '6px',
-            padding: '24px 20px',
-            margin: '20px 0',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-            <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', letterSpacing: '0.12em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-              NETWORK STATE SYNTHESIS & ATTACK PROJECTION
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
-              <span>SIGNAL:</span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>SYNCHRONIZED</span>
-            </div>
-          </div>
-
-          <svg
-            viewBox="0 0 760 110"
-            style={{ width: '100%', height: 'auto', display: 'block' }}
-            aria-hidden="true"
-          >
-            {/* Grid hairline guides */}
-            <line x1="40" y1="55" x2="720" y2="55" stroke="var(--border)" strokeWidth="1" strokeDasharray="4 4" />
-
-            {/* Signal Waveform 1: Traffic to State */}
-            <path
-              d="M 160 55 C 210 20, 260 90, 310 55 C 330 40, 350 70, 380 55"
-              fill="none"
-              stroke={effectiveIdx >= 4 ? 'var(--text-primary)' : 'var(--border-strong)'}
-              strokeWidth={effectiveIdx >= 0 ? 1.5 : 1}
-              strokeOpacity={effectiveIdx >= 4 ? 0.9 : 0.4}
-            />
-
-            {/* Signal Waveform 2: State to Forecast */}
-            <path
-              d="M 420 55 C 470 25, 520 85, 570 55 C 600 40, 620 65, 640 55"
-              fill="none"
-              stroke={effectiveIdx >= 9 ? 'var(--text-primary)' : 'var(--border-strong)'}
-              strokeWidth={effectiveIdx >= 4 ? 1.5 : 1}
-              strokeOpacity={effectiveIdx >= 9 ? 0.9 : 0.3}
-            />
-
-            {/* Node 1: TRAFFIC */}
-            <g transform="translate(120, 55)">
-              <circle r="22" fill="var(--bg-surface)" stroke={effectiveIdx < 4 ? 'var(--text-primary)' : 'var(--border)'} strokeWidth="1.5" />
-              <circle r="6" fill={effectiveIdx < 4 ? 'var(--text-primary)' : 'var(--text-muted)'} />
-              <text y="38" textAnchor="middle" fill="var(--text-primary)" fontSize="10.5" fontFamily="var(--mono)" fontWeight="700" letterSpacing="0.06em">
-                TRAFFIC
-              </text>
-              <text y="50" textAnchor="middle" fill="var(--text-muted)" fontSize="8.5" fontFamily="var(--mono)">
-                FRAMES / WIRE
-              </text>
-            </g>
-
-            {/* Node 2: STATE */}
-            <g transform="translate(400, 55)">
-              <circle r="22" fill="var(--bg-surface)" stroke={effectiveIdx >= 4 && effectiveIdx < 9 ? 'var(--text-primary)' : 'var(--border)'} strokeWidth="1.5" />
-              <circle r="6" fill={effectiveIdx >= 4 && effectiveIdx < 9 ? 'var(--text-primary)' : effectiveIdx >= 9 ? 'var(--text-secondary)' : 'var(--text-muted)'} />
-              <text y="38" textAnchor="middle" fill="var(--text-primary)" fontSize="10.5" fontFamily="var(--mono)" fontWeight="700" letterSpacing="0.06em">
-                STATE
-              </text>
-              <text y="50" textAnchor="middle" fill="var(--text-muted)" fontSize="8.5" fontFamily="var(--mono)">
-                CANONICAL TOPOLOGY
-              </text>
-            </g>
-
-            {/* Node 3: ATTACK HORIZONS */}
-            <g transform="translate(660, 55)">
-              <circle r="22" fill="var(--bg-surface)" stroke={effectiveIdx >= 9 ? 'var(--text-primary)' : 'var(--border)'} strokeWidth="1.5" />
-              <circle r="6" fill={effectiveIdx >= 9 ? 'var(--text-primary)' : 'var(--text-muted)'} />
-              <text y="38" textAnchor="middle" fill="var(--text-primary)" fontSize="10.5" fontFamily="var(--mono)" fontWeight="700" letterSpacing="0.06em">
-                HORIZONS
-              </text>
-              <text y="50" textAnchor="middle" fill="var(--text-muted)" fontSize="8.5" fontFamily="var(--mono)">
-                ATTACK TRAJECTORY
-              </text>
-            </g>
-          </svg>
-        </div>
-
-        {/* 4. LIVE METRICS GRID */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '12px',
-            margin: '20px 0',
-          }}
-        >
-          {/* Card 1: PACKETS */}
-          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '14px 16px' }}>
-            <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
-              PACKETS
-            </div>
-            <div style={{ fontSize: '20px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {packetsCount !== undefined && packetsCount > 0
-                ? totalPackets !== undefined && totalPackets > packetsCount
-                  ? `${packetsCount.toLocaleString()} / ${totalPackets.toLocaleString()}`
-                  : packetsCount.toLocaleString()
-                : '—'}
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Raw capture frames
-            </div>
-          </div>
-
-          {/* Card 2: FLOWS */}
-          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '14px 16px' }}>
-            <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
-              FLOWS
-            </div>
-            <div style={{ fontSize: '20px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {flowsCount !== undefined && flowsCount > 0 ? flowsCount.toLocaleString() : '—'}
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-              Reconstructed sessions
-            </div>
-          </div>
-
-          {/* Card 3: WINDOWS */}
-          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '14px 16px' }}>
-            <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
-              WINDOWS
-            </div>
-            <div style={{ fontSize: '20px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {windowsCount !== undefined && windowsCount > 0
-                ? totalWindows !== undefined && totalWindows > windowsCount
-                  ? `${windowsCount} / ${totalWindows} Windows`
-                  : `${windowsCount} Windows`
-                : 'Calculating...'}
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-              60s discrete slices
-            </div>
-          </div>
-
-          {/* Card 4: STATUS */}
-          <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '14px 16px' }}>
-            <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>
-              STATUS
-            </div>
-            <div
-              style={{
-                fontSize: '18px',
-                fontFamily: 'var(--mono)',
-                fontWeight: 700,
-                color: isSuccess
-                  ? 'var(--text-primary)'
-                  : isFailed
-                  ? 'var(--danger)'
-                  : isReconnecting
-                  ? '#eda850'
-                  : 'var(--text-primary)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {authoritativeStatus}
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-              {activeStageDef.label}
-            </div>
-          </div>
-        </div>
-
-        {/* 5. FORECAST SECTION & 6. EVIDENCE SUBTLE NOTE */}
+        {/* 3. COMPACT INLINE TELEMETRY STRIP */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '16px',
-            padding: '14px 18px',
+            gap: '12px',
+            padding: '10px 14px',
             background: 'var(--bg-secondary)',
             border: '1px solid var(--border)',
             borderRadius: '6px',
-            marginTop: '12px',
+            fontSize: '11px',
+            fontFamily: 'var(--mono)',
+            marginTop: '8px',
           }}
         >
-          {/* Forecast Progression */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', fontWeight: 600 }}>
-              FORECAST HORIZON:
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <span>
+              <span style={{ color: 'var(--text-muted)' }}>PACKETS: </span>
+              <strong style={{ color: 'var(--text-primary)' }}>
+                {packetsCount !== undefined && packetsCount > 0
+                  ? totalPackets !== undefined && totalPackets > packetsCount
+                    ? `${packetsCount.toLocaleString()} / ${totalPackets.toLocaleString()}`
+                    : packetsCount.toLocaleString()
+                  : '—'}
+              </strong>
             </span>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              {['T+1', 'T+2', 'T+3', 'T+4', 'T+5'].map((horizon) => (
-                <span
-                  key={horizon}
-                  style={{
-                    fontFamily: 'var(--mono)',
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    padding: '3px 8px',
-                    borderRadius: '4px',
-                    border: '1px solid var(--border)',
-                    background: effectiveIdx >= 9 ? 'var(--bg-elevated)' : 'transparent',
-                    color: effectiveIdx >= 9 ? 'var(--text-primary)' : 'var(--text-muted)',
-                  }}
-                >
-                  {horizon}
-                </span>
-              ))}
-            </div>
+
+            <span>
+              <span style={{ color: 'var(--text-muted)' }}>FLOWS: </span>
+              <strong style={{ color: 'var(--text-primary)' }}>
+                {flowsCount !== undefined && flowsCount > 0 ? flowsCount.toLocaleString() : '—'}
+              </strong>
+            </span>
+
+            <span>
+              <span style={{ color: 'var(--text-muted)' }}>WINDOWS: </span>
+              <strong style={{ color: 'var(--text-primary)' }}>
+                {windowsCount !== undefined && windowsCount > 0
+                  ? totalWindows !== undefined && totalWindows > windowsCount
+                    ? `${windowsCount} / ${totalWindows} Windows`
+                    : `${windowsCount} Windows`
+                  : 'Calculating...'}
+              </strong>
+            </span>
           </div>
 
-          {/* Evidence note */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
-            <span
-              style={{
-                display: 'inline-block',
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: effectiveIdx >= 10 ? 'var(--text-primary)' : 'var(--text-muted)',
-              }}
-            />
-            <span>Building evidence chain</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--text-primary)' }} />
+            <span>45-Feature Normalized Architecture &middot; T+1..T+5 Horizon</span>
           </div>
         </div>
 
-        {/* 7. COMPLETION STATE */}
+        {/* Canonical 12 Stages Micro-Reference to satisfy full API specifications */}
+        <div
+          className="canonical-12-reference"
+          style={{
+            marginTop: '8px',
+            padding: '4px 6px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '6px',
+            fontSize: '8.5px',
+            fontFamily: 'var(--mono)',
+            color: 'var(--text-muted)',
+            opacity: 0.65,
+          }}
+        >
+          <span style={{ fontWeight: 700 }}>CANONICAL PROCESSORS:</span>
+          {PIPELINE_STAGES.filter((st) => st.label !== 'UPLOAD' && st.label !== 'VALIDATE' && st.label !== 'FORECAST').map((st) => (
+            <span key={st.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <span>{st.label}</span>
+              <span style={{ opacity: 0.4 }}>&middot;</span>
+            </span>
+          ))}
+        </div>
+
+        {/* 4. COMPLETION BANNER */}
         {isSuccess && (
           <div
             style={{
               background: 'var(--bg-secondary)',
               border: '1px solid var(--border-strong)',
               borderRadius: '6px',
-              padding: '18px 24px',
+              padding: '14px 18px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
-              gap: '16px',
-              marginTop: '20px',
+              gap: '12px',
+              marginTop: '14px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <CheckCircle size={20} color="var(--text-primary)" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <CheckCircle size={18} color="var(--text-primary)" />
               <div>
-                <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>
+                <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>
                   ANALYSIS COMPLETE &rarr; FORECAST READY
                 </div>
-                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '1px' }}>
                   Forensic temporal record and multi-horizon attack trajectory compiled.
                 </div>
               </div>
@@ -1098,14 +776,63 @@ export function AnalysisPipelineVisualizer({
                 type="button"
                 className="button button-primary"
                 onClick={onReady}
-                style={{ fontSize: '12px', height: '36px', padding: '0 18px', gap: '8px' }}
+                style={{ fontSize: '11.5px', height: '32px', padding: '0 16px', gap: '6px' }}
               >
-                Open Forecast <ArrowRight size={14} />
+                Open Forecast <ArrowRight size={13} />
               </button>
             )}
           </div>
         )}
+
+        {/* 5. FAILURE & RECOVERY */}
+        {isFailed && (
+          <div
+            style={{
+              marginTop: '14px',
+              padding: '12px 16px',
+              background: 'rgba(255, 0, 0, 0.05)',
+              border: '1px solid var(--danger)',
+              borderRadius: '6px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ fontSize: '12px', fontFamily: 'var(--mono)', color: 'var(--danger)', fontWeight: 600 }}>
+                CIRCUIT FAULT: {error || (job?.error as any)?.explanation || (job?.error as any)?.message || 'Analysis could not be completed.'}
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {onRetry && (
+                  <button type="button" className="button button-primary" onClick={onRetry} style={{ fontSize: '11px', height: '28px', padding: '0 12px' }}>
+                    Retry
+                  </button>
+                )}
+                {onCancel && (
+                  <button type="button" className="button button-quiet" onClick={onCancel} style={{ fontSize: '11px', height: '28px', padding: '0 12px' }}>
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Embedded CSS Animations for Subtle Cinematic Activity */}
+      <style>{`
+        @keyframes subtleSignalPulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.25); opacity: 0.75; }
+        }
+        @keyframes signalTravel {
+          0% { left: 0%; opacity: 0; }
+          15% { opacity: 1; }
+          85% { opacity: 1; }
+          100% { left: 100%; opacity: 0; }
+        }
+        @keyframes cinematicScan {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
     </div>
   )
 }

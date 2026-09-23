@@ -98,9 +98,9 @@ export function AttackProgressionTimeline({
               fontWeight: 700,
               padding: '4px 10px',
               borderRadius: '4px',
-              background: 'rgba(104, 225, 216, 0.1)',
-              color: 'var(--accent)',
-              border: '1px solid rgba(104, 225, 216, 0.3)',
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border)',
             }}
           >
             STATUS: {verdict.replace(/_/g, ' ')}
@@ -112,7 +112,6 @@ export function AttackProgressionTimeline({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {displayStages.map((node) => {
           const isElevated = node.risk === 'HIGH' || node.risk === 'CRITICAL'
-
           return (
             <div
               key={node.stage}
@@ -124,16 +123,12 @@ export function AttackProgressionTimeline({
                 padding: '14px 16px',
                 borderRadius: '6px',
                 background: node.isCurrent
-                  ? 'rgba(104, 225, 216, 0.08)'
+                  ? 'var(--bg-surface)'
                   : node.isForecasted
-                  ? isElevated
-                    ? 'rgba(237, 128, 111, 0.08)'
-                    : 'rgba(242, 187, 113, 0.08)'
-                  : 'var(--bg-secondary)',
-                border: node.isCurrent
-                  ? '1px solid var(--accent)'
-                  : node.isForecasted
-                  ? `1px solid ${isElevated ? 'var(--danger)' : 'var(--warning)'}`
+                  ? 'var(--bg-secondary)'
+                  : 'transparent',
+                border: node.isCurrent || node.isForecasted
+                  ? '1px solid var(--text-primary)'
                   : '1px solid var(--border)',
                 transition: 'all 0.15s ease',
               }}

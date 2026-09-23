@@ -66,11 +66,11 @@ export function Reports() {
       <div className="page-stack page-enter" style={{ maxWidth: '640px', margin: '60px auto', textAlign: 'center' }}>
         <Panel>
           <div style={{ padding: '36px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <FileText size={24} color="var(--text-muted)" />
+            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FileText size={24} color="var(--text-primary)" />
             </div>
             <div>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
                 REPORTS
               </span>
               <h2 style={{ margin: '4px 0 8px 0', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
@@ -248,7 +248,7 @@ export function Reports() {
                 <FileText size={18} />
               </div>
               <div>
-                <span className="eyebrow" style={{ color: 'var(--text-muted)', fontSize: '10px' }}>
+                <span className="eyebrow" style={{ color: 'var(--text-primary)', fontSize: '10px' }}>
                   NEXSOLVE NETWORK SECURITY ASSESSMENT
                 </span>
                 <h3 style={{ margin: '2px 0 0 0', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -305,49 +305,49 @@ export function Reports() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '12px' }}>
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '8px' }}>
-              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 CURRENT ASSESSMENT
               </span>
               <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '3px' }}>
                 {hasElevatedSignal ? 'ELEVATED THREAT SIGNAL' : 'BENIGN TRAFFIC BASELINE'}
               </div>
-              <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 {hasElevatedSignal ? 'Anomalous pressure at T0' : 'Conforms to baseline'}
               </div>
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '8px' }}>
-              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 FORECAST HORIZON
               </span>
               <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '3px' }}>
                 T+1 &rarr; T+5 (+300s)
               </div>
-              <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 5 sequential 60s windows
               </div>
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '8px' }}>
-              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 PRIMARY SIGNAL DRIVER
               </span>
               <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '3px' }}>
                 {primaryDriver}
               </div>
-              <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 Counterfactual sensitivity
               </div>
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '8px' }}>
-              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 PROJECTED TRAJECTORY
               </span>
               <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '3px' }}>
                 {progressionTrajectory}
               </div>
-              <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
                 Modeled behavioral stage
               </div>
             </div>
@@ -383,21 +383,21 @@ export function Reports() {
             {/* Left: Wire Ingestion Telemetry */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Observed Packet Volume:</span>
+                <span style={{ color: 'var(--text-secondary)' }}>Observed Packet Volume:</span>
                 <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>{formatNumber(input.packetCount)} packets</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Reconstructed Flow Volume:</span>
+                <span style={{ color: 'var(--text-secondary)' }}>Reconstructed Flow Volume:</span>
                 <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>{formatNumber(input.flowCount)} flows</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Active Endpoints:</span>
+                <span style={{ color: 'var(--text-secondary)' }}>Active Endpoints:</span>
                 <span style={{ fontFamily: 'var(--mono)' }}>
                   {currentState?.summary?.uniqueSrcIps || 1} Source Hosts &middot; {currentState?.summary?.uniqueDstIps || 1} Destination Hosts
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Capture Span:</span>
+                <span style={{ color: 'var(--text-secondary)' }}>Capture Span:</span>
                 <span style={{ fontFamily: 'var(--mono)' }}>{input.captureDurationSeconds}s ({input.windowCount} observation windows)</span>
               </div>
             </div>
@@ -405,22 +405,22 @@ export function Reports() {
             {/* Right: Canonical State Formulation */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Continuous State Representation:</span>
+                <span style={{ color: 'var(--text-secondary)' }}>Continuous State Representation:</span>
                 <span style={{ fontFamily: 'var(--mono)', fontWeight: 600 }}>45-Feature Normalized Vector</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Temporal Window Stride:</span>
+                <span style={{ color: 'var(--text-secondary)' }}>Temporal Window Stride:</span>
                 <span style={{ fontFamily: 'var(--mono)' }}>60s Discrete Tumbling Slices</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Precondition Gate:</span>
-                <span style={{ fontFamily: 'var(--mono)', fontWeight: 600, color: input.windowCount >= 8 ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Precondition Gate:</span>
+                <span style={{ fontFamily: 'var(--mono)', fontWeight: 600, color: input.windowCount >= 8 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
                   {input.windowCount >= 8 ? 'Qualified (≥8 Windows)' : 'Early Stage (<8 Windows)'}
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Round-Trip Time Integrity:</span>
-                <span style={{ fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>Deliberately Omitted (Zero Imputation)</span>
+                <span style={{ color: 'var(--text-secondary)' }}>Round-Trip Time Integrity:</span>
+                <span style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>Deliberately Omitted (Zero Imputation)</span>
               </div>
             </div>
           </div>
@@ -445,7 +445,7 @@ export function Reports() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 THREAT LEVEL
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -454,7 +454,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 OBSERVED DRIVER
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -463,7 +463,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 PROJECTED STAGE
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -472,7 +472,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 EARLIEST LEAD TIME
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -481,7 +481,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 ASSESSMENT CONFIDENCE
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -555,7 +555,7 @@ export function Reports() {
 
           {/* Sequential Attack Progression Timeline */}
           <div>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
               SEQUENTIAL KILL-CHAIN PROGRESSION
             </span>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
@@ -575,17 +575,17 @@ export function Reports() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                    <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
                       STAGE {st.step} (+{st.leadTimeSeconds}s)
                     </span>
-                    <span style={{ fontSize: '8.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '8.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
                       {formatDisplayLabel(st.predictionType)}
                     </span>
                   </div>
                   <strong style={{ display: 'block', fontSize: '11.5px', color: 'var(--text-primary)' }}>
                     {formatDisplayLabel(st.predictedState)}
                   </strong>
-                  <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px', display: 'block' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px', display: 'block' }}>
                     Transition Signal: {st.transitionProbability ? Math.round(st.transitionProbability * 100) + '%' : 'N/A'}
                   </span>
                 </div>
@@ -647,7 +647,7 @@ export function Reports() {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
                       <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>{formatDisplayLabel(node.name)}</strong>
-                      <span style={{ fontSize: '8.5px', fontFamily: 'var(--mono)', color: node.isSupporting ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                      <span style={{ fontSize: '8.5px', fontFamily: 'var(--mono)', color: node.isSupporting ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
                         {node.isSupporting ? 'SUPPORTING' : 'CONTRADICTORY'}
                       </span>
                     </div>
@@ -696,7 +696,7 @@ export function Reports() {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
                       <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>{formatDisplayLabel(d.feature)}</strong>
-                      <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                      <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
                         {d.direction} {d.relativeChange ? `(${d.relativeChange > 0 ? '+' : ''}${d.relativeChange.toFixed(1)}x)` : ''}
                       </span>
                     </div>
@@ -747,9 +747,9 @@ export function Reports() {
                       <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)', fontSize: '11px' }}>
                         {m.techniqueId}: {m.techniqueName}
                       </strong>
-                      <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>{m.forecastStep}</span>
+                      <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>{m.forecastStep}</span>
                     </div>
-                    <div style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>TACTIC: {m.tactic}</div>
+                    <div style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>TACTIC: {m.tactic}</div>
                     <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontSize: '10.5px', lineHeight: 1.4 }}>
                       {m.interpretation}
                     </p>
@@ -794,7 +794,7 @@ export function Reports() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' }}>
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 FRAMES PARSED
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -803,7 +803,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 TRUNCATED FRAMES
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -812,7 +812,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 MALFORMED HEADERS
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -821,7 +821,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 PACKET LOSS
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -830,7 +830,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 TIMESTAMP CONTINUITY
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -839,7 +839,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
                 WINDOW STRIDE
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -898,57 +898,57 @@ export function Reports() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>ARCHITECTURE</span>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>ARCHITECTURE</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>LSTM Network State Model</strong>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Recursive latent dynamic forecasting</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Recursive latent dynamic forecasting</span>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>CANONICAL STATE</span>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>CANONICAL STATE</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>45-Feature Contract</strong>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Layer 3/4 passive telemetry vector</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Layer 3/4 passive telemetry vector</span>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>TEMPORAL RESOLUTION</span>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>TEMPORAL RESOLUTION</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>60-Second Windows</strong>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Discrete tumbling slices (zero overlap)</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Discrete tumbling slices (zero overlap)</span>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>LOOKAHEAD HORIZON</span>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>LOOKAHEAD HORIZON</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>T+1 &rarr; T+5 (+300s)</strong>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Multi-step forward projection</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Multi-step forward projection</span>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>REFERENCE BASELINE</span>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>REFERENCE BASELINE</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>Zero-Drift Standard</strong>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Empirical persistence baseline</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Empirical persistence baseline</span>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>INPUT TELEMETRY</span>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>INPUT TELEMETRY</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>{input.format.toUpperCase()} Passive Capture</strong>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{input.windowCount} windows &middot; {input.captureDurationSeconds}s</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{input.windowCount} windows &middot; {input.captureDurationSeconds}s</span>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>PROVENANCE & AUDIT</span>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>PROVENANCE & AUDIT</span>
               <strong style={{ display: 'block', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', marginTop: '2px', wordBreak: 'break-all' }}>
                 {analysis.provenanceLabel || (analysis.provenance === 'live' ? 'Live Telemetry' : 'Reference Dataset')}
               </strong>
-              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
                 Deterministic Pipeline v1.0
               </span>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>DATA PRECONDITION GATE</span>
+              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>DATA PRECONDITION GATE</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>
                 {input.windowCount >= 8 ? 'QUALIFIED (≥8 Windows)' : 'EARLY STAGE (<8 Windows)'}
               </strong>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Precondition gate enforced</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Precondition gate enforced</span>
             </div>
           </div>
         </Panel>

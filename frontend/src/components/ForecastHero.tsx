@@ -45,17 +45,13 @@ export function ForecastHero({
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          background: isCritical
-            ? 'radial-gradient(circle at top left, rgba(237, 128, 111, 0.15), var(--bg-surface) 70%)'
-            : isHighRisk
-            ? 'radial-gradient(circle at top left, rgba(242, 187, 113, 0.15), var(--bg-surface) 70%)'
-            : 'radial-gradient(circle at top left, rgba(104, 225, 216, 0.12), var(--bg-surface) 70%)',
-          border: `1px solid ${isCritical ? 'rgba(237, 128, 111, 0.4)' : isHighRisk ? 'rgba(242, 187, 113, 0.4)' : 'rgba(104, 225, 216, 0.3)'}`,
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border)',
         }}
       >
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span className="eyebrow" style={{ color: 'var(--accent)', margin: 0 }}>
+            <span className="eyebrow" style={{ color: 'var(--text-primary)', margin: 0 }}>
               THREAT ASSESSMENT
             </span>
             <RiskBadge level={earlyWarningLevel} size="sm" />

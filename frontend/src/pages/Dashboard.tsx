@@ -1,6 +1,8 @@
-import { useEffect, useState, type DragEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState, type DragEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
+  ArrowLeft,
   ArrowUpRight,
   CheckCircle2,
   FileUp,
@@ -37,6 +39,8 @@ import {
 export function Dashboard() {
   const navigate = useNavigate()
   const { data, loading, error, reload, analyzePcap, clearUploadedAnalysis, clearUploadError, analysisSource, uploadError } = useProductionData()
+  const location = useLocation()
+  const { data, loading, error, reload, analyzePcap, clearUploadedAnalysis, clearUploadError, analysisSource, uploadError, setUploadedAnalysis } = useProductionData()
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState<boolean>(false)
   const [uploadProgress, setUploadProgress] = useState<{ loaded: number; total: number; percentage: number } | null>(null)
@@ -47,7 +51,9 @@ export function Dashboard() {
   const [showCsvModal, setShowCsvModal] = useState<boolean>(false)
   const [history, setHistory] = useState<AnalysisHistoryEntry[]>(() => getAnalysisHistory())
 
-  const effectiveResult = jobResult ?? (analysisSource === 'uploaded' ? (data?.results as unknown as UploadedAnalysisResponse) : null)
+  const [clearedManually, setClearedManually] = useState<boolean>(false)
+
+  const effectiveResult = clearedManually ? null : (jobResult ?? (analysisSource === 'uploaded' ? (data?.results as unknown as UploadedAnalysisResponse) : null))
 
   // Sync history when effectiveResult is available
   useEffect(() => {
@@ -75,6 +81,7 @@ export function Dashboard() {
   const windows = traffic.windows_data ?? []
 
   const handleFileSelect = (selected: File | null) => {
+    setClearedManually(false)
     clearUploadError?.()
     setUploadProgress(null)
     if (!selected) {
@@ -95,6 +102,13 @@ export function Dashboard() {
       setFile(selected)
     }
   }
+
+  useEffect(() => {
+    if (location.search.includes('upload=true') || (location.state as any)?.openPicker) {
+      handleUploadAnother()
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.search, location.state])
 
   const submitCapture = async () => {
     if (!file || uploading) return
@@ -125,6 +139,19 @@ export function Dashboard() {
       setFile(null)
       // Navigate to dedicated forecast rollout route with the created job ID
       navigate(`/console/forecast/${job.job_id}`)
+
+      // Poll until completion so live processing status is shown directly on Dashboard
+      let cur = job
+      while (cur.status === 'QUEUED' || cur.status === 'PROCESSING') {
+        await new Promise((r) => setTimeout(r, 600))
+        cur = await api.getJobStatus(job.job_id)
+        setActiveJob(cur)
+      }
+      if (cur.status === 'COMPLETED') {
+        const res = await api.getJobResult(cur.job_id)
+        setJobResult(res)
+        await setUploadedAnalysis(res)
+      }
     } catch (err: unknown) {
       if (err instanceof ApiError && err.status === 404) {
         // Fallback to synchronous analysis ONLY if async jobs endpoint is 404
@@ -181,16 +208,99 @@ export function Dashboard() {
     resetJobView()
   }
 
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleUploadAnother = () => {
+    // 1. Immediately reset current analysis view state without full reload
+    setClearedManually(true)
+    setJobResult(null)
+
+    // 2. Clear relevant cached keys in session & local storage
+    try {
+      sessionStorage.removeItem('nexsolve-current-analysis-id')
+      localStorage.removeItem('nexsolve-current-analysis-id')
+      sessionStorage.removeItem('nexsolve-upload-analysis-id')
+      localStorage.removeItem('nexsolve-upload-analysis-id')
+      sessionStorage.removeItem('nexsolve-cached-canonical')
+      localStorage.removeItem('nexsolve-cached-canonical')
+    } catch {
+      // Ignore storage errors
+    }
+
+    // 3. Reset upload / PCAP selection & polling state
+    setFile(null)
+    setUploading(false)
+    setUploadProgress(null)
+    setSelectionError(null)
+    setActiveJob(null)
+
+    // Clear backend reference asynchronously without blocking UI
+    void clearUploadedAnalysis()
+
+    // 4. Synchronously reset file input value & open PCAP file picker in trusted user gesture
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+      fileInputRef.current.click()
+    }
+  }
+
   const resetJobView = () => {
     setActiveJob(null)
     setJobResult(null)
+    setClearedManually(true)
+    setFile(null)
+    setUploading(false)
+    setUploadProgress(null)
+    setSelectionError(null)
     void clearUploadedAnalysis()
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
   const isCsv = file?.name.toLowerCase().endsWith('.csv')
 
   return (
     <div className="page-stack page-enter">
+      {/* Permanent, accessible hidden file input for reliable re-opening & re-selection */}
+      <input
+        ref={fileInputRef}
+        id="pcap-upload-input"
+        aria-label="Choose PCAP capture"
+        type="file"
+        accept=".pcap,.pcapng"
+        style={{
+          position: 'fixed',
+          top: '-9999px',
+          left: '-9999px',
+          width: '1px',
+          height: '1px',
+          opacity: 0,
+        }}
+        onClick={(event) => {
+          // Reset value so selecting the same capture file repeatedly always triggers onChange
+          (event.target as HTMLInputElement).value = ''
+        }}
+        onChange={(event) => {
+          const selected = event.target.files?.[0] ?? null
+          if (selected) {
+            handleFileSelect(selected)
+          }
+        }}
+      />
+      {/* Top Action Bar with Back to Home button */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', marginBottom: '8px' }}>
+        <Link
+          to="/"
+          className="header-start-btn"
+          style={{ height: '32px', padding: '0 14px', fontSize: '11px', gap: '6px', textDecoration: 'none' }}
+          aria-label="Back to Home"
+        >
+          <ArrowLeft size={13} />
+          <span>HOME</span>
+        </Link>
+      </div>
+
       {!effectiveResult && (
         <SectionHeading
           eyebrow="NETWORK ATTACK FORECASTING"
@@ -269,34 +379,14 @@ export function Dashboard() {
                   htmlFor="pcap-upload-input"
                   className="button button-primary"
                   style={{ cursor: 'pointer', gap: '6px' }}
+                  onClick={() => {
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = ''
+                    }
+                  }}
                 >
                   <FileUp size={14} /> Upload PCAP
                 </label>
-                <input
-                  id="pcap-upload-input"
-                  aria-label="Choose PCAP capture"
-                  type="file"
-                  accept=".pcap,.pcapng"
-                  style={{
-                    position: 'absolute',
-                    width: '1px',
-                    height: '1px',
-                    padding: 0,
-                    margin: '-1px',
-                    overflow: 'hidden',
-                    clip: 'rect(0, 0, 0, 0)',
-                    whiteSpace: 'nowrap',
-                    border: 0,
-                  }}
-                  onClick={(event) => {
-                    // Reset input value so selecting the same capture file repeatedly always triggers onChange
-                    (event.target as HTMLInputElement).value = ''
-                  }}
-                  onChange={(event) => {
-                    const selected = event.target.files?.[0] ?? null
-                    handleFileSelect(selected)
-                  }}
-                />
               </div>
             </div>
           ) : (
@@ -385,6 +475,10 @@ export function Dashboard() {
                   onClick={() => {
                     setFile(null)
                     setSelectionError(null)
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = ''
+                      fileInputRef.current.click()
+                    }
                   }}
                   style={{ gap: '6px' }}
                 >
@@ -481,7 +575,7 @@ export function Dashboard() {
       )}
 
       {effectiveResult && (
-        <JobResult result={effectiveResult} onReset={resetJobView} />
+        <JobResult result={effectiveResult} onReset={handleUploadAnother} />
       )}
 
       {/* 4. Production Reference Benchmark Panels when no live PCAP is active */}
