@@ -8,7 +8,6 @@ import {
 import { ForecastConsole } from '../components/ForecastConsole'
 import { AnalysisPipelineVisualizer } from '../components/AnalysisPipelineVisualizer'
 import { Panel } from '../components/Ui'
-import { api } from '../services/api'
 import { useJobPolling } from '../hooks/useJobPolling'
 import { useProductionData } from '../hooks/useProductionData'
 import type { CanonicalAnalysis } from '../types/canonical'
@@ -17,17 +16,6 @@ import { adaptToCanonical } from '../utils/canonicalAdapter'
 export function Forecast() {
   const { jobId } = useParams<{ jobId?: string }>()
   const navigate = useNavigate()
-
-  const handleCancelJob = async () => {
-    if (jobId) {
-      try {
-        await api.cancelJob(jobId)
-      } catch (err) {
-        console.error('Failed to cancel job:', err)
-      }
-    }
-    navigate('/console/analyze')
-  }
   const { data, loading: storeLoading, error: storeError, reload: reloadStore } = useProductionData()
 
   // If a jobId is in the URL, use the polling hook
@@ -70,7 +58,7 @@ export function Forecast() {
         isReconnecting={isReconnecting}
         reconnectAttempt={reconnectAttempt}
         isComplete={isComplete}
-        onCancel={handleCancelJob}
+        onCancel={() => navigate('/console/analyze')}
       />
     )
   }
@@ -89,7 +77,7 @@ export function Forecast() {
         reconnectAttempt={reconnectAttempt}
         isComplete={false}
         onRetry={reloadJob}
-        onCancel={handleCancelJob}
+        onCancel={() => navigate('/console/analyze')}
       />
     )
   }

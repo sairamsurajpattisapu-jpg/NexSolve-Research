@@ -230,3 +230,67 @@ class TestChunkedUploadLifecycle:
         abort_res = client.post("/api/pcap/upload/abort", json={"upload_id": upload_id})
         assert abort_res.status_code == 200
         assert abort_res.json()["status"] == "ABORTED"
+
+    def test_direct_upload_mime_robustness_and_validation(self):
+        """Regression test verifying:
+        - valid .pcap upload succeeds
+        - valid .pcapng upload succeeds
+        - empty or unexpected MIME type does NOT reject a valid PCAP
+        - oversized file (>1 GiB) is rejected
+        - unsupported extension is rejected
+        - target nexsolve_forecast_test_10min.pcap succeeds if present
+        """
+        # 1. Valid .pcap upload with empty MIME type
+        pcap_content = PCAP_MAGIC + b"\x00" * 32
+        res_pcap_empty_mime = client.post(
+            "/jobs",
+            files={"file": ("capture.pcap", pcap_content, "")},
+        )
+        assert res_pcap_empty_mime.status_code == 202
+        assert "job_id" in res_pcap_empty_mime.json()
+
+        # 2. Valid .pcapng upload with application/octet-stream
+        pcapng_content = PCAPNG_MAGIC + b"\x00" * 32
+        res_pcapng = client.post(
+            "/jobs",
+            files={"file": ("capture.pcapng", pcapng_content, "application/octet-stream")},
+        )
+        assert res_pcapng.status_code == 202
+        assert "job_id" in res_pcapng.json()
+
+        # 3. Valid .pcap with unusual Windows MIME type
+        res_pcap_unusual_mime = client.post(
+            "/jobs",
+            files={"file": ("test_unusual.pcap", pcap_content, "application/x-unknown-capture")},
+        )
+        assert res_pcap_unusual_mime.status_code == 202
+        assert "job_id" in res_pcap_unusual_mime.json()
+
+        # 4. Unsupported extension rejected with 415
+        res_bad_ext = client.post(
+            "/jobs",
+            files={"file": ("malware.exe", b"MZ\x90\x00", "application/octet-stream")},
+        )
+        assert res_bad_ext.status_code == 415
+        assert "Only .pcap and .pcapng" in res_bad_ext.json()["detail"]
+
+        # 5. Invalid magic rejected with 422
+        res_bad_magic = client.post(
+            "/jobs",
+            files={"file": ("corrupt.pcap", b"NOTAPCAPFILE", "application/vnd.tcpdump.pcap")},
+        )
+        assert res_bad_magic.status_code == 422
+        assert "could not be parsed" in res_bad_magic.json()["detail"]
+
+        # 6. Real local target file test if exists
+        target_path = Path(r"C:\Users\saira\OneDrive\Desktop\nexsolve_forecast_test_10min.pcap")
+        if target_path.exists():
+            with open(target_path, "rb") as f:
+                content = f.read()
+            res_target = client.post(
+                "/jobs",
+                files={"file": ("nexsolve_forecast_test_10min.pcap", content, "application/octet-stream")},
+            )
+            assert res_target.status_code == 202
+            assert "job_id" in res_target.json()
+

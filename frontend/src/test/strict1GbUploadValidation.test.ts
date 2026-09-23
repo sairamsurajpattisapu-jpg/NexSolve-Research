@@ -151,4 +151,16 @@ describe('Strict 1 GiB PCAP/PCAPNG Upload Validation & Unit Conversion Suite', (
       message: `Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`,
     })
   })
+
+  it('16. Validates nexsolve_forecast_test_10min.pcap and accepts empty or arbitrary MIME types', () => {
+    // 17,829 bytes valid capture
+    const testFileEmptyMime = new File([new ArrayBuffer(17829)], 'nexsolve_forecast_test_10min.pcap', { type: '' })
+    expect(validatePcapFile(testFileEmptyMime).valid).toBe(true)
+
+    const testFileOctetStream = new File([new ArrayBuffer(17829)], 'nexsolve_forecast_test_10min.pcap', { type: 'application/octet-stream' })
+    expect(validatePcapFile(testFileOctetStream).valid).toBe(true)
+
+    const testFilePcapng = new File([new ArrayBuffer(17829)], 'test_capture.pcapng', { type: '' })
+    expect(validatePcapFile(testFilePcapng).valid).toBe(true)
+  })
 })

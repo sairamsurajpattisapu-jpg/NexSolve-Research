@@ -2,88 +2,203 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useTheme } from '../../hooks/useTheme'
 
 /* ─────────────────────────────────────────────────────────────────────────────
- * NexSolveBackground — subtle canvas‑rendered blinking‑dot field
+ * NexSolveBackground — Continuous Full-Viewport Cyber Circuit Environment
  *
- * Visual metaphor: a quiet abstraction of network telemetry —
- * dots represent entities/signals at rest, not real-time packets.
- *
- * • Single global instance (rendered once in the application shell)
- * • pointer‑events: none  — never intercepts UI interaction
- * • Respects prefers‑reduced‑motion
- * • Adapts to light/dark theme via CSS custom properties
+ * Visual characteristics (matching reference):
+ * • Pitch dark/black void background (#030305 / #050508)
+ * • Architectural parallel circuit trace bundles (2-3 parallel tracks)
+ * • Strict 45-degree routing angles and orthogonal bus corridors
+ * • Precision solder vias (inner drill pad + outer concentric annular ring)
+ * • Subtle connection density with generous negative space
+ * • Restrained monochrome grayscale (silver/white, 0.07 - 0.12 opacity)
+ * • Understated Gaussian glow on traveling signals and terminal nodes
+ * • Full viewport coverage behind all application content (pointer-events: none)
  * ──────────────────────────────────────────────────────────────────────────── */
 
-/* ── Configuration ───────────────────────────────────────────────────────── */
-
-const DOT_SPACING = 36           // px between grid centres
-const DOT_RADIUS = 0.9           // base radius
-const SIZE_VARIATION = 0.2       // ± random variation on radius
-const MAX_OPACITY = 0.14         // peak dot opacity (dark theme, ultra subtle)
-const MAX_OPACITY_LIGHT = 0.08   // peak dot opacity (light theme)
-const TWINKLE_SPEED = 0.0004     // radians per ms — very calm, slow pulse
-const JITTER = 0.8               // max px random offset from grid
-const PHASE_SPREAD = Math.PI * 2 // full‑circle phase randomisation
-const VIGNETTE_STRENGTH = 0.7    // how aggressively edges fade out
-
-/* Monochrome editorial palette (no cyan/teal/blue/purple) */
-const DOT_COLORS_DARK = [
-  { r: 255, g: 255, b: 255 },   // pure white
-  { r: 220, g: 220, b: 220 },   // light gray
-  { r: 160, g: 160, b: 160 },   // medium gray
-]
-
-const DOT_COLORS_LIGHT = [
-  { r: 40,  g: 40,  b: 40  },   // dark neutral
-  { r: 80,  g: 80,  b: 80  },   // mid neutral
-  { r: 120, g: 120, b: 120 },   // light neutral
-]
-
-/* ── Types ───────────────────────────────────────────────────────────────── */
-
-interface Dot {
+interface Point {
   x: number
   y: number
-  r: number
-  phase: number
-  colorIdx: number
 }
 
-/* ── Component ───────────────────────────────────────────────────────────── */
+interface CircuitTrace {
+  points: Point[]
+  width: number
+  isPrimary: boolean
+}
+
+interface SolderVia {
+  x: number
+  y: number
+  outerRadius: number
+  innerRadius: number
+  phase: number
+}
+
+interface CircuitPulse {
+  traceIdx: number
+  progress: number // 0 to 1
+  speed: number
+  length: number
+}
 
 export function NexSolveBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const dotsRef = useRef<Dot[]>([])
-  const animRef = useRef(0)
+  const tracesRef = useRef<CircuitTrace[]>([])
+  const viasRef = useRef<SolderVia[]>([])
+  const pulsesRef = useRef<CircuitPulse[]>([])
+  const animRef = useRef<number>(0)
   const { isDark } = useTheme()
 
-  /* Check prefers‑reduced‑motion once, on mount */
   const reducedMotion = useRef(
     typeof window !== 'undefined' && typeof window.matchMedia === 'function'
       ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      : false,
+      : false
   )
 
-  /* Build dot grid for given canvas size */
-  const buildGrid = useCallback((w: number, h: number) => {
-    const dots: Dot[] = []
-    const cols = Math.ceil(w / DOT_SPACING) + 1
-    const rows = Math.ceil(h / DOT_SPACING) + 1
+  const buildCircuitEnvironment = useCallback((w: number, h: number) => {
+    const traces: CircuitTrace[] = []
+    const vias: SolderVia[] = []
+    const pulses: CircuitPulse[] = []
 
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        dots.push({
-          x: col * DOT_SPACING + (Math.random() - 0.5) * JITTER * 2,
-          y: row * DOT_SPACING + (Math.random() - 0.5) * JITTER * 2,
-          r: DOT_RADIUS + (Math.random() - 0.5) * SIZE_VARIATION * 2,
-          phase: Math.random() * PHASE_SPREAD,
-          colorIdx: Math.floor(Math.random() * DOT_COLORS_DARK.length),
+    // Major horizontal bus corridors
+    const corridorSpacing = 160
+    const numCorridors = Math.ceil(h / corridorSpacing) + 1
+
+    for (let c = 0; c < numCorridors; c++) {
+      const corridorY = c * corridorSpacing + 40 + ((c % 2 === 0 ? 1 : -1) * 20)
+      const bundleSize = 2 + (c % 2) // 2 or 3 parallel tracks per bundle
+      const bundleGap = 14 // uniform distance between parallel tracks
+
+      // Common anchor points for the bundle to maintain parallel alignment
+      const numSegments = 3 + Math.floor(w / 400)
+      const segmentWidth = w / numSegments
+
+      const bendPoints: { x: number; dy: number }[] = []
+      for (let s = 1; s < numSegments; s++) {
+        const bx = s * segmentWidth + (Math.random() - 0.5) * 80
+        // 45-degree angle offset (dx = |dy|)
+        const dy = (Math.random() > 0.45 ? 1 : -1) * (24 + Math.floor(Math.random() * 2) * 16)
+        bendPoints.push({ x: bx, dy })
+      }
+
+      // Generate each parallel trace in the bundle
+      for (let b = 0; b < bundleSize; b++) {
+        const offsetY = b * bundleGap
+        let currentX = 0
+        let currentY = corridorY + offsetY
+        const pts: Point[] = [{ x: currentX, y: currentY }]
+
+        // Starting solder via
+        vias.push({
+          x: 16,
+          y: currentY,
+          outerRadius: 3.8,
+          innerRadius: 1.8,
+          phase: Math.random() * Math.PI * 2,
+        })
+
+        for (const bend of bendPoints) {
+          if (bend.x > currentX + 30) {
+            pts.push({ x: bend.x, y: currentY })
+
+            // 45-degree bend
+            const dx = Math.abs(bend.dy)
+            const nextX = bend.x + dx
+            const nextY = currentY + bend.dy
+            pts.push({ x: nextX, y: nextY })
+
+            // Junction via at bend corner
+            if (b === 0 || b === bundleSize - 1) {
+              vias.push({
+                x: nextX,
+                y: nextY,
+                outerRadius: 3.6,
+                innerRadius: 1.6,
+                phase: Math.random() * Math.PI * 2,
+              })
+            }
+
+            currentX = nextX
+            currentY = nextY
+          }
+        }
+
+        // Complete track to right boundary
+        pts.push({ x: w, y: currentY })
+
+        // Ending solder via
+        vias.push({
+          x: w - 16,
+          y: currentY,
+          outerRadius: 3.8,
+          innerRadius: 1.8,
+          phase: Math.random() * Math.PI * 2,
+        })
+
+        traces.push({
+          points: pts,
+          width: 0.85,
+          isPrimary: b === 0,
         })
       }
     }
-    dotsRef.current = dots
+
+    // Vertical & 45-degree cross-connectors between corridors
+    const numVerticals = Math.ceil(w / 280)
+    for (let v = 0; v < numVerticals; v++) {
+      const vx = v * 280 + 120 + (Math.random() - 0.5) * 60
+      const startY = 60 + Math.random() * (h * 0.3)
+      const length = 180 + Math.random() * 240
+      const endY = Math.min(h - 40, startY + length)
+
+      // Vertical connector with 45-degree entry
+      const pts: Point[] = [
+        { x: vx, y: startY },
+        { x: vx, y: startY + length * 0.6 },
+        { x: vx + 24, y: startY + length * 0.6 + 24 }, // 45-degree jog
+        { x: vx + 24, y: endY },
+      ]
+
+      traces.push({
+        points: pts,
+        width: 0.75,
+        isPrimary: false,
+      })
+
+      vias.push({
+        x: vx,
+        y: startY,
+        outerRadius: 4.0,
+        innerRadius: 1.8,
+        phase: Math.random() * Math.PI * 2,
+      })
+      vias.push({
+        x: vx + 24,
+        y: endY,
+        outerRadius: 4.0,
+        innerRadius: 1.8,
+        phase: Math.random() * Math.PI * 2,
+      })
+    }
+
+    // Traveling signal pulses along bus tracks
+    if (!reducedMotion.current) {
+      const pulseCount = Math.min(9, Math.max(4, Math.floor(traces.length / 3)))
+      for (let i = 0; i < pulseCount; i++) {
+        pulses.push({
+          traceIdx: Math.floor(Math.random() * traces.length),
+          progress: Math.random(),
+          speed: 0.00007 + Math.random() * 0.00010,
+          length: 0.06 + Math.random() * 0.06,
+        })
+      }
+    }
+
+    tracesRef.current = traces
+    viasRef.current = vias
+    pulsesRef.current = pulses
   }, [])
 
-  /* Resize handler */
   const handleResize = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -94,8 +209,8 @@ export function NexSolveBackground() {
     canvas.height = h * dpr
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
-    buildGrid(w, h)
-  }, [buildGrid])
+    buildCircuitEnvironment(w, h)
+  }, [buildCircuitEnvironment])
 
   useEffect(() => {
     handleResize()
@@ -103,17 +218,16 @@ export function NexSolveBackground() {
     return () => window.removeEventListener('resize', handleResize)
   }, [handleResize])
 
-  /* Animation loop */
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d', { alpha: true })
-    if (!ctx) return
+    if (!ctx) return // In test environments (jsdom)
 
     let lastTime = 0
 
-    const draw = (time: number) => {
-      const dt = time - lastTime
+    const render = (time: number) => {
+      const dt = lastTime ? Math.min(100, time - lastTime) : 16
       lastTime = time
 
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -123,43 +237,101 @@ export function NexSolveBackground() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, w, h)
 
-      const palette = isDark ? DOT_COLORS_DARK : DOT_COLORS_LIGHT
-      const peakOpacity = isDark ? MAX_OPACITY : MAX_OPACITY_LIGHT
-      const cx = w / 2
-      const cy = h / 2
-      const maxDist = Math.sqrt(cx * cx + cy * cy)
+      // Visual color palette matching reference grayscale character
+      const baseTraceColor = isDark ? 'rgba(255, 255, 255, 0.065)' : 'rgba(0, 0, 0, 0.045)'
+      const primaryTraceColor = isDark ? 'rgba(255, 255, 255, 0.095)' : 'rgba(0, 0, 0, 0.07)'
+      const outerRingColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)'
+      const innerPadColor = isDark ? 'rgba(255, 255, 255, 0.16)' : 'rgba(0, 0, 0, 0.10)'
+      const pulseColor = isDark ? 'rgba(255, 255, 255, 0.40)' : 'rgba(0, 0, 0, 0.25)'
 
-      for (const dot of dotsRef.current) {
-        /* Twinkle: sinusoidal oscillation */
-        let alpha: number
-        if (reducedMotion.current) {
-          // Static dots at half-brightness when reduced motion
-          alpha = peakOpacity * 0.5
-        } else {
-          dot.phase += TWINKLE_SPEED * dt
-          alpha = ((Math.sin(dot.phase) + 1) / 2) * peakOpacity
-        }
+      // 1. Draw circuit trace lines
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
 
-        /* Vignette: fade dots towards edges */
-        const dx = dot.x - cx
-        const dy = dot.y - cy
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        const vignette = 1 - (dist / maxDist) * VIGNETTE_STRENGTH
-        alpha *= Math.max(0, vignette)
-
-        if (alpha < 0.005) continue // skip invisible dots
-
-        const c = palette[dot.colorIdx]
-        ctx.fillStyle = `rgba(${c.r},${c.g},${c.b},${alpha.toFixed(3)})`
+      for (const t of tracesRef.current) {
+        if (t.points.length < 2) continue
+        ctx.strokeStyle = t.isPrimary ? primaryTraceColor : baseTraceColor
+        ctx.lineWidth = t.width
         ctx.beginPath()
-        ctx.arc(dot.x, dot.y, dot.r, 0, Math.PI * 2)
-        ctx.fill()
+        ctx.moveTo(t.points[0].x, t.points[0].y)
+        for (let i = 1; i < t.points.length; i++) {
+          ctx.lineTo(t.points[i].x, t.points[i].y)
+        }
+        ctx.stroke()
       }
 
-      animRef.current = requestAnimationFrame(draw)
+      // 2. Draw solder vias (annular rings + solid inner core pads)
+      for (const v of viasRef.current) {
+        // Outer concentric annular ring
+        ctx.strokeStyle = outerRingColor
+        ctx.lineWidth = 0.75
+        ctx.beginPath()
+        ctx.arc(v.x, v.y, v.outerRadius, 0, Math.PI * 2)
+        ctx.stroke()
+
+        // Inner core pad with subtle breathing
+        let alpha = 1
+        if (!reducedMotion.current) {
+          v.phase += 0.0007 * dt
+          alpha = 0.7 + Math.sin(v.phase) * 0.3
+        }
+
+        ctx.fillStyle = innerPadColor
+        ctx.globalAlpha = alpha
+        ctx.beginPath()
+        ctx.arc(v.x, v.y, v.innerRadius, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.globalAlpha = 1
+      }
+
+      // 3. Draw traveling signal pulses with understated Gaussian glow
+      if (!reducedMotion.current && tracesRef.current.length > 0) {
+        ctx.lineWidth = 1.3
+        ctx.strokeStyle = pulseColor
+        ctx.shadowBlur = 5
+        ctx.shadowColor = isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.2)'
+
+        for (const pulse of pulsesRef.current) {
+          pulse.progress += pulse.speed * dt
+          if (pulse.progress > 1) {
+            pulse.progress = 0
+            pulse.traceIdx = Math.floor(Math.random() * tracesRef.current.length)
+          }
+
+          const trace = tracesRef.current[pulse.traceIdx]
+          if (!trace || trace.points.length < 2) continue
+
+          const totalPoints = trace.points.length
+          const segFloat = pulse.progress * (totalPoints - 1)
+          const segIdx = Math.min(totalPoints - 2, Math.floor(segFloat))
+          const segFrac = segFloat - segIdx
+
+          const p1 = trace.points[segIdx]
+          const p2 = trace.points[segIdx + 1]
+
+          const px = p1.x + (p2.x - p1.x) * segFrac
+          const py = p1.y + (p2.y - p1.y) * segFrac
+
+          const tailLen = pulse.length * 36
+          const dx = p2.x - p1.x
+          const dy = p2.y - p1.y
+          const len = Math.hypot(dx, dy) || 1
+          const ux = dx / len
+          const uy = dy / len
+
+          ctx.beginPath()
+          ctx.moveTo(px - ux * tailLen, py - uy * tailLen)
+          ctx.lineTo(px, py)
+          ctx.stroke()
+        }
+
+        ctx.shadowBlur = 0
+      }
+
+      animRef.current = requestAnimationFrame(render)
     }
 
-    animRef.current = requestAnimationFrame(draw)
+    animRef.current = requestAnimationFrame(render)
 
     return () => {
       cancelAnimationFrame(animRef.current)
@@ -173,10 +345,11 @@ export function NexSolveBackground() {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: -1,
+        width: '100vw',
+        height: '100vh',
         pointerEvents: 'none',
-        width: '100%',
-        height: '100%',
+        zIndex: 0,
+        background: isDark ? '#030305' : '#ffffff',
       }}
     />
   )

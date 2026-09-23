@@ -92,6 +92,7 @@ export function PcapUploader({
 
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '6px' }}>
           <label
+            htmlFor="pcap-uploader-input"
             className="button"
             style={{
               cursor: disabled ? 'not-allowed' : 'pointer',
@@ -111,6 +112,31 @@ export function PcapUploader({
               }}
             />
           </label>
+          <input
+            id="pcap-uploader-input"
+            aria-label="Choose PCAP capture"
+            type="file"
+            accept=".pcap,.pcapng,.csv,application/vnd.tcpdump.pcap,application/x-pcapng,application/octet-stream"
+            style={{
+              position: 'absolute',
+              width: '1px',
+              height: '1px',
+              padding: 0,
+              margin: '-1px',
+              overflow: 'hidden',
+              clip: 'rect(0, 0, 0, 0)',
+              whiteSpace: 'nowrap',
+              border: 0,
+            }}
+            disabled={disabled}
+            onClick={(e) => {
+              (e.target as HTMLInputElement).value = ''
+            }}
+            onChange={(e) => {
+              const file = e.target.files?.[0] ?? null
+              validateAndSelect(file)
+            }}
+          />
         </div>
 
         {(validationError || error) && (

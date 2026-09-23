@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react'
 import { ActivityChart, ProtocolBars } from '../components/Charts'
+import { CircuitBoard } from '../components/CircuitBoard'
 import { CsvRequirementsModal } from '../components/CsvRequirementsModal'
 import { JobProgress } from '../components/JobProgress'
 import { JobResult } from '../components/JobResult'
@@ -264,30 +265,60 @@ export function Dashboard() {
               </small>
 
               <div className="capture-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center', marginTop: '16px', flexWrap: 'wrap' }}>
-                <label className="button button-primary" style={{ cursor: 'pointer', gap: '6px' }}>
+                <label
+                  htmlFor="pcap-upload-input"
+                  className="button button-primary"
+                  style={{ cursor: 'pointer', gap: '6px' }}
+                >
                   <FileUp size={14} /> Upload PCAP
-                  <input
-                    aria-label="Choose PCAP capture"
-                    type="file"
-                    accept=".pcap,.pcapng"
-                    style={{ display: 'none' }}
-                    onChange={(event) => {
-                      const selected = event.target.files?.[0] ?? null
-                      handleFileSelect(selected)
-                    }}
-                  />
                 </label>
+                <input
+                  id="pcap-upload-input"
+                  aria-label="Choose PCAP capture"
+                  type="file"
+                  accept=".pcap,.pcapng"
+                  style={{
+                    position: 'absolute',
+                    width: '1px',
+                    height: '1px',
+                    padding: 0,
+                    margin: '-1px',
+                    overflow: 'hidden',
+                    clip: 'rect(0, 0, 0, 0)',
+                    whiteSpace: 'nowrap',
+                    border: 0,
+                  }}
+                  onClick={(event) => {
+                    // Reset input value so selecting the same capture file repeatedly always triggers onChange
+                    (event.target as HTMLInputElement).value = ''
+                  }}
+                  onChange={(event) => {
+                    const selected = event.target.files?.[0] ?? null
+                    handleFileSelect(selected)
+                  }}
+                />
               </div>
             </div>
           ) : (
             /* Analysis Confirmation Card (Before Processing) */
-            <div style={{ maxWidth: '560px', width: '100%' }}>
+            <div style={{ maxWidth: '640px', width: '100%', margin: '0 auto' }}>
               <div style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', marginBottom: '4px' }}>
                 ANALYSIS CONFIRMATION
               </div>
               <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 14px 0', color: 'var(--text-primary)' }}>
                 Ready to Start Analysis
               </h3>
+
+              {/* Compact Execution Circuit View */}
+              <div style={{ marginBottom: '16px' }}>
+                <CircuitBoard
+                  compact
+                  filename={file.name}
+                  activeStageIndex={uploading ? (uploadProgress && uploadProgress.percentage >= 100 ? 1 : 0) : 1}
+                  statusText={uploading ? (uploadProgress && uploadProgress.percentage >= 100 ? 'INGESTING CAPTURE' : 'UPLOADING') : 'FORMAT VALIDATED · READY'}
+                  progressPercent={uploadProgress?.percentage}
+                />
+              </div>
 
               <div
                 style={{
