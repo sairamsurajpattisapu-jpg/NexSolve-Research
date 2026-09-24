@@ -54,10 +54,21 @@ export function MarketingLayout() {
     }
   }, [open])
 
+  // Track window scroll position to compact navbar
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   return (
     <div className="app-shell marketing-shell">
       <NexSolveBackground />
-      <header className="navbar-shell marketing-navbar" ref={navRef}>
+      <header className={`navbar-shell marketing-navbar ${scrolled ? 'is-scrolled' : ''}`} ref={navRef}>
         <div className="navbar-inner">
           <Link className="brand-block" to="/" aria-label="NexSolve Home">
             <span className="brand-label">NEXSOLVE</span>

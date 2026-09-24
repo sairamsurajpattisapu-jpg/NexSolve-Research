@@ -188,6 +188,38 @@ class AttackHorizonSection:
 
 
 @dataclass
+class AttackProgressionSection:
+    current_stage: str
+    stage_display_name: str
+    classification: str
+    stage_confidence: float
+    technique_confidence: float
+    observed_techniques: list[str]
+    timeline: list[dict[str, Any]]
+    transitions: list[dict[str, Any]]
+    validation: dict[str, Any]
+    abstained: bool
+    abstention_reason: str | None = None
+    category: EpistemicCategory = "INFERRED"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "category": self.category,
+            "current_stage": self.current_stage,
+            "stage_display_name": self.stage_display_name,
+            "classification": self.classification,
+            "stage_confidence": self.stage_confidence,
+            "technique_confidence": self.technique_confidence,
+            "observed_techniques": self.observed_techniques,
+            "timeline": self.timeline,
+            "transitions": self.transitions,
+            "validation": self.validation,
+            "abstained": self.abstained,
+            "abstention_reason": self.abstention_reason,
+        }
+
+
+@dataclass
 class EvidenceItemReport:
     evidence_id: str
     evidence_type: str
@@ -199,6 +231,7 @@ class EvidenceItemReport:
     severity: str
     is_supporting: bool
     explanation: str
+    change_type: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -212,6 +245,7 @@ class EvidenceItemReport:
             "severity": self.severity,
             "is_supporting": self.is_supporting,
             "explanation": self.explanation,
+            "change_type": self.change_type,
         }
 
 
@@ -223,6 +257,7 @@ class EvidenceChainSection:
     contradictory_evidence: list[EvidenceItemReport]
     explanation: str
     limitations: list[str]
+    sensor_agreement: dict[str, Any] | None = None
     category: EpistemicCategory = "INFERRED"
 
     def to_dict(self) -> dict[str, Any]:
@@ -234,6 +269,7 @@ class EvidenceChainSection:
             "contradictory_evidence": [e.to_dict() for e in self.contradictory_evidence],
             "explanation": self.explanation,
             "limitations": self.limitations,
+            "sensor_agreement": self.sensor_agreement,
         }
 
 
@@ -386,9 +422,10 @@ class NexSolveReport:
     limitations: LimitationsSection
     provenance: ProvenanceSection
     processing_metadata: ProcessingMetadataSection
+    attack_progression: AttackProgressionSection | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        d = {
             "report_id": self.report_id,
             "title": self.title,
             "system_tagline": self.system_tagline,
@@ -409,3 +446,6 @@ class NexSolveReport:
                 "processing_metadata": self.processing_metadata.to_dict(),
             },
         }
+        if self.attack_progression is not None:
+            d["sections"]["attack_progression"] = self.attack_progression.to_dict()
+        return d

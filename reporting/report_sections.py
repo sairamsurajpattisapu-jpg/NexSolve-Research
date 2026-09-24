@@ -7,6 +7,7 @@ from typing import Any
 from reporting.report_schema import (
     AbstentionSection,
     AttackHorizonSection,
+    AttackProgressionSection,
     CaptureQualitySection,
     ConfidenceSection,
     EvidenceChainSection,
@@ -291,7 +292,10 @@ def build_attack_horizon(horizon: dict[str, Any] | None) -> AttackHorizonSection
     )
 
 
-def build_evidence_chain(chain: dict[str, Any] | None) -> EvidenceChainSection:
+def build_evidence_chain(
+    chain: dict[str, Any] | None,
+    sensor_agreement: dict[str, Any] | None = None,
+) -> EvidenceChainSection:
     if not chain:
         return EvidenceChainSection(
             evidence_strength=0.0,
@@ -300,6 +304,7 @@ def build_evidence_chain(chain: dict[str, Any] | None) -> EvidenceChainSection:
             contradictory_evidence=[],
             explanation="Evidence chain unavailable for this capture.",
             limitations=["No multi-window sequence available to build historical evidence."],
+            sensor_agreement=sensor_agreement,
         )
 
     supporting: list[EvidenceItemReport] = []
@@ -316,6 +321,7 @@ def build_evidence_chain(chain: dict[str, Any] | None) -> EvidenceChainSection:
                 severity=s.get("severity", "LOW"),
                 is_supporting=True,
                 explanation=s.get("explanation", ""),
+                change_type=s.get("change_type"),
             )
         )
 
@@ -333,6 +339,7 @@ def build_evidence_chain(chain: dict[str, Any] | None) -> EvidenceChainSection:
                 severity=c.get("severity", "LOW"),
                 is_supporting=False,
                 explanation=c.get("explanation", ""),
+                change_type=c.get("change_type"),
             )
         )
 
@@ -343,6 +350,7 @@ def build_evidence_chain(chain: dict[str, Any] | None) -> EvidenceChainSection:
         contradictory_evidence=contradictory,
         explanation=chain.get("explanation", ""),
         limitations=list(chain.get("limitations", [])),
+        sensor_agreement=sensor_agreement or chain.get("sensor_agreement"),
     )
 
 
@@ -490,4 +498,40 @@ def build_processing_metadata(
         generated_at_utc=datetime.now(timezone.utc).isoformat(),
         processing_seconds=round(processing_seconds, 3),
         stage=stage,
+    )
+
+
+def build_attack_progression(
+    progression: dict[str, Any] | None,
+    abstention: dict[str, Any] | None = None,
+) -> AttackProgressionSection | None:
+    """Build standardized AttackProgressionSection from analysis progression payload."""
+    if not progression:
+        return None
+    raw_stage = str(progression.get("canonical_stage", progression.get("observed_state", "UNKNOWN")))
+    from ml.forecasting.attack_stages import to_canonical_stage
+    canonical = to_canonical_stage(raw_stage)
+
+    is_abstained = bool(progression.get("verdict") == "ABSTAINED" or (abstention and abstention.get("abstained")))
+    ab_reason = progression.get("summary") if is_abstained else None
+
+    raw_conf = progression.get("stage_confidence", 0.0)
+    stage_conf = float(raw_conf) if raw_conf is not None else 0.0
+
+    raw_tech_conf = progression.get("technique_confidence", 0.0)
+    tech_conf = float(raw_tech_conf) if raw_tech_conf is not None else 0.0
+
+    return AttackProgressionSection(
+        current_stage=canonical.value,
+        stage_display_name=canonical.display_name,
+        classification=str(progression.get("classification", "INFERRED")),
+        stage_confidence=round(stage_conf, 4),
+        technique_confidence=round(tech_conf, 4),
+        observed_techniques=list(progression.get("observed_techniques", [])),
+        timeline=list(progression.get("timeline", [])),
+        transitions=list(progression.get("transitions", [])),
+        validation=dict(progression.get("validation", {"valid": True, "issues": [], "warnings": []})),
+        abstained=is_abstained,
+        abstention_reason=ab_reason,
+        category="INFERRED",
     )

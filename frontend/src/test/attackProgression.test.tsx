@@ -177,4 +177,57 @@ describe('AttackProgressionCard Component', () => {
     expect(screen.getByText('Progression Abstained')).toBeInTheDocument()
     expect(screen.getByText(/INSUFFICIENT_HISTORY: minimum 8 contiguous windows required/i)).toBeInTheDocument()
   })
+
+  it('renders Phase 2 canonical transitions, classification badge, and validation audit', () => {
+    const progression: AttackProgressionForecast = {
+      observed_state: 'RECONNAISSANCE',
+      canonical_stage: 'RECONNAISSANCE',
+      classification: 'OBSERVED',
+      stage_confidence: 0.88,
+      technique_confidence: 0.85,
+      observed_techniques: ['T1046'],
+      supported_horizons: [1],
+      unsupported_horizons: [],
+      verdict: 'SUPPORTED',
+      summary: 'Validated 15-stage canonical progression.',
+      forecast_points: [
+        {
+          horizon_minutes: 1,
+          predicted_state: 'INITIAL_ACCESS',
+          predicted_technique: 'T1190',
+          forecast_techniques: ['T1190'],
+          prediction_type: 'DOWNSTREAM_PROGRESSION',
+          transition_probability: 0.80,
+          lead_time_seconds: 60,
+          abstained: false,
+          supporting_evidence: ['Public-facing exploit observed.'],
+        },
+      ],
+      transitions: [
+        {
+          from_stage: 'RECONNAISSANCE',
+          to_stage: 'INITIAL_ACCESS',
+          timestamp: 1710000000,
+          confidence: 0.80,
+          transition_type: 'FORECAST',
+          status: 'VALID',
+          reason: 'Expected sequential forward progression',
+        },
+      ],
+      validation: {
+        valid: true,
+        issues: [],
+        warnings: [],
+        event_count: 1,
+        transition_count: 1,
+      },
+    }
+
+    render(<AttackProgressionCard progression={progression} />)
+
+    expect(screen.getByText('OBSERVED')).toBeInTheDocument()
+    expect(screen.getByText(/Evaluated State Transition Kinematics/i)).toBeInTheDocument()
+    expect(screen.getByText('VALID')).toBeInTheDocument()
+    expect(screen.getByText('AUDIT: PASSED (VALID)')).toBeInTheDocument()
+  })
 })

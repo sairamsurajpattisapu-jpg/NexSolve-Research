@@ -1,0 +1,1105 @@
+/* =============================================================================
+   NEXSOLVE LANDING PAGE STYLES — CYBERSECURITY & AI RESEARCH AESTHETIC
+   Near-black architectural canvas, restrained monochrome hierarchy, crisp borders.
+   ============================================================================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+.landing-root {
+  width: 100%;
+  max-width: var(--site-max-width, 1240px);
+  margin: 0 auto;
+  padding: 0 var(--site-gutter, 24px);
+  color: var(--text-primary, #ffffff);
+  box-sizing: border-box;
+}
+
+/* -----------------------------------------------------------------------------
+   HERO SECTION
+   ----------------------------------------------------------------------------- */
+.landing-hero {
+  padding-top: clamp(36px, 6vh, 64px);
+  padding-bottom: clamp(48px, 8vh, 80px);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary, #b8b8b8);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.hero-pill-badge .pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.hero-headline {
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  font-size: clamp(38px, 5.5vw, 68px);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  max-width: 900px;
+}
+
+.hero-headline .headline-accent {
+  background: linear-gradient(180deg, #ffffff 30%, #a3a3a3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-subheadline {
+  font-family: var(--font-sans, sans-serif);
+  font-size: clamp(16px, 1.8vw, 19px);
+  line-height: 1.6;
+  color: var(--text-secondary, #a1a1aa);
+  max-width: 720px;
+  margin: 0 auto 32px auto;
+}
+
+.hero-cta-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.hero-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 28px;
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-sans, sans-serif);
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 6px;
+  border: 1px solid #ffffff;
+  text-decoration: none;
+  transition: transform 180ms ease, opacity 180ms ease, box-shadow 180ms ease;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+}
+
+.hero-btn-primary:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 0 28px rgba(255, 255, 255, 0.25);
+}
+
+.hero-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 24px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  font-family: var(--font-sans, sans-serif);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  text-decoration: none;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.hero-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.hero-trust-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono, monospace);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #71717a);
+  text-transform: uppercase;
+}
+
+.hero-trust-line span {
+  color: #e4e4e7;
+}
+
+.landing-anchor-pill {
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  color: #a1a1aa;
+  text-decoration: none;
+  transition: all 150ms ease;
+}
+
+.landing-anchor-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* -----------------------------------------------------------------------------
+   HERO TEMPORAL VISUALIZATION CONTAINER
+   ----------------------------------------------------------------------------- */
+.hero-visual-card {
+  width: 100%;
+  max-width: 1120px;
+  margin: 36px auto 0 auto;
+  background: #09090b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.visual-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.visual-title-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  color: #a1a1aa;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.visual-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--mono, monospace);
+  font-size: 10.5px;
+}
+
+.legend-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tag-badge {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.tag-badge.observed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.tag-badge.inferred {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.tag-badge.forecast {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.hero-svg-canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* -----------------------------------------------------------------------------
+   SECTION GENERAL STYLING
+   ----------------------------------------------------------------------------- */
+.landing-section {
+  padding: 72px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.section-eyebrow {
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #a1a1aa;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.section-heading-large {
+  font-family: var(--font-sans, sans-serif);
+  font-size: clamp(26px, 3.2vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.18;
+  color: #ffffff;
+  margin: 0 0 16px 0;
+}
+
+.section-desc {
+  font-size: 15px;
+  color: #a1a1aa;
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* -----------------------------------------------------------------------------
+   PROBLEM & REACTION VS FORECASTING (GRID)
+   ----------------------------------------------------------------------------- */
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 36px;
+}
+
+.problem-card {
+  background: #0d0d10;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.problem-card.reactive {
+  border-top: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.problem-card.proactive {
+  border-top: 3px solid #10b981;
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.03) 0%, #0d0d10 100%);
+}
+
+.problem-card-header {
+  margin-bottom: 20px;
+}
+
+.problem-tag {
+  font-family: var(--mono, monospace);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #71717a;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.problem-card-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+}
+
+.chain-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.chain-step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.chain-step .step-title {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.chain-step .step-tag {
+  font-family: var(--mono, monospace);
+  font-size: 10.5px;
+  color: #a1a1aa;
+}
+
+/* -----------------------------------------------------------------------------
+   HOW IT WORKS (7-STAGE PIPELINE)
+   ----------------------------------------------------------------------------- */
+.pipeline-track-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 36px;
+}
+
+.pipeline-card {
+  background: #0d0d10;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+
+.pipeline-card:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: translateY(-2px);
+}
+
+.pipeline-step-num {
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+  font-weight: 700;
+  color: #71717a;
+  margin-bottom: 12px;
+}
+
+.pipeline-step-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+}
+
+.pipeline-step-desc {
+  font-size: 13px;
+  color: #a1a1aa;
+  line-height: 1.55;
+  margin: 0 0 14px 0;
+  flex-grow: 1;
+}
+
+.pipeline-step-meta {
+  font-family: var(--mono, monospace);
+  font-size: 10.5px;
+  color: #52525b;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* -----------------------------------------------------------------------------
+   ATTACK PROGRESSION LIFECYCLE (15 STAGES)
+   ----------------------------------------------------------------------------- */
+.progression-browser {
+  background: #09090b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 28px;
+  margin-top: 36px;
+}
+
+.progression-stepper-strip {
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.progression-step-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-align: left;
+  transition: all 150ms ease;
+  min-width: 140px;
+}
+
+.progression-step-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.progression-step-btn.active {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+}
+
+.progression-step-num {
+  font-family: var(--mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  color: #71717a;
+}
+
+.progression-step-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.progression-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.progression-detail-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+/* -----------------------------------------------------------------------------
+   FORECASTING HORIZONS & UNCERTAINTY
+   ----------------------------------------------------------------------------- */
+.forecast-horizon-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-top: 36px;
+}
+
+.horizon-card {
+  background: #0d0d10;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+.horizon-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.horizon-step {
+  font-family: var(--mono, monospace);
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.horizon-sec {
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  color: #71717a;
+}
+
+.horizon-stage-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.horizon-prob-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+}
+
+.horizon-prob-val {
+  font-family: var(--mono, monospace);
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.horizon-risk-val {
+  font-family: var(--mono, monospace);
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.horizon-uncertainty-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.horizon-uncertainty-fill {
+  height: 100%;
+  background: #38bdf8;
+  border-radius: 2px;
+}
+
+.philosophy-banner {
+  margin-top: 28px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid #38bdf8;
+  border-radius: 6px;
+  padding: 16px 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #a1a1aa;
+}
+
+.philosophy-banner strong {
+  color: #ffffff;
+}
+
+/* -----------------------------------------------------------------------------
+   EVIDENCE-FIRST TRACE GRAPH
+   ----------------------------------------------------------------------------- */
+.evidence-trace-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #09090b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-top: 36px;
+  overflow-x: auto;
+  gap: 8px;
+}
+
+.trace-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  min-width: 90px;
+}
+
+.trace-item-tag {
+  font-family: var(--mono, monospace);
+  font-size: 10px;
+  color: #71717a;
+}
+
+.trace-item-title {
+  font-family: var(--mono, monospace);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.trace-arrow {
+  color: #52525b;
+  flex-shrink: 0;
+}
+
+/* -----------------------------------------------------------------------------
+   CLI + CONSOLE WORKFLOW (TERMINAL)
+   ----------------------------------------------------------------------------- */
+.workflow-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: center;
+  margin-top: 36px;
+}
+
+.terminal-mockup {
+  background: #070709;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+}
+
+.terminal-header {
+  background: #111115;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.term-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #27272a;
+}
+
+.term-title {
+  color: #71717a;
+  font-size: 11px;
+  margin-left: 8px;
+}
+
+.terminal-body {
+  padding: 18px;
+  color: #d4d4d8;
+  line-height: 1.65;
+  overflow-x: auto;
+}
+
+.terminal-prompt {
+  color: #10b981;
+  font-weight: 700;
+}
+
+.terminal-dim {
+  color: #71717a;
+}
+
+.terminal-stage {
+  color: #38bdf8;
+}
+
+/* -----------------------------------------------------------------------------
+   REPORTING PREVIEW (16 SECTIONS)
+   ----------------------------------------------------------------------------- */
+.reporting-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 32px;
+  margin-top: 36px;
+  align-items: center;
+}
+
+.report-sections-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.report-sec-pill {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.report-sec-num {
+  color: #71717a;
+  font-weight: 700;
+}
+
+.report-sec-label {
+  color: #e4e4e7;
+  font-weight: 500;
+}
+
+.report-preview-sheet {
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 8px;
+  padding: 28px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.report-sheet-header {
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.report-sheet-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+/* -----------------------------------------------------------------------------
+   MULTI-SENSOR INTEGRATION MATRIX
+   ----------------------------------------------------------------------------- */
+.sensor-adapter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 36px;
+}
+
+.sensor-card {
+  background: #0d0d10;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sensor-name {
+  font-family: var(--mono, monospace);
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 4px 0;
+}
+
+.sensor-type {
+  font-family: var(--mono, monospace);
+  font-size: 10.5px;
+  color: #71717a;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.sensor-desc {
+  font-size: 13px;
+  color: #a1a1aa;
+  line-height: 1.55;
+  margin: 0;
+  flex-grow: 1;
+}
+
+/* -----------------------------------------------------------------------------
+   TECHNICAL CREDIBILITY & ARCHITECTURAL PILLARS
+   ----------------------------------------------------------------------------- */
+.tech-credibility-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 36px;
+}
+
+.tech-credibility-card {
+  background: #0d0d10;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+
+.tech-credibility-card:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+  transform: translateY(-2px);
+}
+
+.tech-credibility-pill {
+  font-family: var(--mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.tech-credibility-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+}
+
+.tech-credibility-desc {
+  font-size: 12.5px;
+  color: #a1a1aa;
+  line-height: 1.55;
+  margin: 0 0 12px 0;
+  flex-grow: 1;
+}
+
+.tech-credibility-badge {
+  font-family: var(--mono, monospace);
+  font-size: 10.5px;
+  color: #71717a;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* -----------------------------------------------------------------------------
+   FINAL CTA
+   ----------------------------------------------------------------------------- */
+.landing-final-cta {
+  margin: 72px 0 80px 0;
+  background: linear-gradient(180deg, #111116 0%, #09090b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  padding: clamp(40px, 6vw, 64px) 24px;
+  text-align: center;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+.cta-title {
+  font-size: clamp(28px, 3.8vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  margin: 0 0 14px 0;
+}
+
+.cta-subtitle {
+  font-size: 16px;
+  color: #a1a1aa;
+  max-width: 560px;
+  margin: 0 auto 32px auto;
+  line-height: 1.6;
+}
+
+/* -----------------------------------------------------------------------------
+   RESPONSIVE LAYOUT ADJUSTMENTS
+   ----------------------------------------------------------------------------- */
+/* -----------------------------------------------------------------------------
+   NAVBAR SCROLL STATE & SMOOTH ANCHOR NAVIGATION
+   ----------------------------------------------------------------------------- */
+.marketing-navbar {
+  transition: height 200ms ease, background 200ms ease, border-color 200ms ease;
+}
+
+.marketing-navbar.is-scrolled {
+  background: rgba(0, 0, 0, 0.88) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16) !important;
+}
+
+.landing-section {
+  scroll-margin-top: 76px;
+  opacity: 0.82;
+  transform: translateY(10px);
+  transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.landing-section.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.landing-anchor-pill.active {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* -----------------------------------------------------------------------------
+   HERO TEMPORAL SVG MOTION & FLOW
+   ----------------------------------------------------------------------------- */
+@keyframes telemetryFlow {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes forecastSweep {
+  from {
+    stroke-dashoffset: 20;
+  }
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+@keyframes statePulseRing {
+  0%, 100% {
+    transform-origin: 410px 150px;
+    transform: scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform-origin: 410px 150px;
+    transform: scale(1.15);
+    opacity: 0.7;
+  }
+}
+
+@keyframes boundaryGlow {
+  0%, 100% {
+    stroke-opacity: 0.3;
+  }
+  50% {
+    stroke-opacity: 0.65;
+  }
+}
+
+@keyframes gliderMove {
+  0% { transform: translateX(0); opacity: 0; }
+  20% { opacity: 0.9; }
+  80% { opacity: 0.9; }
+  100% { transform: translateX(50px); opacity: 0; }
+}
+
+@keyframes horizonShimmer {
+  0%, 100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.35));
+  }
+}
+
+.observed-flow-path {
+  stroke-dasharray: 6 3;
+  animation: telemetryFlow 3.5s linear infinite;
+}
+
+.observed-flow-path-subtle {
+  stroke-dasharray: 4 4;
+  animation: telemetryFlow 5s linear infinite;
+}
+
+.telemetry-packet-glider {
+  animation: gliderMove 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.telemetry-packet-glider.g2 {
+  animation: gliderMove 3.8s cubic-bezier(0.4, 0, 0.2, 1) infinite 1.4s;
+}
+
+.forecast-flow-path {
+  stroke-dasharray: 5 4;
+  animation: forecastSweep 7s linear infinite;
+}
+
+.forecast-node-group {
+  animation: horizonShimmer 4s ease-in-out infinite;
+}
+.forecast-node-group.fn-1 { animation-delay: 0s; }
+.forecast-node-group.fn-2 { animation-delay: 0.7s; }
+.forecast-node-group.fn-3 { animation-delay: 1.4s; }
+.forecast-node-group.fn-4 { animation-delay: 2.1s; }
+.forecast-node-group.fn-5 { animation-delay: 2.8s; }
+
+.current-state-pulse {
+  animation: statePulseRing 3.2s ease-in-out infinite;
+}
+
+.temporal-boundary-line {
+  animation: boundaryGlow 4s ease-in-out infinite;
+}
+
+/* -----------------------------------------------------------------------------
+   RESPONSIVE LAYOUT ADJUSTMENTS
+   ----------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .problem-grid,
+  .workflow-grid,
+  .reporting-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .forecast-horizon-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .sensor-adapter-grid,
+  .tech-credibility-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .landing-hero {
+    padding-top: 32px;
+    padding-bottom: 44px;
+  }
+  .forecast-horizon-grid,
+  .sensor-adapter-grid,
+  .tech-credibility-grid {
+    grid-template-columns: 1fr;
+  }
+  .progression-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .report-sections-list {
+    grid-template-columns: 1fr;
+  }
+  .hero-cta-container {
+    flex-direction: column;
+    width: 100%;
+  }
+  .hero-btn-primary,
+  .hero-btn-secondary {
+    width: 100%;
+  }
+  .visual-top-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-section {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .hero-btn-primary,
+  .hero-btn-secondary,
+  .pipeline-card,
+  .tech-credibility-card,
+  .progression-step-btn,
+  .observed-flow-path,
+  .observed-flow-path-subtle,
+  .telemetry-packet-glider,
+  .forecast-flow-path,
+  .forecast-node-group,
+  .current-state-pulse,
+  .temporal-boundary-line {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}

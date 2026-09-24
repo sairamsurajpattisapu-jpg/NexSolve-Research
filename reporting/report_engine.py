@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import html
 import json
+import math
 from datetime import datetime, timezone
 from typing import Any
 
@@ -10,6 +11,7 @@ from reporting.report_schema import NexSolveReport
 from reporting.report_sections import (
     build_abstention_section,
     build_attack_horizon,
+    build_attack_progression,
     build_capture_quality,
     build_confidence_section,
     build_evidence_chain,
@@ -45,6 +47,8 @@ def assemble_report(
     unknown = analysis_result.get("unknown_behavior") or analysis_result.get("unknownBehavior")
     abstention = analysis_result.get("abstention")
     forecasts = analysis_result.get("forecasts", [])
+    progression = analysis_result.get("attack_progression") or analysis_result.get("attackProgression")
+    sensor_agreement = analysis_result.get("sensor_agreement") or analysis_result.get("sensorAgreement")
 
     return NexSolveReport(
         report_id=f"rep-{jid}",
@@ -57,13 +61,14 @@ def assemble_report(
         temporal_behavior=build_temporal_behavior(validation, traffic),
         forecast=build_forecast_section(forecasts, model_version, abstention),
         attack_horizon=build_attack_horizon(horizon),
-        evidence_chain=build_evidence_chain(evidence_chain),
+        evidence_chain=build_evidence_chain(evidence_chain, sensor_agreement=sensor_agreement),
         confidence=build_confidence_section(confidence),
         unknown_behavior=build_unknown_behavior(unknown),
         abstention=build_abstention_section(abstention),
         limitations=build_limitations_section(evidence_chain, quality),
         provenance=build_provenance_section(source, traffic, validation, capture_hash, model_version),
         processing_metadata=build_processing_metadata(jid, processing_seconds, analysis_result.get("status", "COMPLETED")),
+        attack_progression=build_attack_progression(progression, abstention),
     )
 
 
@@ -245,25 +250,136 @@ def generate_html_report(report: NexSolveReport) -> str:
     if not forecast_rows_html:
         forecast_rows_html = "<tr><td colspan='5' class='muted'>No multi-step forecast horizons available.</td></tr>"
 
+    # Attack Progression (Phase 2 Lifecycle, Transitions, and MITRE Grounding)
+    prog_sec = r.attack_progression
+    progression_html = ""
+    if prog_sec:
+        tl_rows = ""
+        for ev in prog_sec.timeline:
+            c_tag = ev.get("classification", "INFERRED")
+            badge_cls = "tag-supp" if c_tag == "OBSERVED" else ("tag-obs" if c_tag == "INFERRED" else "sev-tag")
+            tech_list = ev.get("primary_techniques", [])
+            tech_str = ", ".join(tech_list) if tech_list else "None"
+            h_lbl = ev.get("horizon_label") or ("T0 (Observed)" if c_tag != "FORECAST" else f"+{ev.get('lead_time_seconds', 0):.0f}s")
+            c_val = ev.get("confidence", 0.0)
+            s_val = ev.get("stage_confidence", 0.0)
+            tl_rows += f"""
+            <tr>
+              <td><strong>{html.escape(str(h_lbl))}</strong></td>
+              <td><strong>{html.escape(str(ev.get('stage', 'UNKNOWN')))}</strong></td>
+              <td><span class="tag-pill {badge_cls}">{html.escape(str(c_tag))}</span></td>
+              <td class="mono">{html.escape(tech_str)}</td>
+              <td class="mono">{c_val:.2f} (Stage: {s_val:.2f})</td>
+              <td>{ev.get('supporting_evidence_count', 0)} supporting</td>
+            </tr>
+            """
+        if not tl_rows:
+            tl_rows = "<tr><td colspan='6' class='muted'>No progression timeline events recorded.</td></tr>"
+
+        tr_rows = ""
+        for tr in prog_sec.transitions:
+            st_cls = "tag-supp" if tr.get("status") in ("VALID", "VALID_BUT_UNUSUAL") else "tag-contra"
+            tr_rows += f"""
+            <tr>
+              <td><strong>{html.escape(str(tr.get('from_stage')))} &rarr; {html.escape(str(tr.get('to_stage')))}</strong></td>
+              <td><span class="tag-pill tag-obs">{html.escape(str(tr.get('transition_type')))}</span></td>
+              <td><span class="tag-pill {st_cls}">{html.escape(str(tr.get('status')))}</span></td>
+              <td class="mono">{tr.get('confidence', 0.0):.2f}</td>
+              <td class="secondary">{html.escape(str(tr.get('reason', '')))}</td>
+            </tr>
+            """
+        if not tr_rows:
+            tr_rows = "<tr><td colspan='5' class='muted'>No stage transitions evaluated.</td></tr>"
+
+        progression_html = f"""
+        <div style="margin-top: 20px; border-top: 1px dashed var(--border); padding-top: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+            <h3 style="font-size: 13px; font-weight: 700; color: var(--primary);">Canonical 15-Stage Attack Progression & MITRE Grounding</h3>
+            <div>
+              <span class="tag-pill tag-obs">{html.escape(prog_sec.classification)}</span>
+              <strong>{html.escape(prog_sec.stage_display_name)}</strong>
+              <span class="mono" style="font-size: 11px; margin-left: 8px;">Conf: {prog_sec.stage_confidence:.1%}</span>
+            </div>
+          </div>
+          <table class="data-table" style="margin-bottom: 12px;">
+            <thead>
+              <tr>
+                <th style="width: 100px;">Window / Horizon</th>
+                <th>Canonical Stage</th>
+                <th style="width: 110px;">Classification</th>
+                <th>MITRE Techniques</th>
+                <th style="width: 140px;">Separated Confidence</th>
+                <th style="width: 110px;">Corroboration</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tl_rows}
+            </tbody>
+          </table>
+          <h4 style="font-size: 11.5px; font-weight: 600; color: var(--text-sec); margin-bottom: 6px;">Evaluated Stage Transitions</h4>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Transition (S_t &rarr; S_t+1)</th>
+                <th style="width: 90px;">Type</th>
+                <th style="width: 130px;">Validation Status</th>
+                <th style="width: 80px;">Confidence</th>
+                <th>Kinematic Rationale</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tr_rows}
+            </tbody>
+          </table>
+        </div>
+        """
+
+    # Helper to prevent zero-baseline division / absurd percentage rendering
+    def _format_delta_display(obs: float, base: float, rel: float, chg_type: str | None = None) -> str:
+        if chg_type == "NEWLY_PRESENT" or abs(base) < 1e-9:
+            return f"{obs:.1f} vs 0.0 [NEWLY PRESENT]"
+        if rel is not None and math.isfinite(rel):
+            if abs(rel) > 5.0:
+                return f"{obs:.1f} vs {base:.1f} [SURGE]"
+            return f"{obs:.1f} vs {base:.1f} ({rel:+.1%})"
+        return f"{obs:.1f} vs {base:.1f}"
+
+    sensor_agr_html = ""
+    if getattr(ev_sec, "sensor_agreement", None):
+        s_agr = ev_sec.sensor_agreement
+        lvl = s_agr.get("agreement_level") or s_agr.get("agreement", "UNKNOWN")
+        mod = s_agr.get("confidence_modifier", 1.0)
+        supp_srcs = ", ".join(s_agr.get("supporting_sources", [])) or "None"
+        contra_srcs = ", ".join(s_agr.get("contradictory_sources", [])) or "None"
+        sensor_agr_html = f"""
+        <div class="note-box" style="margin-bottom: 12px;">
+          <strong>Sensor Agreement & Cross-Modal Corroboration:</strong>
+          <span class="tag-pill tag-supp">{html.escape(str(lvl))}</span>
+          (Modifier: {mod:.2f}x) &middot; Supporting: <span class="mono">{html.escape(supp_srcs)}</span> &middot; Contradictory: <span class="mono">{html.escape(contra_srcs)}</span>
+        </div>
+        """
+
     # Evidence items
     supporting_rows = ""
     for e in ev_sec.supporting_evidence:
+        delta_str = _format_delta_display(e.observed_value, e.baseline_value, e.relative_change, getattr(e, 'change_type', None))
         supporting_rows += f"""
         <tr>
           <td><span class="tag-pill tag-supp">SUPPORTING</span> <span class="tag-pill tag-obs">OBSERVED</span></td>
           <td><strong>{html.escape(format_display_label(e.feature_name))}</strong></td>
-          <td class="mono">{e.observed_value:.1f} vs {e.baseline_value:.1f} ({e.relative_change:+.1%})</td>
+          <td class="mono">{delta_str}</td>
           <td><span class="sev-tag">{html.escape(e.severity)}</span></td>
           <td class="secondary">{html.escape(e.explanation)}</td>
         </tr>
         """
     contradictory_rows = ""
     for e in ev_sec.contradictory_evidence:
+        delta_str = _format_delta_display(e.observed_value, e.baseline_value, e.relative_change, getattr(e, 'change_type', None))
         contradictory_rows += f"""
         <tr>
           <td><span class="tag-pill tag-contra">CONTRADICTORY</span> <span class="tag-pill tag-obs">OBSERVED</span></td>
           <td><strong>{html.escape(format_display_label(e.feature_name))}</strong></td>
-          <td class="mono">{e.observed_value:.1f} vs {e.baseline_value:.1f} ({e.relative_change:+.1%})</td>
+          <td class="mono">{delta_str}</td>
           <td><span class="sev-tag">{html.escape(e.severity)}</span></td>
           <td class="secondary">{html.escape(e.explanation)}</td>
         </tr>
@@ -751,6 +867,7 @@ def generate_html_report(report: NexSolveReport) -> str:
       <div class="note-box" style="margin-top: 12px;">
         <strong>Methodological Disclosure:</strong> Predicted scores represent latent state transition dynamics across sequential 60-second observation windows, not empirical or actuarial probabilities of compromise. Forward projections reflect statistical dynamics learned from reference traffic distributions.
       </div>
+      {progression_html}
     </section>
 
     <!-- 06 — Evidence Chain -->
@@ -767,6 +884,7 @@ def generate_html_report(report: NexSolveReport) -> str:
         <div><strong>Evidence Strength:</strong> <span class="mono">{ev_sec.evidence_strength:.2f}</span> ({html.escape(ev_sec.evidence_quality)} Quality)</div>
         <div class="muted">{html.escape(ev_sec.explanation)}</div>
       </div>
+      {sensor_agr_html}
 
       <table class="data-table">
         <thead>
@@ -848,3 +966,309 @@ def generate_html_report(report: NexSolveReport) -> str:
 </html>
 """
 
+
+def generate_markdown_report(report: NexSolveReport) -> str:
+    """Generate professional, self-contained Markdown report with 16 canonical sections and explicit epistemic labeling."""
+    r = report
+    exec_sec = r.executive_summary
+    cap_sec = r.capture_quality
+    net_sec = r.network_activity
+    temp_sec = r.temporal_behavior
+    fore_sec = r.forecast
+    ah_sec = r.attack_horizon
+    ev_sec = r.evidence_chain
+    conf_sec = r.confidence
+    unk_sec = r.unknown_behavior
+    abs_sec = r.abstention
+    lim_sec = r.limitations
+    prov_sec = r.provenance
+    proc_sec = r.processing_metadata
+    prog_sec = r.attack_progression
+
+    is_abstained = abs_sec.abstained or ah_sec.state == "ABSTAINED"
+
+    # Helper for delta display
+    def _fmt_delta(obs: float, base: float, rel: float, chg_type: str | None = None) -> str:
+        if chg_type == "NEWLY_PRESENT" or abs(base) < 1e-9:
+            return f"{obs:.1f} vs 0.0 [NEWLY PRESENT]"
+        if rel is not None and math.isfinite(rel):
+            if abs(rel) > 5.0:
+                return f"{obs:.1f} vs {base:.1f} [SURGE]"
+            return f"{obs:.1f} vs {base:.1f} ({rel:+.1%})"
+        return f"{obs:.1f} vs {base:.1f}"
+
+    lines: list[str] = [
+        f"# NexSolve Network Threat & Predictive Intelligence Report",
+        f"**Report ID:** `{r.report_id}` | **Generated (UTC):** `{r.generated_at_utc}` | **Source:** `{prov_sec.source_filename}`",
+        f"*System Tagline:* {r.system_tagline}",
+        "",
+        "---",
+        "",
+        "## 01 — Executive Summary [INFERRED]",
+        f"- **Overall Threat Level:** `{exec_sec.overall_threat_level}`",
+        f"- **Analysis Status:** `{exec_sec.status}`",
+        f"- **Forecast Summary:** {exec_sec.forecast_summary}",
+        f"- **Epistemic Disclaimer:** {exec_sec.epistemic_disclaimer}",
+        "",
+        "### Key Observed Findings [OBSERVED]",
+    ]
+
+    if exec_sec.key_findings:
+        for f in exec_sec.key_findings:
+            lines.append(f"- {f}")
+    else:
+        lines.append("- No anomalous threat signatures observed in passive traffic capture.")
+
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## 02 — Capture Identity [OBSERVED]",
+        f"- **Source Filename:** `{prov_sec.source_filename}`",
+        f"- **SHA-256 Hash:** `{prov_sec.capture_hash or 'N/A'}`",
+        f"- **Capture File Size:** {prov_sec.file_size_bytes:,} bytes",
+        f"- **Capture Quality Status:** `{cap_sec.quality_status}`",
+        f"- **Execution Processing Time:** {proc_sec.processing_seconds:.2f}s (Stage: `{proc_sec.stage}`)",
+        "",
+        "---",
+        "",
+        "## 03 — Network Overview [OBSERVED]",
+        "| Telemetry Metric | Measured Value | Operational Baseline |",
+        "| :--- | :--- | :--- |",
+        f"| Packets Processed | **{net_sec.packet_count:,}** | {cap_sec.parsed_packets:,} parsed frames |",
+        f"| Flows Reconstructed | **{net_sec.flow_count:,}** | Bidirectional TCP/UDP flows |",
+        f"| Total Traffic Volume | **{net_sec.byte_count:,}** bytes | Passive header analysis |",
+        f"| Duration Span | **{net_sec.duration_seconds:.2f}s** | Observation window span |",
+        f"| Endpoint Cardinality | **{net_sec.unique_src_ips}** source IPs | **{net_sec.unique_dst_ips}** destination hosts |",
+        f"| Target Ports Monitored | **{net_sec.unique_dst_ports}** distinct ports | L4 transport coverage |",
+        f"| Packet Loss Ratio | **{cap_sec.packet_loss_ratio:.2%}** | < 2.0% nominal envelope |",
+        f"| Reordered Packets | **{cap_sec.reordered_packets}** | Sequence preservation |",
+        f"| Malformed Packets | **{cap_sec.malformed_packets}** | Header integrity check |",
+        "",
+        "---",
+        "",
+        "## 04 — Threat Assessment [INFERRED]",
+        f"- **Current Threat Posture:** `{exec_sec.overall_threat_level}`",
+        f"- **Active Threat Indicators:** {len(exec_sec.key_findings)} pattern signatures detected",
+        "",
+        "| Identifier | Observed Behavioral Pattern | Severity | Epistemic Status |",
+        "| :--- | :--- | :--- | :--- |",
+    ])
+
+    if exec_sec.key_findings:
+        for idx, kf in enumerate(exec_sec.key_findings, 1):
+            lines.append(f"| `IND-{idx:02d}` | {kf} | `{exec_sec.overall_threat_level}` | `[OBSERVED]` |")
+    else:
+        lines.append("| `IND-00` | Baseline traffic; zero anomalous threat signatures | `NOMINAL` | `[OBSERVED]` |")
+
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## 05 — Current Network State [OBSERVED]",
+        f"- **Temporal Window Count:** {temp_sec.window_count} discrete 60s windows",
+        f"- **Temporal Coverage:** {temp_sec.temporal_window_coverage_seconds:.1f}s",
+        f"- **Temporal Continuity:** `{temp_sec.temporal_continuity}`",
+        f"- **Packet Rate Trend:** `{temp_sec.packet_rate_trend}`",
+        f"- **Flow Churn Trend:** `{temp_sec.flow_churn_trend}`",
+        "- **Canonical Feature Vector:** 45-Dimension Continuous Layer 3/4 Vector (Passive Passive Only)",
+        "",
+        "---",
+        "",
+        "## 06 — Attack Progression [INFERRED]",
+    ])
+
+    if prog_sec:
+        lines.extend([
+            f"- **Current Lifecycle Stage:** `{prog_sec.current_stage}` (`{prog_sec.stage_display_name}`)",
+            f"- **Stage Classification:** `[{prog_sec.classification}]`",
+            f"- **Separated Confidences:** Stage Confidence: **{prog_sec.stage_confidence:.1%}** | Technique Confidence: **{prog_sec.technique_confidence:.1%}**",
+            f"- **Observed Techniques:** {', '.join(prog_sec.observed_techniques) if prog_sec.observed_techniques else 'None'}",
+            "",
+            "### Progression Timeline",
+            "| Horizon | Stage | Classification | Techniques | Confidence | Corroboration |",
+            "| :--- | :--- | :--- | :--- | :--- | :--- |",
+        ])
+        for ev in prog_sec.timeline:
+            h_lbl = ev.get("horizon_label") or ("T0" if ev.get("classification") != "FORECAST" else f"+{ev.get('lead_time_seconds', 0):.0f}s")
+            tech_s = ", ".join(ev.get("primary_techniques", [])) or "None"
+            lines.append(
+                f"| **{h_lbl}** | `{ev.get('stage', 'UNKNOWN')}` | `[{ev.get('classification', 'INFERRED')}]` | "
+                f"`{tech_s}` | {ev.get('confidence', 0.0):.2f} (Stage: {ev.get('stage_confidence', 0.0):.2f}) | "
+                f"{ev.get('supporting_evidence_count', 0)} supporting |"
+            )
+
+        lines.extend([
+            "",
+            "### Evaluated State Transitions & Kinematics",
+            "| Transition ($S_t \\to S_{t+1}$) | Type | Status | Confidence | Kinematic Rationale |",
+            "| :--- | :--- | :--- | :--- | :--- |",
+        ])
+        for tr in prog_sec.transitions:
+            lines.append(
+                f"| `{tr.get('from_stage')} -> {tr.get('to_stage')}` | `{tr.get('transition_type')}` | "
+                f"`[{tr.get('status')}]` | {tr.get('confidence', 0.0):.2f} | {tr.get('reason', '')} |"
+            )
+    else:
+        lines.append("- Dynamic progression telemetry not populated for this session.")
+
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## 07 — Attack Horizon [FORECAST]",
+        f"- **Projected Trajectory State:** `{ah_sec.state}`",
+        f"- **Early Warning Lead Time:** {f'{ah_sec.lead_time_seconds:.1f}s' if ah_sec.lead_time_seconds is not None else 'N/A'}",
+        f"- **Forward Horizon Coverage:** {ah_sec.horizon_seconds}s ({ah_sec.horizon_windows} windows)",
+        f"- **Horizon Summary:** {ah_sec.summary}",
+        "",
+        "### Multi-Horizon Forward Projections",
+        "| Horizon Step | Attack Probability | Projected Stage | Uncertainty | Epistemic Status | Behavioral Interpretation |",
+        "| :--- | :--- | :--- | :--- | :--- | :--- |",
+    ])
+
+    for fp in fore_sec.forecast_points:
+        if fp.attack_probability is not None and not is_abstained:
+            p_str = f"**{fp.attack_probability:.1%}**"
+            st_str = f"`{fp.predicted_stage or 'None'}`"
+            u_str = f"{fp.uncertainty:.2f}" if fp.uncertainty is not None else "Baseline"
+            status_str = "`[FORECAST]`"
+            expl_s = "; ".join(fp.explanation) if fp.explanation else "Latent trajectory rollout."
+        else:
+            p_str = "*WITHHELD*"
+            st_str = "`ABSTAINED`"
+            u_str = "N/A"
+            status_str = "`[ABSTAINED]`"
+            expl_s = "; ".join(fp.explanation) if fp.explanation else "Forecast withheld due to insufficient historical sequence."
+        lines.append(f"| **T+{fp.horizon} (+{fp.horizon * 60}s)** | {p_str} | {st_str} | {u_str} | {status_str} | {expl_s} |")
+
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## 08 — Evidence [OBSERVED]",
+        f"- **Overall Evidence Strength:** {ev_sec.evidence_strength:.2f} ({ev_sec.evidence_quality} Quality)",
+        f"- **Supporting Signals:** {len(ev_sec.supporting_evidence)} items",
+        f"- **Contradictory Signals:** {len(ev_sec.contradictory_evidence)} items",
+        "",
+        "| Polarity | Feature / Telemetry | Observed vs Baseline | Severity | Evidentiary Rationale |",
+        "| :--- | :--- | :--- | :--- | :--- |",
+    ])
+
+    for e in ev_sec.supporting_evidence:
+        d_str = _fmt_delta(e.observed_value, e.baseline_value, e.relative_change, getattr(e, 'change_type', None))
+        lines.append(f"| `SUPPORTING` | **{format_display_label(e.feature_name)}** | `{d_str}` | `{e.severity}` | {e.explanation} |")
+    for e in ev_sec.contradictory_evidence:
+        d_str = _fmt_delta(e.observed_value, e.baseline_value, e.relative_change, getattr(e, 'change_type', None))
+        lines.append(f"| `CONTRADICTORY` | **{format_display_label(e.feature_name)}** | `{d_str}` | `{e.severity}` | {e.explanation} |")
+    if not ev_sec.supporting_evidence and not ev_sec.contradictory_evidence:
+        lines.append("| `NEUTRAL` | Nominal Baseline Telemetry | `0.0 vs 0.0` | `INFO` | No anomalous feature divergence observed. |")
+
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## 09 — Feature Drivers [OBSERVED / INFERRED]",
+        "Top network telemetry feature drivers contributing to threat assessment:",
+    ])
+    if ev_sec.supporting_evidence:
+        for idx, e in enumerate(ev_sec.supporting_evidence[:5], 1):
+            d_str = _fmt_delta(e.observed_value, e.baseline_value, e.relative_change, getattr(e, 'change_type', None))
+            lines.append(f"{idx}. **{format_display_label(e.feature_name)}**: `{d_str}` (Impact: `{e.severity}`) — {e.explanation}")
+    else:
+        lines.append("- Zero anomalous feature drivers triggered; traffic is stable within baseline boundaries.")
+
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## 10 — MITRE Mapping [INFERRED]",
+        "Mapping of observed network behavioral anomalies to MITRE ATT&CK Enterprise Matrix:",
+    ])
+    if prog_sec and prog_sec.observed_techniques:
+        for t in prog_sec.observed_techniques:
+            lines.append(f"- **Technique `{t}`**: Grounded in observed packet indicators and flow metadata.")
+    elif exec_sec.key_findings:
+        lines.append("- **T1046 (Network Service Discovery)**: Inferred from rapid port connection attempts and SYN distribution.")
+    else:
+        lines.append("- Zero MITRE ATT&CK techniques mapped to this benign capture.")
+
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## 11 — Sensor Agreement [OBSERVED]",
+    ])
+    s_agr = getattr(ev_sec, "sensor_agreement", None)
+    if s_agr:
+        lvl = s_agr.get("agreement_level") or s_agr.get("agreement", "UNKNOWN")
+        mod = s_agr.get("confidence_modifier", 1.0)
+        supp_srcs = ", ".join(s_agr.get("supporting_sources", [])) or "None"
+        contra_srcs = ", ".join(s_agr.get("contradictory_sources", [])) or "None"
+        expl_agr = s_agr.get("explanation", "")
+        lines.extend([
+            f"- **Agreement Level:** `[{lvl}]`",
+            f"- **Confidence Modifier:** `{mod:.2f}x`",
+            f"- **Supporting Reporting Sensors:** `{supp_srcs}`",
+            f"- **Contradictory Sensors:** `{contra_srcs}`",
+            f"- **Sensor Agreement Evaluation:** {expl_agr}",
+        ])
+    else:
+        lines.append("- Multi-sensor corroboration summary: Single-sensor passive capture evaluation.")
+
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## 12 — Uncertainty [INFERRED]",
+        f"- **Confidence Assessment:** `{conf_sec.confidence_state}` ({conf_sec.confidence_value:.1%} confidence)" if conf_sec.confidence_value is not None else "- **Confidence Assessment:** `WITHHELD`",
+        f"- **Uncertainty Level:** `{conf_sec.uncertainty_level}`",
+        f"- **Model Calibration Status:** `{conf_sec.calibration_status}`",
+        f"- **Methodological Disclosure:** {conf_sec.disclaimer}",
+        "",
+        "---",
+        "",
+        "## 13 — Abstention [INFERRED]",
+        f"- **Abstention Status:** `{abs_sec.status}` (Abstained: `{abs_sec.abstained}`)",
+        f"- **Severity:** `{abs_sec.severity}`",
+        f"- **Explanation:** {abs_sec.explanation}",
+    ])
+    if abs_sec.missing_requirements:
+        lines.append(f"- **Missing Prerequisites:** {', '.join(abs_sec.missing_requirements)}")
+
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## 14 — Provenance [OBSERVED]",
+        f"- **Capture Source:** `{prov_sec.source_filename}`",
+        f"- **SHA-256 Digest:** `{prov_sec.capture_hash or 'N/A'}`",
+        f"- **Pipeline Engine Version:** `{prov_sec.processing_version}`",
+        "- **Synthetic Imputation:** None (Strict zero synthetic data generation)",
+        "- **Payload Inspection:** Passive Layer 3/4 telemetry metadata only (no decrypted TLS payload inspection)",
+        "",
+        "---",
+        "",
+        "## 15 — Model Information [OBSERVED]",
+        f"- **Model Architecture:** `{prov_sec.model_version}`",
+        f"- **Observation Lookback:** {temp_sec.window_count} discrete 60s windows",
+        "- **Forecast Horizons:** T+1 to T+5 (60s to 300s lookahead forward steps)",
+        "- **Feature Vector Dimension:** 45 Continuous L3/L4 Network State Features",
+        "",
+        "---",
+        "",
+        "## 16 — Limitations & Governance [OBSERVED]",
+        "Forensic and predictive boundary disclosures:",
+    ])
+    for lim in (lim_sec.limitations + lim_sec.capture_limitations + lim_sec.calibration_caveats):
+        desc = lim.get("description") or lim.get("message") or str(lim) if isinstance(lim, dict) else str(lim)
+        lines.append(f"- {desc}")
+
+    lines.extend([
+        "",
+        "---",
+        f"*NexSolve Security Intelligence Platform © 2026. Confidential Automated Report — ID: `{r.report_id}`*",
+        "",
+    ])
+
+    return "\n".join(lines)

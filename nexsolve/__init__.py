@@ -3,5 +3,11 @@ SIH 2026 Problem Statement ID: 26153
 """
 from __future__ import annotations
 
-__version__ = "1.0.0"
+from pathlib import Path
 
+# Extend package search path to include cli/src/nexsolve for direct monorepo execution
+_cli_nexsolve = Path(__file__).resolve().parent.parent / "cli" / "src" / "nexsolve"
+if _cli_nexsolve.exists():
+    __path__.append(str(_cli_nexsolve))
+
+__version__ = "1.0.0"

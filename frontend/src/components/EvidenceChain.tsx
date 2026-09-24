@@ -120,11 +120,15 @@ export function EvidenceChain({ evidenceChain }: EvidenceChainProps) {
                   <span style={{ color: 'var(--text-muted)' }}>
                     Observed: <strong style={{ color: 'var(--text-primary)' }}>{item.observed_value}</strong> (base: {item.baseline_value})
                   </span>
-                  {item.relative_change !== null && (
+                  {item.change_type === 'NEWLY_PRESENT' || item.baseline_value === 0 ? (
                     <span style={{ color: 'var(--accent)', fontWeight: 700 }}>
-                      +{Math.abs(item.relative_change * 100).toFixed(1)}%
+                      NEWLY PRESENT
                     </span>
-                  )}
+                  ) : item.relative_change !== null ? (
+                    <span style={{ color: 'var(--accent)', fontWeight: 700 }}>
+                      {Math.abs(item.relative_change) > 10.0 ? 'SURGE' : `+${Math.abs(item.relative_change * 100).toFixed(1)}%`}
+                    </span>
+                  ) : null}
                   <span style={{ color: 'var(--text-muted)', fontSize: '9px' }}>
                     rel: {(item.reliability ?? 1.0).toFixed(1)}
                   </span>
@@ -144,7 +148,7 @@ export function EvidenceChain({ evidenceChain }: EvidenceChainProps) {
           </strong>
         </div>
         {evidenceChain.contradictory.length === 0 ? (
-          <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', margin: '4px 0 0 16px' }}>
+          <p style={{ fontSize: '11px', color: 'var(--muted)', fontStyle: 'italic', margin: '4px 0 0 16px' }}>
             None detected; observed signals are directionally consistent.
           </p>
         ) : (
@@ -187,6 +191,66 @@ export function EvidenceChain({ evidenceChain }: EvidenceChainProps) {
           </div>
         )}
       </div>
+
+      {/* Neutral / Baseline Evidence List if Present */}
+      {evidenceChain.neutral && evidenceChain.neutral.length > 0 && (
+        <div style={{ marginBottom: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
+              Neutral / Baseline Telemetry ({evidenceChain.neutral.length})
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {evidenceChain.neutral.map((item) => (
+              <div
+                key={item.evidence_id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '6px 8px',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '4px',
+                  fontSize: '10px',
+                }}
+              >
+                <span style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>{item.feature_name}</span>
+                <span style={{ color: 'var(--text-muted)' }}>{item.explanation}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Multi-Sensor Agreement Banner if Available */}
+      {evidenceChain.sensor_agreement && (
+        <div
+          style={{
+            marginBottom: '14px',
+            padding: '10px 12px',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border)',
+            borderRadius: '6px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '11px',
+            fontFamily: 'var(--mono)',
+          }}
+        >
+          <div>
+            <strong style={{ color: 'var(--text-primary)' }}>Multi-Sensor Corroboration: </strong>
+            <span style={{ color: 'var(--accent)' }}>{evidenceChain.sensor_agreement.agreement}</span>
+            <span style={{ color: 'var(--text-muted)', marginLeft: '8px' }}>
+              (Modifier: {evidenceChain.sensor_agreement.confidence_modifier.toFixed(2)}x)
+            </span>
+          </div>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '10px' }}>
+            Sources: {evidenceChain.sensor_agreement.sources.join(', ') || 'Heuristic, Ingestion'}
+          </div>
+        </div>
+      )}
 
       {/* Capture Limitations */}
       <div>
@@ -248,7 +312,7 @@ export function EvidenceChain({ evidenceChain }: EvidenceChainProps) {
           Window: {evidenceChain.current_window_id ?? 'Live Observation'} &middot; {evidenceChain.current_timestamp}
         </span>
         <span>
-          Provenance: {evidenceChain.provenance_complete ? 'Complete' : 'Partial'}
+          Provenance: {evidenceChain.provenance_complete ? 'Complete (Verified SHA-256)' : 'Partial'} &middot; Trace: PCAP &rarr; Window &rarr; Feature &rarr; Stage
         </span>
       </div>
     </Panel>

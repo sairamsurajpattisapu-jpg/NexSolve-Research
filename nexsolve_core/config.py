@@ -73,20 +73,24 @@ PCAP_MAGICS: tuple[bytes, ...] = (
 @dataclass
 class ResourceLimitDetails:
     status: str = "RESOURCE_LIMIT_EXCEEDED"
+    code: str = "RESOURCE_LIMIT_EXCEEDED"
     resource: str = ""
     observed: int | float = 0
     limit: int | float = 0
     recoverable: bool = False
     explanation: str = ""
+    recommended_action: str = "Reduce capture size or adjust safety thresholds in environment configuration."
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "status": self.status,
+            "code": self.code,
             "resource": self.resource,
             "observed": self.observed,
             "limit": self.limit,
             "recoverable": self.recoverable,
             "explanation": self.explanation,
+            "recommended_action": self.recommended_action,
         }
 
 

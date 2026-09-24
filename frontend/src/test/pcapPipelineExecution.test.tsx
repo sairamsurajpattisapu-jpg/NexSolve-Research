@@ -84,8 +84,8 @@ describe('PCAP Processing Pipeline & ETA Execution Suite', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByText('ESTIMATED REMAINING')).toBeInTheDocument()
-    expect(screen.getByText('ELAPSED TIME')).toBeInTheDocument()
+    expect(screen.getByText('EST. REMAINING')).toBeInTheDocument()
+    expect(screen.getByText('ELAPSED')).toBeInTheDocument()
   })
 
   it('displays elapsed and remaining time in JobProgress component', () => {

@@ -679,6 +679,23 @@ async def delete_uploaded_analysis(analysis_id: str) -> Response:
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+@app.get("/api/analysis/compare")
+async def compare_two_analyses(job_a: str, job_b: str) -> dict[str, Any]:
+    """Compare two completed analyses and produce comparative threat and forecast delta."""
+    from integrations.comparison import compare_analyses
+    try:
+        analysis_a = analysis_for_id(job_a)
+    except Exception as err:
+        raise HTTPException(status_code=404, detail=f"Analysis A ({job_a}) not found: {err}")
+    try:
+        analysis_b = analysis_for_id(job_b)
+    except Exception as err:
+        raise HTTPException(status_code=404, detail=f"Analysis B ({job_b}) not found: {err}")
+
+    comparison_report = compare_analyses(analysis_a, analysis_b)
+    return comparison_report.to_dict()
+
+
 @app.get("/api/analysis/{analysis_id}/status")
 async def analysis_status(analysis_id: str) -> dict[str, Any]:
     result = analysis_for_id(analysis_id)

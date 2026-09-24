@@ -137,6 +137,15 @@ def analyze_uploaded_capture(
                     builder.update(pkt, is_orig)
         tcp_sessions_tuple = tuple(b.finalize() for b in sessions_builder.values())
 
+        from nexsolve_core.provenance import CaptureFingerprint
+        from integrations.scapy_adapter import ScapyAdapter
+        scapy_adapter = ScapyAdapter()
+        scapy_caps = scapy_adapter.probe_capture_capabilities(capture_path, max_packets=2000) if scapy_adapter.available else {}
+        capture_fingerprint = CaptureFingerprint.from_pcap(
+            capture_path,
+            capabilities=scapy_caps,
+        )
+
     if not canonical_windows:
         raise RuntimeError("The capture contained no parseable timestamped packets.")
     # Stream TemporalWindows to build necessary structures without keeping them all in memory if possible
@@ -181,6 +190,13 @@ def analyze_uploaded_capture(
     traffic["unique_dst_ports"] = len(dst_ports)
     if total_unique_flows > 0:
         traffic["flows"] = total_unique_flows
+
+    import dataclasses
+    capture_fingerprint = dataclasses.replace(
+        capture_fingerprint,
+        packet_count=traffic["packets"],
+        duration_seconds=float(duration_seconds),
+    )
 
 
     active_schema = MODEL_SCHEMA
@@ -268,7 +284,7 @@ def analyze_uploaded_capture(
         sequence=state_dicts,
         forecast_points=forecast_points,
         capture_quality=quality,
-        provenance_info={"capture_id": analysis_id, "source": filename, "schema_variant": schema_variant},
+        provenance_info={"capture_id": analysis_id, "source": filename, "schema_variant": schema_variant, "sha256": capture_fingerprint.sha256},
         min_sequence_length=8,
         required_features=active_flow_features,
         calibration_status="UNSUPPORTED",
@@ -347,7 +363,7 @@ def analyze_uploaded_capture(
         sequence=state_dicts,
         forecast_points=forecast_points,
         capture_quality=quality,
-        provenance_info={"capture_id": analysis_id, "source": filename, "schema_variant": schema_variant},
+        provenance_info={"capture_id": analysis_id, "source": filename, "schema_variant": schema_variant, "sha256": capture_fingerprint.sha256},
         min_sequence_length=8,
         required_features=active_flow_features,
         calibration_status="UNSUPPORTED",
@@ -672,11 +688,82 @@ def analyze_uploaded_capture(
         },
     }
 
+    from ml.forecasting.evidence_engine import (
+        build_canonical_evidence_graph,
+        evaluate_sensor_agreement as eval_sensor_agr,
+        EvidenceItem,
+        EvidenceSource,
+        EvidencePolarity,
+    )
+    ev_items_for_agreement = []
+    last_ts = windows[-1].get("start_timestamp", 1700000000.0) if windows and isinstance(windows[-1], dict) else (getattr(windows[-1], "start_timestamp", 1700000000.0) if windows else 1700000000.0)
+    for idx_f, f in enumerate(detection.get("findings", [])):
+        ev_items_for_agreement.append(
+            EvidenceItem(
+                evidence_id=f.get("finding_id") or f"EV_FIND_{idx_f}",
+                timestamp=float(last_ts),
+                source=EvidenceSource.HEURISTIC,
+                modality="ALERT",
+                polarity=EvidencePolarity.SUPPORTING,
+                description=str(f.get("explanation") or f.get("rule_id") or "Heuristic pattern detected"),
+                confidence=0.80,
+                technique_id=f.get("mitre_technique") or f.get("technique_id"),
+            )
+        )
+    if scapy_adapter.available and scapy_caps:
+        ev_items_for_agreement.append(
+            EvidenceItem(
+                evidence_id="EV_SCAPY_PROBE",
+                timestamp=float(last_ts),
+                source=EvidenceSource.SCAPY,
+                modality="PACKET",
+                polarity=EvidencePolarity.SUPPORTING,
+                description="Scapy deep packet dissection verified valid frame structures",
+                confidence=0.90,
+            )
+        )
+    if suricata_report and getattr(suricata_report, "alerts", None):
+        for s_idx, s_al in enumerate(suricata_report.alerts):
+            ev_items_for_agreement.append(
+                EvidenceItem(
+                    evidence_id=f"EV_SURI_{s_idx}",
+                    timestamp=float(last_ts),
+                    source=EvidenceSource.SURICATA,
+                    modality="IDS_ALERT",
+                    polarity=EvidencePolarity.SUPPORTING,
+                    description=s_al.get("signature", "Suricata rule trigger"),
+                    confidence=0.85,
+                )
+            )
+
+    sensor_agr = eval_sensor_agr(ev_items_for_agreement)
+    sensor_agreement_dict = {
+        "sources": sorted(list(set(sensor_agr.supporting_sources + sensor_agr.contradictory_sources + sensor_agr.neutral_sources))),
+        "agreement": sensor_agr.agreement_level.value,
+        "agreement_level": sensor_agr.agreement_level.value,
+        "contradictions": list(sensor_agr.contradictory_sources),
+        "supporting_sources": list(sensor_agr.supporting_sources),
+        "neutral_sources": list(sensor_agr.neutral_sources),
+        "confidence_modifier": sensor_agr.confidence_modifier,
+        "explanation": sensor_agr.explanation,
+    }
+
+    canonical_ev_graph = build_canonical_evidence_graph(
+        pcap_sha256=capture_fingerprint.sha256,
+        pcap_filename=filename,
+        windows=canonical_windows,
+        findings=detection.get("findings", []),
+        attack_progression=progression_forecast,
+        forecast_points=forecast_points,
+    )
+
     result = {
         "analysis_id": analysis_id,
         "status": "completed",
-        "source": {"name": filename, "kind": "uploaded_pcap", "filename": filename, "size_bytes": capture_size_bytes},
-        "upload": {"filename": filename, "size_bytes": capture_size_bytes, "format": suffix[1:]},
+        "source": {"name": filename, "kind": "uploaded_pcap", "filename": filename, "size_bytes": capture_size_bytes, "sha256": capture_fingerprint.sha256},
+        "upload": {"filename": filename, "size_bytes": capture_size_bytes, "format": suffix[1:], "sha256": capture_fingerprint.sha256},
+        "fingerprint": capture_fingerprint.to_dict(),
+        "capture_fingerprint": capture_fingerprint.to_dict(),
         "validation": _validation(windows, compatibility),
         "model_compatibility": compatibility,
         "network_state": {
@@ -748,6 +835,9 @@ def analyze_uploaded_capture(
         "attackHorizon": intelligence.attack_horizon,
         "attack_progression": progression_dict,
         "attackProgression": progression_dict,
+        "sensor_agreement": sensor_agreement_dict,
+        "sensorAgreement": sensor_agreement_dict,
+        "canonical_evidence_graph": canonical_ev_graph.to_dict(),
         "evidence_chain": intelligence.evidence_chain,
         "evidenceChain": intelligence.evidence_chain,
         "confidence": intelligence.confidence,

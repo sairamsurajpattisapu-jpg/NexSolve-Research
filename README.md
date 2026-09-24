@@ -298,18 +298,75 @@ For judges, evaluators, and presentation environments:
 
 ## Command-Line Interface (CLI)
 
-NexSolve includes a unified CLI runner for air-gapped terminal analysis and automated CI/CD pipelines:
+NexSolve includes a professional Python CLI client (`nexsolve`) that submits captures to the platform, streams truthful stage progression, and outputs the exact URL to visualize results in the web console:
 
+### Installation
 ```bash
-# Analyze PCAP and print SOC terminal forecast table
-python -m nexsolve forecast data/test_slices/friday_10windows_slice.pcap
-
-# Export machine-readable JSON intelligence report
-python -m nexsolve forecast capture.pcap --json -o reports/forecast.json
-
-# Generate standalone printable HTML security audit report
-python -m nexsolve forecast capture.pcap --report -o reports/audit_report.html
+pip install -e ./cli
 ```
+
+### Primary Workflow: `nexsolve analyze`
+```bash
+# Submit capture, track progress across 9 stages, and get web console visualization URL
+nexsolve analyze data/test_slices/friday_10windows_slice.pcap
+
+# Automatically launch the interactive web console in your default browser
+nexsolve analyze capture.pcap --open
+
+# Download standalone HTML forensic report upon completion
+nexsolve analyze capture.pcap --report-out reports/audit_report.html
+
+# Output completed analysis directly as JSON for automated pipelines
+nexsolve analyze capture.pcap --json
+```
+
+### Complete Analyst CLI Command Set
+```bash
+# Deep forensic investigation: identity, attack posture, progression timeline, and multi-horizon forecasts
+nexsolve investigate job-88f7b12080e5
+nexsolve investigate analysis_result.json --json
+
+# Root cause explainability: "Why did NexSolve produce this result?" (feature deltas, sensor corroboration)
+nexsolve explain job-88f7b12080e5
+nexsolve explain analysis_result.json --json
+
+# Export self-contained reports across all 16 numbered sections in HTML, Markdown, or JSON
+nexsolve export job-88f7b12080e5 --format markdown -o reports/incident.md
+nexsolve export job-88f7b12080e5 --format html -o reports/incident.html
+nexsolve export job-88f7b12080e5 --format json -o reports/incident.json
+
+# Dynamic 15-stage attack progression lifecycle, kinematics, and transition validation
+nexsolve progression job-88f7b12080e5
+
+# System diagnostics with tiered dependency verification (REQUIRED vs OPTIONAL, AVAILABLE vs MISSING)
+nexsolve doctor
+
+# Platform, CLI, World Model, and 45/46 schema versions
+nexsolve version
+
+# Comparative differential between two capture analyses
+nexsolve compare job-baseline-001 job-incident-002
+
+# Inspect cryptographic capture fingerprint, protocol capabilities, and evidence fusion
+nexsolve evidence job-88f7b12080e5
+
+# Query processing status and stage of an existing job
+nexsolve status job-88f7b12080e5
+
+# Scientific forecasting evaluation and multi-horizon benchmark harness
+nexsolve evaluate --dataset data/labeled_benchmark.csv --horizon 5
+nexsolve benchmark --dataset data/labeled_benchmark.csv
+```
+
+### Open-Source Telemetry & Evidence Integration Matrix
+NexSolve features zero-hard-dependency adapters that ingest standard security sensor formats and map them to the 45-feature canonical schema:
+- **Scapy 2.7.0 Forensics Adapter**: Link type detection, protocol counts (IPv4, IPv6, TCP, UDP, ICMP), DNS query extraction, and TLS ClientHello SNI discovery.
+- **Zeek Adapter**: Parses `conn.log`, `dns.log`, `ssl.log`, `weird.log`, and `notice.log` into normalized telemetry bundles.
+- **Suricata Adapter**: Ingests `eve.json` alert streams, extracting MITRE ATT&CK technique IDs and alert severities.
+- **NFStream Adapter**: Mathematically aligns bidirectional flow statistical moments directly with NexSolve's 45-feature world model contract.
+- **Scientific Baselines & Evaluation**: Compares World Model forecasts against Persistence and Logistic Regression baselines, tracking Brier scores, FPR/FNR, and degradation curves across horizons $T+1 \dots T+10$.
+
+See [docs/cli/CLI_REFERENCE.md](docs/cli/CLI_REFERENCE.md) for full argument reference, environment variables, and exit codes.
 
 ---
 

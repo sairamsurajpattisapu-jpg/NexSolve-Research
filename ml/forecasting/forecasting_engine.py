@@ -367,29 +367,60 @@ def _determine_risk_level(prob: float | None) -> RiskLevel:
 
 def _explain_feature_change(feature: str, curr: float, pred: float) -> tuple[str, float, str, str]:
     delta = pred - curr
-    rel = delta / max(abs(curr), 1e-4)
-    if abs(rel) < 0.05:
-        direction = "stable"
-    elif rel > 0:
-        direction = "increasing"
+    # Guard against zero-division explosions when baseline curr is 0 or near zero
+    if abs(curr) < 1e-4:
+        rel = delta / 1.0  # Normalized unit scale rather than 1e-4 division
+        if abs(delta) < 1e-4:
+            direction = "stable"
+            importance = "LOW"
+            interp = f"Feature '{feature}' remains stable at baseline."
+        elif delta > 0:
+            direction = "increasing"
+            importance = "HIGH" if delta > 50 else "MEDIUM" if delta > 5 else "LOW"
+            interp = f"Feature '{feature}' newly present in forecast (0.0 -> {pred:.1f}) represents emerging network signal."
+        else:
+            direction = "decreasing"
+            importance = "LOW"
+            interp = f"Feature '{feature}' decreasing from baseline (0.0 -> {pred:.1f})."
     else:
-        direction = "decreasing"
+        rel = delta / abs(curr)
+        if abs(rel) < 0.05:
+            direction = "stable"
+        elif rel > 0:
+            direction = "increasing"
+        else:
+            direction = "decreasing"
 
-    importance = "HIGH" if abs(rel) > 0.5 else "MEDIUM" if abs(rel) > 0.15 else "LOW"
+        importance = "HIGH" if abs(rel) > 2.0 or abs(delta) > 50 else "MEDIUM" if abs(rel) > 0.5 or abs(delta) > 10 else "LOW"
 
-    # Domain interpretations grounded in network telemetry semantics
-    if "port" in feature:
-        interp = f"Port cardinality {direction} ({curr:.0f} -> {pred:.0f}) indicates {'broad scanning or service discovery activity' if direction == 'increasing' else 'consolidation of traffic to specific target services'}."
-    elif "byte" in feature or "packet" in feature:
-        interp = f"Volumetric flow {direction} ({curr:.1f} -> {pred:.1f}) represents {'traffic surge or data movement pressure' if direction == 'increasing' else 'traffic attenuation'}."
-    elif "iat" in feature:
-        interp = f"Inter-arrival time {direction} ({curr:.2f}s -> {pred:.2f}s) indicates {'irregular pacing or command-and-control interval changes' if direction == 'increasing' else 'rapid automated transmission burst'}."
-    elif "syn" in feature or "rst" in feature:
-        interp = f"TCP flag pressure {direction} ({curr:.0f} -> {pred:.0f}) reflects {'connection exhaustion attempts or failed handshakes' if direction == 'increasing' else 'normalizing connection tear-downs'}."
-    elif "swin" in feature or "dwin" in feature:
-        interp = f"TCP window dynamics {direction} ({curr:.0f} -> {pred:.0f}) reflects {'client/server buffer modulation or exfiltration flow adjustments' if direction == 'increasing' else 'window shrinking or transmission constraints'}."
-    else:
-        interp = f"Feature '{feature}' {direction} by {abs(rel)*100:.1f}% relative to current state."
+        # Domain interpretations grounded in network telemetry semantics
+        if "port" in feature:
+            interp = f"Port cardinality {direction} ({curr:.0f} -> {pred:.0f}) indicates {'broad scanning or service discovery activity' if direction == 'increasing' else 'consolidation of traffic to specific target services'}."
+        elif "byte" in feature or "packet" in feature:
+            interp = f"Volumetric flow {direction} ({curr:.1f} -> {pred:.1f}) represents {'traffic surge or data movement pressure' if direction == 'increasing' else 'traffic attenuation'}."
+        elif "iat" in feature:
+            interp = f"Inter-arrival time {direction} ({curr:.2f}s -> {pred:.2f}s) indicates {'irregular pacing or command-and-control interval changes' if direction == 'increasing' else 'rapid automated transmission burst'}."
+        elif "syn" in feature or "rst" in feature:
+            interp = f"TCP flag pressure {direction} ({curr:.0f} -> {pred:.0f}) reflects {'connection exhaustion attempts or failed handshakes' if direction == 'increasing' else 'normalizing connection tear-downs'}."
+        elif "swin" in feature or "dwin" in feature:
+            interp = f"TCP window dynamics {direction} ({curr:.0f} -> {pred:.0f}) reflects {'client/server buffer modulation or exfiltration flow adjustments' if direction == 'increasing' else 'window shrinking or transmission constraints'}."
+        elif abs(rel) >= 5.0:
+            interp = f"Feature '{feature}' {direction} from {curr:.1f} to {pred:.1f} ({abs(pred / curr):.1f}x baseline) relative to current state."
+        else:
+            interp = f"Feature '{feature}' {direction} by {abs(rel)*100:.1f}% relative to current state."
+
+    # If domain interpretation applies even when curr == 0, keep domain context
+    if abs(curr) < 1e-4 and abs(delta) >= 1e-4:
+        if "port" in feature:
+            interp = f"Port cardinality {direction} ({curr:.0f} -> {pred:.0f}) indicates {'broad scanning or service discovery activity' if direction == 'increasing' else 'consolidation of traffic to specific target services'}."
+        elif "byte" in feature or "packet" in feature:
+            interp = f"Volumetric flow {direction} ({curr:.1f} -> {pred:.1f}) represents {'traffic surge or data movement pressure' if direction == 'increasing' else 'traffic attenuation'}."
+        elif "iat" in feature:
+            interp = f"Inter-arrival time {direction} ({curr:.2f}s -> {pred:.2f}s) indicates {'irregular pacing or command-and-control interval changes' if direction == 'increasing' else 'rapid automated transmission burst'}."
+        elif "syn" in feature or "rst" in feature:
+            interp = f"TCP flag pressure {direction} ({curr:.0f} -> {pred:.0f}) reflects {'connection exhaustion attempts or failed handshakes' if direction == 'increasing' else 'normalizing connection tear-downs'}."
+        elif "swin" in feature or "dwin" in feature:
+            interp = f"TCP window dynamics {direction} ({curr:.0f} -> {pred:.0f}) reflects {'client/server buffer modulation or exfiltration flow adjustments' if direction == 'increasing' else 'window shrinking or transmission constraints'}."
 
     return direction, rel, importance, interp
 
@@ -456,8 +487,14 @@ class ForecastingPipeline:
             pred_vector = pred_scaled * self._scale + self._mean
             pred_dict = {name: float(val) for name, val in zip(self.feature_names, pred_vector)}
 
+            prob_val = float(prob)
+            if math.isnan(prob_val) or math.isinf(prob_val):
+                prob_val = 0.0
+            else:
+                prob_val = max(0.0, min(1.0, prob_val))
+
             simulated_states[step] = pred_dict
-            step_probabilities[step] = float(prob)
+            step_probabilities[step] = prob_val
 
             # Roll prediction forward without future ground truth into preallocated trajectory buffer
             sim_vec = np.zeros(len(self.feature_names), dtype=np.float64)
@@ -475,9 +512,22 @@ class ForecastingPipeline:
         # Evaluate drivers against current state
         for h in horizons:
             prob_h = step_probabilities.get(h, 0.0)
+            if math.isnan(prob_h) or math.isinf(prob_h):
+                prob_h = 0.0
+            else:
+                prob_h = max(0.0, min(1.0, prob_h))
+
             # Cumulative risk: 1 - \prod_{step=1}^h (1 - p_step)
             h_probs = [step_probabilities.get(s, 0.0) for s in range(1, h + 1)]
-            cum_risk = float(1.0 - np.prod([1.0 - p for p in h_probs]))
+            cum_risk = float(1.0 - np.prod([1.0 - max(0.0, min(1.0, p)) for p in h_probs]))
+            if math.isnan(cum_risk) or math.isinf(cum_risk):
+                cum_risk = prob_h
+            else:
+                cum_risk = max(0.0, min(1.0, cum_risk))
+
+            # Strictly enforce non-decreasing cumulative risk across horizons
+            if forecast_points:
+                cum_risk = max(cum_risk, forecast_points[-1].cumulative_risk)
 
             pred_state_h = simulated_states.get(h, {})
             risk_level = _determine_risk_level(cum_risk)

@@ -20,6 +20,8 @@ from ml.forecasting.attack_progression import (
     EMPIRICALLY_SUPPORTED_HORIZONS,
     UNSUPPORTED_HORIZONS,
 )
+from ml.forecasting.attack_stages import AttackStage, StageClassification
+from ml.data.dataset_adapter import map_dataset_label_to_stage
 
 
 def test_abstention_on_insufficient_history():
@@ -136,3 +138,54 @@ def test_probability_determinism_and_bounds():
         assert 0.0 <= pt1.transition_probability <= 1.0
         assert pt1.to_dict() == pt2.to_dict()
         assert "confidence" not in pt1.to_dict()
+
+
+def test_phase2_canonical_stage_and_timeline_generation():
+    """Verify Phase 2 forecast includes canonical 15-stage enum and timeline events."""
+    findings = [{"attack_category": "network_reconnaissance", "detection_method": "heuristics"}]
+    res = forecast_attack_progression(findings, history_window_count=10, current_timestamp=1710000000.0)
+
+    # Canonical stage present
+    assert res.canonical_stage == AttackStage.RECONNAISSANCE
+    assert res.observed_state == AttackProgressionState.RECONNAISSANCE
+
+    # Timeline generated with events
+    assert len(res.timeline) >= 4  # 1 observed/inferred + 3 supported horizons (T+1, T+3, T+5)
+    obs_ev = res.timeline[0]
+    assert obs_ev["classification"] == StageClassification.INFERRED.value
+    assert obs_ev["stage"] == AttackStage.RECONNAISSANCE.value
+    assert "T1046" in obs_ev["primary_techniques"]
+
+    # Forecast points have canonical stages and separated confidences
+    for pt in res.forecast_points:
+        if not pt.abstained:
+            assert pt.canonical_stage == AttackStage.RECONNAISSANCE
+            assert 0.0 <= pt.stage_confidence <= 1.0
+            assert 0.0 <= pt.forecast_confidence <= 1.0
+            assert 0.0 <= pt.transition_confidence <= 1.0
+            assert pt.classification == StageClassification.FORECAST
+
+    # Transitions generated and validated
+    assert len(res.transitions) >= 1
+    assert res.validation is not None
+    assert res.validation["valid"] is True
+
+
+def test_phase2_dataset_adapter_stage_mapping():
+    """Verify dataset adapter correctly maps labels across UNSW-NB15, CIC-IDS2017, and TON-IoT."""
+    # UNSW-NB15
+    assert map_dataset_label_to_stage("UNSW-NB15", "Reconnaissance") == AttackStage.RECONNAISSANCE
+    assert map_dataset_label_to_stage("UNSW-NB15", "Exploits") == AttackStage.INITIAL_ACCESS
+    assert map_dataset_label_to_stage("UNSW-NB15", "DoS") == AttackStage.IMPACT
+    assert map_dataset_label_to_stage("UNSW-NB15", "Normal") == AttackStage.BENIGN
+    # UNSW Generic: attack present but stage unknown
+    assert map_dataset_label_to_stage("UNSW-NB15", "Generic") == AttackStage.UNKNOWN
+
+    # CIC-IDS2017
+    assert map_dataset_label_to_stage("CIC-IDS2017", "PortScan") == AttackStage.RECONNAISSANCE
+    assert map_dataset_label_to_stage("CIC-IDS2017", "BENIGN") == AttackStage.BENIGN
+
+    # TON-IoT
+    assert map_dataset_label_to_stage("TON-IoT", "scanning") == AttackStage.RECONNAISSANCE
+    assert map_dataset_label_to_stage("TON-IoT", "xss") == AttackStage.INITIAL_ACCESS
+    assert map_dataset_label_to_stage("TON-IoT", "ddos") == AttackStage.IMPACT

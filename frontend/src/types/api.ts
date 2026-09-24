@@ -161,6 +161,8 @@ export interface AnalysisResults {
   threat_assessment?: Record<string, unknown>
   attack_progression?: AttackProgressionForecast | null
   attackProgression?: AttackProgressionForecast | null
+  sensor_agreement?: Record<string, unknown> | null
+  sensorAgreement?: Record<string, unknown> | null
   forecasts?: ForecastPoint[]
   attack_horizon?: AttackHorizonPayload | null
   attackHorizon?: AttackHorizonPayload | null
@@ -365,6 +367,7 @@ export type PredictionType = 'STATE_PERSISTENCE' | 'DOWNSTREAM_PROGRESSION' | 'A
 export interface StageForecastPoint {
   horizon_minutes: number
   predicted_state: string
+  canonical_stage?: string
   predicted_technique?: string | null
   forecast_techniques: string[]
   prediction_type: PredictionType
@@ -374,10 +377,21 @@ export interface StageForecastPoint {
   abstained: boolean
   abstention_reason?: string | null
   supporting_evidence: string[]
+  contradictory_evidence?: string[]
+  stage_confidence?: number
+  forecast_confidence?: number
+  transition_confidence?: number
+  technique_confidence?: number
+  classification?: 'OBSERVED' | 'INFERRED' | 'FORECAST' | 'UNKNOWN'
 }
 
 export interface AttackProgressionForecast {
   observed_state: string
+  canonical_stage?: string
+  secondary_stages?: string[]
+  stage_confidence?: number
+  technique_confidence?: number
+  classification?: 'OBSERVED' | 'INFERRED' | 'FORECAST' | 'UNKNOWN'
   observed_techniques: string[]
   forecast_points: StageForecastPoint[]
   supported_horizons: number[]
@@ -396,6 +410,39 @@ export interface AttackProgressionForecast {
     status: string
     evidence: string[]
   }>
+  timeline?: Array<{
+    timestamp: number
+    stage: string
+    display_name?: string
+    category?: string
+    classification: 'OBSERVED' | 'INFERRED' | 'FORECAST' | 'UNKNOWN'
+    confidence: number
+    stage_confidence: number
+    technique_confidence: number
+    primary_techniques: string[]
+    secondary_stages?: string[]
+    lead_time_seconds?: number
+    horizon_label?: string
+    description?: string
+    supporting_evidence_count?: number
+    contradictory_evidence_count?: number
+  }>
+  transitions?: Array<{
+    from_stage: string
+    to_stage: string
+    timestamp: number
+    confidence: number
+    transition_type: string
+    status: 'VALID' | 'VALID_BUT_UNUSUAL' | 'INSUFFICIENT_EVIDENCE' | 'CONTRADICTORY' | 'INVALID'
+    reason: string
+  }>
+  validation?: {
+    valid: boolean
+    issues: string[]
+    warnings: string[]
+    event_count?: number
+    transition_count?: number
+  }
 }
 
 export interface EvidenceItemPayload {
@@ -415,6 +462,8 @@ export interface EvidenceItemPayload {
   provenance: Record<string, unknown>
   explanation: string
   is_supporting: boolean
+  change_type?: string
+  polarity?: 'SUPPORTING' | 'CONTRADICTORY' | 'NEUTRAL'
 }
 
 export interface EvidenceChainPayload {
@@ -423,6 +472,13 @@ export interface EvidenceChainPayload {
   forecast_horizon: number
   supporting: EvidenceItemPayload[]
   contradictory: EvidenceItemPayload[]
+  neutral?: EvidenceItemPayload[]
+  sensor_agreement?: {
+    sources: string[]
+    agreement: string
+    contradictions: string[]
+    confidence_modifier: number
+  } | null
   evidence_strength: number
   evidence_quality: 'HIGH' | 'DEGRADED' | 'INSUFFICIENT' | 'MEDIUM'
   supporting_feature_count: number
