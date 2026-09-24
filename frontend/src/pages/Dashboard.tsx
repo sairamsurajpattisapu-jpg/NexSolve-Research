@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -38,7 +37,6 @@ import {
 
 export function Dashboard() {
   const navigate = useNavigate()
-  const { data, loading, error, reload, analyzePcap, clearUploadedAnalysis, clearUploadError, analysisSource, uploadError } = useProductionData()
   const location = useLocation()
   const { data, loading, error, reload, analyzePcap, clearUploadedAnalysis, clearUploadError, analysisSource, uploadError, setUploadedAnalysis } = useProductionData()
   const [file, setFile] = useState<File | null>(null)

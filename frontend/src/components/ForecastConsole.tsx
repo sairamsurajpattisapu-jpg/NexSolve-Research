@@ -273,14 +273,6 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
         {/* Action Bar */}
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
           {onAnalyzeNew && (
-            <button
-              type="button"
-              className="button button-primary"
-              onClick={onAnalyzeNew}
-              style={{ fontSize: '12px', height: '34px', gap: '6px' }}
-            >
-              <Plus size={13} /> New Analysis
-            </button>
             <>
               <button
                 type="button"
