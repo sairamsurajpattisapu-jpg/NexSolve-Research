@@ -357,6 +357,7 @@ export function NexSolveBackground() {
         pointerEvents: 'none',
         zIndex: 0,
         background: isDark ? '#030305' : '#ffffff',
+        background: 'transparent',
       }}
     />
   )

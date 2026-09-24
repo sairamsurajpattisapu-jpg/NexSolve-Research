@@ -326,6 +326,8 @@ h3, h4 {
 .app-shell {
   display: block;
   min-height: 100vh;
+  position: relative;
+  isolation: isolate;
 }
 
 .navbar-shell {
@@ -1070,12 +1072,21 @@ h3, h4 {
 
 .main-area {
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .page-content {
   max-width: 1440px;
   margin: 0 auto;
   padding: 38px clamp(1.25rem, 4vw, 4rem) 90px;
+  position: relative;
+  z-index: 1;
+}
+
+.navigation-context-strip {
+  position: relative;
+  z-index: 1;
 }
 
 .page-stack {
@@ -5411,6 +5422,13 @@ h3, h4 {
   gap: var(--space-6);
   width: 100%;
   color: var(--text-primary) !important;
+  position: relative;
+  z-index: 1;
+}
+
+.forecast-console-root {
+  position: relative;
+  z-index: 1;
 }
 
 .report-page-container h1,
