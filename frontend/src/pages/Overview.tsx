@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Shield,
   ShieldAlert,
+  Terminal,
   TrendingUp,
 } from 'lucide-react'
 import { MetricCard, Panel, StatusPill } from '../components/Ui'
@@ -25,11 +26,12 @@ import {
 
 export function Overview() {
   const navigate = useNavigate()
-  const { data, loading, reload } = useProductionData()
+  const { data, loading, reload, analysisSource, isLiveCapture } = useProductionData()
   const [history, setHistory] = useState<AnalysisHistoryEntry[]>(() => getAnalysisHistory())
 
   const results = data?.results
   const hasActiveAnalysis = Boolean(results && (results.analysis_id || results.traffic))
+  const hasLiveCapture = Boolean(isLiveCapture || analysisSource === 'uploaded' || results?.source?.kind === 'uploaded_pcap')
 
   const handleClearHistory = () => {
     clearAnalysisHistory()
@@ -49,8 +51,8 @@ export function Overview() {
             <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               NEXSOLVE CONSOLE &middot; OPERATIONAL OVERVIEW
             </span>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-              {hasActiveAnalysis ? 'SESSION ACTIVE' : 'AWAITING TELEMETRY'}
+            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: hasLiveCapture ? 'var(--success)' : 'var(--text-muted)' }}>
+              {hasLiveCapture ? 'LIVE CAPTURE ACTIVE' : 'NO ACTIVE USER SESSION'}
             </span>
           </div>
           <h1 style={{ fontSize: '26px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
@@ -101,28 +103,81 @@ export function Overview() {
       {/* Case B: Active Analysis Loaded */}
       {hasActiveAnalysis && results && (
         <>
-          {/* Active Session Status Strip */}
-          <Panel style={{ marginBottom: '24px', padding: '20px 24px' }}>
+          {/* Clean Callout when no live user analysis is loaded */}
+          {!hasLiveCapture && (
+            <Panel style={{ marginBottom: '20px', padding: '24px 28px', background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 6px', borderRadius: '3px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.25)', color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+                      NO ACTIVE ANALYSIS
+                    </span>
+                    <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                      AWAITING WIRE TELEMETRY
+                    </span>
+                  </div>
+                  <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '2px 0 6px 0', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                    Ready to analyze network traffic captures
+                  </h2>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '640px', lineHeight: 1.5 }}>
+                    Run <code style={{ fontFamily: 'var(--mono)', background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '3px', border: '1px solid var(--border)', color: '#ffffff' }}>nexsolve analyze</code> in your terminal to select a PCAP via native file picker, or start an analysis in this console.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  <Link to="/console/analyze" className="button button-primary" style={{ fontSize: '12px', gap: '6px' }}>
+                    <FileUp size={14} /> Start New Analysis
+                  </Link>
+                  <a href="/#cli-quickstart" className="button button-quiet" style={{ fontSize: '12px', gap: '6px' }}>
+                    <Terminal size={14} /> View CLI Instructions
+                  </a>
+                </div>
+              </div>
+            </Panel>
+          )}
+
+          {/* Analysis Status Strip (Live Session vs Demo / Reference Benchmark) */}
+          <Panel style={{ marginBottom: '24px', padding: '20px 24px', border: hasLiveCapture ? '1px solid var(--border)' : '1px dashed rgba(234, 179, 8, 0.35)', background: hasLiveCapture ? 'var(--bg-card)' : 'rgba(234, 179, 8, 0.02)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <div>
-                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  ACTIVE ANALYSIS SESSION
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  {hasLiveCapture ? (
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 6px', borderRadius: '3px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.35)', color: 'var(--success)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+                      LIVE ANALYSIS SESSION
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 6px', borderRadius: '3px', background: 'rgba(234, 179, 8, 0.12)', border: '1px solid rgba(234, 179, 8, 0.35)', color: 'var(--amber)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+                      DEMO / REFERENCE ANALYSIS
+                    </span>
+                  )}
+                  <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                    {hasLiveCapture ? 'ACTIVE WIRE INGESTION' : 'CIC-IDS2017 BENCHMARK FIXTURE'}
+                  </span>
+                </div>
+
                 <h3 style={{ margin: '2px 0 4px 0', fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  {results.source?.name || 'Active Network Capture'}
+                  {hasLiveCapture
+                    ? (results.source?.name || 'Active Network Capture')
+                    : 'CIC-IDS2017 Packet Windows (Reference Baseline)'}
                 </h3>
+
+                {!hasLiveCapture && (
+                  <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: 'var(--text-secondary)', maxWidth: '680px' }}>
+                    The metrics below reflect the pre-computed CIC-IDS2017 benchmark baseline for model verification. They do not reflect an active capture session.
+                  </p>
+                )}
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--mono)' }}>
-                  <span>ID: {results.analysis_id?.slice(0, 12)}</span>
+                  <span>ID: {results.analysis_id?.slice(0, 16)}</span>
                   <span>&middot;</span>
-                  <span>{results.traffic?.windows || 8} discrete 60s windows</span>
+                  <span>{results.traffic?.windows || 2} discrete 60s windows</span>
                   <span>&middot;</span>
-                  <span>{(results.traffic?.packets || 0).toLocaleString()} packets</span>
+                  <span>{(results.traffic?.packets || 12).toLocaleString()} packets</span>
                 </div>
               </div>
 
               <div style={{ display: 'flex', gap: '10px' }}>
-                <Link to="/console/forecast" className="button button-primary" style={{ fontSize: '12px', gap: '6px' }}>
-                  <TrendingUp size={14} /> Open Forecast Rollout
+                <Link to="/console/forecast" className={hasLiveCapture ? 'button button-primary' : 'button button-quiet'} style={{ fontSize: '12px', gap: '6px' }}>
+                  <TrendingUp size={14} /> {hasLiveCapture ? 'Open Forecast Rollout' : 'View Reference Forecast'}
                 </Link>
                 <Link to="/console/reports" className="button button-quiet" style={{ fontSize: '12px', gap: '6px' }}>
                   <FileText size={14} /> View Report

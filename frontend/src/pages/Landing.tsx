@@ -5,10 +5,12 @@ import {
   ArrowRight,
   ChevronDown,
   ExternalLink,
+  Terminal,
 } from 'lucide-react'
 import '../styles/landing.css'
 import { HeroTemporalVisualization } from '../components/landing/HeroTemporalVisualization'
 import { ProgressionLifecycleVisual } from '../components/landing/ProgressionLifecycleVisual'
+import { CliQuickstartSection } from '../components/landing/CliQuickstartSection'
 
 const PIPELINE_STEPS = [
   {
@@ -329,28 +331,57 @@ export function Landing() {
         </p>
 
         <div className="hero-cta-container">
-          {/* Primary CTA (Preserves START for tests & analyst expectations) */}
-          <Link
-            to="/console/analyze"
+          {/* Primary CTA: Use NexSolve CLI */}
+          <a
+            href="#cli-quickstart"
             className="hero-btn-primary"
-            aria-label="START — Launch Console"
+            aria-label="Use NexSolve CLI — From terminal to investigation"
           >
-            <span>START</span>
+            <span>Use NexSolve CLI</span>
             <ArrowRight size={15} />
-          </Link>
+          </a>
 
-          <Link to="/console/analyze" className="hero-btn-secondary">
-            <span>Analyze PCAP</span>
+          {/* Secondary CTA: View CLI Commands */}
+          <a
+            href="#cli-quickstart"
+            className="hero-btn-secondary"
+            aria-label="View CLI Commands"
+          >
+            <Terminal size={14} />
+            <span>View CLI Commands</span>
+          </a>
+
+          {/* Tertiary CTA: Open Console */}
+          <Link
+            to="/console"
+            className="hero-btn-secondary"
+            aria-label="Open Console"
+          >
+            <span>Open Console</span>
             <ExternalLink size={14} />
           </Link>
+        </div>
 
-          <Link to="/workflow" className="hero-btn-secondary">
-            <span>Explore Workflow</span>
-          </Link>
-
-          <Link to="/console" className="hero-btn-secondary">
-            <span>Open Console</span>
-          </Link>
+        {/* Truthful supporting cue & browser console alternatives */}
+        <div className="hero-cta-cue">
+          <span className="cue-terminal-text">
+            Run <code className="cli-inline-code">nexsolve analyze</code> to select a PCAP from your terminal.
+          </span>
+          <span className="cue-divider">&middot;</span>
+          <span className="cue-browser-alt">
+            Or test in browser:
+            <Link to="/console/analyze" className="cue-link" aria-label="START — Browser Analysis">
+              START
+            </Link>
+            <span className="cue-sep">/</span>
+            <Link to="/console/analyze" className="cue-link">
+              Analyze PCAP
+            </Link>
+            <span className="cue-sep">/</span>
+            <Link to="/workflow" className="cue-link">
+              Explore Workflow
+            </Link>
+          </span>
         </div>
 
         <div className="hero-trust-line">
@@ -365,13 +396,13 @@ export function Landing() {
 
         {/* Quick Section Anchor Navigation */}
         <nav aria-label="Section shortcuts" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginTop: 18, marginBottom: 8 }}>
+          <a href="#cli-quickstart" className={`landing-anchor-pill ${activeSection === 'cli-quickstart' ? 'active' : ''}`}>CLI Quickstart</a>
           <a href="#problem" className={`landing-anchor-pill ${activeSection === 'problem' ? 'active' : ''}`}>Problem</a>
           <a href="#how-it-works" className={`landing-anchor-pill ${activeSection === 'how-it-works' ? 'active' : ''}`}>Pipeline</a>
           <a href="#progression" className={`landing-anchor-pill ${activeSection === 'progression' ? 'active' : ''}`}>15-Stage Lifecycle</a>
           <a href="#forecasting" className={`landing-anchor-pill ${activeSection === 'forecasting' ? 'active' : ''}`}>Forecasting</a>
           <a href="#evidence" className={`landing-anchor-pill ${activeSection === 'evidence' ? 'active' : ''}`}>Evidence Trace</a>
           <a href="#sensors" className={`landing-anchor-pill ${activeSection === 'sensors' ? 'active' : ''}`}>Sensors</a>
-          <a href="#workflow" className={`landing-anchor-pill ${activeSection === 'workflow' ? 'active' : ''}`}>CLI Tooling</a>
           <a href="#reporting" className={`landing-anchor-pill ${activeSection === 'reporting' ? 'active' : ''}`}>Reports</a>
           <a href="#technology" className={`landing-anchor-pill ${activeSection === 'technology' ? 'active' : ''}`}>Technology</a>
           <a href="#faq" className={`landing-anchor-pill ${activeSection === 'faq' ? 'active' : ''}`}>FAQ</a>
@@ -679,64 +710,9 @@ export function Landing() {
       </section>
 
       {/* -----------------------------------------------------------------------------
-          9. CLI + WEB CONSOLE UNIFIED WORKFLOW
+          9. CLI-FIRST WORKFLOW & RECONSTRUCTION (FROM TERMINAL TO INVESTIGATION)
           ----------------------------------------------------------------------------- */}
-      <section className="landing-section" id="workflow">
-        <span className="section-eyebrow">DEVELOPER & ANALYST EXPERIENCE</span>
-        <h2 className="section-heading-large">
-          Start from the Terminal. Investigate in the Console.
-        </h2>
-        <p className="section-desc" style={{ maxWidth: 760 }}>
-          Run high-speed forensic audits directly in CI/CD or your terminal shell, and automatically pivot to the
-          interactive React web console when multi-horizon visual investigation is required.
-        </p>
-
-        <div className="workflow-grid">
-          {/* Terminal Mockup */}
-          <div className="terminal-mockup">
-            <div className="terminal-header">
-              <span className="term-dot" />
-              <span className="term-dot" />
-              <span className="term-dot" />
-              <span className="term-title">nexsolve-cli — bash</span>
-            </div>
-            <div className="terminal-body">
-              <div>
-                <span className="terminal-prompt">$ </span>
-                <span>nexsolve analyze captures/incident.pcap --open</span>
-              </div>
-              <div className="terminal-dim">[01/08] Ingesting wire packet capture...</div>
-              <div><span className="terminal-stage">[INGESTION]</span> Parsed 2,277 frames (100% verified)</div>
-              <div><span className="terminal-stage">[RECONSTRUCTION]</span> 283 bidirectional TCP/UDP flows</div>
-              <div><span className="terminal-stage">[WINDOWING]</span> 10 discrete 60s windows partitioned</div>
-              <div><span className="terminal-stage">[STATE VECTOR]</span> 45 continuous features extracted</div>
-              <div><span className="terminal-stage">[SIMULATION]</span> Multi-horizon LSTM rollout T+1..T+5</div>
-              <div><span className="terminal-stage">[EVIDENCE]</span> Counterfactual sensitivity delta computed</div>
-              <div style={{ color: '#10b981', marginTop: 6 }}>[OK] Analysis job completed: job-88f7b12080e5</div>
-              <div style={{ marginTop: 6 }}>
-                <span className="terminal-dim">&rarr; Launching Web Console: </span>
-                <span style={{ color: '#ffffff', textDecoration: 'underline' }}>http://localhost:5173/console/forecast</span>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 style={{ fontSize: 22, fontWeight: 700, color: '#ffffff', margin: '0 0 12px 0' }}>
-              Full Command-Line Tooling Suite
-            </h3>
-            <p style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.6, margin: '0 0 20px 0' }}>
-              NexSolve CLI provides dedicated commands for every phase of security operations:
-            </p>
-            <ul style={{ paddingLeft: 18, margin: 0, fontSize: 13.5, color: '#a1a1aa', lineHeight: 1.7 }}>
-              <li><code>nexsolve investigate &lt;job_id&gt;</code> &mdash; Full terminal investigation dossier</li>
-              <li><code>nexsolve explain &lt;job_id&gt;</code> &mdash; Feature deltas & sensor agreement</li>
-              <li><code>nexsolve export &lt;job_id&gt;</code> &mdash; Self-contained HTML, Markdown, and JSON</li>
-              <li><code>nexsolve progression &lt;job_id&gt;</code> &mdash; 15-stage lifecycle state and kinematics</li>
-              <li><code>nexsolve doctor</code> &mdash; System diagnostics and dependency verification</li>
-            </ul>
-          </div>
-        </div>
-      </section>
+      <CliQuickstartSection />
 
       {/* -----------------------------------------------------------------------------
           10. STANDARDIZED 16-SECTION FORENSIC REPORTING

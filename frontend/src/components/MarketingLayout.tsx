@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { NavLink, Link, Outlet } from 'react-router-dom'
 import { ArrowRight, Moon, Sun, X } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
-import { NexSolveBackground } from './background/NexSolveBackground'
+import { ClosingPlasmaBackground } from './ClosingPlasmaBackground'
 import { SiteFooter } from './SiteFooter'
 
 export function MarketingLayout() {
@@ -65,9 +65,21 @@ export function MarketingLayout() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  const handleCliClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    setOpen(false)
+    if (window.location.pathname === '/') {
+      event.preventDefault()
+      const element = document.getElementById('cli-quickstart')
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' })
+        window.history.pushState(null, '', '#cli-quickstart')
+      }
+    }
+  }
+
   return (
     <div className="app-shell marketing-shell">
-      <NexSolveBackground />
+      <ClosingPlasmaBackground variant="landing" />
       <header className={`navbar-shell marketing-navbar ${scrolled ? 'is-scrolled' : ''}`} ref={navRef}>
         <div className="navbar-inner">
           <Link className="brand-block" to="/" aria-label="NexSolve Home">
@@ -76,6 +88,7 @@ export function MarketingLayout() {
 
           <nav className="desktop-nav" aria-label="Product navigation">
             <NavLink to="/" end onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Product</NavLink>
+            <a href="/#cli-quickstart" onClick={handleCliClick} className="nav-link">CLI</a>
             <NavLink to="/workflow" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>How It Works</NavLink>
             <NavLink to="/security" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Security</NavLink>
             <NavLink to="/research" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Research</NavLink>
@@ -157,6 +170,9 @@ export function MarketingLayout() {
           <NavLink to="/" end onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'mobile-panel-link active' : 'mobile-panel-link')}>
             Product
           </NavLink>
+          <a href="/#cli-quickstart" onClick={handleCliClick} className="mobile-panel-link">
+            CLI
+          </a>
           <NavLink to="/workflow" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'mobile-panel-link active' : 'mobile-panel-link')}>
             How It Works
           </NavLink>

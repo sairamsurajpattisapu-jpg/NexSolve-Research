@@ -37,7 +37,7 @@ describe('MarketingLayout Navigation & Mobile Drawer Suite', () => {
 
     const navLinks = within(desktopNav).getAllByRole('link')
     const navText = navLinks.map((l) => l.textContent?.trim())
-    expect(navText).toEqual(['Product', 'How It Works', 'Security', 'Research', 'FAQ', 'About'])
+    expect(navText).toEqual(['Product', 'CLI', 'How It Works', 'Security', 'Research', 'FAQ', 'About'])
 
     // Header START CTA
     const startCta = screen.getByRole('link', { name: /START — Analysis Console/i })

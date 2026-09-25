@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, Moon, Plus, Sun, TrendingUp, X } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
-import { NexSolveBackground } from './background/NexSolveBackground'
+import { ClosingPlasmaBackground } from './ClosingPlasmaBackground'
 
 import { clearUploadedAnalysis } from '../stores/productionStore'
 import { useProductionData } from '../hooks/useProductionData'
@@ -48,16 +48,18 @@ export function Layout({
   }
 
   // Derive contextual navigation indicators
-  const { data, analysisSource, analysisId } = useProductionData()
-  const contextFilename =
-    data?.results?.source?.filename ||
-    data?.results?.source?.name ||
-    (analysisSource === 'uploaded' ? 'Uploaded Capture' : 'CIC-IDS2017 Benchmark')
+  const { data, analysisSource, analysisId, isLiveCapture } = useProductionData()
+  const isReference = analysisSource !== 'uploaded' && !isLiveCapture
+  const contextFilename = isReference
+    ? 'CIC-IDS2017 Reference Benchmark'
+    : (data?.results?.source?.filename || data?.results?.source?.name || 'Uploaded Capture')
   const contextStatusText =
     statusLabel === 'ANALYZING'
       ? 'Analyzing Telemetry'
       : (data?.results?.forecasts && data.results.forecasts.length > 0) || Boolean((data?.results as any)?.attack_horizon)
       ? 'Forecast Ready'
+      : isReference
+      ? 'Reference Baseline Active'
       : 'Baseline Active'
   const contextDotColor =
     contextStatusText === 'Forecast Ready'
@@ -112,7 +114,7 @@ export function Layout({
 
   return (
     <div className="app-shell">
-      <NexSolveBackground />
+      <ClosingPlasmaBackground variant="console" />
       <header className="navbar-shell" ref={navRef}>
         <div className="navbar-inner">
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -357,6 +359,41 @@ export function Layout({
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {isReference ? (
+                <span
+                  style={{
+                    fontSize: '9.5px',
+                    fontFamily: 'var(--mono)',
+                    padding: '1px 6px',
+                    borderRadius: '3px',
+                    background: 'rgba(234, 179, 8, 0.12)',
+                    border: '1px solid rgba(234, 179, 8, 0.35)',
+                    color: 'var(--amber)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    fontWeight: 700,
+                  }}
+                >
+                  DEMO / REFERENCE
+                </span>
+              ) : (
+                <span
+                  style={{
+                    fontSize: '9.5px',
+                    fontFamily: 'var(--mono)',
+                    padding: '1px 6px',
+                    borderRadius: '3px',
+                    background: 'rgba(16, 185, 129, 0.12)',
+                    border: '1px solid rgba(16, 185, 129, 0.35)',
+                    color: 'var(--success)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    fontWeight: 700,
+                  }}
+                >
+                  LIVE CAPTURE
+                </span>
+              )}
               <span style={{ color: 'var(--text-muted)' }}>Analysis:</span>
               <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{contextFilename}</strong>
               <span style={{ color: 'var(--border)' }}>&middot;</span>
@@ -374,8 +411,19 @@ export function Layout({
                 {contextStatusText}
               </span>
             </div>
-            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>
-              ID: {(analysisId || 'production-cic-ids2017').slice(0, 16)}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '10.5px', color: 'var(--text-muted)' }}>
+              <span>ID: {(analysisId || 'production-cic-ids2017').slice(0, 16)}</span>
+              {isReference && (
+                <Link
+                  to="/console/analyze"
+                  style={{
+                    color: 'var(--text-secondary)',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Analyze your PCAP
+                </Link>
+              )}
             </div>
           </div>
         </div>
