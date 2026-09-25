@@ -153,15 +153,6 @@ export function Reports() {
     URL.revokeObjectURL(url)
   }
 
-  // HTML Report Download
-  const handleDownloadHtml = () => {
-    if (jobId) {
-      window.open(api.getReportHtmlUrl(jobId), '_blank')
-    } else {
-      window.print()
-    }
-  }
-
   // Copy Shareable Link
   const handleCopyShareLink = () => {
     const shareUrl = `${window.location.origin}/console/reports/${jobId || analysis.id}`
@@ -180,46 +171,36 @@ export function Reports() {
           title="Analysis report"
           description="Executive security assessment, multi-horizon attack projections, evidentiary attributions, and governance boundaries."
           action={
-            <div className="heading-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <div className="heading-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="button button-primary"
+                onClick={() => window.print()}
+                style={{ fontSize: '12px', height: '32px', gap: '6px' }}
+                title="View printable report"
+              >
+                <Printer size={13} /> View Report
+              </button>
+
+              <button
+                type="button"
+                className="button button-quiet"
+                onClick={handleDownloadJson}
+                style={{ fontSize: '12px', height: '32px', gap: '6px' }}
+                title="Export report JSON"
+              >
+                <Download size={13} /> Export
+              </button>
+
               <button
                 type="button"
                 className="button button-quiet"
                 onClick={handleCopyShareLink}
-                style={{ fontSize: '11px', height: '32px', gap: '6px' }}
+                style={{ fontSize: '12px', height: '32px', padding: '0 8px' }}
                 title="Copy shareable report URL"
+                aria-label="Share report"
               >
-                {copied ? <CheckCircle2 size={13} color="var(--text-primary)" /> : <Share2 size={13} />}
-                {copied ? 'Copied Link' : 'Share'}
-              </button>
-
-              <button
-                type="button"
-                className="button button-quiet"
-                onClick={() => window.print()}
-                style={{ fontSize: '11px', height: '32px', gap: '6px' }}
-                title="Print or Save as PDF"
-              >
-                <Printer size={13} /> Print / PDF
-              </button>
-
-              <button
-                type="button"
-                className="button button-quiet"
-                onClick={handleDownloadHtml}
-                style={{ fontSize: '11px', height: '32px', gap: '6px' }}
-                title="Download HTML Report"
-              >
-                <FileText size={13} /> HTML Report
-              </button>
-
-              <button
-                type="button"
-                className="button button-primary"
-                onClick={handleDownloadJson}
-                style={{ fontSize: '11px', height: '32px', gap: '6px' }}
-                title="Download JSON Report"
-              >
-                <Download size={13} /> Export JSON
+                {copied ? <CheckCircle2 size={13} color="var(--success)" /> : <Share2 size={13} />}
               </button>
             </div>
           }

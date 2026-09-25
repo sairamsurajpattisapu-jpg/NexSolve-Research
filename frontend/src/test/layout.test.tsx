@@ -17,7 +17,7 @@ function renderLayout(path = '/analyze', status = 'API connected') {
 }
 
 describe('Application Header & Navigation Layout', () => {
-  it('renders ONLY Analyze, Forecast, Evidence, Reports in primary navbar (NO UNVERIFIED DEMO BANNERS)', () => {
+  it('renders Overview, Analysis, Threats, Traffic, Reports, Settings in primary navbar (NO UNVERIFIED DEMO BANNERS)', () => {
     renderLayout('/analyze')
     const primaryNav = screen.getByRole('navigation', { name: 'Primary navigation' })
     expect(primaryNav).toBeInTheDocument()
@@ -27,7 +27,7 @@ describe('Application Header & Navigation Layout', () => {
       .filter((link) => primaryNav.contains(link))
       .map((link) => link.textContent?.trim())
 
-    expect(primaryLinkNames).toEqual(['Analyze', 'Forecast', 'Evidence', 'Reports'])
+    expect(primaryLinkNames).toEqual(['Overview', 'Analysis', 'Threats', 'Traffic', 'Reports', 'Settings'])
     expect(primaryNav).not.toHaveTextContent('SIH DEMO')
     expect(primaryNav).not.toHaveTextContent('SIH Demo')
   })

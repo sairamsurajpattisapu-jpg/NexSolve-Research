@@ -4,44 +4,46 @@
 
 :root,
 [data-theme="dark"] {
-  /* Surface & Background Hierarchy — Pure architectural black */
+  /* Surface & Background Hierarchy — Near-black architectural canvas */
   --bg-primary: #000000;
-  --bg-secondary: #080808;
-  --bg-surface: #0e0e0e;
-  --bg-elevated: #141414;
+  --bg-secondary: #08080a;
+  --bg-surface: #0e0e11;
+  --bg-elevated: #141418;
 
   /* Typography Colors — High contrast monochrome */
   --text-primary: #ffffff;
-  --text-secondary: #b8b8b8;
-  --text-muted: #777777;
+  --text-secondary: #b4b4bb;
+  --text-muted: #71717a;
 
   /* Borders & Dividers — Subtle hairline wireframes */
-  --border: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(255, 255, 255, 0.24);
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.22);
 
-  /* Accents — Monochrome editorial hierarchy with restrained semantic status */
+  /* Accents — Restrained monochrome with dedicated semantic status accents */
   --accent: #ffffff;
   --accent-muted: rgba(255, 255, 255, 0.08);
-  --success: #d4d4d4;
-  --warning: #b0b0b0;
-  --danger: #ffffff;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --danger-muted: rgba(239, 68, 68, 0.14);
+  --info: #71717a;
 
   /* Buttons & Controls — Bold white on black */
   --button-primary-bg: #ffffff;
   --button-primary-text: #000000;
-  --button-secondary-bg: transparent;
+  --button-secondary-bg: rgba(255, 255, 255, 0.04);
   --button-secondary-text: #ffffff;
   --button-hover: rgba(255, 255, 255, 0.10);
-  --button-hover-border: rgba(255, 255, 255, 0.40);
+  --button-hover-border: rgba(255, 255, 255, 0.35);
 
   /* Form Inputs */
-  --input-bg: #0a0a0a;
+  --input-bg: #09090b;
   --input-text: #ffffff;
   --focus-ring: #ffffff;
 
-  /* Card & Shadow Tokens — Zero blur glow */
+  /* Card & Shadow Tokens */
   --card-shadow: none;
-  --navbar-bg: rgba(0, 0, 0, 0.85);
+  --navbar-bg: rgba(0, 0, 0, 0.88);
   --body-radial: none;
 
   /* Typography Families */
@@ -50,6 +52,21 @@
   --font-display: var(--font-serif);
   --mono: 'DM Mono', monospace;
   --display: var(--font-sans);
+
+  /* Spacing Scale (4, 8, 12, 16, 24, 32, 48, 64) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Corner Radius Tokens */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
 
   /* Shared Layout Grid Tokens */
   --site-max-width: 1240px;
@@ -73,44 +90,46 @@
 }
 
 [data-theme="light"] {
-  /* Surface & Background Hierarchy */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f6f6f6;
+  /* Surface & Background Hierarchy — Soft warm neutral */
+  --bg-primary: #fafafa;
+  --bg-secondary: #f4f4f5;
   --bg-surface: #ffffff;
-  --bg-elevated: #efefef;
+  --bg-elevated: #f0f0f2;
 
   /* Typography Colors */
-  --text-primary: #000000;
-  --text-secondary: #444444;
-  --text-muted: #777777;
+  --text-primary: #09090b;
+  --text-secondary: #52525b;
+  --text-muted: #71717a;
 
   /* Borders & Dividers */
-  --border: rgba(0, 0, 0, 0.12);
-  --border-strong: rgba(0, 0, 0, 0.24);
+  --border: rgba(0, 0, 0, 0.09);
+  --border-strong: rgba(0, 0, 0, 0.20);
 
   /* Accents */
-  --accent: #000000;
-  --accent-muted: rgba(0, 0, 0, 0.06);
-  --success: #333333;
-  --warning: #555555;
-  --danger: #000000;
+  --accent: #09090b;
+  --accent-muted: rgba(9, 9, 11, 0.06);
+  --success: #15803d;
+  --warning: #b45309;
+  --danger: #dc2626;
+  --danger-muted: rgba(220, 38, 38, 0.10);
+  --info: #71717a;
 
   /* Buttons & Controls */
-  --button-primary-bg: #000000;
+  --button-primary-bg: #09090b;
   --button-primary-text: #ffffff;
-  --button-secondary-bg: transparent;
-  --button-secondary-text: #000000;
-  --button-hover: rgba(0, 0, 0, 0.06);
+  --button-secondary-bg: #ffffff;
+  --button-secondary-text: #09090b;
+  --button-hover: rgba(0, 0, 0, 0.05);
   --button-hover-border: rgba(0, 0, 0, 0.35);
 
   /* Form Inputs */
   --input-bg: #ffffff;
-  --input-text: #000000;
-  --focus-ring: #000000;
+  --input-text: #09090b;
+  --focus-ring: #09090b;
 
   /* Card & Shadow Tokens */
   --card-shadow: none;
-  --navbar-bg: rgba(255, 255, 255, 0.90);
+  --navbar-bg: rgba(250, 250, 250, 0.90);
   --body-radial: none;
 
   /* Typography Families */
@@ -119,6 +138,21 @@
   --font-display: var(--font-serif);
   --mono: 'DM Mono', monospace;
   --display: var(--font-sans);
+
+  /* Spacing Scale (4, 8, 12, 16, 24, 32, 48, 64) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Corner Radius Tokens */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
 
   /* Shared Layout Grid Tokens */
   --site-max-width: 1240px;

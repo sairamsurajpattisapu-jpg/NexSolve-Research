@@ -8,13 +8,20 @@ import { clearUploadedAnalysis } from '../stores/productionStore'
 import { useProductionData } from '../hooks/useProductionData'
 import { SiteFooter } from './SiteFooter'
 
-// Primary Desktop Navigation (ONLY Analyze, Forecast, Evidence, Reports)
+// Primary Application Navigation (Overview, Analysis, Threats, Traffic, Reports with Settings)
 const primaryNavigation = [
-  { to: '/console/analyze', matchPaths: ['/analyze', '/console/analyze', '/analysis', '/console/analysis'], label: 'Analyze' },
-  { to: '/console/forecast', matchPaths: ['/forecast', '/console/forecast'], label: 'Forecast' },
-  { to: '/console/evidence', matchPaths: ['/evidence', '/console/evidence'], label: 'Evidence' },
+  { to: '/console/overview', matchPaths: ['/console', '/console/overview', '/overview', '/dashboard'], label: 'Overview' },
+  { to: '/console/analyze', matchPaths: ['/analyze', '/console/analyze', '/analysis', '/console/analysis'], label: 'Analysis' },
+  { to: '/console/threats', matchPaths: ['/threats', '/console/threats'], label: 'Threats' },
+  { to: '/console/traffic', matchPaths: ['/traffic', '/console/traffic'], label: 'Traffic' },
   { to: '/console/reports', matchPaths: ['/reports', '/console/reports'], label: 'Reports' },
 ]
+
+const settingsNavigation = {
+  to: '/console/settings',
+  matchPaths: ['/settings', '/console/settings'],
+  label: 'Settings',
+}
 
 
 import { getServiceStateInfo } from '../utils/serviceState'
@@ -152,19 +159,17 @@ export function Layout({
                 </NavLink>
               )
             })}
+            <NavLink
+              to={settingsNavigation.to}
+              onClick={() => setOpen(false)}
+              className={`nav-link ${settingsNavigation.matchPaths.some((p) => location.pathname === p || location.pathname.startsWith(`${p}/`)) ? 'active' : ''}`}
+              style={{ marginLeft: '8px', opacity: 0.85 }}
+            >
+              <span>{settingsNavigation.label}</span>
+            </NavLink>
           </nav>
 
           <div className="navbar-right">
-            <button
-              type="button"
-              className="button button-quiet"
-              onClick={() => void handleNewAnalysis()}
-              style={{ fontSize: '11px', height: '28px', padding: '0 8px', gap: '4px' }}
-              title="Launch a new network analysis"
-            >
-              <Plus size={12} /> New Analysis
-            </button>
-
             <div className={`navbar-status status-${statusTone}`} title={statusDescription}>
               <span className={`status-dot status-${statusTone}`} aria-hidden="true" />
               <span className="status-text">{statusLabel}</span>
@@ -263,6 +268,14 @@ export function Layout({
                   <NavLink to="/console/analyze" onClick={() => setOpen(false)} className={({ isActive }) => `drawer-link ${isActive ? 'active' : ''}`}>
                     <span>Analyze</span>
                     <span className="drawer-badge" aria-hidden="true">PCAP</span>
+                  </NavLink>
+                  <NavLink to="/console/threats" onClick={() => setOpen(false)} className={({ isActive }) => `drawer-link ${isActive ? 'active' : ''}`}>
+                    <span>Threats</span>
+                    <span className="drawer-badge" aria-hidden="true">Findings</span>
+                  </NavLink>
+                  <NavLink to="/console/traffic" onClick={() => setOpen(false)} className={({ isActive }) => `drawer-link ${isActive ? 'active' : ''}`}>
+                    <span>Traffic</span>
+                    <span className="drawer-badge" aria-hidden="true">Telemetry</span>
                   </NavLink>
                   <NavLink to="/console/network" onClick={() => setOpen(false)} className={({ isActive }) => `drawer-link ${isActive ? 'active' : ''}`}>
                     <span>Network</span>
