@@ -2,22 +2,10 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import sys
+from pathlib import Path
 
-from nexsolve.commands.analyze import run_analyze
-from nexsolve.commands.benchmark import run_benchmark
-from nexsolve.commands.compare import run_compare
-from nexsolve.commands.doctor import run_doctor
-from nexsolve.commands.evaluate import run_evaluate
-from nexsolve.commands.evidence import run_evidence
-from nexsolve.commands.explain import run_explain
-from nexsolve.commands.export import run_export
-from nexsolve.commands.forecast import run_forecast
-from nexsolve.commands.investigate import run_investigate
-from nexsolve.commands.progression import run_progression
-from nexsolve.commands.report import run_report
-from nexsolve.commands.status import run_status
-from nexsolve.commands.version import run_version
 from nexsolve.config import (
     CLI_VERSION,
     DEFAULT_API_KEY,
@@ -62,7 +50,12 @@ def build_parser() -> argparse.ArgumentParser:
         "analyze",
         help="Upload PCAP capture to NexSolve analysis platform, monitor progress, and obtain visualization URL",
     )
-    analyze_parser.add_argument("pcap_path", help="Path to .pcap or .pcapng network capture file")
+    analyze_parser.add_argument(
+        "pcap_path",
+        nargs="?",
+        default=None,
+        help="Path to .pcap or .pcapng network capture file (omit to open native file picker)",
+    )
     analyze_parser.add_argument(
         "--server",
         default=DEFAULT_API_URL,
@@ -490,47 +483,150 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+_COMMAND_HANDLERS: dict[str, tuple[str, str]] = {
+    "analyze": ("nexsolve.commands.analyze", "run_analyze"),
+    "status": ("nexsolve.commands.status", "run_status"),
+    "report": ("nexsolve.commands.report", "run_report"),
+    "forecast": ("nexsolve.commands.forecast", "run_forecast"),
+    "doctor": ("nexsolve.commands.doctor", "run_doctor"),
+    "compare": ("nexsolve.commands.compare", "run_compare"),
+    "evidence": ("nexsolve.commands.evidence", "run_evidence"),
+    "evaluate": ("nexsolve.commands.evaluate", "run_evaluate"),
+    "benchmark": ("nexsolve.commands.benchmark", "run_benchmark"),
+    "progression": ("nexsolve.commands.progression", "run_progression"),
+    "investigate": ("nexsolve.commands.investigate", "run_investigate"),
+    "explain": ("nexsolve.commands.explain", "run_explain"),
+    "export": ("nexsolve.commands.export", "run_export"),
+    "version": ("nexsolve.commands.version", "run_version"),
+}
+
+
+def _dispatch_command(cmd_name: str, args: argparse.Namespace) -> int:
+    """Dynamically load and execute only the invoked subcommand."""
+    entry = _COMMAND_HANDLERS.get(cmd_name)
+    if not entry:
+        return 0
+    mod_name, func_name = entry
+    mod = importlib.import_module(mod_name)
+    handler = getattr(mod, func_name)
+    return handler(args)
+
+
+def run_interactive_menu(term: TerminalRenderer) -> int:
+    """Provide a clean interactive terminal menu when nexsolve is invoked without arguments."""
+    menu_text = (
+        f"\n{term.C_CYAN}{term.C_BOLD}NexSolve{term.C_RESET}\n"
+        f"{term.C_DIM}AI Network Attack Forecasting{term.C_RESET}\n\n"
+        f"What would you like to do?\n\n"
+        f"  1. Analyze a PCAP\n"
+        f"  2. Investigate an existing job\n"
+        f"  3. Run diagnostics\n"
+        f"  4. View version\n"
+        f"  5. Exit\n"
+    )
+    print(menu_text)
+
+    while True:
+        try:
+            choice = input("Select an option: ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print("\nExiting NexSolve.")
+            return 0
+
+        if not choice:
+            continue
+
+        if choice in ("1", "analyze", "analyze a pcap"):
+            from nexsolve.picker import open_pcap_picker
+            selected = open_pcap_picker()
+            if not selected:
+                print("No PCAP selected. Analysis cancelled.")
+                return 0
+
+            print(f"\nSelected:\n  {selected}\n")
+            print(f"Selected capture:\n  {Path(selected).name}\n")
+
+            open_browser = False
+            try:
+                open_prompt = input("Open web investigation console in browser when complete? [Y/n]: ").strip().lower()
+                if open_prompt in ("", "y", "yes"):
+                    open_browser = True
+            except (EOFError, KeyboardInterrupt):
+                open_browser = False
+
+            analyze_args = argparse.Namespace(
+                pcap_path=selected,
+                server=DEFAULT_API_URL,
+                web_url=DEFAULT_WEB_URL,
+                api_key=DEFAULT_API_KEY,
+                poll_interval=DEFAULT_POLL_INTERVAL,
+                timeout=DEFAULT_TIMEOUT,
+                open=open_browser,
+                json=False,
+                report_out=None,
+                quiet=False,
+                verbose=False,
+                no_color=not term.color_enabled,
+            )
+            return _dispatch_command("analyze", analyze_args)
+
+        elif choice in ("2", "investigate", "investigate an existing job", "investigate a job"):
+            try:
+                job_id = input("Enter Job ID (e.g. job-a1b2c3d4e5f6) or path to analysis JSON: ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print("\nInvestigation cancelled.")
+                return 0
+
+            if not job_id:
+                print("No job ID provided. Investigation cancelled.")
+                return 0
+
+            inv_args = argparse.Namespace(
+                job_id=job_id,
+                server=DEFAULT_API_URL,
+                web_url=DEFAULT_WEB_URL,
+                api_key=DEFAULT_API_KEY,
+                json=False,
+                no_color=not term.color_enabled,
+            )
+            return _dispatch_command("investigate", inv_args)
+
+        elif choice in ("3", "doctor", "diagnostics", "run diagnostics"):
+            doc_args = argparse.Namespace(
+                server=DEFAULT_API_URL,
+                json=False,
+                no_color=not term.color_enabled,
+            )
+            return _dispatch_command("doctor", doc_args)
+
+        elif choice in ("4", "version", "view version"):
+            ver_args = argparse.Namespace(
+                json=False,
+                no_color=not term.color_enabled,
+            )
+            return _dispatch_command("version", ver_args)
+
+        elif choice in ("5", "exit", "quit", "q"):
+            print("Exiting NexSolve.")
+            return 0
+
+        else:
+            print("Invalid option. Please select a number from 1 to 5.")
+
+
 def main(argv: list[str] | None = None) -> int:
     """Main CLI execution routine."""
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    if not args.command:
-        parser.print_help()
-        return 0
-
     use_color = not getattr(args, "no_color", False)
     term = TerminalRenderer(use_color=use_color)
 
     try:
-        if args.command == "analyze":
-            return run_analyze(args)
-        elif args.command == "status":
-            return run_status(args)
-        elif args.command == "report":
-            return run_report(args)
-        elif args.command == "forecast":
-            return run_forecast(args)
-        elif args.command == "doctor":
-            return run_doctor(args)
-        elif args.command == "compare":
-            return run_compare(args)
-        elif args.command == "evidence":
-            return run_evidence(args)
-        elif args.command == "evaluate":
-            return run_evaluate(args)
-        elif args.command == "benchmark":
-            return run_benchmark(args)
-        elif args.command == "progression":
-            return run_progression(args)
-        elif args.command == "investigate":
-            return run_investigate(args)
-        elif args.command == "explain":
-            return run_explain(args)
-        elif args.command == "export":
-            return run_export(args)
-        elif args.command == "version":
-            return run_version(args)
+        if not args.command:
+            return run_interactive_menu(term)
+        elif args.command in _COMMAND_HANDLERS:
+            return _dispatch_command(args.command, args)
         else:
             parser.print_help()
             return 0

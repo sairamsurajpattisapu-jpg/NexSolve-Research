@@ -17,7 +17,6 @@ import math
 from pathlib import Path
 from typing import Any
 
-from ml.forecasting.evidence_engine import FeatureChangeType, explain_feature_change
 from nexsolve.client.api import NexSolveClient
 from nexsolve.config import DEFAULT_API_KEY, DEFAULT_API_URL
 from nexsolve.errors import NexSolveError
@@ -48,6 +47,37 @@ def _fmt_delta(obs: float, base: float, rel: float | None = None, chg_type: str 
             return f"{obs:.2f} vs {base:.2f} [SURGE]"
         return f"{obs:.2f} vs {base:.2f} ({rel:+.1%})"
     return f"{obs:.2f} vs {base:.2f}"
+
+
+def _compute_feature_explanation(feat: str, obs: float, base: float) -> tuple[str, float | None, str]:
+    """Compute feature delta explanation with zero-baseline safety."""
+    try:
+        from ml.forecasting.evidence_engine import explain_feature_change
+        expl = explain_feature_change(feat, obs, base)
+        return expl.change_type.value, expl.magnitude, expl.interpretation
+    except ModuleNotFoundError:
+        pass
+
+    if abs(base) < 1e-9:
+        if obs > 1e-9:
+            return "NEWLY_PRESENT", None, f"{feat} newly present in window (observed {obs:.2f}, baseline was 0.0)."
+        elif obs < -1e-9:
+            return "DECREASED", None, f"{feat} suppressed below zero-baseline (observed {obs:.2f})."
+        else:
+            return "STABLE", 0.0, f"{feat} remains at zero baseline."
+
+    rel = (obs - base) / base
+    if rel > 0.05:
+        chg = "INCREASED"
+        interp = f"{feat} increased by {rel:+.1%} over historical baseline."
+    elif rel < -0.05:
+        chg = "DECREASED"
+        interp = f"{feat} decreased by {rel:+.1%} below historical baseline."
+    else:
+        chg = "STABLE"
+        interp = f"{feat} stable within nominal baseline variance envelope."
+
+    return chg, rel, interp
 
 
 def run_explain(args: argparse.Namespace) -> int:
@@ -82,15 +112,15 @@ def run_explain(args: argparse.Namespace) -> int:
         feat = item.get("feature_name") or item.get("feature") or "signal"
         obs = float(item.get("observed_value", item.get("feature_value", 0.0)))
         base = float(item.get("baseline_value", item.get("historical_baseline", 0.0)))
-        expl = explain_feature_change(feat, obs, base)
+        chg_type, mag, interp = _compute_feature_explanation(feat, obs, base)
         feature_drivers.append({
             "feature": feat,
             "observed": obs,
             "baseline": base,
-            "change_type": expl.change_type.value,
-            "delta_display": _fmt_delta(obs, base, expl.magnitude, expl.change_type.value),
+            "change_type": chg_type,
+            "delta_display": _fmt_delta(obs, base, mag, chg_type),
             "severity": item.get("severity", "MEDIUM"),
-            "interpretation": expl.interpretation,
+            "interpretation": interp,
         })
 
     # Pure JSON Output

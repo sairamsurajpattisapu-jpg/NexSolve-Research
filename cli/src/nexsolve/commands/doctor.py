@@ -184,10 +184,15 @@ def _check_filesystem() -> dict[str, Any]:
 
     # 2. Project runtime dir
     runtime_candidates = [
-        Path.cwd() / "runtime",
         Path(__file__).resolve().parents[4] / "runtime",
+        Path.cwd() / "runtime",
+        Path(tempfile.gettempdir()) / "nexsolve_runtime",
     ]
     r_dir = runtime_candidates[0]
+    for cand in runtime_candidates:
+        if cand.exists():
+            r_dir = cand
+            break
     try:
         r_dir.mkdir(parents=True, exist_ok=True)
         probe = r_dir / f"probe_{os.getpid()}.tmp"
@@ -229,12 +234,31 @@ def _check_configuration() -> dict[str, Any]:
                 "max_duration_seconds": MAX_PROCESSING_DURATION_SECONDS,
             },
         }
-    except Exception as exc:
-        return {
-            "tier": "REQUIRED",
-            "state": "BROKEN",
-            "error": str(exc),
-        }
+    except Exception:
+        try:
+            from nexsolve.config import (
+                MAX_FLOWS,
+                MAX_PACKETS,
+                MAX_PROCESSING_DURATION_SECONDS,
+                MAX_UPLOAD_BYTES,
+            )
+            return {
+                "tier": "REQUIRED",
+                "state": "AVAILABLE",
+                "limits": {
+                    "max_upload_bytes": MAX_UPLOAD_BYTES,
+                    "max_packets": MAX_PACKETS,
+                    "max_flows": MAX_FLOWS,
+                    "max_duration_seconds": MAX_PROCESSING_DURATION_SECONDS,
+                },
+            }
+        except Exception as exc:
+            state = "MISSING" if isinstance(exc, ModuleNotFoundError) else "BROKEN"
+            return {
+                "tier": "REQUIRED",
+                "state": state,
+                "error": str(exc),
+            }
 
 
 def run_doctor(args: argparse.Namespace) -> int:
@@ -332,6 +356,8 @@ def run_doctor(args: argparse.Namespace) -> int:
     if config_check["state"] == "AVAILABLE":
         lims = config_check["limits"]
         print(f"   {term.C_GREEN}[AVAILABLE]{term.C_RESET} Max Upload: {lims['max_upload_bytes'] // (1024*1024)} MiB | Max Packets: {lims['max_packets']:,} | Max Flows: {lims['max_flows']:,}")
+    elif config_check["state"] == "MISSING":
+        print(f"   {term.C_YELLOW}[MISSING]{term.C_RESET} Configuration bounds module not installed: {config_check.get('error')}")
     else:
         print(f"   {term.C_RED}[BROKEN]{term.C_RESET} Configuration bounds failed to load: {config_check.get('error')}")
 

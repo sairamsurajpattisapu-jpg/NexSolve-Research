@@ -49,11 +49,16 @@ def run_progression(args: argparse.Namespace) -> int:
 
     if not progression:
         # Fallback: construct from findings if available
-        findings = data.get("findings") or data.get("detection", {}).get("findings", [])
-        from ml.forecasting.attack_progression import forecast_attack_progression
-        history_cnt = data.get("window_count") or data.get("traffic", {}).get("windows", 8)
-        p_fc = forecast_attack_progression(findings, history_window_count=history_cnt)
-        progression = p_fc.to_dict()
+        try:
+            from ml.forecasting.attack_progression import forecast_attack_progression
+            history_cnt = data.get("window_count") or data.get("traffic", {}).get("windows", 8)
+            p_fc = forecast_attack_progression(findings, history_window_count=history_cnt)
+            progression = p_fc.to_dict()
+        except ModuleNotFoundError as exc:
+            raise NexSolveError(
+                f"Attack progression payload missing and local re-forecast requires 'ml' module (missing: {exc.name}).",
+                remedy="Run from within the NexSolve research repository or use an analysis payload with precomputed progression.",
+            )
 
     source = data.get("source", {})
     filename = source.get("filename") or source.get("name") or "Capture"

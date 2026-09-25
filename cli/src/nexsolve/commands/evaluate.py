@@ -13,20 +13,8 @@ from pathlib import Path
 import sys
 from typing import Any
 
-from ml.data.dataset_adapter import get_dataset_adapter
-from ml.forecasting.evaluation import (
-    calculate_classification_metrics,
-)
-from ml.forecasting.experiment_manifest import ExperimentArtifactWriter
-from ml.forecasting.temporal_split import TemporalSplitter
 from nexsolve.errors import NexSolveError
 from nexsolve.output.terminal import TerminalRenderer
-from world_model import (
-    FEATURE_NAMES_45,
-    LOOKBACK,
-    infer,
-    load_model,
-)
 
 ROOT = Path(__file__).resolve().parents[4]
 
@@ -35,6 +23,23 @@ def run_evaluate(args: argparse.Namespace) -> int:
     """Execute rigorous multi-horizon evaluation on specified dataset."""
     use_color = not getattr(args, "no_color", False)
     term = TerminalRenderer(use_color=use_color)
+
+    try:
+        from ml.data.dataset_adapter import get_dataset_adapter
+        from ml.forecasting.evaluation import calculate_classification_metrics
+        from ml.forecasting.experiment_manifest import ExperimentArtifactWriter
+        from ml.forecasting.temporal_split import TemporalSplitter
+        from world_model import (
+            FEATURE_NAMES_45,
+            LOOKBACK,
+            infer,
+            load_model,
+        )
+    except ModuleNotFoundError as exc:
+        raise NexSolveError(
+            f"The 'evaluate' command requires the NexSolve research environment (missing: {exc.name}).",
+            remedy="Run from within the NexSolve research repository or install the research/ML dependencies.",
+        )
 
     dataset_arg = args.dataset.strip()
     horizons_str = getattr(args, "horizons", "1,2,3,5")

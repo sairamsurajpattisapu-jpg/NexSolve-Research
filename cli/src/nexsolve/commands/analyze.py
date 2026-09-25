@@ -52,7 +52,20 @@ def run_analyze(args: argparse.Namespace) -> int:
     use_color = not getattr(args, "no_color", False)
     term = TerminalRenderer(use_color=use_color)
 
-    pcap_path = Path(args.pcap_path)
+    raw_pcap_path = getattr(args, "pcap_path", None)
+    if not raw_pcap_path:
+        from nexsolve.picker import open_pcap_picker
+        selected = open_pcap_picker()
+        if not selected:
+            print("No PCAP selected. Analysis cancelled.")
+            return 0
+        raw_pcap_path = selected
+        args.pcap_path = selected
+        if not getattr(args, "json", False) and not getattr(args, "quiet", False):
+            print(f"\nSelected:\n  {selected}\n")
+            print(f"Selected capture:\n  {Path(selected).name}\n")
+
+    pcap_path = Path(raw_pcap_path)
     server_url = (getattr(args, "server", None) or DEFAULT_API_URL).rstrip("/")
     web_url = (getattr(args, "web_url", None) or DEFAULT_WEB_URL).rstrip("/")
     api_key = getattr(args, "api_key", None) or DEFAULT_API_KEY
@@ -170,14 +183,22 @@ def run_analyze(args: argparse.Namespace) -> int:
         return 0
 
     term.print_soc_summary(summary)
+
+    report_location = str(Path(report_out).resolve()) if report_out else summary.report_url
+    print(f"\n{term.C_GREEN}{term.C_BOLD}Analysis complete.{term.C_RESET}\n")
+    print(f"  Job ID:            {term.C_WHITE}{job_id}{term.C_RESET}")
+    print(f"  Threat assessment: {term.C_WHITE}{summary.threat_level}{term.C_RESET} (Risk score: {summary.risk_score:.1f}/100)")
+    print(f"  Forecast:          {term.C_CYAN}{summary.progression_verdict}{term.C_RESET}")
+    print(f"  Report:            {term.C_WHITE}{report_location}{term.C_RESET}")
+
     term.print_visualization_box(job_id, summary.visualization_url, summary.report_url)
 
     # 8. Browser launch if requested
     if open_browser:
         try:
-            print(f"[*] Opening browser: {summary.visualization_url}")
+            print(f"[*] Opening investigation console in browser: {summary.visualization_url}")
             webbrowser.open(summary.visualization_url)
-        except Exception:
-            pass
+        except Exception as exc:
+            print(f"[!] Unable to launch browser automatically: {exc}", file=sys.stderr)
 
     return 0

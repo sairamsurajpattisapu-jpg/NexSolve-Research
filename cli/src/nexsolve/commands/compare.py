@@ -54,7 +54,13 @@ def run_compare(args: argparse.Namespace) -> int:
     data_a = _load_or_fetch(args.job_a, client)
     data_b = _load_or_fetch(args.job_b, client)
 
-    from integrations.comparison import compare_analyses
+    try:
+        from integrations.comparison import compare_analyses
+    except ModuleNotFoundError as exc:
+        raise NexSolveError(
+            f"The 'compare' command requires the NexSolve integrations module (missing: {exc.name}).",
+            remedy="Run from within the NexSolve research repository or install the integrations package.",
+        )
     report = compare_analyses(data_a, data_b)
 
     if getattr(args, "json", False):

@@ -17,6 +17,9 @@ DEFAULT_TIMEOUT: float = float(os.getenv("NEXSOLVE_TIMEOUT", "180.0"))
 
 # Safety limits matching the NexSolve server contract
 MAX_UPLOAD_BYTES: int = 1024 * 1024 * 1024  # 1 GiB
+MAX_PACKETS: int = 500000
+MAX_FLOWS: int = 100000
+MAX_PROCESSING_DURATION_SECONDS: int = 300
 ALLOWED_EXTENSIONS: tuple[str, ...] = (".pcap", ".pcapng")
 
 # Supported PCAP / PCAPNG magic numbers (first 4 bytes)

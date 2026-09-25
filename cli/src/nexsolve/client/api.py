@@ -149,7 +149,7 @@ class NexSolveClient:
         target_path = Path(path)
         if not target_path.exists():
             raise ValidationError(
-                f"Capture file not found: {target_path}",
+                f"File does not exist (capture file not found): {target_path}",
                 remedy="Check the file path and verify that the file exists.",
             )
         if not target_path.is_file():
@@ -161,7 +161,7 @@ class NexSolveClient:
         suffix = target_path.suffix.lower()
         if suffix not in ALLOWED_EXTENSIONS:
             raise ValidationError(
-                f"Unsupported capture extension '{suffix}'",
+                f"Unsupported capture format (unsupported capture extension '{suffix}'). Allowed: {', '.join(ALLOWED_EXTENSIONS)}",
                 remedy="NexSolve requires .pcap or .pcapng network capture files.",
             )
 
@@ -173,7 +173,7 @@ class NexSolveClient:
             )
         if file_size > MAX_UPLOAD_BYTES:
             raise ValidationError(
-                f"Capture exceeds maximum allowed upload size (1 GiB): {file_size:,} bytes",
+                f"File exceeds configured upload limit (1 GiB): {file_size:,} bytes exceeds limit of {MAX_UPLOAD_BYTES:,} bytes",
                 remedy="Capture size exceeds 1 GiB. Slice the capture into smaller time windows using tcpdump or editcap.",
             )
 
@@ -182,7 +182,7 @@ class NexSolveClient:
                 magic = f.read(4)
         except OSError as exc:
             raise ValidationError(
-                f"Cannot read capture file: {exc}",
+                f"File cannot be read: {exc}",
                 remedy="Verify file permissions and that the file is not locked by another process.",
             ) from exc
 

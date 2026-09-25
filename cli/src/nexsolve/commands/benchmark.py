@@ -17,10 +17,6 @@ from pathlib import Path
 import sys
 from typing import Any
 
-from ml.data.dataset_adapter import get_dataset_adapter
-from ml.forecasting.benchmark import StandardizedBenchmarkHarness
-from ml.forecasting.experiment_manifest import ExperimentArtifactWriter
-from ml.forecasting.temporal_split import TemporalSplitter
 from nexsolve.errors import NexSolveError
 from nexsolve.output.terminal import TerminalRenderer
 
@@ -31,6 +27,17 @@ def run_benchmark(args: argparse.Namespace) -> int:
     """Execute standardized baseline benchmark across models."""
     use_color = not getattr(args, "no_color", False)
     term = TerminalRenderer(use_color=use_color)
+
+    try:
+        from ml.data.dataset_adapter import get_dataset_adapter
+        from ml.forecasting.benchmark import StandardizedBenchmarkHarness
+        from ml.forecasting.experiment_manifest import ExperimentArtifactWriter
+        from ml.forecasting.temporal_split import TemporalSplitter
+    except ModuleNotFoundError as exc:
+        raise NexSolveError(
+            f"The 'benchmark' command requires the NexSolve research environment (missing: {exc.name}).",
+            remedy="Run from within the NexSolve research repository or install the research/ML dependencies.",
+        )
 
     dataset_arg = args.dataset.strip()
     horizons_str = getattr(args, "horizons", "1,2,3,5")
