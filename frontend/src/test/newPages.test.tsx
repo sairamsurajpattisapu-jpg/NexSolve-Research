@@ -37,9 +37,9 @@ describe('New Product Pages Suite', () => {
       )
 
       expect(screen.getByRole('heading', { level: 1, name: /NEXSOLVE/i })).toBeInTheDocument()
-      expect(screen.getByText(/Forecast how network attack-state behavior may evolve/i)).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: /Analyze PCAP/i })).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: /Explore Workflow/i })).toBeInTheDocument()
+      expect(screen.getAllByRole('link', { name: /Use NexSolve CLI/i })[0]).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /View CLI Commands/i })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /View workflow/i })).toBeInTheDocument()
     })
 
     it('supports interactive pipeline tour stage navigation', async () => {

@@ -16,7 +16,7 @@ describe('End-to-End Analysis Experience & Product Journey (Prompt 3)', () => {
     vi.restoreAllMocks()
   })
 
-  it('1. Landing page features START as primary CTA and routes to /console/analyze', () => {
+  it('1. Landing page features Use NexSolve CLI as primary CTA and clean CLI workflow cue', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <Routes>
@@ -25,13 +25,14 @@ describe('End-to-End Analysis Experience & Product Journey (Prompt 3)', () => {
       </MemoryRouter>
     )
 
-    const startLink = screen.getByRole('link', { name: /^START/i })
-    expect(startLink).toBeInTheDocument()
-    expect(startLink).toHaveAttribute('href', '/console/analyze')
+    const cliCta = screen.getAllByRole('link', { name: /Use NexSolve CLI/i })[0]
+    expect(cliCta).toBeInTheDocument()
+    expect(cliCta).toHaveAttribute('href', '#cli-quickstart')
 
-    // Also preserves secondary links
-    expect(screen.getByRole('link', { name: /Analyze PCAP/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Explore Workflow/i })).toBeInTheDocument()
+    // Preserves CLI commands secondary button, Open Console tertiary link, and workflow cue
+    expect(screen.getByRole('link', { name: /View CLI Commands/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /Open Console/i })[0]).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /View workflow/i })).toBeInTheDocument()
   })
 
   it('2. Analysis entry screen displays clear narrative and Upload PCAP primary action', () => {

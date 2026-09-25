@@ -31,18 +31,18 @@ describe('MarketingLayout Navigation & Mobile Drawer Suite', () => {
     expect(brand).toBeInTheDocument()
     expect(brand).toHaveAttribute('href', '/')
 
-    // Desktop nav
+    // Desktop nav (Core restrained links)
     const desktopNav = screen.getByRole('navigation', { name: 'Product navigation' })
     expect(desktopNav).toBeInTheDocument()
 
     const navLinks = within(desktopNav).getAllByRole('link')
     const navText = navLinks.map((l) => l.textContent?.trim())
-    expect(navText).toEqual(['Product', 'CLI', 'How It Works', 'Security', 'Research', 'FAQ', 'About'])
+    expect(navText).toEqual(['Product', 'CLI', 'How It Works', 'Research'])
 
-    // Header START CTA
-    const startCta = screen.getByRole('link', { name: /START — Analysis Console/i })
-    expect(startCta).toBeInTheDocument()
-    expect(startCta).toHaveAttribute('href', '/console/analyze')
+    // Header Open Console CTA
+    const consoleCta = screen.getByRole('link', { name: /^Open Console/i })
+    expect(consoleCta).toBeInTheDocument()
+    expect(consoleCta).toHaveAttribute('href', '/console')
   })
 
   it('provides a functional 40px morphing hamburger menu with ARIA accessibility', async () => {
@@ -88,7 +88,7 @@ describe('MarketingLayout Navigation & Mobile Drawer Suite', () => {
     expect(document.body.style.overflow).not.toBe('hidden')
   })
 
-  it('contains START link inside the mobile drawer navigating to /console/analyze', async () => {
+  it('contains Open Console link inside the mobile drawer navigating to /console', async () => {
     const user = userEvent.setup()
     renderMarketingLayout('/')
 
@@ -96,11 +96,11 @@ describe('MarketingLayout Navigation & Mobile Drawer Suite', () => {
     await user.click(menuBtn)
 
     const mobileDrawer = screen.getByRole('complementary', { name: 'Mobile navigation' })
-    const drawerStartBtn = within(mobileDrawer).getByRole('link', { name: /START — Analysis Console/i })
-    expect(drawerStartBtn).toBeInTheDocument()
-    expect(drawerStartBtn).toHaveAttribute('href', '/console/analyze')
+    const drawerConsoleBtn = within(mobileDrawer).getByRole('link', { name: /^Open Console/i })
+    expect(drawerConsoleBtn).toBeInTheDocument()
+    expect(drawerConsoleBtn).toHaveAttribute('href', '/console')
 
-    await user.click(drawerStartBtn)
+    await user.click(drawerConsoleBtn)
     expect(menuBtn).toHaveAttribute('aria-expanded', 'false')
     expect(document.body.style.overflow).not.toBe('hidden')
   })

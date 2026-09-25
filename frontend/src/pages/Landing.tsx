@@ -310,78 +310,70 @@ export function Landing() {
           1. HERO SECTION
           ----------------------------------------------------------------------------- */}
       <section className="landing-hero" id="hero">
-        <div className="hero-pill-badge">
-          <span className="pill-dot" />
-          <span>AI-POWERED NETWORK ATTACK FORECASTING FROM NETWORK TRAFFIC</span>
-        </div>
+        <div className="hero-veil-backdrop" aria-hidden="true" />
 
-        <h1 className="hero-headline">
-          <span style={{ display: 'block', fontSize: 'clamp(20px, 2.6vw, 30px)', fontWeight: 800, letterSpacing: '0.08em', color: '#a1a1aa', marginBottom: 10 }}>
-            NEXSOLVE
-          </span>
-          <span className="headline-accent">See the attack</span>
-          <br />
-          before it unfolds.
-        </h1>
+        <div className="hero-text-block">
+          <div className="hero-pill-badge">
+            <span className="pill-dot" />
+            <span>AI-POWERED NETWORK ATTACK FORECASTING FROM NETWORK TRAFFIC</span>
+          </div>
 
-        <p className="hero-subheadline">
-          NexSolve turns network traffic captures into temporal attack intelligence —
-          reconstructing what happened, where an attack is progressing, and what may happen next.
-          Forecast how network attack-state behavior may evolve across multiple future horizons.
-        </p>
+          <h1 className="hero-headline">
+            <span className="hero-brand-label">NEXSOLVE</span>
+            <span className="headline-accent">See the attack</span>
+            <br />
+            before it unfolds.
+          </h1>
 
-        <div className="hero-cta-container">
-          {/* Primary CTA: Use NexSolve CLI */}
-          <a
-            href="#cli-quickstart"
-            className="hero-btn-primary"
-            aria-label="Use NexSolve CLI — From terminal to investigation"
-          >
-            <span>Use NexSolve CLI</span>
-            <ArrowRight size={15} />
-          </a>
+          <p className="hero-subheadline">
+            NexSolve reconstructs temporal network behavior from traffic captures,
+            identifies attack progression, and forecasts how that behavior may evolve
+            across future horizons.
+          </p>
 
-          {/* Secondary CTA: View CLI Commands */}
-          <a
-            href="#cli-quickstart"
-            className="hero-btn-secondary"
-            aria-label="View CLI Commands"
-          >
-            <Terminal size={14} />
-            <span>View CLI Commands</span>
-          </a>
+          <div className="hero-cta-container">
+            {/* PRIMARY: Analyze a PCAP → */}
+            <a
+              href="#cli-quickstart"
+              className="hero-btn-primary"
+              aria-label="Use NexSolve CLI — Analyze a PCAP"
+            >
+              <span>Analyze a PCAP</span>
+              <ArrowRight size={15} />
+            </a>
 
-          {/* Tertiary CTA: Open Console */}
-          <Link
-            to="/console"
-            className="hero-btn-secondary"
-            aria-label="Open Console"
-          >
-            <span>Open Console</span>
-            <ExternalLink size={14} />
-          </Link>
-        </div>
+            {/* SECONDARY: View CLI Commands */}
+            <a
+              href="#cli-quickstart"
+              className="hero-btn-secondary"
+              aria-label="View CLI Commands"
+            >
+              <Terminal size={14} />
+              <span>View CLI Commands</span>
+            </a>
 
-        {/* Truthful supporting cue & browser console alternatives */}
-        <div className="hero-cta-cue">
-          <span className="cue-terminal-text">
-            Run <code className="cli-inline-code">nexsolve analyze</code> to select a PCAP from your terminal.
-          </span>
-          <span className="cue-divider">&middot;</span>
-          <span className="cue-browser-alt">
-            Or test in browser:
-            <Link to="/console/analyze" className="cue-link" aria-label="START — Browser Analysis">
-              START
+            {/* TERTIARY: Open Console ↗ */}
+            <Link
+              to="/console"
+              className="hero-btn-tertiary"
+              aria-label="Open Console"
+            >
+              <span>Open Console</span>
+              <ExternalLink size={13} />
             </Link>
-            <span className="cue-sep">/</span>
-            <Link to="/console/analyze" className="cue-link">
-              Analyze PCAP
+          </div>
+
+          {/* Clean terminal cue & workflow link */}
+          <div className="hero-cta-cue">
+            <span className="cue-terminal-text">
+              Run <code className="cli-inline-code">nexsolve analyze</code> from your terminal
+            </span>
+            <span className="cue-divider">&middot;</span>
+            <Link to="/workflow" className="cue-workflow-link" aria-label="View workflow">
+              <span>View Workflow</span>
+              <ArrowRight size={12} />
             </Link>
-            <span className="cue-sep">/</span>
-            <Link to="/workflow" className="cue-link">
-              Explore Workflow
-            </Link>
-          </span>
+          </div>
         </div>
 
         <div className="hero-trust-line">
@@ -880,20 +872,21 @@ export function Landing() {
         </p>
 
         <div className="hero-cta-container" style={{ margin: 0 }}>
-          <Link
-            to="/console/analyze"
+          <a
+            href="#cli-quickstart"
             className="hero-btn-primary"
             style={{ padding: '0 32px', height: 48 }}
           >
-            <span>Analyze a PCAP</span>
+            <span>Use NexSolve CLI</span>
             <ArrowRight size={16} />
-          </Link>
+          </a>
           <Link
             to="/console"
             className="hero-btn-secondary"
             style={{ padding: '0 28px', height: 48 }}
           >
             <span>Open Console</span>
+            <ExternalLink size={14} />
           </Link>
         </div>
       </section>

@@ -1,90 +1,85 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  ArrowRight,
   Check,
   CheckCircle2,
   Copy,
   ExternalLink,
   Monitor,
-  Terminal,
   Shield,
+  Terminal,
 } from 'lucide-react'
 
 const CLI_COMMANDS = [
   {
     cmd: 'nexsolve',
-    label: 'Interactive Launcher',
-    desc: 'Interactive terminal menu with native PCAP picker & diagnostic sensor check.',
+    label: 'Interactive Shell',
+    desc: 'Launch interactive shell menu with native PCAP picker & diagnostics.',
   },
   {
     cmd: 'nexsolve analyze',
     label: 'Native PCAP Picker',
-    desc: 'Opens native Windows file dialog to select & analyze any .pcap or .pcapng.',
+    desc: 'Select a PCAP and start an analysis.',
   },
   {
     cmd: 'nexsolve analyze capture.pcap',
-    label: 'Direct Capture Analysis',
-    desc: 'Directly parses and forecasts attack behavior from a specified capture file.',
+    label: 'Direct Capture',
+    desc: 'Analyze a specific capture.',
   },
   {
     cmd: 'nexsolve analyze capture.pcap --open',
-    label: 'Analyze & Open Console',
-    desc: 'Runs full pipeline and automatically launches the web investigation console.',
+    label: 'Analyze & Open',
+    desc: 'Analyze the capture and open the investigation console.',
   },
   {
     cmd: 'nexsolve doctor',
-    label: 'Sensor Diagnostics',
-    desc: 'Verifies Python runtime, dependencies, PyShark, and telemetry sensors.',
+    label: 'Diagnostics',
+    desc: 'Check local NexSolve installation and dependencies.',
   },
   {
     cmd: 'nexsolve version',
-    label: 'Platform & Metadata',
-    desc: 'Displays installed version, platform details, and ML engine metadata.',
+    label: 'Version',
+    desc: 'Show platform and CLI versions.',
   },
 ]
 
-const WORKFLOW_STEPS = [
+const WORKFLOW_STAGES = [
   {
-    step: '01',
-    title: 'TERMINAL',
-    subtitle: 'Run CLI Command',
-    desc: 'Launch nexsolve or nexsolve analyze from PowerShell or bash.',
+    num: '01',
+    title: 'PCAP',
+    category: 'INGESTION',
+    desc: 'Microsecond packet stream or file (.pcap, .pcapng) via passive tap.',
   },
   {
-    step: '02',
-    title: 'PCAP PICKER',
-    subtitle: 'Native File Picker',
-    desc: 'Native OS dialog opens to select .pcap or .pcapng without typing paths.',
+    num: '02',
+    title: 'TEMPORAL NETWORK STATE',
+    category: 'REPRESENTATION',
+    desc: '45-dim continuous feature vector S_t across discrete 60s tumbling windows.',
   },
   {
-    step: '03',
-    title: 'ANALYSIS JOB',
-    subtitle: 'Passive Processing',
-    desc: 'Background engine extracts wire frames into 60s observation windows.',
-  },
-  {
-    step: '04',
-    title: 'TEMPORAL STATE',
-    subtitle: '45-Dim State Vector',
-    desc: 'Infers continuous feature states S_t capturing flow kinetics & burst dynamics.',
-  },
-  {
-    step: '05',
+    num: '03',
     title: 'ATTACK PROGRESSION',
-    subtitle: '15-Stage Lifecycle',
-    desc: 'Maps observable telemetry to chronological kill-chain progression stages.',
+    category: 'KINEMATICS',
+    desc: '15-stage adversarial progression tracking grounded in transition priors.',
   },
   {
-    step: '06',
-    title: 'T+1 → T+5',
-    subtitle: 'Multi-Horizon Rollout',
-    desc: 'LSTM neural world model projects +60s to +300s forward attack trajectories.',
+    num: '04',
+    title: 'FORECAST',
+    category: 'SIMULATION',
+    desc: 'Autoregressive rollout across forward horizons (T+1 through T+5).',
   },
   {
-    step: '07',
-    title: 'WEB CONSOLE',
-    subtitle: 'Visual Investigation',
-    desc: 'Explore communication graphs, evidence drivers, and forensic reports.',
+    num: '05',
+    title: 'EVIDENCE',
+    category: 'ATTRIBUTION',
+    desc: 'Counterfactual feature drivers, confidence intervals, and calibrated abstention.',
+  },
+  {
+    num: '06',
+    title: 'INVESTIGATION',
+    category: 'AUDIT & CONSOLE',
+    desc: 'Browser forensic console drilldown and 16-section self-contained audit packages.',
   },
 ]
 
@@ -93,7 +88,7 @@ const INSTALL_STEPS = [
     num: '1',
     title: 'Clone Repository',
     cmd: 'git clone https://github.com/sairamsurajpattisapu-jpg/NexSolve-Research.git',
-    note: 'Clones the local repository containing core engine, CLI, and web console.',
+    note: 'Clones repository containing core engine, CLI, and web console.',
   },
   {
     num: '2',
@@ -125,26 +120,21 @@ export function CliQuickstartSection() {
       {/* Anchor shim for backwards compatibility with #workflow */}
       <div id="workflow" style={{ position: 'relative', top: '-70px' }} />
 
-      {/* Section Header */}
-      <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-        <div className="section-eyebrow-badge">
-          <Terminal size={12} />
-          <span>CLI-FIRST WORKFLOW & RECONSTRUCTION</span>
-        </div>
-        <h2 className="section-heading-large" style={{ margin: '12px auto' }}>
-          From terminal to investigation.
+      {/* 1. SECTION HEADER (RESTRAINED HIERARCHY) */}
+      <div className="section-header-block" style={{ textAlign: 'center', marginBottom: '36px' }}>
+        <span className="section-eyebrow">CLI</span>
+        <h2 className="section-heading-large" style={{ margin: '8px auto 12px auto' }}>
+          Run it from the terminal.
+          <br />
+          Investigate it in the browser.
         </h2>
-        <p className="cli-showcase-quote">
-          &ldquo;Run it from the terminal. Investigate it in the browser.&rdquo;
-        </p>
-        <p className="section-desc" style={{ maxWidth: 760, margin: '12px auto 0 auto' }}>
-          NexSolve combines high-speed terminal execution with interactive browser forensics. Run native
-          packet analysis without leaving your shell, then pivot directly to the web console for
-          multi-horizon forward trajectories and counterfactual evidence.
+        <p className="section-desc" style={{ maxWidth: 640, margin: '0 auto' }}>
+          Select a capture from the terminal. NexSolve analyzes the traffic.
+          Continue the investigation in the browser.
         </p>
       </div>
 
-      {/* 1. Dual Interface Architecture Explanation */}
+      {/* 2. DUAL INTERFACE CARDS (TERMINAL VS CONSOLE) */}
       <div className="cli-dual-interface-grid">
         <div className="dual-card cli-side">
           <div className="dual-card-header">
@@ -152,13 +142,13 @@ export function CliQuickstartSection() {
               <Terminal size={18} />
             </div>
             <div>
-              <span className="dual-tag">FAST & HEADLESS EXECUTION</span>
+              <span className="dual-tag">FAST &amp; HEADLESS</span>
               <h3 className="dual-title">NexSolve CLI</h3>
             </div>
           </div>
           <p className="dual-desc">
             For running analysis quickly. Select captures via native Windows file dialog, automate CI/CD
-            regressions, or run headless forensic audits without typing file paths or opening browser tabs.
+            regressions, or run headless audits without typing paths or switching contexts.
           </p>
           <ul className="dual-list">
             <li>
@@ -171,7 +161,7 @@ export function CliQuickstartSection() {
             </li>
             <li>
               <CheckCircle2 size={13} className="dual-check" />
-              <span>Direct terminal progress and automated browser launching</span>
+              <span>Automated browser launch with <code>--open</code> flag</span>
             </li>
           </ul>
         </div>
@@ -182,13 +172,13 @@ export function CliQuickstartSection() {
               <Monitor size={18} />
             </div>
             <div>
-              <span className="dual-tag" style={{ color: '#38bdf8' }}>DEEP FORENSIC VISUALIZATION</span>
+              <span className="dual-tag">DEEP VISUALIZATION</span>
               <h3 className="dual-title">Web Investigation Console</h3>
             </div>
           </div>
           <p className="dual-desc">
-            For investigating results visually. Explore the reconstructed communication graph, scrub
-            forward across T+1..T+5 prediction horizons, inspect counterfactual drivers, and export forensic reports.
+            For investigating results visually. Explore communication graphs, scrub forward across
+            T+1..T+5 prediction horizons, inspect counterfactual drivers, and export forensic reports.
           </p>
           <ul className="dual-list">
             <li>
@@ -197,7 +187,7 @@ export function CliQuickstartSection() {
             </li>
             <li>
               <CheckCircle2 size={13} className="dual-check" />
-              <span>15-stage adversarial progression tracking & kinematics</span>
+              <span>15-stage adversarial progression tracking &amp; kinematics</span>
             </li>
             <li>
               <CheckCircle2 size={13} className="dual-check" />
@@ -207,33 +197,7 @@ export function CliQuickstartSection() {
         </div>
       </div>
 
-      {/* 2. Visual Pipeline Flow */}
-      <div className="cli-pipeline-container">
-        <div className="cli-pipeline-header">
-          <span className="pipeline-header-label">END-TO-END PRODUCT PIPELINE</span>
-          <span className="pipeline-header-sub">From raw wire capture to forward horizon intelligence</span>
-        </div>
-
-        <div className="cli-flow-strip">
-          {WORKFLOW_STEPS.map((ws, idx) => (
-            <div key={ws.step} className="cli-flow-node">
-              <div className="flow-node-inner">
-                <div className="flow-step-tag">{ws.step}</div>
-                <div className="flow-node-title">{ws.title}</div>
-                <div className="flow-node-sub">{ws.subtitle}</div>
-                <p className="flow-node-desc">{ws.desc}</p>
-              </div>
-              {idx < WORKFLOW_STEPS.length - 1 && (
-                <div className="flow-node-arrow" aria-hidden="true">
-                  &rarr;
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 3. Terminal Mockup & Supported Commands Reference */}
+      {/* 3. TERMINAL MOCKUP & COMPACT COMMAND ROWS */}
       <div className="cli-commands-layout">
         {/* Terminal Simulation */}
         <div className="terminal-showcase-panel">
@@ -243,56 +207,66 @@ export function CliQuickstartSection() {
               <span className="term-dot term-dot-yellow" />
               <span className="term-dot term-dot-green" />
             </div>
-            <span className="term-title">PowerShell &middot; nexsolve analyze</span>
+            <span className="term-title">terminal &middot; nexsolve analyze</span>
             <span className="term-badge">Illustrative CLI output</span>
           </div>
-          <div className="terminal-body" tabIndex={0} aria-label="Illustrative terminal output showing nexsolve analyze">
+
+          <div
+            className="terminal-body"
+            tabIndex={0}
+            aria-label="Illustrative terminal output showing nexsolve analyze"
+          >
             <div className="term-command-line">
               <span className="term-prompt">$ </span>
-              <span className="term-cmd">nexsolve analyze capture.pcap --open</span>
+              <span className="term-cmd">nexsolve analyze</span>
             </div>
             <div style={{ margin: '14px 0 10px 0', color: '#ffffff', fontWeight: 700 }}>
               NexSolve
               <br />
-              <span style={{ fontSize: 11, color: '#a1a1aa', fontWeight: 400 }}>AI Network Attack Forecasting</span>
+              <span style={{ fontSize: 11, color: '#a3a3a3', fontWeight: 400 }}>
+                AI Network Attack Forecasting
+              </span>
             </div>
-            <div style={{ color: '#71717a', fontSize: 11.5, margin: '8px 0 10px 0' }}>
-              Selected capture:
+            <div style={{ color: '#8a8a8a', fontSize: 11.5, margin: '8px 0 10px 0' }}>
+              Select a PCAP...
               <br />
-              <span style={{ color: '#38bdf8' }}>capture.pcap</span>
+              <span style={{ color: '#d4d4d4' }}>[Native Windows File Picker Opened]</span>
+              <br />
+              <span style={{ color: '#ffffff' }}>Selected: perimeter_capture.pcap</span>
             </div>
             <div className="term-step-line">Creating analysis job...</div>
-            <div className="term-step-line">Reconstructing network state...</div>
-            <div className="term-step-line">Forecasting attack progression...</div>
-            <div className="term-step-line">Building evidence...</div>
-            <div style={{ color: '#10b981', fontWeight: 600, margin: '12px 0 6px 0' }}>
+            <div className="term-step-line">Reconstructing network state (45-dim schema)...</div>
+            <div className="term-step-line">Forecasting attack progression (T+1 &rarr; T+5)...</div>
+            <div className="term-step-line">Building evidence &amp; uncertainty attribution...</div>
+            <div style={{ color: '#ffffff', fontWeight: 600, margin: '12px 0 6px 0' }}>
               Analysis complete.
             </div>
-            <div style={{ color: '#e4e4e7', fontSize: 11.5 }}>
-              Opening investigation console...
+            <div style={{ color: '#a3a3a3', fontSize: 11.5 }}>
+              Opening web investigation console...
             </div>
           </div>
+
           <div className="terminal-footer">
             <span>Example workflow &middot; Native Windows file picker integration validated</span>
           </div>
         </div>
 
-        {/* Command Reference Cards */}
+        {/* Compact Command Rows */}
         <div className="cli-command-cards-container">
           <div className="commands-header">
-            <h3 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: '#ffffff' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#ffffff' }}>
               Supported CLI Commands
             </h3>
-            <span style={{ fontSize: 11, color: '#71717a', fontFamily: 'var(--mono)' }}>
+            <span style={{ fontSize: 11, color: '#737373', fontFamily: 'var(--mono)' }}>
               CLICK COPY TO USE
             </span>
           </div>
 
           <div className="commands-list">
             {CLI_COMMANDS.map((item) => (
-              <div key={item.cmd} className="command-card">
+              <div key={item.cmd} className="command-row">
                 <div className="command-info">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
                     <code className="command-code">{item.cmd}</code>
                     <span className="command-label-badge">{item.label}</span>
                   </div>
@@ -324,15 +298,49 @@ export function CliQuickstartSection() {
         </div>
       </div>
 
-      {/* 4. Concise Truthful Installation Section */}
-      <div className="cli-install-box">
+      {/* 4. PRODUCT WORKFLOW (TECHNICAL HORIZONTAL/VERTICAL ARCHITECTURE FLOW) */}
+      <div className="architecture-workflow-container" style={{ marginTop: '56px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+          <span className="section-eyebrow">PRODUCT WORKFLOW</span>
+          <h3 className="section-heading-large" style={{ fontSize: 'clamp(20px, 2.5vw, 28px)', margin: '6px 0 8px 0' }}>
+            System Architecture Flow
+          </h3>
+          <p className="section-desc" style={{ maxWidth: 640, margin: '0 auto', fontSize: '14px' }}>
+            From raw packet capture to prospective trajectory forecasting and evidence-backed forensic audit.
+          </p>
+        </div>
+
+        <div className="architecture-flow-strip">
+          {WORKFLOW_STAGES.map((stage, idx) => (
+            <div key={stage.num} className="arch-flow-node">
+              <div className="arch-flow-inner">
+                <div className="arch-flow-header">
+                  <span className="arch-step-num">{stage.num}</span>
+                  <span className="arch-step-category">{stage.category}</span>
+                </div>
+                <h4 className="arch-step-title">{stage.title}</h4>
+                <p className="arch-step-desc">{stage.desc}</p>
+              </div>
+              {idx < WORKFLOW_STAGES.length - 1 && (
+                <div className="arch-flow-divider" aria-hidden="true">
+                  <span className="arch-divider-line" />
+                  <ArrowRight size={13} className="arch-divider-arrow" />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 5. LOCAL REPOSITORY INSTALLATION */}
+      <div className="cli-install-box" style={{ marginTop: '48px' }}>
         <div className="install-box-header">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <span className="install-pill">LOCAL REPOSITORY INSTALLATION</span>
-              <span style={{ fontSize: 11, color: '#a1a1aa', fontFamily: 'var(--mono)' }}>DEVELOPMENT BUILD</span>
+              <span style={{ fontSize: 11, color: '#737373', fontFamily: 'var(--mono)' }}>DEVELOPMENT BUILD</span>
             </div>
-            <h3 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: '#ffffff' }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: '#ffffff' }}>
               Install the NexSolve CLI
             </h3>
           </div>
@@ -354,7 +362,7 @@ export function CliQuickstartSection() {
         </div>
 
         <div className="install-notice-banner">
-          <Shield size={14} style={{ color: '#38bdf8', flexShrink: 0, marginTop: 2 }} />
+          <Shield size={14} style={{ color: '#a3a3a3', flexShrink: 0, marginTop: 2 }} />
           <div>
             <strong style={{ color: '#ffffff' }}>PyPI publication status:</strong> NexSolve CLI is currently
             distributed directly via the open-source repository. To use the global command today, clone the
@@ -387,3 +395,5 @@ export function CliQuickstartSection() {
     </section>
   )
 }
+
+export default CliQuickstartSection

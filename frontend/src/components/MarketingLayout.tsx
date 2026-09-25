@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Link, Outlet } from 'react-router-dom'
-import { ArrowRight, Moon, Sun, X } from 'lucide-react'
+import { ArrowRight, ChevronDown, Moon, Sun, X } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
-import { ClosingPlasmaBackground } from './ClosingPlasmaBackground'
+import { LiquidChromeBackground } from './LiquidChromeBackground'
 import { SiteFooter } from './SiteFooter'
 
 export function MarketingLayout() {
   const [open, setOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
   const { isDark, toggleTheme } = useTheme()
   const navRef = useRef<HTMLElement>(null)
   const drawerRef = useRef<HTMLElement>(null)
+  const moreDropdownRef = useRef<HTMLDivElement>(null)
 
   // Body scroll lock management when mobile drawer is open
   useEffect(() => {
@@ -22,7 +24,7 @@ export function MarketingLayout() {
     }
   }, [open])
 
-  // Accessible click-outside and Escape key listener for mobile menu
+  // Accessible click-outside and Escape key listener for mobile menu and more dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node
@@ -35,24 +37,30 @@ export function MarketingLayout() {
       ) {
         setOpen(false)
       }
+      if (
+        moreOpen &&
+        moreDropdownRef.current &&
+        !moreDropdownRef.current.contains(target)
+      ) {
+        setMoreOpen(false)
+      }
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setOpen(false)
+        setMoreOpen(false)
       }
     }
 
-    if (open) {
-      document.addEventListener('mousedown', handleClickOutside)
-      document.addEventListener('keydown', handleKeyDown)
-    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [open])
+  }, [open, moreOpen])
 
   // Track window scroll position to compact navbar
   const [scrolled, setScrolled] = useState(false)
@@ -79,21 +87,92 @@ export function MarketingLayout() {
 
   return (
     <div className="app-shell marketing-shell">
-      <ClosingPlasmaBackground variant="landing" />
-      <header className={`navbar-shell marketing-navbar ${scrolled ? 'is-scrolled' : ''}`} ref={navRef}>
+      <LiquidChromeBackground />
+      <header
+        className={`navbar-shell marketing-navbar ${scrolled ? 'is-scrolled' : ''}`}
+        ref={navRef}
+      >
         <div className="navbar-inner">
           <Link className="brand-block" to="/" aria-label="NexSolve Home">
             <span className="brand-label">NEXSOLVE</span>
           </Link>
 
           <nav className="desktop-nav" aria-label="Product navigation">
-            <NavLink to="/" end onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Product</NavLink>
-            <a href="/#cli-quickstart" onClick={handleCliClick} className="nav-link">CLI</a>
-            <NavLink to="/workflow" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>How It Works</NavLink>
-            <NavLink to="/security" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Security</NavLink>
-            <NavLink to="/research" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>Research</NavLink>
-            <NavLink to="/faq" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>FAQ</NavLink>
-            <NavLink to="/about" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>About</NavLink>
+            <NavLink
+              to="/"
+              end
+              onClick={() => setOpen(false)}
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            >
+              Product
+            </NavLink>
+            <a href="/#cli-quickstart" onClick={handleCliClick} className="nav-link">
+              CLI
+            </a>
+            <NavLink
+              to="/workflow"
+              onClick={() => setOpen(false)}
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            >
+              How It Works
+            </NavLink>
+            <NavLink
+              to="/research"
+              onClick={() => setOpen(false)}
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            >
+              Research
+            </NavLink>
+
+            {/* Compact secondary items dropdown */}
+            <div className="nav-dropdown-wrapper" ref={moreDropdownRef}>
+              <button
+                type="button"
+                className={`nav-link nav-dropdown-btn ${moreOpen ? 'is-active' : ''}`}
+                onClick={() => setMoreOpen(!moreOpen)}
+                aria-expanded={moreOpen}
+                aria-haspopup="true"
+                aria-label="More navigation items"
+              >
+                <span>More</span>
+                <ChevronDown
+                  size={13}
+                  style={{
+                    transform: moreOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 180ms ease',
+                  }}
+                />
+              </button>
+
+              {moreOpen && (
+                <div className="nav-dropdown-menu" role="menu">
+                  <NavLink
+                    to="/security"
+                    role="menuitem"
+                    onClick={() => setMoreOpen(false)}
+                    className="nav-dropdown-item"
+                  >
+                    Security
+                  </NavLink>
+                  <NavLink
+                    to="/faq"
+                    role="menuitem"
+                    onClick={() => setMoreOpen(false)}
+                    className="nav-dropdown-item"
+                  >
+                    FAQ
+                  </NavLink>
+                  <NavLink
+                    to="/about"
+                    role="menuitem"
+                    onClick={() => setMoreOpen(false)}
+                    className="nav-dropdown-item"
+                  >
+                    About
+                  </NavLink>
+                </div>
+              )}
+            </div>
           </nav>
 
           <div className="navbar-right">
@@ -108,12 +187,12 @@ export function MarketingLayout() {
             </button>
 
             <Link
-              to="/console/analyze"
-              className="header-start-btn"
-              aria-label="START — Analysis Console"
+              to="/console"
+              className="header-console-btn"
+              aria-label="Open Console"
             >
-              <span>START</span>
-              <ArrowRight size={13} className="header-start-arrow" />
+              <span>Open Console</span>
+              <ArrowRight size={13} className="header-console-arrow" />
             </Link>
 
             <button
@@ -167,37 +246,74 @@ export function MarketingLayout() {
         </div>
 
         <nav className="mobile-panel-links" aria-label="Mobile navigation links">
-          <NavLink to="/" end onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'mobile-panel-link active' : 'mobile-panel-link')}>
+          <NavLink
+            to="/"
+            end
+            onClick={() => setOpen(false)}
+            className={({ isActive }) =>
+              isActive ? 'mobile-panel-link active' : 'mobile-panel-link'
+            }
+          >
             Product
           </NavLink>
           <a href="/#cli-quickstart" onClick={handleCliClick} className="mobile-panel-link">
             CLI
           </a>
-          <NavLink to="/workflow" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'mobile-panel-link active' : 'mobile-panel-link')}>
+          <NavLink
+            to="/workflow"
+            onClick={() => setOpen(false)}
+            className={({ isActive }) =>
+              isActive ? 'mobile-panel-link active' : 'mobile-panel-link'
+            }
+          >
             How It Works
           </NavLink>
-          <NavLink to="/security" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'mobile-panel-link active' : 'mobile-panel-link')}>
-            Security
-          </NavLink>
-          <NavLink to="/research" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'mobile-panel-link active' : 'mobile-panel-link')}>
+          <NavLink
+            to="/research"
+            onClick={() => setOpen(false)}
+            className={({ isActive }) =>
+              isActive ? 'mobile-panel-link active' : 'mobile-panel-link'
+            }
+          >
             Research
           </NavLink>
-          <NavLink to="/faq" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'mobile-panel-link active' : 'mobile-panel-link')}>
+          <NavLink
+            to="/security"
+            onClick={() => setOpen(false)}
+            className={({ isActive }) =>
+              isActive ? 'mobile-panel-link active' : 'mobile-panel-link'
+            }
+          >
+            Security
+          </NavLink>
+          <NavLink
+            to="/faq"
+            onClick={() => setOpen(false)}
+            className={({ isActive }) =>
+              isActive ? 'mobile-panel-link active' : 'mobile-panel-link'
+            }
+          >
             FAQ
           </NavLink>
-          <NavLink to="/about" onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'mobile-panel-link active' : 'mobile-panel-link')}>
+          <NavLink
+            to="/about"
+            onClick={() => setOpen(false)}
+            className={({ isActive }) =>
+              isActive ? 'mobile-panel-link active' : 'mobile-panel-link'
+            }
+          >
             About
           </NavLink>
         </nav>
 
         <div className="mobile-panel-footer">
           <Link
-            to="/console/analyze"
+            to="/console"
             onClick={() => setOpen(false)}
-            className="mobile-panel-start-btn"
-            aria-label="START — Analysis Console"
+            className="mobile-panel-console-btn"
+            aria-label="Open Console"
           >
-            <span>START</span>
+            <span>Open Console</span>
             <ArrowRight size={13} />
           </Link>
         </div>

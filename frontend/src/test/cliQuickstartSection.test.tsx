@@ -20,9 +20,8 @@ describe('CliQuickstartSection & CLI Showcase Suite', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByRole('heading', { level: 2, name: /From terminal to investigation/i })).toBeInTheDocument()
-    expect(screen.getByText(/“Run it from the terminal\. Investigate it in the browser\.”/i)).toBeInTheDocument()
-    expect(screen.getByText(/CLI-FIRST WORKFLOW & RECONSTRUCTION/i)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: /Run it from the terminal/i })).toBeInTheDocument()
+    expect(screen.getByText('CLI')).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 3, name: 'NexSolve CLI' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 3, name: 'Web Investigation Console' })).toBeInTheDocument()
   })
@@ -56,31 +55,30 @@ describe('CliQuickstartSection & CLI Showcase Suite', () => {
     )
 
     expect(screen.getByText('Illustrative CLI output')).toBeInTheDocument()
-    expect(screen.getAllByText('nexsolve analyze capture.pcap --open').length).toBeGreaterThan(0)
-    expect(screen.getByText('Selected capture:')).toBeInTheDocument()
-    expect(screen.getByText('capture.pcap')).toBeInTheDocument()
+    expect(screen.getAllByText('nexsolve analyze').length).toBeGreaterThan(0)
+    expect(screen.getByText('Select a PCAP...')).toBeInTheDocument()
+    expect(screen.getByText(/Native Windows File Picker Opened/i)).toBeInTheDocument()
+    expect(screen.getByText(/perimeter_capture\.pcap/i)).toBeInTheDocument()
     expect(screen.getByText('Creating analysis job...')).toBeInTheDocument()
-    expect(screen.getByText('Reconstructing network state...')).toBeInTheDocument()
-    expect(screen.getByText('Forecasting attack progression...')).toBeInTheDocument()
-    expect(screen.getByText('Building evidence...')).toBeInTheDocument()
+    expect(screen.getByText(/Reconstructing network state/i)).toBeInTheDocument()
+    expect(screen.getByText(/Forecasting attack progression/i)).toBeInTheDocument()
     expect(screen.getByText('Analysis complete.')).toBeInTheDocument()
-    expect(screen.getByText('Opening investigation console...')).toBeInTheDocument()
+    expect(screen.getByText('Opening web investigation console...')).toBeInTheDocument()
   })
 
-  it('renders all 7 sequential workflow stages from TERMINAL to WEB CONSOLE', () => {
+  it('renders all 6 architecture workflow stages from PCAP to INVESTIGATION', () => {
     render(
       <MemoryRouter>
         <CliQuickstartSection />
       </MemoryRouter>
     )
 
-    expect(screen.getByText('TERMINAL')).toBeInTheDocument()
-    expect(screen.getByText('PCAP PICKER')).toBeInTheDocument()
-    expect(screen.getByText('ANALYSIS JOB')).toBeInTheDocument()
-    expect(screen.getByText('TEMPORAL STATE')).toBeInTheDocument()
+    expect(screen.getByText('PCAP')).toBeInTheDocument()
+    expect(screen.getByText('TEMPORAL NETWORK STATE')).toBeInTheDocument()
     expect(screen.getByText('ATTACK PROGRESSION')).toBeInTheDocument()
-    expect(screen.getByText('T+1 → T+5')).toBeInTheDocument()
-    expect(screen.getByText('WEB CONSOLE')).toBeInTheDocument()
+    expect(screen.getByText('FORECAST')).toBeInTheDocument()
+    expect(screen.getByText('EVIDENCE')).toBeInTheDocument()
+    expect(screen.getByText('INVESTIGATION')).toBeInTheDocument()
   })
 
   it('copies command to clipboard and shows accessible Copied confirmation on click', async () => {
