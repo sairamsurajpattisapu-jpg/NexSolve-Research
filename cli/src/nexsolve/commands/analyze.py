@@ -21,6 +21,7 @@ from nexsolve.config import (
 )
 from nexsolve.errors import CancelledError, NexSolveError
 from nexsolve.output.terminal import TerminalRenderer
+from nexsolve.service import ensure_backend_ready
 
 # Canonical stage ordering
 STAGE_ORDER = [
@@ -75,6 +76,7 @@ def run_analyze(args: argparse.Namespace) -> int:
     quiet = getattr(args, "quiet", False)
     verbose = getattr(args, "verbose", False)
     open_browser = getattr(args, "open", False)
+    headless = getattr(args, "headless", False)
     report_out = getattr(args, "report_out", None)
 
     client = NexSolveClient(base_url=server_url, api_key=api_key, timeout=timeout)
@@ -88,13 +90,23 @@ def run_analyze(args: argparse.Namespace) -> int:
     if not json_output and not quiet:
         term.print_banner()
         term.print_file_info(meta["filename"], meta["size_bytes"], meta["format"])
-        term.print_stage_start("ANALYSIS")
+        term.print_checkmark("Capture validated")
         term.print_checkmark("PCAP validated")
 
-    # 2. Server connectivity check
+    # 2. Server connectivity check & automatic local engine startup
     if verbose:
         print(f"[DEBUG] Checking connectivity to NexSolve API: {server_url}/health", file=sys.stderr)
-    client.check_health()
+        print(f"[DEBUG] Ensuring backend engine is available at {server_url}", file=sys.stderr)
+    ensure_backend_ready(
+        server_url=server_url,
+        term=term,
+        quiet=quiet,
+        json_output=json_output,
+        verbose=verbose,
+    )
+
+    if not json_output and not quiet:
+        term.print_stage_start("ANALYSIS")
 
     # 3. Stream upload
     if verbose:
@@ -162,6 +174,8 @@ def run_analyze(args: argparse.Namespace) -> int:
     # 5. Result retrieval
     result = client.get_job_result(job_id)
     summary = AnalysisSummary.from_result(result, web_base_url=web_url)
+    result["consoleUrl"] = summary.visualization_url
+    result["reportUrl"] = summary.report_url
 
     # 6. Optional report download
     if report_out:
@@ -183,6 +197,7 @@ def run_analyze(args: argparse.Namespace) -> int:
         return 0
 
     term.print_soc_summary(summary)
+    term.print_concise_summary(summary, pcap_path.name)
 
     report_location = str(Path(report_out).resolve()) if report_out else summary.report_url
     print(f"\n{term.C_GREEN}{term.C_BOLD}Analysis complete.{term.C_RESET}\n")
@@ -193,12 +208,26 @@ def run_analyze(args: argparse.Namespace) -> int:
 
     term.print_visualization_box(job_id, summary.visualization_url, summary.report_url)
 
-    # 8. Browser launch if requested
-    if open_browser:
+    # 8. Browser launch if requested or confirmed
+    should_open = False
+    if open_browser and not headless:
+        should_open = True
+    elif not headless and not quiet and not json_output:
+        if hasattr(sys.stdin, "isatty") and sys.stdin.isatty():
+            try:
+                resp = input("\nOpen Web Investigation Console? [Y/n]: ").strip().lower()
+                if resp in ("", "y", "yes"):
+                    should_open = True
+            except (EOFError, KeyboardInterrupt):
+                should_open = False
+
+    if should_open:
         try:
-            print(f"[*] Opening investigation console in browser: {summary.visualization_url}")
-            webbrowser.open(summary.visualization_url)
-        except Exception as exc:
-            print(f"[!] Unable to launch browser automatically: {exc}", file=sys.stderr)
+            print(f"\n[*] Opening investigation console in browser: {summary.visualization_url}")
+            opened = webbrowser.open(summary.visualization_url)
+            if opened is False:
+                print(f"\nAnalysis completed successfully.\n\nCould not open the browser automatically.\n\nConsole URL:\n{summary.visualization_url}\n")
+        except Exception:
+            print(f"\nAnalysis completed successfully.\n\nCould not open the browser automatically.\n\nConsole URL:\n{summary.visualization_url}\n")
 
     return 0

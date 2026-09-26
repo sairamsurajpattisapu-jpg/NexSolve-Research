@@ -88,16 +88,17 @@ class TerminalRenderer:
  | |\  |  __/>  < ___) | (_) | |\ V /  __/ 
  |_| \_|\___/_/\_\____/ \___/|_| \_/ \___| 
                                            
+ NexSolve
  AI-Based Network Attack Forecasting Platform
- SIH 2026 Problem Statement ID: 26153
 ======================================================================{self.C_RESET}"""
         print(banner)
 
     def print_file_info(self, filename: str, size_bytes: int, format_name: str) -> None:
-        print(f"\n{self.C_BOLD}PCAP{self.C_RESET}")
-        print(f"  {self.C_DIM}File:{self.C_RESET}   {self.C_WHITE}{filename}{self.C_RESET}")
-        print(f"  {self.C_DIM}Size:{self.C_RESET}   {self.C_WHITE}{self.format_size(size_bytes)}{self.C_RESET}")
-        print(f"  {self.C_DIM}Format:{self.C_RESET} {self.C_WHITE}.{format_name}{self.C_RESET}\n")
+        fmt = format_name.upper().lstrip(".")
+        print(f"\n{self.C_BOLD}CAPTURE{self.C_RESET}\n")
+        print(f"  {self.C_DIM}File:{self.C_RESET}     {self.C_WHITE}{filename}{self.C_RESET}")
+        print(f"  {self.C_DIM}Size:{self.C_RESET}     {self.C_WHITE}{self.format_size(size_bytes)}{self.C_RESET}")
+        print(f"  {self.C_DIM}Format:{self.C_RESET}   {self.C_WHITE}{fmt}{self.C_RESET}\n")
 
     def print_stage_start(self, title: str = "ANALYSIS") -> None:
         print(f"{self.C_BOLD}{title}{self.C_RESET}")
@@ -172,8 +173,34 @@ class TerminalRenderer:
                 if interp:
                     print(f"    --> {self.C_DIM}{interp}{self.C_RESET}")
 
-    def print_visualization_box(self, job_id: str, vis_url: str, report_url: str) -> None:
+    def print_concise_summary(self, summary: AnalysisSummary, pcap_name: str) -> None:
+        arrow = "→" if self.supports_unicode else "->"
         print(f"\n{self.C_GREEN}{self.C_BOLD}ANALYSIS COMPLETE{self.C_RESET}\n")
+
+        if summary.is_abstained:
+            print(f"{self.C_BOLD}Capture{self.C_RESET}\n  {pcap_name}\n")
+            print(f"{self.C_BOLD}Status{self.C_RESET}\n  COMPLETED\n")
+            print(f"{self.C_BOLD}Forecast{self.C_RESET}\n  {self.C_YELLOW}ABSTAINED{self.C_RESET}\n")
+            print(f"{self.C_BOLD}Reason{self.C_RESET}\n  {summary.abstention_reason_text}\n")
+            print(f"{self.C_BOLD}Observed{self.C_RESET}\n  {summary.abstention_observed_windows} windows\n")
+            print(f"{self.C_BOLD}Required{self.C_RESET}\n  {summary.abstention_required_windows} windows\n")
+            print(f"{self.C_BOLD}Report{self.C_RESET}\n  AVAILABLE\n")
+        else:
+            if summary.forecast_points:
+                h_min = min(pt.get("horizon", 1) for pt in summary.forecast_points)
+                h_max = max(pt.get("horizon", len(summary.forecast_points)) for pt in summary.forecast_points)
+                horizons_str = f"T+{h_min} {arrow} T+{h_max}"
+            else:
+                horizons_str = f"T+1 {arrow} T+5"
+
+            print(f"{self.C_BOLD}Capture{self.C_RESET}\n  {pcap_name}\n")
+            print(f"{self.C_BOLD}Status{self.C_RESET}\n  COMPLETED\n")
+            print(f"{self.C_BOLD}Forecast{self.C_RESET}\n  {self.C_CYAN}AVAILABLE{self.C_RESET}\n")
+            print(f"{self.C_BOLD}Horizons{self.C_RESET}\n  {horizons_str}\n")
+            print(f"{self.C_BOLD}Evidence{self.C_RESET}\n  AVAILABLE\n")
+            print(f"{self.C_BOLD}Report{self.C_RESET}\n  AVAILABLE\n")
+
+    def print_visualization_box(self, job_id: str, vis_url: str, report_url: str) -> None:
         print(f"{self.C_BOLD}Analysis ID:{self.C_RESET}")
         print(f"  {self.C_CYAN}{job_id}{self.C_RESET}\n")
 
@@ -188,7 +215,14 @@ class TerminalRenderer:
 
     def print_error(self, exc: Exception) -> None:
         msg = getattr(exc, "message", str(exc))
+        reason = getattr(exc, "reason", None)
+        next_step = getattr(exc, "next_step", None)
         remedy = getattr(exc, "remedy", "")
+
         print(f"\n{self.C_RED}{self.C_BOLD}[ERROR]{self.C_RESET} {msg}", file=sys.stderr)
-        if remedy:
+        if reason:
+            print(f"\n{self.C_BOLD}Reason:{self.C_RESET}\n  {reason}", file=sys.stderr)
+        if next_step:
+            print(f"\n{self.C_BOLD}Possible next step:{self.C_RESET}\n  {next_step}\n", file=sys.stderr)
+        elif remedy:
             print(f"{self.C_YELLOW}{self.C_BOLD}[REMEDY]{self.C_RESET} {remedy}\n", file=sys.stderr)

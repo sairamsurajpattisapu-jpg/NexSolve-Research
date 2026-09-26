@@ -7,7 +7,8 @@ import os
 CLI_VERSION = "1.0.0"
 
 # Service endpoints (configurable via environment variables with safe localhost defaults)
-DEFAULT_API_URL: str = os.getenv("NEXSOLVE_API_URL", "http://127.0.0.1:8001").rstrip("/")
+_default_port = os.getenv("NEXSOLVE_PORT", "8001")
+DEFAULT_API_URL: str = os.getenv("NEXSOLVE_API_URL", f"http://127.0.0.1:{_default_port}").rstrip("/")
 DEFAULT_WEB_URL: str = os.getenv("NEXSOLVE_WEB_URL", "http://localhost:5173").rstrip("/")
 DEFAULT_API_KEY: str = os.getenv("NEXSOLVE_API_KEY", "")
 

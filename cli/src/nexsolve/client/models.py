@@ -97,6 +97,18 @@ class AnalysisSummary:
         progression = result.get("attack_progression") or {}
         raw_forecasts = result.get("forecasts") or []
         abstention = result.get("abstention") or None
+        forecast_summary = result.get("forecast_summary") or {}
+        if not abstention and (
+            forecast_summary.get("status") in ("INSUFFICIENT_HISTORY", "INCOMPATIBLE_FEATURES")
+            or forecast_summary.get("available") is False
+            or result.get("analysis_state") == "ANALYSIS_COMPLETE_FORECAST_UNAVAILABLE"
+        ):
+            abstention = {
+                "abstained": True,
+                "reason": forecast_summary.get("status", "INSUFFICIENT_HISTORY"),
+                "observed_windows": forecast_summary.get("available_windows", int(traffic.get("windows", result.get("window_count", 0)))),
+                "required_windows": forecast_summary.get("required_windows", 8),
+            }
 
         # Sanitize and validate forecast points
         sanitized_forecasts: list[dict[str, Any]] = []
@@ -189,3 +201,41 @@ class AnalysisSummary:
             report_url=f"{web_base}/console/reports/{job_id}",
             abstention=abstention,
         )
+
+    @property
+    def is_abstained(self) -> bool:
+        """Indicate whether the forecast was withheld or abstained due to data constraints."""
+        if self.abstention and self.abstention.get("abstained"):
+            return True
+        if self.forecast_points and all(f.get("attackProbability") is None for f in self.forecast_points):
+            return True
+        return False
+
+    @property
+    def abstention_reason_text(self) -> str:
+        """Provide a clean human-readable explanation for why forecasting abstained."""
+        if not self.abstention:
+            return "Insufficient temporal history"
+        reason = self.abstention.get("reason", "INSUFFICIENT_HISTORY")
+        if reason == "INSUFFICIENT_HISTORY":
+            return "Insufficient temporal history"
+        elif reason == "GAPPED_HISTORY":
+            return "Non-contiguous timestamp gaps"
+        elif reason == "INCOMPATIBLE_FEATURES":
+            return "Incompatible feature contract"
+        return str(reason).replace("_", " ").title()
+
+    @property
+    def abstention_observed_windows(self) -> int:
+        """Return the number of observed windows associated with the abstention."""
+        if self.abstention and "observed_windows" in self.abstention:
+            return int(self.abstention["observed_windows"])
+        return self.window_count
+
+    @property
+    def abstention_required_windows(self) -> int:
+        """Return the minimum number of windows required for forecasting."""
+        if self.abstention and "required_windows" in self.abstention:
+            return int(self.abstention["required_windows"])
+        return 8
+

@@ -90,6 +90,55 @@ class MockNexSolveServerHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({"report_id": "rep-test123456", "title": "NexSolve Report"}).encode())
+        elif self.path == "/jobs/job-abstained":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "job_id": "job-abstained",
+                "filename": "abstain_sample.pcap",
+                "status": "COMPLETED",
+                "stage": "COMPLETE",
+                "progress": 1.0,
+                "packets_processed": 15,
+                "created_at": "2026-09-24T10:00:00Z",
+                "completed_at": "2026-09-24T10:00:01Z",
+                "error": None,
+                "processing_statistics": {"packets_processed": 15},
+            }).encode())
+        elif self.path == "/jobs/job-abstained/result":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            result = {
+                "analysis_id": "job-abstained",
+                "status": "completed",
+                "source": {"name": "abstain_sample.pcap"},
+                "detection": {"threat_level": "LOW", "risk_score": 12.0, "detected_events": 0},
+                "early_warning": {"early_warning_score": 10, "early_warning_level": "LOW"},
+                "attack_progression": {"verdict": "BASELINE_EQUILIBRIUM"},
+                "traffic": {"packets": 15, "flows": 3, "windows": 2, "duration_seconds": 120},
+                "forecasts": [],
+                "abstention": {
+                    "abstained": True,
+                    "reason": "INSUFFICIENT_HISTORY",
+                    "observed_windows": 2,
+                    "required_windows": 8,
+                    "explanation": "Forecasting abstained: insufficient history for the selected sequence length (2 / 8 windows observed).",
+                },
+                "forecast_summary": {
+                    "available": False,
+                    "status": "INSUFFICIENT_HISTORY",
+                    "required_windows": 8,
+                    "available_windows": 2,
+                },
+            }
+            self.wfile.write(json.dumps(result).encode())
+        elif self.path == "/jobs/job-abstained/report.html":
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html")
+            self.end_headers()
+            self.wfile.write(b"<!DOCTYPE html><html><body>Abstention Report</body></html>")
         else:
             self.send_response(404)
             self.end_headers()
@@ -98,16 +147,20 @@ class MockNexSolveServerHandler(BaseHTTPRequestHandler):
         if self.path == "/jobs":
             # Read and discard uploaded multipart data
             content_length = int(self.headers.get("Content-Length", 0))
+            body = b""
             if content_length > 0:
-                self.rfile.read(content_length)
+                body = self.rfile.read(content_length)
 
             MockNexSolveServerHandler.poll_count = 0
+            job_id = "job-abstained" if b"abstain" in body.lower() else "job-test123456"
+            filename = "abstain_sample.pcap" if job_id == "job-abstained" else "sample.pcap"
+
             self.send_response(202)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({
-                "job_id": "job-test123456",
-                "filename": "sample.pcap",
+                "job_id": job_id,
+                "filename": filename,
                 "status": "QUEUED",
                 "stage": "INGESTION",
                 "progress": 0.1,

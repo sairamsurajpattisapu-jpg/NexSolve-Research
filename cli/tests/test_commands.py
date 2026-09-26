@@ -34,7 +34,7 @@ def test_cli_help_flag(capsys):
         main(["--help"])
     assert exc_info.value.code == 0
     captured = capsys.readouterr()
-    assert "NexSolve AI Network Attack Forecasting CLI" in captured.out
+    assert "NexSolve: AI-Based Network Attack Forecasting Platform" in captured.out
     assert "analyze" in captured.out
     assert "status" in captured.out
     assert "report" in captured.out

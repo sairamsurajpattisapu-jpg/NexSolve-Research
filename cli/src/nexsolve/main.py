@@ -34,7 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Construct command-line argument parser for NexSolve CLI."""
     parser = argparse.ArgumentParser(
         prog="nexsolve",
-        description="NexSolve AI Network Attack Forecasting CLI (SIH 2026 Problem Statement ID: 26153)",
+        description="NexSolve: AI-Based Network Attack Forecasting Platform",
     )
     parser.add_argument(
         "-v", "--version",
@@ -87,6 +87,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--open",
         action="store_true",
         help="Automatically open the completed analysis visualization URL in the default web browser",
+    )
+    analyze_parser.add_argument(
+        "--headless",
+        action="store_true",
+        help="Run in headless non-interactive mode without opening browser or prompting",
     )
     analyze_parser.add_argument(
         "--json",
@@ -562,6 +567,7 @@ def run_interactive_menu(term: TerminalRenderer) -> int:
                 poll_interval=DEFAULT_POLL_INTERVAL,
                 timeout=DEFAULT_TIMEOUT,
                 open=open_browser,
+                headless=False,
                 json=False,
                 report_out=None,
                 quiet=False,

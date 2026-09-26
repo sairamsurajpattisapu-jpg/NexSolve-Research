@@ -29,8 +29,7 @@ def run_forecast(args: argparse.Namespace) -> int:
  | |\  |  __/>  < ___) | (_) | |\ V /  __/ 
  |_| \_|\___/_/\_\____/ \___/|_| \_/ \___| 
                                            
- AI-Based Network Attack Forecasting from Network Telemetry
- SIH 2026 Problem Statement ID: 26153
+ AI-Based Network Attack Forecasting Platform
  World Model Forecasting Engine (45-Feature PCAP Contract)
 ======================================================================
 """)

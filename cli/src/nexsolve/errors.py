@@ -28,9 +28,21 @@ class ValidationError(NexSolveError):
 class ServerConnectionError(NexSolveError):
     """Raised when the CLI cannot connect to the NexSolve API server."""
 
-    def __init__(self, message: str, remedy: str = "") -> None:
+    def __init__(self, message: str, remedy: str = "", reason: str = "", next_step: str = "") -> None:
+        self.reason = reason
+        self.next_step = next_step
         default_remedy = remedy or "Verify the NexSolve backend is running (e.g. via ./start_backend.ps1) and reachable at the configured --server URL."
         super().__init__(message=message, remedy=default_remedy, exit_code=3)
+
+
+class EngineStartupError(NexSolveError):
+    """Raised when the local analysis engine cannot be started automatically."""
+
+    def __init__(self, reason: str = "", next_step: str = "", message: str = "Analysis engine could not be started.") -> None:
+        self.reason = reason
+        self.next_step = next_step
+        remedy = f"Reason:\n  {reason}\n\nPossible next step:\n  {next_step}" if reason else (next_step or "")
+        super().__init__(message=message, remedy=remedy, exit_code=3)
 
 
 class AuthenticationError(NexSolveError):
