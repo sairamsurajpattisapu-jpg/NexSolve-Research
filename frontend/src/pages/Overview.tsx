@@ -14,9 +14,9 @@ import {
   Terminal,
   TrendingUp,
 } from 'lucide-react'
-import { MetricCard, Panel, StatusPill } from '../components/Ui'
+import { MetricCard, Panel, AnalysisStatusBadge } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
-import { formatNumber } from '../utils/format'
+import { formatNumber, formatRiskPercentage, normalizeRiskPercentage } from '../utils/format'
 import {
   getAnalysisHistory,
   clearAnalysisHistory,
@@ -220,25 +220,28 @@ export function Overview() {
       {/* 3. CASE: ACTIVE ANALYSIS LOADED */}
       {hasActiveAnalysis && results && (
         <>
-          {/* Clean Callout when no live user analysis is loaded */}
+          {/* Clean Callout when no live user analysis is loaded (Section 10) */}
           {!hasLiveCapture && (
-            <Panel style={{ marginBottom: '20px', padding: '24px 28px', background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
+            <Panel style={{ marginBottom: '20px', padding: '20px 24px', background: 'var(--ns-surface)', border: '1px solid var(--ns-border)', borderRadius: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 6px', borderRadius: '3px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.25)', color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 6px', borderRadius: '3px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--ns-border)', color: 'var(--ns-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
                       NO ACTIVE ANALYSIS
                     </span>
-                    <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--ns-text-muted)' }}>
                       AWAITING WIRE TELEMETRY
                     </span>
                   </div>
-                  <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '2px 0 6px 0', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                  <h2 style={{ fontSize: '17px', fontWeight: 700, margin: '0 0 4px 0', color: 'var(--ns-text-primary)', letterSpacing: '-0.01em' }}>
                     Ready to analyze network traffic captures
                   </h2>
-                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '640px', lineHeight: 1.5 }}>
-                    Run <code style={{ fontFamily: 'var(--mono)', background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '3px', border: '1px solid var(--border)', color: '#ffffff' }}>nexsolve analyze</code> in your terminal to select a PCAP via native file picker, or start an analysis in this console.
+                  <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--ns-text-secondary)', maxWidth: '640px', lineHeight: 1.5 }}>
+                    Ready to analyze a network capture. Run <code style={{ fontFamily: 'var(--mono)', background: 'rgba(255,255,255,0.06)', padding: '1px 5px', borderRadius: '3px', border: '1px solid var(--ns-border)', color: 'var(--ns-text-primary)' }}>nexsolve analyze</code> in your terminal or start an analysis in this console.
                   </p>
+                  <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--ns-text-tertiary)', letterSpacing: '0.04em' }}>
+                    PCAP / PCAPNG &middot; 45 FEATURES &middot; TEMPORAL FORECAST
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <Link to="/console/analyze" className="button button-primary" style={{ fontSize: '12px', gap: '6px' }}>
@@ -252,68 +255,90 @@ export function Overview() {
             </Panel>
           )}
 
-          {/* ABSTENTION SAFETY NOTICE (CALIBRATED ABSTENTION CONTRACT) */}
+          {/* ABSTENTION SAFETY NOTICE (Section 12: scannable & restrained) */}
           {isAbstained && (
             <Panel
               style={{
-                padding: '18px 22px',
-                border: '1px solid rgba(245, 158, 11, 0.35)',
-                background: 'rgba(245, 158, 11, 0.04)',
-                borderRadius: '6px',
+                padding: '20px 24px',
+                border: '1px solid var(--ns-border)',
+                background: 'var(--ns-surface)',
+                borderRadius: '10px',
                 marginBottom: '20px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <ShieldAlert size={18} color="var(--warning)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                <ShieldAlert size={18} color="var(--ns-warning)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div style={{ width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <span
                       style={{
                         fontSize: '10px',
                         fontFamily: 'var(--mono)',
                         fontWeight: 700,
-                        color: 'var(--warning)',
+                        color: 'var(--ns-warning)',
                         letterSpacing: '0.08em',
                         textTransform: 'uppercase',
+                        background: 'rgba(251, 191, 36, 0.10)',
+                        border: '1px solid rgba(251, 191, 36, 0.25)',
+                        padding: '1px 6px',
+                        borderRadius: '3px',
                       }}
                     >
                       CALIBRATED ABSTENTION
                     </span>
-                    <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--ns-text-muted)' }}>
                       EPISTEMIC HONESTY CONTRACT
                     </span>
                   </div>
-                  <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 4px 0', color: 'var(--text-primary)' }}>
-                    Forecast unavailable
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '2px 0 4px 0', color: 'var(--ns-text-primary)' }}>
+                    FORECAST UNAVAILABLE &middot; Forecast unavailable
                   </h3>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 8px 0', lineHeight: 1.5 }}>
-                    Insufficient temporal history. Autoregressive network state modeling requires at least 8 continuous discrete 60s windows to project forward horizons without synthetic imputation.
+                  <p style={{ fontSize: '13px', color: 'var(--ns-text-secondary)', margin: '0 0 12px 0', lineHeight: 1.5 }}>
+                    Insufficient temporal history. Forecasting requires at least 8 continuous 60-second windows without synthetic imputation.
                   </p>
-                  <div style={{ display: 'flex', gap: '14px', fontSize: '11.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
-                    <span>Observed: <strong style={{ color: 'var(--text-primary)' }}>{results.traffic?.windows || 2} windows</strong></span>
-                    <span>&middot;</span>
-                    <span>Required: <strong style={{ color: 'var(--text-primary)' }}>8 windows (480s)</strong></span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '12px', fontFamily: 'var(--mono)' }}>
+                      <div style={{ background: 'var(--ns-bg-elevated)', border: '1px solid var(--ns-border)', borderRadius: '6px', padding: '6px 12px' }}>
+                        <span style={{ color: 'var(--ns-text-muted)', fontSize: '10.5px', display: 'block' }}>Observed</span>
+                        <strong style={{ color: 'var(--ns-text-primary)', fontSize: '13px' }}>{results.traffic?.windows || 2} windows</strong>
+                      </div>
+                      <div style={{ background: 'var(--ns-bg-elevated)', border: '1px solid var(--ns-border)', borderRadius: '6px', padding: '6px 12px' }}>
+                        <span style={{ color: 'var(--ns-text-muted)', fontSize: '10.5px', display: 'block' }}>Required</span>
+                        <strong style={{ color: 'var(--ns-text-primary)', fontSize: '13px' }}>8 windows (480s)</strong>
+                      </div>
+                    </div>
+                    <Link to="/workflow" style={{ fontSize: '12px', color: 'var(--ns-text-secondary)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span>How this works</span> &rarr;
+                    </Link>
                   </div>
                 </div>
               </div>
             </Panel>
           )}
 
-          {/* STRUCTURED WORKFLOW SUMMARY STRIP */}
-          <Panel style={{ padding: '20px 24px', marginBottom: '20px', background: 'var(--bg-secondary)', border: hasLiveCapture ? '1px solid var(--border)' : '1px dashed rgba(234, 179, 8, 0.35)' }}>
+          {/* REFERENCE BENCHMARK / LIVE STRIP (Section 13: visually secondary reference panel) */}
+          <Panel
+            style={{
+              padding: '18px 22px',
+              marginBottom: '20px',
+              background: 'var(--ns-surface)',
+              border: '1px solid var(--ns-border)',
+              borderRadius: '10px',
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                   {hasLiveCapture ? (
                     <span
                       style={{
-                        fontSize: '10px',
+                        fontSize: '9.5px',
                         fontFamily: 'var(--mono)',
-                        padding: '2px 6px',
+                        padding: '1px 6px',
                         borderRadius: '3px',
-                        background: 'rgba(16, 185, 129, 0.12)',
-                        border: '1px solid rgba(16, 185, 129, 0.35)',
-                        color: 'var(--success)',
+                        background: 'rgba(52, 211, 153, 0.10)',
+                        border: '1px solid rgba(52, 211, 153, 0.25)',
+                        color: 'var(--ns-success)',
                         textTransform: 'uppercase',
                         letterSpacing: '0.08em',
                         fontWeight: 700,
@@ -324,13 +349,13 @@ export function Overview() {
                   ) : (
                     <span
                       style={{
-                        fontSize: '10px',
+                        fontSize: '9.5px',
                         fontFamily: 'var(--mono)',
-                        padding: '2px 6px',
+                        padding: '1px 6px',
                         borderRadius: '3px',
-                        background: 'rgba(234, 179, 8, 0.12)',
-                        border: '1px solid rgba(234, 179, 8, 0.35)',
-                        color: 'var(--warning)',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid var(--ns-border)',
+                        color: 'var(--ns-text-secondary)',
                         textTransform: 'uppercase',
                         letterSpacing: '0.08em',
                         fontWeight: 700,
@@ -339,31 +364,31 @@ export function Overview() {
                       DEMO / REFERENCE ANALYSIS
                     </span>
                   )}
-                  <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--ns-text-muted)' }}>
                     {hasLiveCapture ? 'ACTIVE WIRE INGESTION' : 'CIC-IDS2017 BENCHMARK FIXTURE'}
                   </span>
                 </div>
 
-                <h3 style={{ margin: '2px 0 4px 0', fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>
+                <h3 style={{ margin: '2px 0 4px 0', fontSize: '16px', fontWeight: 700, color: 'var(--ns-text-primary)', fontFamily: 'var(--mono)' }}>
                   {hasLiveCapture
                     ? (results.source?.filename || results.source?.name || 'perimeter_traffic.pcap')
-                    : 'CIC-IDS2017 Packet Windows (Reference Baseline)'}
+                    : 'CIC-IDS2017'}
                 </h3>
 
                 {!hasLiveCapture && (
-                  <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: 'var(--text-secondary)', maxWidth: '680px' }}>
-                    The metrics below reflect the pre-computed CIC-IDS2017 benchmark baseline for model verification. They do not reflect an active capture session.
+                  <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: 'var(--ns-text-secondary)', maxWidth: '680px', lineHeight: 1.5 }}>
+                    Pre-computed benchmark used for model verification. The metrics below reflect the pre-computed CIC-IDS2017 benchmark baseline for model verification.
                   </p>
                 )}
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11px', color: 'var(--ns-text-tertiary)', fontFamily: 'var(--mono)' }}>
                   <span>ID: {results.analysis_id?.slice(0, 16)}</span>
                   <span>&middot;</span>
-                  <span>{results.traffic?.windows || (hasLiveCapture ? 8 : 2)} discrete 60s windows</span>
+                  <span>{results.traffic?.windows || (hasLiveCapture ? 8 : 2)} windows</span>
                   <span>&middot;</span>
                   <span>{(results.traffic?.packets || (hasLiveCapture ? 1420 : 12)).toLocaleString()} packets</span>
                   <span>&middot;</span>
-                  <span>SHA-256 Verified</span>
+                  <span>SHA-256 verified</span>
                 </div>
               </div>
 
@@ -403,11 +428,16 @@ export function Overview() {
               label="Compounding Risk"
               value={
                 results.detection?.risk_score !== undefined
-                  ? `${Math.round(results.detection.risk_score * 100)}%`
+                  ? formatRiskPercentage(results.detection.risk_score, '34%')
                   : '34%'
               }
               detail="Cumulative forward trajectory"
-              tone={results.detection?.risk_score && results.detection.risk_score > 0.6 ? 'danger' : 'accent'}
+              tone={
+                results.detection?.risk_score !== undefined &&
+                (normalizeRiskPercentage(results.detection.risk_score) ?? 0) > 60
+                  ? 'danger'
+                  : 'accent'
+              }
               icon={<ShieldAlert size={16} />}
             />
           </div>
@@ -526,9 +556,7 @@ export function Overview() {
                     <strong style={{ fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>
                       {item.filename}
                     </strong>
-                    <StatusPill tone={item.status === 'COMPLETED' ? 'success' : 'neutral'}>
-                      {item.status}
-                    </StatusPill>
+                    <AnalysisStatusBadge status={item.status} />
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
                     {new Date(item.timestamp).toLocaleString()} &middot; ID: {item.id.slice(0, 10)}
@@ -537,14 +565,23 @@ export function Overview() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  {item.peakRiskPct !== undefined && (
-                    <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '9.5px', color: 'var(--text-muted)', fontFamily: 'var(--mono)', display: 'block' }}>Peak Risk</span>
-                      <strong style={{ fontSize: '12.5px', color: item.peakRiskPct > 0.6 ? 'var(--danger)' : 'var(--text-primary)', fontFamily: 'var(--mono)' }}>
-                        {Math.round(item.peakRiskPct * 100)}%
-                      </strong>
-                    </div>
-                  )}
+                  <div style={{ textAlign: 'right', minWidth: '60px' }}>
+                    <span style={{ fontSize: '9.5px', color: 'var(--text-muted)', fontFamily: 'var(--mono)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block' }}>
+                      PEAK RISK
+                    </span>
+                    <strong
+                      style={{
+                        fontSize: '12.5px',
+                        color: (() => {
+                          const norm = normalizeRiskPercentage(item.peakRiskPct)
+                          return norm !== null && norm > 60 ? 'var(--danger)' : 'var(--text-primary)'
+                        })(),
+                        fontFamily: 'var(--mono)',
+                      }}
+                    >
+                      {formatRiskPercentage(item.peakRiskPct)}
+                    </strong>
+                  </div>
                   <button
                     type="button"
                     className="button button-quiet"

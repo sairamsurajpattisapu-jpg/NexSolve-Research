@@ -337,36 +337,66 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
         </div>
       </header>
 
-      {/* Safety Guardrail Notice if Abstained */}
+      {/* Safety Guardrail Notice if Abstained (Section 12) */}
       {isAbstained && (
         <div
           style={{
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border)',
-            borderRadius: '6px',
-            padding: '14px 18px',
+            background: 'var(--ns-surface)',
+            border: '1px solid var(--ns-border)',
+            borderRadius: '10px',
+            padding: '18px 22px',
             display: 'flex',
-            gap: '12px',
+            gap: '14px',
             alignItems: 'flex-start',
           }}
         >
-          <AlertTriangle size={18} color="var(--text-muted)" style={{ flexShrink: 0, marginTop: '2px' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <AlertTriangle size={18} color="var(--ns-warning)" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                FORECAST WITHHELD &middot; SAFETY GUARDRAIL ACTIVE
+              <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--ns-warning)', textTransform: 'uppercase', letterSpacing: '0.06em', background: 'rgba(251, 191, 36, 0.10)', border: '1px solid rgba(251, 191, 36, 0.25)', padding: '1px 6px', borderRadius: '3px' }}>
+                FORECAST UNAVAILABLE
               </span>
-              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', padding: '1px 6px', borderRadius: '3px', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-muted)', fontWeight: 600 }}>
-                INSUFFICIENT HISTORY &middot; {forecast.availableWindows ?? 0} / 8 WINDOWS
+              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', padding: '1px 6px', borderRadius: '3px', background: 'var(--ns-bg-elevated)', border: '1px solid var(--ns-border)', color: 'var(--ns-text-muted)', fontWeight: 600 }}>
+                CALIBRATED ABSTENTION &middot; {forecast.availableWindows ?? 0} / 8 WINDOWS
               </span>
             </div>
-            <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
-              {forecast.status}: Insufficient Continuous Historical Telemetry
-            </h3>
-            <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              The uploaded capture contains <strong>{forecast.availableWindows} discrete 60-second windows</strong>.
-              NexSolve requires at least <strong>8 continuous historical windows (480s)</strong> to establish state momentum without synthetic imputation.
-            </p>
+            <div>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: 'var(--ns-text-primary)' }}>
+                Insufficient temporal history.
+              </h3>
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--ns-text-secondary)', lineHeight: 1.5 }}>
+                Forecasting requires at least 8 continuous 60-second windows without synthetic imputation.
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '4px' }}>
+              <div style={{ display: 'flex', gap: '14px', fontSize: '12px', fontFamily: 'var(--mono)' }}>
+                <div style={{ background: 'var(--ns-bg-elevated)', border: '1px solid var(--ns-border)', borderRadius: '6px', padding: '6px 12px' }}>
+                  <span style={{ color: 'var(--ns-text-muted)', fontSize: '10.5px', display: 'block' }}>Observed</span>
+                  <strong style={{ color: 'var(--ns-text-primary)', fontSize: '13px' }}>{forecast.availableWindows ?? 0} windows</strong>
+                </div>
+                <div style={{ background: 'var(--ns-bg-elevated)', border: '1px solid var(--ns-border)', borderRadius: '6px', padding: '6px 12px' }}>
+                  <span style={{ color: 'var(--ns-text-muted)', fontSize: '10.5px', display: 'block' }}>Required</span>
+                  <strong style={{ color: 'var(--ns-text-primary)', fontSize: '13px' }}>8 windows</strong>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/workflow')}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--ns-text-secondary)',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: 0,
+                }}
+              >
+                <span>How this works</span> &rarr;
+              </button>
+            </div>
           </div>
         </div>
       )}

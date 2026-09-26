@@ -40,6 +40,8 @@ function App() {
         {/* Marketing / Explanatory Pages */}
         <Route element={<MarketingLayout />}>
           <Route path="/" element={<Landing />} />
+          <Route path="/cli-quickstart" element={<Landing />} />
+          <Route path="/cli" element={<Landing />} />
           <Route path="/workflow" element={<Workflow />} />
           <Route path="/security" element={<Security />} />
           <Route path="/research" element={<Research />} />

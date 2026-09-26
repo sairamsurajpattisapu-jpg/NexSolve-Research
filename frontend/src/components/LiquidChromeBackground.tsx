@@ -15,10 +15,10 @@ const DEFAULT_BASE_COLOR: [number, number, number] = [0.055, 0.055, 0.065]
 export function LiquidChromeBackground({
   className = '',
   baseColor = DEFAULT_BASE_COLOR,
-  speed = 0.35,
-  amplitude = 0.42,
+  speed = 0.30,
+  amplitude = 0.38,
   interactive = true,
-  opacity = 0.65,
+  opacity = 0.28,
 }: LiquidChromeBackgroundProps) {
   return (
     <div
@@ -32,7 +32,7 @@ export function LiquidChromeBackground({
         pointerEvents: 'none',
         zIndex: 0,
         overflow: 'hidden',
-        background: '#050505',
+        background: '#0A0A0C',
       }}
     >
       <div
@@ -51,7 +51,7 @@ export function LiquidChromeBackground({
         />
       </div>
 
-      {/* Subtle atmospheric vignette and contrast veil to ensure text readability */}
+      {/* Atmospheric veil ensuring text readability over canvas */}
       <div
         className="liquid-chrome-ambient-veil"
         style={{
@@ -59,7 +59,7 @@ export function LiquidChromeBackground({
           inset: 0,
           pointerEvents: 'none',
           background:
-            'radial-gradient(circle at 50% 25%, rgba(5, 5, 5, 0.25) 0%, rgba(5, 5, 5, 0.70) 70%, rgba(5, 5, 5, 0.95) 100%)',
+            'radial-gradient(circle at 50% 25%, rgba(10, 10, 12, 0.45) 0%, rgba(8, 9, 11, 0.75) 60%, rgba(8, 9, 11, 0.96) 100%)',
         }}
       />
     </div>

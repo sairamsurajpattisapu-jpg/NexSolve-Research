@@ -17,11 +17,11 @@ import { CircuitBoard } from '../components/CircuitBoard'
 import { CsvRequirementsModal } from '../components/CsvRequirementsModal'
 import { JobProgress } from '../components/JobProgress'
 import { JobResult } from '../components/JobResult'
-import { ErrorState, LoadingState, MetricCard, Panel, SectionHeading } from '../components/Ui'
+import { ErrorState, LoadingState, MetricCard, Panel, SectionHeading, AnalysisStatusBadge } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
 import { api, ApiError } from '../services/api'
 import type { JobStatusResponse, UploadedAnalysisResponse } from '../types/api'
-import { formatNumber } from '../utils/format'
+import { formatNumber, normalizeRiskPercentage } from '../utils/format'
 import {
   MAX_PCAP_UPLOAD_BYTES,
   MAX_PCAP_UPLOAD_LABEL,
@@ -65,7 +65,7 @@ export function Dashboard() {
           new Date().toISOString(),
         status: 'COMPLETED',
         provenance: 'uploaded',
-        peakRiskPct: effectiveResult.detection?.risk_score,
+        peakRiskPct: normalizeRiskPercentage(effectiveResult.detection?.risk_score) ?? undefined,
         predictedStage: (effectiveResult as any).attack_progression?.current_stage,
       })
       setHistory(getAnalysisHistory())
@@ -696,20 +696,7 @@ export function Dashboard() {
                   background: 'var(--bg-surface)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div
-                    style={{
-                      width: '8px',
-                      height: '8px',
-                      borderRadius: '50%',
-                      background:
-                        item.status === 'COMPLETED'
-                          ? 'var(--success)'
-                          : item.status === 'PROCESSING'
-                          ? 'var(--accent)'
-                          : 'var(--danger)',
-                    }}
-                  />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div>
                     <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)', display: 'block' }}>
                       {item.filename}
@@ -721,29 +708,22 @@ export function Dashboard() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  {item.peakRiskPct !== undefined && (
-                    <span
-                      style={{
-                        fontSize: '12px',
-                        fontFamily: 'var(--mono)',
-                        color: item.peakRiskPct > 50 ? 'var(--danger)' : 'var(--success)',
-                      }}
-                    >
-                      Risk: {Number(item.peakRiskPct).toFixed(1)}%
-                    </span>
-                  )}
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      fontFamily: 'var(--mono)',
-                      padding: '2px 6px',
-                      borderRadius: '3px',
-                      background: 'var(--bg-secondary)',
-                      border: '1px solid var(--border)',
-                    }}
-                  >
-                    {item.status}
-                  </span>
+                  {(() => {
+                    const norm = normalizeRiskPercentage(item.peakRiskPct)
+                    if (norm === null) return null
+                    return (
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontFamily: 'var(--mono)',
+                          color: norm > 60 ? 'var(--danger)' : 'var(--text-primary)',
+                        }}
+                      >
+                        Risk: {norm.toFixed(1)}%
+                      </span>
+                    )
+                  })()}
+                  <AnalysisStatusBadge status={item.status} />
                   <button
                     type="button"
                     className="button button-quiet"

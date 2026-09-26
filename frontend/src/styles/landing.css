@@ -1890,3 +1890,260 @@ html {
     animation: none !important;
   }
 }
+
+/* =============================================================================
+   CLI STEP-BY-STEP WORKFLOW & COMMAND EXPLORER (Sections 4 & 5)
+   ============================================================================= */
+
+.cli-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.cli-step-card {
+  background: rgba(15, 16, 18, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 150ms ease;
+}
+
+[data-theme="light"] .cli-step-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.cli-step-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+[data-theme="light"] .cli-step-card:hover {
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+.cli-step-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.cli-step-num {
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ns-text-tertiary);
+  letter-spacing: 0.06em;
+}
+
+.cli-step-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ns-text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.cli-step-desc {
+  font-size: 12px;
+  color: var(--ns-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 12px 0;
+}
+
+.cli-step-cmd-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+[data-theme="light"] .cli-step-cmd-box {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.cli-step-cmd-empty {
+  justify-content: center;
+  padding: 7px 10px;
+  background: transparent;
+  border-style: dashed;
+}
+
+.cli-step-code {
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  color: var(--ns-text-primary);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.cli-step-copy-btn {
+  background: transparent;
+  border: none;
+  color: var(--ns-text-tertiary);
+  cursor: pointer;
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 3px;
+  transition: color 120ms ease;
+}
+
+.cli-step-copy-btn:hover {
+  color: var(--ns-text-primary);
+}
+
+.cli-step-copy-btn.is-copied {
+  color: var(--ns-success);
+}
+
+/* Command Reference Explorer */
+.command-filter-pill {
+  font-family: var(--mono, monospace);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--ns-text-secondary);
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+[data-theme="light"] .command-filter-pill {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.command-filter-pill:hover {
+  color: var(--ns-text-primary);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.command-filter-pill.active {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: var(--ns-text-primary);
+}
+
+[data-theme="light"] .command-filter-pill.active {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.24);
+}
+
+.command-explorer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.command-explorer-card {
+  background: rgba(15, 16, 18, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  transition: border-color 150ms ease;
+}
+
+[data-theme="light"] .command-explorer-card {
+  background: #FFFFFF;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.command-explorer-card:hover {
+  border-color: rgba(255, 255, 255, 0.20);
+}
+
+[data-theme="light"] .command-explorer-card:hover {
+  border-color: rgba(0, 0, 0, 0.20);
+}
+
+.explorer-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.explorer-card-cat {
+  font-family: var(--mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ns-text-tertiary);
+  text-transform: uppercase;
+}
+
+.explorer-card-label {
+  font-family: var(--mono, monospace);
+  font-size: 10px;
+  color: var(--ns-text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.explorer-card-code {
+  font-family: var(--mono, monospace);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ns-text-primary);
+  margin: 4px 0 2px 0;
+  word-break: break-word;
+}
+
+.explorer-card-desc {
+  font-size: 12px;
+  color: var(--ns-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.explorer-card-flags {
+  font-size: 10.5px;
+  font-family: var(--mono, monospace);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+[data-theme="light"] .explorer-card-flags {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+.flags-label {
+  color: var(--ns-text-muted);
+  font-weight: 600;
+}
+
+.flags-code {
+  color: var(--ns-text-tertiary);
+}
+
+.explorer-card-footer {
+  margin-top: 6px;
+}
+

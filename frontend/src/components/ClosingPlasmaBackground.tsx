@@ -45,7 +45,7 @@ export function ClosingPlasmaBackground({
         grain: 0.18,
         sparkle: 0.1,
         vignette: 0.75,
-        opacity: customOpacity ?? 0.42,
+        opacity: customOpacity ?? 0.26,
         interactive: true,
       }
 

@@ -48,6 +48,8 @@ export function StatusPill({ children, tone = 'success' }: { children: ReactNode
   return <span className={`status status-${tone}`}><span className="status-dot" />{children}</span>
 }
 
+export { AnalysisStatusBadge } from './AnalysisStatusBadge'
+
 export function SectionHeading({ eyebrow, title, description, action }: { eyebrow?: string; title: string; description?: string; action?: ReactNode }) {
   return <div className="section-heading">
     <div>{eyebrow && <span className="eyebrow">{eyebrow}</span>}<h2>{title}</h2>{description && <p>{description}</p>}</div>

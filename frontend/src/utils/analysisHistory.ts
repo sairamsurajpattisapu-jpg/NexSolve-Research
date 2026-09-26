@@ -1,9 +1,11 @@
+import { normalizeRiskPercentage } from './format'
+
 export interface AnalysisHistoryEntry {
   id: string
   filename: string
   filesize?: string
   timestamp: string
-  status: 'COMPLETED' | 'PROCESSING' | 'FAILED'
+  status: 'COMPLETED' | 'PROCESSING' | 'FAILED' | 'QUEUED'
   provenance: 'uploaded' | 'reference'
   peakRiskPct?: number
   predictedStage?: string
@@ -15,7 +17,31 @@ export function getAnalysisHistory(): AnalysisHistoryEntry[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY)
     if (raw) {
-      return JSON.parse(raw) as AnalysisHistoryEntry[]
+      const parsed = JSON.parse(raw) as AnalysisHistoryEntry[]
+      let needsResave = false
+      const migrated = parsed.map((item) => {
+        if (item.peakRiskPct !== undefined) {
+          const normalized = normalizeRiskPercentage(item.peakRiskPct)
+          if (normalized !== item.peakRiskPct) {
+            needsResave = true
+          }
+          return {
+            ...item,
+            peakRiskPct: normalized !== null ? normalized : undefined,
+          }
+        }
+        return item
+      })
+      if (needsResave) {
+        try {
+          const serialized = JSON.stringify(migrated)
+          localStorage.setItem(STORAGE_KEY, serialized)
+          sessionStorage.setItem(STORAGE_KEY, serialized)
+        } catch {
+          // Storage quota safe
+        }
+      }
+      return migrated
     }
   } catch {
     // Storage quota safe
@@ -27,7 +53,12 @@ export function recordAnalysisHistory(entry: AnalysisHistoryEntry): void {
   try {
     const current = getAnalysisHistory()
     const filtered = current.filter((item) => item.id !== entry.id)
-    const updated = [entry, ...filtered].slice(0, 10)
+    const normalizedEntry = { ...entry }
+    if (normalizedEntry.peakRiskPct !== undefined) {
+      const normalized = normalizeRiskPercentage(normalizedEntry.peakRiskPct)
+      normalizedEntry.peakRiskPct = normalized !== null ? normalized : undefined
+    }
+    const updated = [normalizedEntry, ...filtered].slice(0, 10)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
   } catch {

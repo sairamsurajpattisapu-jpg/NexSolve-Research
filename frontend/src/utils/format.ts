@@ -6,6 +6,69 @@ export function formatPercent(value: number) {
   return Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : 'Unavailable'
 }
 
+/**
+ * Normalizes an arbitrary risk or probability metric to a valid percentage.
+ *
+ * Rules:
+ * - Accepts finite numeric values (or clean numeric string representations).
+ * - Canonical 0–100 values remain unchanged: 50.42 -> 50.42, 72 -> 72, 100 -> 100.
+ * - If supporting 0–1 probabilities for other API sources: 0.72 -> 72, 0.5 -> 50, 1 -> 100, 0 -> 0.
+ * - Values outside the valid range [0, 100] are treated as corrupted data and return null (e.g. 5042 -> null, -10 -> null, 120 -> null).
+ * - Rejects NaN, Infinity, -Infinity, null, undefined, non-numeric by returning null.
+ */
+export function normalizeRiskPercentage(value: unknown): number | null {
+  if (value === null || value === undefined) {
+    return null
+  }
+  const numericVal =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'string' && value.trim() !== ''
+      ? Number(value)
+      : NaN
+
+  if (!Number.isFinite(numericVal)) {
+    return null
+  }
+
+  // Values outside the valid range [0, 100] are corrupted / invalid data
+  // Do NOT silently convert an invalid canonical value such as 5042 into 100%
+  if (numericVal < 0 || numericVal > 100) {
+    return null
+  }
+
+  // 0 to 1 represents probability scale (e.g. 0.72 -> 72, 0.5 -> 50, 1 -> 100, 0 -> 0)
+  if (numericVal >= 0 && numericVal <= 1) {
+    return numericVal * 100
+  }
+
+  // Canonical 0–100 values remain unchanged (e.g. 50.42 -> 50.42, 72 -> 72, 100 -> 100)
+  return numericVal
+}
+
+/**
+ * Formats a risk value into a safe, human-readable display string (e.g. "72%", "100%", "—").
+ * Clamps output between 0% and 100%, and displays fallback ("—") for invalid/missing values.
+ */
+export function formatRiskPercentage(
+  value: unknown,
+  fallback: string = '—',
+  options?: { decimals?: number }
+): string {
+  const normalized = normalizeRiskPercentage(value)
+  if (normalized === null) {
+    return fallback
+  }
+
+  if (options?.decimals !== undefined) {
+    return `${normalized.toFixed(options.decimals)}%`
+  }
+
+  return `${Math.round(normalized)}%`
+}
+
+export const normalizeRiskPercentageDisplay = formatRiskPercentage
+
 export function formatTimestamp(value: string | number) {
   const date = typeof value === 'number' ? new Date(value * 1000) : new Date(value)
   return Number.isNaN(date.getTime()) ? 'Unknown time' : date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })

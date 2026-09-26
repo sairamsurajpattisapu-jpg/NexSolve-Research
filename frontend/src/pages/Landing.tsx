@@ -165,6 +165,16 @@ export function Landing() {
     const sections = document.querySelectorAll('.landing-section')
     sections.forEach((s) => observer.observe(s))
 
+    // Handle scroll for /cli-quickstart and #cli-quickstart
+    if (window.location.pathname.includes('cli') || window.location.hash.includes('cli')) {
+      setTimeout(() => {
+        const el = document.getElementById('cli-quickstart')
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' })
+        }
+      }, 100)
+    }
+
     return () => observer.disconnect()
   }, [])
 

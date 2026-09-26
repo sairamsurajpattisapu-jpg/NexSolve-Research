@@ -102,16 +102,25 @@ export function Workflow() {
 
       {/* Editorial CTA - Single Canonical Action */}
       <section className="editorial-footer-cta">
-        <div className="editorial-cta-wrap">
+        <div className="editorial-cta-wrap telemetry-console-card">
           <span className="editorial-eyebrow">TELEMETRY CONSOLE</span>
-          <h2>Execute the pipeline with standard PCAP captures.</h2>
-          <p>
-            Upload any standard PCAP / PCAPNG capture or evaluate pre-computed benchmarks in real time.
+          <h2 className="telemetry-card-title">Execute the pipeline with standard PCAP captures.</h2>
+          <p className="telemetry-card-desc">
+            Upload a PCAP / PCAPNG capture and run the NexSolve pipeline.
           </p>
-          <div className="editorial-btn-group">
-            <Link to="/console/analyze" className="button button-primary" style={{ gap: '6px' }}>
-              <span>START</span> <ArrowRight size={13} />
+          <div className="editorial-btn-group" style={{ margin: '18px 0 20px 0' }}>
+            <Link to="/console/analyze" className="button button-primary telemetry-start-btn" style={{ gap: '8px', padding: '10px 22px', fontSize: '12px' }}>
+              <span>START ANALYSIS</span> <ArrowRight size={14} />
             </Link>
+          </div>
+          <div className="telemetry-meta-row">
+            <span>PCAP / PCAPNG</span>
+            <span className="telemetry-meta-dot">&middot;</span>
+            <span>45-FEATURE CONTRACT</span>
+            <span className="telemetry-meta-dot">&middot;</span>
+            <span>T+1 &rarr; T+5</span>
+            <span className="telemetry-meta-dot">&middot;</span>
+            <span>OFFLINE-FIRST</span>
           </div>
         </div>
       </section>
