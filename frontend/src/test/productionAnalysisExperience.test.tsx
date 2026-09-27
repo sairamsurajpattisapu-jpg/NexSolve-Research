@@ -9,31 +9,28 @@ import { useJobPolling } from '../hooks/useJobPolling'
 import { renderHook } from '@testing-library/react'
 
 describe('Production Analysis Experience & Backend Invisibility Suite', () => {
-  it('1. App shell renders immediately with product status language', () => {
+  it('1. App shell renders immediately with clean navigation without status pill', () => {
     render(
       <MemoryRouter>
         <Layout status="API connected" />
       </MemoryRouter>
     )
 
-    // Verify brand, navigation, and product language status
+    // Verify brand, navigation, and absence of misleading status pills
     expect(screen.getByText('NexSolve')).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: /Primary navigation/i })).toBeInTheDocument()
-    expect(screen.getByText('READY')).toBeInTheDocument()
-    const statusPill = screen.getByTitle(/Ready for analysis/i)
-    expect(statusPill).toBeInTheDocument()
+    expect(screen.queryByTitle(/Ready for analysis/i)).not.toBeInTheDocument()
   })
 
-  it('2. App shell displays calm product message when service is temporarily unavailable', () => {
+  it('2. App shell does not display TEMPORARILY UNAVAILABLE in console navigation', () => {
     render(
       <MemoryRouter>
         <Layout status="TEMPORARILY UNAVAILABLE" />
       </MemoryRouter>
     )
 
-    expect(screen.getByText('TEMPORARILY UNAVAILABLE')).toBeInTheDocument()
-    const statusPill = screen.getByTitle(/Analysis service temporarily unavailable/i)
-    expect(statusPill).toBeInTheDocument()
+    expect(screen.queryByText('TEMPORARILY UNAVAILABLE')).not.toBeInTheDocument()
+    expect(screen.queryByTitle(/Analysis service temporarily unavailable/i)).not.toBeInTheDocument()
 
     // Verify zero developer infrastructure strings
     expect(screen.queryByText(/backend offline/i)).not.toBeInTheDocument()

@@ -38,13 +38,15 @@ describe('Application Header & Navigation Layout', () => {
     expect(header).not.toHaveTextContent('Demo')
   })
 
-  it('displays correct backend status labels based on API health', () => {
+  it('does NOT display TEMPORARILY UNAVAILABLE or status pills in top navigation', () => {
     const { unmount } = renderLayout('/analyze', 'API connected')
-    expect(screen.getByText('READY')).toBeInTheDocument()
+    expect(screen.queryByText('TEMPORARILY UNAVAILABLE')).not.toBeInTheDocument()
     unmount()
 
     renderLayout('/analyze', 'API unavailable')
-    expect(screen.getByText('TEMPORARILY UNAVAILABLE')).toBeInTheDocument()
+    expect(screen.queryByText('TEMPORARILY UNAVAILABLE')).not.toBeInTheDocument()
+    const header = screen.getByRole('banner')
+    expect(header).not.toHaveTextContent('TEMPORARILY UNAVAILABLE')
   })
 
   it('provides a functional hamburger menu with ARIA attributes, keyboard escape, and click outside', async () => {

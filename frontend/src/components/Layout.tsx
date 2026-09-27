@@ -64,17 +64,9 @@ export function Layout({
   }, [location.pathname])
 
   const serviceState = getServiceStateInfo(status)
-
-  let statusTone = serviceState.tone === 'danger' ? 'danger' : serviceState.tone
   let statusLabel = serviceState.label
-  let statusDescription = serviceState.description
-
   if (status === 'Syncing data') {
-    statusTone = 'warning'
     statusLabel = 'PREPARING'
-    statusDescription = 'Preparing analysis telemetry'
-  } else if (statusLabel === 'ANALYZING') {
-    statusTone = 'warning status-pulse'
   }
 
   // Derive contextual navigation indicators for real active user analysis
@@ -171,11 +163,6 @@ export function Layout({
           </nav>
 
           <div className="navbar-right">
-            <div className={`navbar-status status-${statusTone}`} title={statusDescription}>
-              <span className={`status-dot status-${statusTone}`} aria-hidden="true" />
-              <span className="status-text">{statusLabel}</span>
-            </div>
-
             <button
               type="button"
               className="menu-button"
