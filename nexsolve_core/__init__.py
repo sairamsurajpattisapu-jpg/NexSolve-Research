@@ -13,6 +13,8 @@ from .schemas import (
     model_compatibility_report,
     temporal_windows_to_network_states,
 )
+from .data_quality import DataQualityAssessment, QualityCheckResult, assess_data_quality
+from .provenance import CaptureFingerprint, FeatureProvenanceRecord, FeatureProvenanceTracker, ProvenanceCategory, classify_timeline_event, get_field_provenance
 from .state import (
     FeatureAvailability,
     FeatureSpec,
@@ -27,6 +29,15 @@ from .state import (
 )
 
 __all__ = [
+    "CaptureFingerprint",
+    "DataQualityAssessment",
+    "FeatureProvenanceRecord",
+    "FeatureProvenanceTracker",
+    "ProvenanceCategory",
+    "QualityCheckResult",
+    "assess_data_quality",
+    "classify_timeline_event",
+    "get_field_provenance",
     "CaptureQuality",
     "FlowRecord",
     "ModelCompatibilityError",

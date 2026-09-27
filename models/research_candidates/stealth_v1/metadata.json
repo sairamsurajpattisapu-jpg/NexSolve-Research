@@ -1,0 +1,31 @@
+{
+  "candidate_id": "stealth_v1",
+  "created_at_utc": "2026-09-27 07:25:00 UTC",
+  "model_family": "Temporal GRU (Topology-Adaptive 75 Features)",
+  "feature_dimension": 75,
+  "adaptive_features": [
+    "port_novelty_zscore",
+    "fan_out_ratio",
+    "connection_dev_zscore",
+    "dst_growth_rate",
+    "syn_fan_in"
+  ],
+  "status": "RESEARCH_CANDIDATE_REJECTED",
+  "promotion_decision": {
+    "verdict": "REJECTED \u2014 NO VALIDATED IMPROVEMENT",
+    "reason": "Topology-adaptive features increased sensitivity to PortScan but caused severe false-alarm explosion (FPR 94.4%, precision collapsed to 6.7%, F1 collapsed from 0.6552 to 0.1253). multi_event_v1 remains the superior research candidate."
+  },
+  "metrics": {
+    "f1": 0.1253,
+    "precision": 0.0669,
+    "recall": 1.0,
+    "pr_auc": 0.5937,
+    "roc_auc": 0.7302,
+    "fpr": 0.9437,
+    "brier": 0.8358,
+    "ece": 0.8645,
+    "mean_lead_time_sec": 205.7,
+    "detected_events": "6/7",
+    "false_alarms": 335
+  }
+}

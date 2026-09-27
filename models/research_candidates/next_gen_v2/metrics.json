@@ -1,0 +1,845 @@
+{
+  "onset_benchmarks": {
+    "persistence": {
+      "T+1": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.1,
+        "ece": 0.1,
+        "fvp": 0.0,
+        "lead_time_seconds": 0
+      },
+      "T+2": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.2,
+        "ece": 0.2,
+        "fvp": 0.0,
+        "lead_time_seconds": 0
+      },
+      "T+3": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.3,
+        "ece": 0.3,
+        "fvp": 0.0,
+        "lead_time_seconds": 0
+      },
+      "T+4": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.4,
+        "ece": 0.4,
+        "fvp": 0.0,
+        "lead_time_seconds": 0
+      },
+      "T+5": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.5,
+        "ece": 0.5,
+        "fvp": 0.0,
+        "lead_time_seconds": 0
+      }
+    },
+    "always_benign": {
+      "T+1": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.1,
+        "ece": 0.1,
+        "fvp": 0.0,
+        "lead_time_seconds": 0
+      },
+      "T+2": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.2,
+        "ece": 0.2,
+        "fvp": 0.0,
+        "lead_time_seconds": 0
+      },
+      "T+3": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.3,
+        "ece": 0.3,
+        "fvp": 0.0,
+        "lead_time_seconds": 0
+      },
+      "T+4": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.4,
+        "ece": 0.4,
+        "fvp": 0.0,
+        "lead_time_seconds": 0
+      },
+      "T+5": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.5,
+        "ece": 0.5,
+        "fvp": 0.0,
+        "lead_time_seconds": 0
+      }
+    },
+    "attack_rate_prior": {
+      "T+1": {
+        "f1": 0.0,
+        "prior": 0.002994,
+        "brier": 0.0994,
+        "ece": 0.097,
+        "fvp": 0.0
+      },
+      "T+2": {
+        "f1": 0.0,
+        "prior": 0.003003,
+        "brier": 0.1988,
+        "ece": 0.197,
+        "fvp": 0.0
+      },
+      "T+3": {
+        "f1": 0.0,
+        "prior": 0.003012,
+        "brier": 0.2982,
+        "ece": 0.297,
+        "fvp": 0.0
+      },
+      "T+4": {
+        "f1": 0.0,
+        "prior": 0.003021,
+        "brier": 0.3976,
+        "ece": 0.397,
+        "fvp": 0.0
+      },
+      "T+5": {
+        "f1": 0.0,
+        "prior": 0.00303,
+        "brier": 0.497,
+        "ece": 0.497,
+        "fvp": 0.0
+      }
+    },
+    "logistic_regression": {
+      "T+1": {
+        "f1": 0.2,
+        "precision": 0.1111,
+        "recall": 1.0,
+        "brier": 0.8,
+        "ece": 0.8064,
+        "fvp": 0.2
+      },
+      "T+2": {
+        "f1": 0.3636,
+        "precision": 0.2222,
+        "recall": 1.0,
+        "brier": 0.6999,
+        "ece": 0.7054,
+        "fvp": 0.3636
+      },
+      "T+3": {
+        "f1": 0.3333,
+        "precision": 0.2222,
+        "recall": 0.6667,
+        "brier": 0.7892,
+        "ece": 0.7943,
+        "fvp": 0.3333
+      },
+      "T+4": {
+        "f1": 0.4615,
+        "precision": 0.3333,
+        "recall": 0.75,
+        "brier": 0.6873,
+        "ece": 0.6931,
+        "fvp": 0.4615
+      },
+      "T+5": {
+        "f1": 0.5714,
+        "precision": 0.4444,
+        "recall": 0.8,
+        "brier": 0.5855,
+        "ece": 0.5922,
+        "fvp": 0.5714
+      }
+    },
+    "hist_gbdt": {
+      "T+1": {
+        "f1": 0.1818,
+        "precision": 0.1,
+        "recall": 1.0,
+        "brier": 0.8646,
+        "ece": 0.8806,
+        "fvp": 0.1818
+      },
+      "T+2": {
+        "f1": 0.3333,
+        "precision": 0.2,
+        "recall": 1.0,
+        "brier": 0.7647,
+        "ece": 0.7792,
+        "fvp": 0.3333
+      },
+      "T+3": {
+        "f1": 0.4615,
+        "precision": 0.3,
+        "recall": 1.0,
+        "brier": 0.6831,
+        "ece": 0.679,
+        "fvp": 0.4615
+      },
+      "T+4": {
+        "f1": 0.5714,
+        "precision": 0.4,
+        "recall": 1.0,
+        "brier": 0.5849,
+        "ece": 0.5789,
+        "fvp": 0.5714
+      },
+      "T+5": {
+        "f1": 0.6667,
+        "precision": 0.5,
+        "recall": 1.0,
+        "brier": 0.4875,
+        "ece": 0.4788,
+        "fvp": 0.6667
+      }
+    },
+    "temporal_gru": {
+      "T+1": {
+        "f1": 0.1818,
+        "precision": 0.1,
+        "recall": 1.0,
+        "brier": 0.8843,
+        "ece": 0.8912,
+        "fvp": 0.1818
+      },
+      "T+2": {
+        "f1": 0.3333,
+        "precision": 0.2,
+        "recall": 1.0,
+        "brier": 0.7854,
+        "ece": 0.7912,
+        "fvp": 0.3333
+      },
+      "T+3": {
+        "f1": 0.4615,
+        "precision": 0.3,
+        "recall": 1.0,
+        "brier": 0.6909,
+        "ece": 0.6911,
+        "fvp": 0.4615
+      },
+      "T+4": {
+        "f1": 0.5714,
+        "precision": 0.4,
+        "recall": 1.0,
+        "brier": 0.5926,
+        "ece": 0.5911,
+        "fvp": 0.5714
+      },
+      "T+5": {
+        "f1": 0.6667,
+        "precision": 0.5,
+        "recall": 1.0,
+        "brier": 0.4937,
+        "ece": 0.491,
+        "fvp": 0.6667
+      }
+    },
+    "temporal_lstm": {
+      "T+1": {
+        "f1": 0.1818,
+        "precision": 0.1,
+        "recall": 1.0,
+        "brier": 0.8348,
+        "ece": 0.8629,
+        "fvp": 0.1818
+      },
+      "T+2": {
+        "f1": 0.3333,
+        "precision": 0.2,
+        "recall": 1.0,
+        "brier": 0.7387,
+        "ece": 0.7633,
+        "fvp": 0.3333
+      },
+      "T+3": {
+        "f1": 0.4615,
+        "precision": 0.3,
+        "recall": 1.0,
+        "brier": 0.6795,
+        "ece": 0.7039,
+        "fvp": 0.4615
+      },
+      "T+4": {
+        "f1": 0.5714,
+        "precision": 0.4,
+        "recall": 1.0,
+        "brier": 0.5833,
+        "ece": 0.6041,
+        "fvp": 0.5714
+      },
+      "T+5": {
+        "f1": 0.6667,
+        "precision": 0.5,
+        "recall": 1.0,
+        "brier": 0.4868,
+        "ece": 0.5042,
+        "fvp": 0.6667
+      }
+    },
+    "change_point_hazard": {
+      "T+1": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.1095,
+        "ece": 0.136,
+        "fvp": 0.0
+      },
+      "T+2": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.1849,
+        "ece": 0.2115,
+        "fvp": 0.0
+      },
+      "T+3": {
+        "f1": 0.5,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "brier": 0.1378,
+        "ece": 0.1554,
+        "fvp": 0.5
+      },
+      "T+4": {
+        "f1": 0.4,
+        "precision": 1.0,
+        "recall": 0.25,
+        "brier": 0.2085,
+        "ece": 0.2256,
+        "fvp": 0.4
+      },
+      "T+5": {
+        "f1": 0.3333,
+        "precision": 1.0,
+        "recall": 0.2,
+        "brier": 0.2791,
+        "ece": 0.3005,
+        "fvp": 0.3333
+      }
+    },
+    "hybrid_precursor": {
+      "T+1": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.0964,
+        "ece": 0.08,
+        "fvp": 0.0,
+        "lead_time_seconds": 0
+      },
+      "T+2": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "brier": 0.1924,
+        "ece": 0.18,
+        "fvp": 0.0,
+        "lead_time_seconds": 0
+      },
+      "T+3": {
+        "f1": 0.5,
+        "precision": 1.0,
+        "recall": 0.3333,
+        "brier": 0.1946,
+        "ece": 0.197,
+        "fvp": 0.5,
+        "lead_time_seconds": 180
+      },
+      "T+4": {
+        "f1": 0.4,
+        "precision": 1.0,
+        "recall": 0.25,
+        "brier": 0.2906,
+        "ece": 0.297,
+        "fvp": 0.4,
+        "lead_time_seconds": 180
+      },
+      "T+5": {
+        "f1": 0.3333,
+        "precision": 1.0,
+        "recall": 0.2,
+        "brier": 0.3866,
+        "ece": 0.397,
+        "fvp": 0.3333,
+        "lead_time_seconds": 180
+      }
+    }
+  },
+  "state_benchmarks": {
+    "persistence": {
+      "T+1": {
+        "f1": 0.9231,
+        "precision": 1.0,
+        "recall": 0.8571,
+        "fpr": 0.0,
+        "brier": 0.0769,
+        "ece": 0.0769,
+        "fvp": 0.0
+      },
+      "T+2": {
+        "f1": 0.8571,
+        "precision": 1.0,
+        "recall": 0.75,
+        "fpr": 0.0,
+        "brier": 0.1538,
+        "ece": 0.1538,
+        "fvp": 0.0
+      },
+      "T+3": {
+        "f1": 0.8,
+        "precision": 1.0,
+        "recall": 0.6667,
+        "fpr": 0.0,
+        "brier": 0.2308,
+        "ece": 0.2308,
+        "fvp": 0.0
+      },
+      "T+4": {
+        "f1": 0.75,
+        "precision": 1.0,
+        "recall": 0.6,
+        "fpr": 0.0,
+        "brier": 0.3077,
+        "ece": 0.3077,
+        "fvp": 0.0
+      },
+      "T+5": {
+        "f1": 0.7059,
+        "precision": 1.0,
+        "recall": 0.5455,
+        "fpr": 0.0,
+        "brier": 0.3846,
+        "ece": 0.3846,
+        "fvp": 0.0
+      }
+    },
+    "always_benign": {
+      "T+1": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "fpr": 0.0,
+        "brier": 0.5384615384615384,
+        "ece": 0.5384615384615384,
+        "fvp": -0.9231
+      },
+      "T+2": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "fpr": 0.0,
+        "brier": 0.6153846153846154,
+        "ece": 0.6153846153846154,
+        "fvp": -0.8571
+      },
+      "T+3": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "fpr": 0.0,
+        "brier": 0.6923076923076923,
+        "ece": 0.6923076923076923,
+        "fvp": -0.8
+      },
+      "T+4": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "fpr": 0.0,
+        "brier": 0.7692307692307693,
+        "ece": 0.7692307692307693,
+        "fvp": -0.75
+      },
+      "T+5": {
+        "f1": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "fpr": 0.0,
+        "brier": 0.8461538461538461,
+        "ece": 0.8461538461538461,
+        "fvp": -0.7059
+      }
+    },
+    "attack_rate_prior": {
+      "T+1": {
+        "f1": 0.0,
+        "prior": 0.2611,
+        "brier": 0.3255,
+        "ece": 0.2774,
+        "fvp": -0.9231
+      },
+      "T+2": {
+        "f1": 0.0,
+        "prior": 0.2594,
+        "brier": 0.3634,
+        "ece": 0.356,
+        "fvp": -0.8571
+      },
+      "T+3": {
+        "f1": 0.0,
+        "prior": 0.2578,
+        "brier": 0.4018,
+        "ece": 0.4345,
+        "fvp": -0.8
+      },
+      "T+4": {
+        "f1": 0.0,
+        "prior": 0.2561,
+        "brier": 0.4408,
+        "ece": 0.5131,
+        "fvp": -0.75
+      },
+      "T+5": {
+        "f1": 0.0,
+        "prior": 0.2545,
+        "brier": 0.4803,
+        "ece": 0.5917,
+        "fvp": -0.7059
+      }
+    },
+    "logistic_regression": {
+      "T+1": {
+        "f1": 0.7368,
+        "fpr": 0.8333,
+        "brier": 0.383,
+        "ece": 0.3886,
+        "fvp": -0.1862
+      },
+      "T+2": {
+        "f1": 0.7619,
+        "fpr": 1.0,
+        "brier": 0.3638,
+        "ece": 0.3719,
+        "fvp": -0.0952
+      },
+      "T+3": {
+        "f1": 0.8182,
+        "fpr": 1.0,
+        "brier": 0.3092,
+        "ece": 0.3188,
+        "fvp": 0.0182
+      },
+      "T+4": {
+        "f1": 0.8696,
+        "fpr": 1.0,
+        "brier": 0.236,
+        "ece": 0.2506,
+        "fvp": 0.1196
+      },
+      "T+5": {
+        "f1": 0.9167,
+        "fpr": 1.0,
+        "brier": 0.1539,
+        "ece": 0.1509,
+        "fvp": 0.2108
+      }
+    },
+    "hist_gbdt": {
+      "T+1": {
+        "f1": 0.7,
+        "fpr": 1.0,
+        "brier": 0.345,
+        "ece": 0.3798,
+        "fvp": -0.2231
+      },
+      "T+2": {
+        "f1": 0.7619,
+        "fpr": 1.0,
+        "brier": 0.2951,
+        "ece": 0.3058,
+        "fvp": -0.0952
+      },
+      "T+3": {
+        "f1": 0.8182,
+        "fpr": 1.0,
+        "brier": 0.2106,
+        "ece": 0.2392,
+        "fvp": 0.0182
+      },
+      "T+4": {
+        "f1": 0.8696,
+        "fpr": 1.0,
+        "brier": 0.169,
+        "ece": 0.1712,
+        "fvp": 0.1196
+      },
+      "T+5": {
+        "f1": 0.9167,
+        "fpr": 1.0,
+        "brier": 0.1169,
+        "ece": 0.0574,
+        "fvp": 0.2108
+      }
+    },
+    "temporal_gru": {
+      "T+1": {
+        "f1": 0.5556,
+        "fpr": 1.0,
+        "brier": 0.5543,
+        "ece": 0.6519,
+        "fvp": -0.3675
+      },
+      "T+2": {
+        "f1": 0.6316,
+        "fpr": 1.0,
+        "brier": 0.4753,
+        "ece": 0.5727,
+        "fvp": -0.2256
+      },
+      "T+3": {
+        "f1": 0.7,
+        "fpr": 1.0,
+        "brier": 0.4005,
+        "ece": 0.4947,
+        "fvp": -0.1
+      },
+      "T+4": {
+        "f1": 0.8182,
+        "fpr": 1.0,
+        "brier": 0.3253,
+        "ece": 0.4168,
+        "fvp": 0.0682
+      },
+      "T+5": {
+        "f1": 0.8696,
+        "fpr": 1.0,
+        "brier": 0.2472,
+        "ece": 0.3383,
+        "fvp": 0.1637
+      }
+    },
+    "temporal_lstm": {
+      "T+1": {
+        "f1": 0.2667,
+        "fpr": 1.0,
+        "brier": 0.5998,
+        "ece": 0.7171,
+        "fvp": -0.6564
+      },
+      "T+2": {
+        "f1": 0.375,
+        "fpr": 1.0,
+        "brier": 0.5248,
+        "ece": 0.6394,
+        "fvp": -0.4821
+      },
+      "T+3": {
+        "f1": 0.4706,
+        "fpr": 1.0,
+        "brier": 0.4787,
+        "ece": 0.5935,
+        "fvp": -0.3294
+      },
+      "T+4": {
+        "f1": 0.5556,
+        "fpr": 1.0,
+        "brier": 0.4039,
+        "ece": 0.5158,
+        "fvp": -0.1944
+      },
+      "T+5": {
+        "f1": 0.6316,
+        "fpr": 1.0,
+        "brier": 0.3293,
+        "ece": 0.4388,
+        "fvp": -0.0743
+      }
+    },
+    "change_point_hazard": {
+      "T+1": {
+        "f1": 0.9231,
+        "fpr": 0.0,
+        "brier": 0.0844,
+        "ece": 0.1172,
+        "fvp": 0.0
+      },
+      "T+2": {
+        "f1": 0.8,
+        "fpr": 0.2,
+        "brier": 0.1423,
+        "ece": 0.1784,
+        "fvp": -0.0571
+      },
+      "T+3": {
+        "f1": 0.875,
+        "fpr": 0.0,
+        "brier": 0.1058,
+        "ece": 0.1385,
+        "fvp": 0.075
+      },
+      "T+4": {
+        "f1": 0.8235,
+        "fpr": 0.0,
+        "brier": 0.1599,
+        "ece": 0.1957,
+        "fvp": 0.0735
+      },
+      "T+5": {
+        "f1": 0.7778,
+        "fpr": 0.0,
+        "brier": 0.2137,
+        "ece": 0.2564,
+        "fvp": 0.0719
+      }
+    },
+    "hybrid_precursor": {
+      "T+1": {
+        "f1": 0.9231,
+        "precision": 1.0,
+        "recall": 0.8571,
+        "fpr": 0.0,
+        "brier": 0.0742,
+        "ece": 0.0754,
+        "fvp": 0.0
+      },
+      "T+2": {
+        "f1": 0.8571,
+        "precision": 1.0,
+        "recall": 0.75,
+        "fpr": 0.0,
+        "brier": 0.1481,
+        "ece": 0.1523,
+        "fvp": 0.0
+      },
+      "T+3": {
+        "f1": 0.875,
+        "precision": 1.0,
+        "recall": 0.7778,
+        "fpr": 0.0,
+        "brier": 0.1498,
+        "ece": 0.1654,
+        "fvp": 0.075
+      },
+      "T+4": {
+        "f1": 0.8235,
+        "precision": 1.0,
+        "recall": 0.7,
+        "fpr": 0.0,
+        "brier": 0.2236,
+        "ece": 0.2423,
+        "fvp": 0.0735
+      },
+      "T+5": {
+        "f1": 0.7778,
+        "precision": 1.0,
+        "recall": 0.6364,
+        "fpr": 0.0,
+        "brier": 0.2975,
+        "ece": 0.3192,
+        "fvp": 0.0719
+      }
+    }
+  },
+  "calibration": {
+    "validation_sample_count": 291,
+    "test_sample_count": 13,
+    "raw_ece_t3": 0.1654,
+    "raw_brier_t3": 0.1498,
+    "platt_ece_t3": 0.4879,
+    "platt_brier_t3": 0.3686,
+    "isotonic_ece_t3": 0.2923,
+    "isotonic_brier_t3": 0.239,
+    "best_calibrated_ece": 0.1654,
+    "reliability_bins": 10
+  },
+  "low_data": {
+    "100%": {
+      "train_samples_count": 453,
+      "train_benign_count": 335,
+      "train_attack_count": 118,
+      "supervised_lr_f1": 0.8696,
+      "clean_hybrid_f1_t3": 0.875,
+      "data_sufficiency": "SUFFICIENT",
+      "earlier_f1_1_0_claim_reproduced": false,
+      "forensic_finding": "The earlier claim of F1=1.0 at 5% was an artifact of test leakage: hardcoded rules bypassed training entirely. When trained strictly on <=25% of Train, there are fewer than 2 benign samples, destroying any learned baseline."
+    },
+    "50%": {
+      "train_samples_count": 226,
+      "train_benign_count": 108,
+      "train_attack_count": 118,
+      "supervised_lr_f1": 0.8696,
+      "clean_hybrid_f1_t3": 0.875,
+      "data_sufficiency": "SUFFICIENT",
+      "earlier_f1_1_0_claim_reproduced": false,
+      "forensic_finding": "The earlier claim of F1=1.0 at 5% was an artifact of test leakage: hardcoded rules bypassed training entirely. When trained strictly on <=25% of Train, there are fewer than 2 benign samples, destroying any learned baseline."
+    },
+    "25%": {
+      "train_samples_count": 113,
+      "train_benign_count": 1,
+      "train_attack_count": 112,
+      "supervised_lr_f1": 0.0,
+      "clean_hybrid_f1_t3": 0.875,
+      "data_sufficiency": "INSUFFICIENT_BENIGN_BASELINE",
+      "earlier_f1_1_0_claim_reproduced": false,
+      "forensic_finding": "The earlier claim of F1=1.0 at 5% was an artifact of test leakage: hardcoded rules bypassed training entirely. When trained strictly on <=25% of Train, there are fewer than 2 benign samples, destroying any learned baseline."
+    },
+    "10%": {
+      "train_samples_count": 45,
+      "train_benign_count": 1,
+      "train_attack_count": 44,
+      "supervised_lr_f1": 0.0,
+      "clean_hybrid_f1_t3": 0.875,
+      "data_sufficiency": "INSUFFICIENT_BENIGN_BASELINE",
+      "earlier_f1_1_0_claim_reproduced": false,
+      "forensic_finding": "The earlier claim of F1=1.0 at 5% was an artifact of test leakage: hardcoded rules bypassed training entirely. When trained strictly on <=25% of Train, there are fewer than 2 benign samples, destroying any learned baseline."
+    },
+    "5%": {
+      "train_samples_count": 22,
+      "train_benign_count": 1,
+      "train_attack_count": 21,
+      "supervised_lr_f1": 0.0,
+      "clean_hybrid_f1_t3": 0.875,
+      "data_sufficiency": "INSUFFICIENT_BENIGN_BASELINE",
+      "earlier_f1_1_0_claim_reproduced": false,
+      "forensic_finding": "The earlier claim of F1=1.0 at 5% was an artifact of test leakage: hardcoded rules bypassed training entirely. When trained strictly on <=25% of Train, there are fewer than 2 benign samples, destroying any learned baseline."
+    }
+  },
+  "statistical_assessment": {
+    "test_sequence_count": 13,
+    "test_benign_windows_count": 10,
+    "independent_test_onset_events_count": 1,
+    "limited_event_generalization": true,
+    "t3_onset_recall_point_estimate": 0.3333,
+    "t3_onset_recall_95ci": [
+      0.0615,
+      0.7923
+    ],
+    "scientific_caveat": "Because only 1 independent attack onset transition exists in the held-out test data (and only 1 in train/val), the sample size of independent events is N=1. Confidence intervals are wide ([0.06, 0.79]), and F1=1.0 is mathematically refuted under zero-leakage evaluation."
+  },
+  "gate_results": {
+    "gate_1_frozen_weights_intact": true,
+    "gate_2_no_test_leakage": true,
+    "gate_3_beats_persistence_on_target": true,
+    "gate_4_independent_reproduction_ready": true,
+    "gate_5_multi_event_generalization": false,
+    "gate_6_acceptable_operational_fpr": true,
+    "gate_7_advance_lead_time_demonstrated": true,
+    "gate_8_valid_calibration": false,
+    "gate_9_low_data_not_leakage_artifact": true,
+    "gate_10_production_safety_preserved": true
+  }
+}

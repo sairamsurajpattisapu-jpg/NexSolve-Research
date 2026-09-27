@@ -67,6 +67,7 @@ def analyze_uploaded_capture(
     filename: str,
     content: bytes | None = None,
     file_path: Path | None = None,
+    engine_type: str = "production",
 ) -> dict[str, Any]:
     suffix = Path(filename).suffix.lower()
     if suffix not in ALLOWED_EXTENSIONS:
@@ -212,150 +213,41 @@ def analyze_uploaded_capture(
     compatibility["active_schema"] = "MODEL_SCHEMA_45"
 
     # Trust Layer & Frozen World Model integration
-    from ml.final_production_inference import FinalProductionInferenceEngine
-    from nexsolve_core.state import candidates_to_network_states
+    import dataclasses
+    all_flows_dict = []
+    for cw in canonical_windows:
+        for f in cw.flows:
+            if isinstance(f, dict):
+                all_flows_dict.append(f)
+            elif dataclasses.is_dataclass(f):
+                all_flows_dict.append(dataclasses.asdict(f))
+            elif hasattr(f, "__dict__"):
+                all_flows_dict.append(f.__dict__)
+
+    from ml.forecasting.central_gate import execute_central_forecast_gate
+
+    central_gate_result = execute_central_forecast_gate(
+        canonical_windows=canonical_windows,
+        candidates=candidates,
+        history_status=history.status,
+        capture_quality=quality,
+        detection_findings=detection.get("findings", []),
+        behavioral_report=None,
+        model_dir=FINAL_MODEL_DIR,
+        analysis_id=analysis_id,
+        filename=filename,
+        capture_fingerprint_sha256=capture_fingerprint.sha256,
+        all_flows_dict=all_flows_dict,
+        engine_type=engine_type,
+    )
+
+    final_inference_result = central_gate_result.final_inference_result
+    is_forecast_available = central_gate_result.is_forecast_available
+    forecast_points = central_gate_result.forecast_points
+    early_warning_dict = central_gate_result.early_warning
+    data_quality_assessment = central_gate_result.data_quality
+
     from ml.forecasting import assemble_forecast_intelligence
-    forecast_points: list[dict[str, Any]] = []
-
-    production_engine = FinalProductionInferenceEngine(FINAL_MODEL_DIR)
-
-    if compatibility.get("model_ready", False):
-        states = candidates_to_network_states(candidates, MODEL_SCHEMA_45, history.status)
-
-        import dataclasses
-        all_flows_dict = []
-        for cw in canonical_windows:
-            for f in cw.flows:
-                if isinstance(f, dict):
-                    all_flows_dict.append(f)
-                elif dataclasses.is_dataclass(f):
-                    all_flows_dict.append(dataclasses.asdict(f))
-                elif hasattr(f, "__dict__"):
-                    all_flows_dict.append(f.__dict__)
-
-        final_inference_result = production_engine.run_inference(
-            sequence=states,
-            analysis_id=analysis_id,
-            flows=all_flows_dict,
-            capture_quality=quality,
-        )
-    else:
-        if len(windows) < 8:
-            abstention_reason = "INSUFFICIENT_HISTORY"
-            abstention_explanation = "Forecast withheld: Forecasting requires at least 8 continuous 60-second windows. Static traffic analysis completed successfully."
-        elif history.status == "GAPPED_HISTORY":
-            abstention_reason = "NON_CONTIGUOUS_TIMESTAMPS"
-            abstention_explanation = "Forecast withheld: Input sequence contains non-contiguous temporal windows."
-        else:
-            abstention_reason = "MODEL_FEATURE_CONTRACT_MISMATCH"
-            reasons = compatibility.get("reasons", [])
-            abstention_explanation = f"Forecast withheld: {reasons[0]}" if reasons else "Forecast withheld: feature contract mismatch."
-
-        final_inference_result = {
-            "forecast_status": "FORECAST_ABSTAINED",
-            "is_abstained": True,
-            "abstention": {
-                "abstained": True,
-                "operational_tier": "ABSTAINED",
-                "reason": abstention_reason,
-                "explanation": abstention_explanation,
-            },
-            "abstention_reason": abstention_reason,
-            "abstention_explanation": abstention_explanation,
-            "forecast": {},
-            "network_risk_indicators": [],
-            "host_risk": [],
-            "communication_risk": [],
-            "uncertainty": {},
-            "evidence": [],
-        }
-
-    is_forecast_available = not final_inference_result.get("is_abstained", False)
-
-    from ml.forecasting.forecasting_engine import FeatureDriver, _explain_feature_change, EarlyWarningAssessment, EarlyWarningLevel
-    from world_model import FEATURE_NAMES_45
-
-    if is_forecast_available:
-        forecast_map = final_inference_result.get("forecast", {})
-        curr_state_dict = {name: float(val) for name, val in zip(FEATURE_NAMES_45, states[-1].encode(FEATURE_NAMES_45))} if states else {}
-        all_drivers = []
-        for h in (1, 2, 3, 4, 5):
-            h_key = f"T+{h}"
-            h_data = forecast_map.get(h_key, {})
-            p = float(h_data.get("attack_probability", 0.0))
-            p_stage = h_data.get("predicted_stage", "BENIGN_OBSERVATION")
-            r_level = h_data.get("risk_level", "LOW")
-            conf = float(h_data.get("confidence_score", 0.85))
-            unc = round(1.0 - conf, 4)
-
-            pred_feat_dict = h_data.get("predicted_features", {})
-            feat_deltas = []
-            for name in FEATURE_NAMES_45:
-                c_val = curr_state_dict.get(name, 0.0)
-                p_val = pred_feat_dict.get(name, 0.0)
-                direction, rel, importance, interp = _explain_feature_change(name, c_val, p_val)
-                feat_deltas.append(FeatureDriver(
-                    feature=name,
-                    current_value=round(c_val, 4),
-                    predicted_value=round(p_val, 4),
-                    direction=direction,
-                    relative_change=round(rel, 4),
-                    importance=importance,
-                    interpretation=interp,
-                ))
-            top_drivers = sorted(feat_deltas, key=lambda d: abs(d.relative_change), reverse=True)[:5]
-            if top_drivers:
-                all_drivers.extend(top_drivers)
-
-            forecast_points.append({
-                "horizon": h,
-                "lookaheadSeconds": h * 60,
-                "attackProbability": p,
-                "cumulativeRisk": round(min(1.0, p * (1.0 + (h - 1) * 0.15)), 4),
-                "riskLevel": r_level,
-                "predictedStage": p_stage,
-                "confidence": conf,
-                "uncertainty": unc,
-                "explanation": [d.interpretation for d in top_drivers[:3]] if top_drivers else [f"State dynamics project {p_stage} at T+{h} (risk: {p*100:.1f}%)."],
-                "topDrivers": [d.to_dict() for d in top_drivers],
-                "evidenceAttribution": None,
-            })
-
-        max_p = max((float(h_data.get("attack_probability", 0.0)) for h_data in forecast_map.values()), default=0.0)
-        ew_score = int(round(max_p * 100))
-        ew_level = (
-            EarlyWarningLevel.CRITICAL if ew_score >= 70
-            else EarlyWarningLevel.HIGH if ew_score >= 40
-            else EarlyWarningLevel.ELEVATED if ew_score >= 15
-            else EarlyWarningLevel.NORMAL
-        )
-        early_warning_dict = EarlyWarningAssessment(
-            early_warning_score=ew_score,
-            early_warning_level=ew_level,
-            drivers=[d.interpretation for d in all_drivers[:3]] if all_drivers else ["Observed baseline network telemetry."],
-            score_components={"max_attack_probability": round(max_p, 4)},
-        ).to_dict()
-    else:
-        early_warning_dict = EarlyWarningAssessment(
-            early_warning_score=0,
-            early_warning_level=EarlyWarningLevel.NORMAL,
-            drivers=["Forecasting withheld."],
-            score_components={},
-        ).to_dict()
-        reason = final_inference_result.get("abstention_explanation") or "insufficient continuous temporal history."
-        reason_str = reason if "Forecast abstained" in reason else f"Forecast abstained: {reason}"
-        for h in (1, 2, 3, 4, 5):
-            forecast_points.append({
-                "horizon": h,
-                "lookaheadSeconds": h * 60,
-                "attackProbability": None,
-                "predictedStage": None,
-                "confidence": None,
-                "uncertainty": None,
-                "explanation": [reason_str],
-                "topDrivers": [],
-                "evidenceAttribution": None,
-            })
 
     state_dicts = [
         {
@@ -440,6 +332,9 @@ def analyze_uploaded_capture(
         observed_findings=detection.get("findings", []),
         behavioral_report=behavioral_report,
         history_window_count=len(windows),
+        forecast_engine_abstained=not is_forecast_available,
+        forecast_engine_abstention_reason=final_inference_result.get("abstention_explanation") or final_inference_result.get("abstention_reason"),
+        forecast_points=forecast_points,
     )
     progression_dict = progression_forecast.to_dict()
     from ml.forecasting.attack_progression import build_continuous_progression_timeline
@@ -847,8 +742,10 @@ def analyze_uploaded_capture(
     result = {
         "analysis_id": analysis_id,
         "status": "completed",
-        "model_version": "final_world_model v3.0.0",
-        "model_name": "final_world_model",
+        "model_version": "final_world_model v3.0.0" if engine_type == "production" else f"{central_gate_result.engine_metadata.get('name', 'Research Engine')} {central_gate_result.engine_metadata.get('version', '')} (RESEARCH CANDIDATE)",
+        "model_name": "final_world_model" if engine_type == "production" else central_gate_result.engine_metadata.get("name", "Research Forecaster"),
+        "forecast_engine": central_gate_result.engine_metadata,
+        "forecastEngine": central_gate_result.engine_metadata,
         "source": {"name": filename, "kind": "uploaded_pcap", "filename": filename, "size_bytes": capture_size_bytes, "sha256": capture_fingerprint.sha256},
         "upload": {"filename": filename, "size_bytes": capture_size_bytes, "format": suffix[1:], "sha256": capture_fingerprint.sha256},
         "fingerprint": capture_fingerprint.to_dict(),
@@ -940,6 +837,8 @@ def analyze_uploaded_capture(
         "host_risk": final_inference_result.get("host_risk", []),
         "communication_risk": final_inference_result.get("communication_risk", []),
         "evidence": final_inference_result.get("evidence", []),
+        "forecast_status": final_inference_result.get("forecast_status", "FORECAST_READY" if is_forecast_available else "FORECAST_ABSTAINED"),
+        "is_forecast_available": is_forecast_available,
         "analysis_state": (
             "ANALYSIS_COMPLETE_FORECAST_READY"
             if is_forecast_available
@@ -965,6 +864,8 @@ def analyze_uploaded_capture(
                 )
             ),
         },
+        "data_quality": data_quality_assessment.to_dict(),
+        "data_quality_status": data_quality_assessment.overall_status.value,
     }
     return persist_analysis(result)
 

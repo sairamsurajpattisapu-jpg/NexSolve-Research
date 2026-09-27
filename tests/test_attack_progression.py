@@ -189,3 +189,105 @@ def test_phase2_dataset_adapter_stage_mapping():
     assert map_dataset_label_to_stage("TON-IoT", "scanning") == AttackStage.RECONNAISSANCE
     assert map_dataset_label_to_stage("TON-IoT", "xss") == AttackStage.INITIAL_ACCESS
     assert map_dataset_label_to_stage("TON-IoT", "ddos") == AttackStage.IMPACT
+
+
+def test_abstention_semantic_consistency_when_engine_abstains():
+    """Phase 2 Regression: If forecast engine abstains, NO future states may present as valid forecasts.
+    
+    T0 observed state may remain BENIGN if justified by observed evidence.
+    T+1..T+5 must be explicitly marked FORECAST ABSTAINED with confidence 0.0.
+    Zero synthetic confidence (such as 0.90).
+    """
+    findings = []
+    # Production forecast engine withheld predictions (e.g. MODEL_FEATURE_CONTRACT_MISMATCH)
+    null_forecast_points = [
+        {"horizon": h, "lookaheadSeconds": h * 60, "attackProbability": None, "predictedStage": None, "confidence": None}
+        for h in (1, 2, 3, 4, 5)
+    ]
+    res = forecast_attack_progression(
+        findings,
+        history_window_count=10,
+        forecast_engine_abstained=True,
+        forecast_engine_abstention_reason="MODEL_FEATURE_CONTRACT_MISMATCH: Required features are unavailable",
+        forecast_points=null_forecast_points,
+    )
+
+    assert res.verdict == "ABSTAINED"
+    assert "MODEL_FEATURE_CONTRACT_MISMATCH" in res.summary
+    assert len(res.transitions) == 0
+
+    # T0 observed state remains valid
+    t0 = res.timeline[0]
+    assert t0["horizon_label"] == "T0"
+    assert t0["stage"] == AttackStage.BENIGN.value
+    assert t0["classification"] == StageClassification.OBSERVED.value
+
+    # T+1..T+5 must be explicitly marked FORECAST ABSTAINED with 0.0 confidence
+    for ev in res.timeline[1:]:
+        assert ev["horizon_label"].startswith("T+")
+        assert ev["stage"] == AttackStage.UNKNOWN.value
+        assert ev["classification"] == StageClassification.UNKNOWN.value
+        assert ev["confidence"] == 0.0
+        assert ev["stage_confidence"] == 0.0
+        assert ev["technique_confidence"] == 0.0
+        assert "FORECAST ABSTAINED" in ev["description"]
+        assert ev["primary_techniques"] == []
+
+    for pt in res.forecast_points:
+        assert pt.abstained is True
+        assert pt.prediction_type == PredictionType.ABSTAINED
+        assert pt.transition_probability == 0.0
+        assert pt.forecast_confidence == 0.0
+        assert pt.stage_confidence == 0.0
+        assert "FORECAST ABSTAINED" in str(pt.abstention_reason)
+
+
+def test_benign_persistence_does_not_fabricate_synthetic_confidence():
+    """Phase 2 Regression: State persistence from benign observation must NEVER generate synthetic 0.90 confidence."""
+    findings = []
+    res = forecast_attack_progression(findings, history_window_count=10)
+
+    assert res.observed_state == AttackProgressionState.BENIGN_OBSERVATION
+    for ev in res.timeline:
+        if ev["horizon_label"] != "T0":
+            # Future horizons must not claim 0.90 forecast confidence
+            assert ev["confidence"] == 0.0
+            assert ev["classification"] != StageClassification.FORECAST.value
+
+
+def test_reporting_layer_sanitizes_progression_when_report_abstained():
+    """Phase 2 Regression: build_attack_progression must sanitize timeline if report abstains."""
+    from reporting.report_sections import build_attack_progression
+
+    raw_progression = {
+        "canonical_stage": "BENIGN",
+        "stage_confidence": 0.92,
+        "timeline": [
+            {"horizon_label": "T0", "stage": "BENIGN", "classification": "OBSERVED", "confidence": 0.92, "lead_time_seconds": 0},
+            {"horizon_label": "T+1", "stage": "BENIGN", "classification": "FORECAST", "confidence": 0.90, "lead_time_seconds": 60},
+            {"horizon_label": "T+2", "stage": "BENIGN", "classification": "FORECAST", "confidence": 0.90, "lead_time_seconds": 120},
+        ],
+        "transitions": [{"from_stage": "BENIGN", "to_stage": "BENIGN", "confidence": 0.90}],
+    }
+    abstention = {
+        "abstained": True,
+        "reason": "MODEL_FEATURE_CONTRACT_MISMATCH",
+        "explanation": "Forecast withheld: Required features are unavailable.",
+    }
+
+    section = build_attack_progression(raw_progression, abstention)
+    assert section is not None
+    assert section.abstained is True
+
+    # T0 preserved
+    assert section.timeline[0]["stage"] == "BENIGN"
+    assert section.timeline[0]["confidence"] == 0.92
+
+    # T+1, T+2 sanitized
+    for ev in section.timeline[1:]:
+        assert ev["stage"] == "UNKNOWN"
+        assert ev["classification"] == "UNKNOWN"
+        assert ev["confidence"] == 0.0
+        assert "FORECAST ABSTAINED" in ev["description"]
+
+    assert len(section.transitions) == 0

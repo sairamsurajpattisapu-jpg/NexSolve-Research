@@ -24,54 +24,22 @@ interface AttackProgressionTimelineProps {
 export function AttackProgressionTimeline({
   stages,
   currentStageName = 'NORMAL',
-  predictedStageName,
+  predictedStageName: _predictedStageName,
   verdict,
 }: AttackProgressionTimelineProps) {
-  // Synthesize stages if not explicitly provided
-  const displayStages: ProgressionStageNode[] = stages ?? [
+  // Use provided stages or default strictly to observed T0 state (never fabricate future attack stages)
+  const displayStages: ProgressionStageNode[] = stages && stages.length > 0 ? stages : [
     {
-      stage: 'NORMAL',
-      name: 'Baseline Equilibrium',
+      stage: currentStageName,
+      name: currentStageName === 'BENIGN' || currentStageName === 'NORMAL' ? 'Benign Network Baseline' : currentStageName,
       horizon: 'T0',
       lookaheadSeconds: 0,
       risk: 'LOW',
-      probability: 0.05,
-      evidence: 'Flow rate and inter-arrival times conform to trained stationary distribution.',
+      probability: 0.0,
+      evidence: 'Observed network telemetry at current analysis boundary.',
       mitreId: 'N/A',
-      isCurrent: currentStageName === 'NORMAL',
-    },
-    {
-      stage: 'RECONNAISSANCE',
-      name: 'Network Service Discovery',
-      horizon: 'T+1',
-      lookaheadSeconds: 60,
-      risk: 'MEDIUM',
-      probability: 0.42,
-      evidence: 'Target destination port dispersion expands across distinct subnet endpoints.',
-      mitreId: 'T1046',
-      isForecasted: predictedStageName === 'RECONNAISSANCE' || !predictedStageName,
-    },
-    {
-      stage: 'EXPLOITATION',
-      name: 'Exploit Public-Facing Application',
-      horizon: 'T+3',
-      lookaheadSeconds: 180,
-      risk: 'HIGH',
-      probability: 0.68,
-      evidence: 'Payload volume and asymmetric outbound transfer surges by 180s horizon.',
-      mitreId: 'T1190',
-      isForecasted: predictedStageName === 'EXPLOITATION',
-    },
-    {
-      stage: 'COMMAND_AND_CONTROL',
-      name: 'Application Layer Protocol',
-      horizon: 'T+5',
-      lookaheadSeconds: 300,
-      risk: 'CRITICAL',
-      probability: 0.84,
-      evidence: 'Persistent periodic beaconing pattern detected in bidirectional flow telemetry.',
-      mitreId: 'T1071',
-      isForecasted: predictedStageName === 'COMMAND_AND_CONTROL',
+      isCurrent: true,
+      isForecasted: false,
     },
   ]
 
@@ -108,13 +76,30 @@ export function AttackProgressionTimeline({
         )}
       </div>
 
-      {/* Interactive Progression Pipeline Stepper */}
+      {verdict === 'ABSTAINED' ? (
+        <div
+          style={{
+            padding: '24px',
+            textAlign: 'center',
+            borderRadius: '6px',
+            background: 'rgba(242, 187, 113, 0.05)',
+            border: '1px dashed var(--warning)',
+          }}
+        >
+          <h4 style={{ color: 'var(--text-primary)', margin: 0 }}>Attack Progression Forecaster Abstained</h4>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: '6px auto 0 auto', maxWidth: '520px' }}>
+            Future attack stages (T+1 to T+5) withheld due to safety guardrails or feature contract boundaries. Current T₀ state remains observed.
+          </p>
+        </div>
+      ) : (
+      /* Interactive Progression Pipeline Stepper */
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {displayStages.map((node) => {
+        {displayStages.map((node, idx) => {
           const isElevated = node.risk === 'HIGH' || node.risk === 'CRITICAL'
+          const isUnknown = node.stage === 'UNKNOWN' || node.name === 'UNKNOWN'
           return (
             <div
-              key={node.stage}
+              key={`${node.horizon}-${node.stage}-${idx}`}
               style={{
                 display: 'grid',
                 gridTemplateColumns: '80px 1fr 120px',
@@ -183,7 +168,7 @@ export function AttackProgressionTimeline({
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <strong style={{ fontSize: '14px', color: 'var(--text-primary)' }}>
-                    {node.name}
+                    {isUnknown ? 'Unknown / Abstained' : node.name}
                   </strong>
                   {node.mitreId && node.mitreId !== 'N/A' && (
                     <span
@@ -208,15 +193,16 @@ export function AttackProgressionTimeline({
 
               {/* Right Risk & Probability */}
               <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                <RiskBadge level={node.risk} size="sm" />
+                <RiskBadge level={isUnknown ? 'WITHHELD' : node.risk} size="sm" />
                 <span style={{ fontFamily: 'var(--mono)', fontSize: '13px', fontWeight: 700, color: isElevated ? 'var(--danger)' : 'var(--text-primary)' }}>
-                  {(node.probability * 100).toFixed(0)}% Likelihood
+                  {isUnknown || typeof node.probability !== 'number' ? 'Withheld' : `${(node.probability * 100).toFixed(0)}% Likelihood`}
                 </span>
               </div>
             </div>
           )
         })}
       </div>
+      )}
     </Panel>
   )
 }

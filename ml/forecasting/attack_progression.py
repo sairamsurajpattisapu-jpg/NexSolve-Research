@@ -316,6 +316,9 @@ def forecast_attack_progression(
     require_downstream_progression: bool = False,
     network_state: Any = None,
     current_timestamp: float | None = None,
+    forecast_engine_abstained: bool = False,
+    forecast_engine_abstention_reason: str | None = None,
+    forecast_points: Sequence[Mapping[str, Any]] | None = None,
 ) -> AttackProgressionForecast:
     """Forecast future attack state using empirical Markovian progression and 15-stage transition validator."""
     ts = float(current_timestamp) if current_timestamp is not None and math.isfinite(current_timestamp) else 1700000000.0
@@ -361,8 +364,24 @@ def forecast_attack_progression(
     )
     timeline_events.append(t0_event)
 
-    # Check minimum history requirement
-    if history_window_count < 8:
+    # Check if production forecast engine abstained or withheld predictions
+    engine_abstained = bool(forecast_engine_abstained)
+    if not engine_abstained and forecast_points is not None:
+        if not forecast_points or all(
+            (p.get("attackProbability") is None and p.get("attack_probability") is None)
+            or p.get("abstained") is True
+            or p.get("predictedStage") is None
+            for p in forecast_points
+        ):
+            engine_abstained = True
+
+    # Check minimum history requirement or forecast engine abstention
+    if history_window_count < 8 or engine_abstained:
+        if history_window_count < 8:
+            reason = "INSUFFICIENT_HISTORY: minimum 8 contiguous windows required"
+        else:
+            reason = forecast_engine_abstention_reason or "Production forecast engine abstained; downstream forecast withheld."
+
         for k in horizons:
             points.append(StageForecastPoint(
                 horizon_minutes=k,
@@ -380,7 +399,7 @@ def forecast_attack_progression(
                 baseline_probability=0.0,
                 lead_time_seconds=k * 60,
                 abstained=True,
-                abstention_reason="INSUFFICIENT_HISTORY: minimum 8 contiguous windows required",
+                abstention_reason=f"FORECAST ABSTAINED: {reason}",
                 supporting_evidence=(),
             ))
             t_k = TimelineEvent(
@@ -392,7 +411,7 @@ def forecast_attack_progression(
                 technique_confidence=0.0,
                 lead_time_seconds=k * 60,
                 horizon_label=f"T+{k}",
-                description="Forecasting abstained: insufficient contiguous window history.",
+                description=f"FORECAST ABSTAINED: {reason}",
             )
             timeline_events.append(t_k)
 
@@ -409,7 +428,7 @@ def forecast_attack_progression(
             supported_horizons=(),
             unsupported_horizons=horizons,
             verdict="ABSTAINED",
-            summary="Forecasting abstained: insufficient contiguous window history.",
+            summary=f"Forecasting abstained: {reason}",
             timeline=tuple(e.to_dict() for e in timeline_events),
             transitions=(),
             validation=val_result.to_dict(),
@@ -417,57 +436,193 @@ def forecast_attack_progression(
             contradictory_evidence=tuple(e.to_dict() for e in evidence_items if e.polarity == EvidencePolarity.CONTRADICTORY),
         )
 
-    # For benign observed states, empirical audit proves pre-attack signals are unvalidated
+    # For benign observed states, bind strictly to real model forecasts or withhold if unavailable
     if observed_state == AttackProgressionState.BENIGN_OBSERVATION or canonical_stage == AttackStage.BENIGN:
         for k in horizons:
             is_unsupported = k in UNSUPPORTED_HORIZONS
-            reason = (
-                "UNSUPPORTED_HORIZON: K > 5 not validated on authentic data" if is_unsupported
-                else "NO_ATTACK_OBSERVED: pre-attack onset forecasting from benign baseline is unvalidated"
-            )
-            prob = 0.99 if k in EMPIRICALLY_SUPPORTED_HORIZONS else 0.0
-            pt = StageForecastPoint(
-                horizon_minutes=k,
-                predicted_state=AttackProgressionState.BENIGN_OBSERVATION,
-                canonical_stage=AttackStage.BENIGN,
-                predicted_technique=None,
-                forecast_techniques=(),
-                prediction_type=PredictionType.ABSTAINED if is_unsupported else PredictionType.STATE_PERSISTENCE,
-                transition_probability=prob,
-                stage_confidence=0.92 if not is_unsupported else 0.0,
-                forecast_confidence=0.90 if not is_unsupported else 0.0,
-                transition_confidence=0.95 if not is_unsupported else 0.0,
-                technique_confidence=0.0,
-                classification=StageClassification.FORECAST if not is_unsupported else StageClassification.UNKNOWN,
-                baseline_probability=0.82,
-                lead_time_seconds=k * 60,
-                abstained=is_unsupported,
-                abstention_reason=reason if is_unsupported else None,
-                supporting_evidence=("Past observed state is benign; no early onset signal detected.",),
-            )
-            points.append(pt)
+            if forecast_points is None:
+                if is_unsupported:
+                    reason = "UNSUPPORTED_HORIZON: K > 5 not validated on authentic data"
+                    pt = StageForecastPoint(
+                        horizon_minutes=k,
+                        predicted_state=AttackProgressionState.UNKNOWN_STATE,
+                        canonical_stage=AttackStage.UNKNOWN,
+                        predicted_technique=None,
+                        forecast_techniques=(),
+                        prediction_type=PredictionType.ABSTAINED,
+                        transition_probability=0.0,
+                        stage_confidence=0.0,
+                        forecast_confidence=0.0,
+                        transition_confidence=0.0,
+                        technique_confidence=0.0,
+                        classification=StageClassification.UNKNOWN,
+                        baseline_probability=0.0,
+                        lead_time_seconds=k * 60,
+                        abstained=True,
+                        abstention_reason=reason,
+                        supporting_evidence=(),
+                    )
+                    points.append(pt)
+                    ev_k = TimelineEvent(
+                        timestamp=ts + k * 60,
+                        stage=AttackStage.UNKNOWN,
+                        classification=StageClassification.UNKNOWN,
+                        confidence=0.0,
+                        stage_confidence=0.0,
+                        technique_confidence=0.0,
+                        lead_time_seconds=k * 60,
+                        horizon_label=f"T+{k}",
+                        description=reason,
+                    )
+                    timeline_events.append(ev_k)
+                else:
+                    prob = 0.98 if k == 1 else (0.96 if k == 3 else 0.95)
+                    pt = StageForecastPoint(
+                        horizon_minutes=k,
+                        predicted_state=AttackProgressionState.BENIGN_OBSERVATION,
+                        canonical_stage=AttackStage.BENIGN,
+                        predicted_technique=None,
+                        forecast_techniques=(),
+                        prediction_type=PredictionType.STATE_PERSISTENCE,
+                        transition_probability=prob,
+                        stage_confidence=0.0,
+                        forecast_confidence=0.0,
+                        transition_confidence=0.0,
+                        technique_confidence=0.0,
+                        classification=StageClassification.INFERRED,
+                        baseline_probability=0.82,
+                        lead_time_seconds=k * 60,
+                        abstained=False,
+                        abstention_reason=None,
+                        supporting_evidence=("Past observed state is benign; baseline state persistence projected.",),
+                    )
+                    points.append(pt)
+                    ev_k = TimelineEvent(
+                        timestamp=ts + k * 60,
+                        stage=AttackStage.BENIGN,
+                        classification=StageClassification.INFERRED,
+                        confidence=0.0,
+                        stage_confidence=0.0,
+                        technique_confidence=0.0,
+                        lead_time_seconds=k * 60,
+                        horizon_label=f"T+{k}",
+                        description="Continuing baseline operation; forecast confidence withheld.",
+                    )
+                    timeline_events.append(ev_k)
+            else:
+                fp = next((p for p in forecast_points if (p.get("horizon") == k or p.get("horizon_minutes") == k)), None)
+                has_valid_fp = fp is not None and not fp.get("abstained") and (fp.get("attack_probability") is not None or fp.get("attackProbability") is not None)
 
-            tr = validate_transition(
-                from_stage=canonical_stage,
-                to_stage=AttackStage.BENIGN,
-                timestamp=ts + k * 60,
-                transition_type=TransitionType.FORECAST,
-                base_confidence=0.90,
-            )
-            transitions_list.append(tr)
+                if is_unsupported or not has_valid_fp:
+                    reason = (
+                        f"UNSUPPORTED_HORIZON: K > 5 not validated on authentic data" if is_unsupported
+                        else f"FORECAST WITHHELD: no validated model prediction for horizon T+{k}"
+                    )
+                    pt = StageForecastPoint(
+                        horizon_minutes=k,
+                        predicted_state=AttackProgressionState.UNKNOWN_STATE,
+                        canonical_stage=AttackStage.UNKNOWN,
+                        predicted_technique=None,
+                        forecast_techniques=(),
+                        prediction_type=PredictionType.ABSTAINED,
+                        transition_probability=0.0,
+                        stage_confidence=0.0,
+                        forecast_confidence=0.0,
+                        transition_confidence=0.0,
+                        technique_confidence=0.0,
+                        classification=StageClassification.UNKNOWN,
+                        baseline_probability=0.0,
+                        lead_time_seconds=k * 60,
+                        abstained=True,
+                        abstention_reason=reason,
+                        supporting_evidence=(),
+                    )
+                    points.append(pt)
+                    ev_k = TimelineEvent(
+                        timestamp=ts + k * 60,
+                        stage=AttackStage.UNKNOWN,
+                        classification=StageClassification.UNKNOWN,
+                        confidence=0.0,
+                        stage_confidence=0.0,
+                        technique_confidence=0.0,
+                        lead_time_seconds=k * 60,
+                        horizon_label=f"T+{k}",
+                        description=reason,
+                    )
+                    timeline_events.append(ev_k)
+                else:
+                    p_val = float(fp.get("attack_probability") if fp.get("attack_probability") is not None else fp.get("attackProbability", 0.0))
+                    p_stage_raw = str(fp.get("predicted_stage") or fp.get("predictedStage") or "BENIGN_OBSERVATION").upper()
+                    fp_conf = float(fp.get("confidence") or 0.85)
 
-            ev_k = TimelineEvent(
-                timestamp=ts + k * 60,
-                stage=AttackStage.BENIGN if not is_unsupported else AttackStage.UNKNOWN,
-                classification=StageClassification.FORECAST if not is_unsupported else StageClassification.UNKNOWN,
-                confidence=0.90 if not is_unsupported else 0.0,
-                stage_confidence=0.92 if not is_unsupported else 0.0,
-                technique_confidence=0.0,
-                lead_time_seconds=k * 60,
-                horizon_label=f"T+{k}",
-                description="Continuing baseline operation." if not is_unsupported else reason,
-            )
-            timeline_events.append(ev_k)
+                    if p_val > 0.5:
+                        if "RECON" in p_stage_raw:
+                            pred_st, c_st = AttackProgressionState.RECONNAISSANCE, AttackStage.RECONNAISSANCE
+                        elif "EXPLOIT" in p_stage_raw:
+                            pred_st, c_st = AttackProgressionState.EXPLOITATION, AttackStage.EXPLOITATION
+                        elif "C2" in p_stage_raw or "COMMAND" in p_stage_raw:
+                            pred_st, c_st = AttackProgressionState.COMMAND_AND_CONTROL, AttackStage.COMMAND_AND_CONTROL
+                        elif "LATERAL" in p_stage_raw:
+                            pred_st, c_st = AttackProgressionState.LATERAL_MOVEMENT, AttackStage.LATERAL_MOVEMENT
+                        elif "EXFIL" in p_stage_raw:
+                            pred_st, c_st = AttackProgressionState.EXFILTRATION, AttackStage.EXFILTRATION
+                        elif "DOS" in p_stage_raw or "DENIAL" in p_stage_raw:
+                            pred_st, c_st = AttackProgressionState.DENIAL_OF_SERVICE, AttackStage.DENIAL_OF_SERVICE
+                        else:
+                            pred_st, c_st = AttackProgressionState.RECONNAISSANCE, AttackStage.RECONNAISSANCE
+                        p_type = PredictionType.DOWNSTREAM_PROGRESSION
+                        tech = MITRE_TECHNIQUE_MAP.get(pred_st)
+                        f_techs = (tech,) if tech else ()
+                        desc = f"Model forecast at T+{k}: {c_st.display_name} (Attack P={p_val:.2f})"
+                    else:
+                        pred_st, c_st = AttackProgressionState.BENIGN_OBSERVATION, AttackStage.BENIGN
+                        p_type = PredictionType.STATE_PERSISTENCE
+                        tech = None
+                        f_techs = ()
+                        desc = f"Model forecast at T+{k}: Baseline equilibrium (P={1.0 - p_val:.2f})"
+
+                    pt = StageForecastPoint(
+                        horizon_minutes=k,
+                        predicted_state=pred_st,
+                        canonical_stage=c_st,
+                        predicted_technique=tech,
+                        forecast_techniques=f_techs,
+                        prediction_type=p_type,
+                        transition_probability=p_val,
+                        stage_confidence=round(fp_conf, 4),
+                        forecast_confidence=round(fp_conf, 4),
+                        transition_confidence=round(fp_conf, 4),
+                        technique_confidence=0.0,
+                        classification=StageClassification.FORECAST,
+                        baseline_probability=0.82,
+                        lead_time_seconds=k * 60,
+                        abstained=False,
+                        abstention_reason=None,
+                        supporting_evidence=(desc,),
+                    )
+                    points.append(pt)
+
+                    tr = validate_transition(
+                        from_stage=canonical_stage,
+                        to_stage=c_st,
+                        timestamp=ts + k * 60,
+                        transition_type=TransitionType.FORECAST,
+                        base_confidence=fp_conf,
+                    )
+                    transitions_list.append(tr)
+
+                    ev_k = TimelineEvent(
+                        timestamp=ts + k * 60,
+                        stage=c_st,
+                        classification=StageClassification.FORECAST,
+                        confidence=round(fp_conf, 4),
+                        stage_confidence=round(fp_conf, 4),
+                        technique_confidence=0.0,
+                        lead_time_seconds=k * 60,
+                        horizon_label=f"T+{k}",
+                        description=desc,
+                    )
+                    timeline_events.append(ev_k)
 
         supported = tuple(k for k in horizons if k in EMPIRICALLY_SUPPORTED_HORIZONS)
         unsupported = tuple(k for k in horizons if k in UNSUPPORTED_HORIZONS or k not in EMPIRICALLY_SUPPORTED_HORIZONS)

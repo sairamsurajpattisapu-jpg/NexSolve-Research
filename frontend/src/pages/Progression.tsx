@@ -124,22 +124,23 @@ export function Progression() {
   const rawObserved = (progression.observedState || '').toUpperCase().replace(/[\s-]+/g, '_')
   const currentStage: KillChainStage = (STAGE_ORDER.find((s) => rawObserved.includes(s)) || 'RECONNAISSANCE')
 
+  const isForecastAvailable = forecast.isAvailable && points.length > 0
   const activePoint = points.find((p) => p.horizon === selectedHorizon) ?? points[points.length - 1] ?? {
     horizon: selectedHorizon,
-    stepAttackProbability: 0.65,
-    cumulativeRisk: 0.88,
-    predictedStage: 'PROBE_SCAN',
-    confidence: 0.84,
+    stepAttackProbability: null,
+    cumulativeRisk: null,
+    predictedStage: null,
+    confidence: null,
   }
 
   const rawPredicted = (activePoint.predictedStage || '').toUpperCase().replace(/[\s-]+/g, '_')
   const predictedStage: KillChainStage = (STAGE_ORDER.find((s) => rawPredicted.includes(s)) || 'PROBE_SCAN')
 
   const currentStageIdx = STAGE_ORDER.indexOf(currentStage)
-  const predictedStageIdx = STAGE_ORDER.indexOf(predictedStage)
+  const predictedStageIdx = isForecastAvailable ? STAGE_ORDER.indexOf(predictedStage) : -1
 
-  const stepAttackProb = activePoint.stepAttackProbability ?? 0
-  const cumulativeRiskProb = activePoint.cumulativeRisk ?? 0
+  const stepAttackProb = activePoint.stepAttackProbability
+  const cumulativeRiskProb = activePoint.cumulativeRisk
 
   return (
     <div className="page-stack page-enter" style={{ width: '100%', padding: '24px 0' }}>
@@ -229,18 +230,20 @@ export function Progression() {
               <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
                 03 &middot; PREDICTED PROGRESSION
               </span>
-              <StatusPill tone={stepAttackProb > 0.6 ? 'danger' : 'warning'}>
-                T+{selectedHorizon} PROJECTION
+              <StatusPill tone={!isForecastAvailable ? 'neutral' : (stepAttackProb ?? 0) > 0.6 ? 'danger' : 'warning'}>
+                {!isForecastAvailable ? 'WITHHELD' : `T+${selectedHorizon} PROJECTION`}
               </StatusPill>
             </div>
             <strong style={{ fontSize: '14px', color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>
-              {STAGE_LABELS[predictedStage]?.title || predictedStage}
+              {!isForecastAvailable ? 'Forecast Withheld' : (STAGE_LABELS[predictedStage]?.title || predictedStage)}
             </strong>
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: '0 0 10px 0' }}>
-              {STAGE_LABELS[predictedStage]?.desc}
+              {!isForecastAvailable
+                ? 'Stage progression forecasting withheld due to safety boundaries (insufficient historical context or non-contiguous telemetry).'
+                : (STAGE_LABELS[predictedStage]?.desc)}
             </p>
             <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
-              Step Prob: {Math.round(stepAttackProb * 100)}% &middot; Compound: {Math.round(cumulativeRiskProb * 100)}%
+              Step Prob: {typeof stepAttackProb === 'number' ? `${Math.round(stepAttackProb * 100)}%` : 'Withheld'} &middot; Compound: {typeof cumulativeRiskProb === 'number' ? `${Math.round(cumulativeRiskProb * 100)}%` : 'Withheld'}
             </div>
           </div>
         </div>

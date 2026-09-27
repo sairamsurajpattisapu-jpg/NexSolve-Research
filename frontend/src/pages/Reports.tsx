@@ -539,39 +539,40 @@ export function Reports() {
             <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
               SEQUENTIAL KILL-CHAIN PROGRESSION
             </span>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-              {((progression?.stages && progression.stages.length > 0) ? progression.stages : [
-                { step: 1, horizonMinutes: 1, leadTimeSeconds: 60, predictedState: 'RECONNAISSANCE', predictionType: 'STATE_PERSISTENCE', transitionProbability: 0.88 },
-                { step: 2, horizonMinutes: 2, leadTimeSeconds: 120, predictedState: 'PORT_SCAN', predictionType: 'STATE_PERSISTENCE', transitionProbability: 0.79 },
-                { step: 3, horizonMinutes: 3, leadTimeSeconds: 180, predictedState: 'EXPLOITATION', predictionType: 'DOWNSTREAM_PROGRESSION', transitionProbability: 0.68 },
-                { step: 4, horizonMinutes: 5, leadTimeSeconds: 300, predictedState: 'LATERAL_MOVEMENT', predictionType: 'DOWNSTREAM_PROGRESSION', transitionProbability: 0.54 },
-              ]).map((st) => (
-                <div
-                  key={st.step}
-                  style={{
-                    border: '1px solid var(--border)',
-                    borderRadius: '4px',
-                    padding: '8px 10px',
-                    fontSize: '11px',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                    <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
-                      STAGE {st.step} (+{st.leadTimeSeconds}s)
-                    </span>
-                    <span style={{ fontSize: '8.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
-                      {formatDisplayLabel(st.predictionType)}
+            {(progression?.stages && progression.stages.length > 0) ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                {progression.stages.map((st) => (
+                  <div
+                    key={st.step}
+                    style={{
+                      border: '1px solid var(--border)',
+                      borderRadius: '4px',
+                      padding: '8px 10px',
+                      fontSize: '11px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                      <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+                        STAGE {st.step} (+{st.leadTimeSeconds}s)
+                      </span>
+                      <span style={{ fontSize: '8.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+                        {formatDisplayLabel(st.predictionType)}
+                      </span>
+                    </div>
+                    <strong style={{ display: 'block', fontSize: '11.5px', color: 'var(--text-primary)' }}>
+                      {formatDisplayLabel(st.predictedState)}
+                    </strong>
+                    <span style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px', display: 'block' }}>
+                      Transition Signal: {st.transitionProbability !== null ? Math.round(st.transitionProbability * 100) + '%' : 'Withheld'}
                     </span>
                   </div>
-                  <strong style={{ display: 'block', fontSize: '11.5px', color: 'var(--text-primary)' }}>
-                    {formatDisplayLabel(st.predictedState)}
-                  </strong>
-                  <span style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px', display: 'block' }}>
-                    Transition Signal: {st.transitionProbability ? Math.round(st.transitionProbability * 100) + '%' : 'N/A'}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ padding: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                Progression forecast withheld or unavailable.
+              </div>
+            )}
           </div>
         </Panel>
 

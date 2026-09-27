@@ -1,0 +1,11 @@
+{
+  "feature_dimension": 75,
+  "base_features_70": "from multi_event_v1",
+  "adaptive_features_5": [
+    "port_novelty_zscore",
+    "fan_out_ratio",
+    "connection_dev_zscore",
+    "dst_growth_rate",
+    "syn_fan_in"
+  ]
+}

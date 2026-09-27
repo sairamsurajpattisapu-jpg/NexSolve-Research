@@ -115,17 +115,28 @@ from ml.forecasting.attack_progression_engine import (
     infer_current_attack_stage,
     validate_progression_timeline,
 )
-from ml.forecasting.attack_progression import (
-    AttackProgressionForecast,
-    AttackProgressionState,
-    PredictionType,
-    StageForecastPoint,
-    build_continuous_progression_timeline,
-    determine_observed_state,
-    forecast_attack_progression,
+from ml.forecasting.central_gate import (
+    CentralForecastResult,
+    execute_central_forecast_gate,
+)
+from ml.forecasting.engine_interface import (
+    BaseForecastEngine,
+    ForecastEngineMetadata,
+)
+from ml.forecasting.frozen_engine import (
+    FrozenWorldModelForecastEngine,
+)
+from ml.forecasting.next_gen_engine import (
+    NextGenResearchForecastEngine,
 )
 
 __all__ = [
+    "CentralForecastResult",
+    "execute_central_forecast_gate",
+    "BaseForecastEngine",
+    "ForecastEngineMetadata",
+    "FrozenWorldModelForecastEngine",
+    "NextGenResearchForecastEngine",
     "AttackHorizonResult",
     "AttackHorizonState",
     "ConfidenceSummary",

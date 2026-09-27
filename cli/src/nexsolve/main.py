@@ -99,6 +99,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Output raw completed analysis JSON result to stdout",
     )
     analyze_parser.add_argument(
+        "--engine",
+        choices=["production", "research", "multi_event"],
+        default="production",
+        help="Forecasting engine to use ('production': Bitwise-frozen World Model v3.0, 'research': Next-Gen Precursor Forecaster [UNVERIFIED], 'multi_event': Multi-Event Temporal Forecaster [RESEARCH])",
+    )
+    analyze_parser.add_argument(
         "-o", "--report-out",
         dest="report_out",
         help="Download and save the printable HTML or JSON forensic report to the specified file path",

@@ -24,6 +24,7 @@ from reporting.report_sections import (
     build_temporal_behavior,
     build_unknown_behavior,
 )
+from reporting.semantic_validator import validate_report_semantics
 
 
 def assemble_report(
@@ -50,7 +51,8 @@ def assemble_report(
     progression = analysis_result.get("attack_progression") or analysis_result.get("attackProgression")
     sensor_agreement = analysis_result.get("sensor_agreement") or analysis_result.get("sensorAgreement")
 
-    return NexSolveReport(
+    forecast_engine = analysis_result.get("forecast_engine")
+    report = NexSolveReport(
         report_id=f"rep-{jid}",
         title="NexSolve Network Threat & Predictive Intelligence Report",
         system_tagline="Evidence-backed predictive network intelligence",
@@ -59,7 +61,7 @@ def assemble_report(
         capture_quality=build_capture_quality(quality),
         network_activity=build_network_activity(traffic, validation),
         temporal_behavior=build_temporal_behavior(validation, traffic),
-        forecast=build_forecast_section(forecasts, model_version, abstention),
+        forecast=build_forecast_section(forecasts, model_version, abstention, forecast_engine=forecast_engine),
         attack_horizon=build_attack_horizon(horizon),
         evidence_chain=build_evidence_chain(evidence_chain, sensor_agreement=sensor_agreement),
         confidence=build_confidence_section(confidence),
@@ -70,6 +72,8 @@ def assemble_report(
         processing_metadata=build_processing_metadata(jid, processing_seconds, analysis_result.get("status", "COMPLETED")),
         attack_progression=build_attack_progression(progression, abstention),
     )
+    validate_report_semantics(report)
+    return report
 
 
 def generate_json_report(report: NexSolveReport) -> str:
@@ -257,19 +261,21 @@ def generate_html_report(report: NexSolveReport) -> str:
         tl_rows = ""
         for ev in prog_sec.timeline:
             c_tag = ev.get("classification", "INFERRED")
-            badge_cls = "tag-supp" if c_tag == "OBSERVED" else ("tag-obs" if c_tag == "INFERRED" else "sev-tag")
+            badge_cls = "tag-supp" if c_tag == "OBSERVED" else ("tag-obs" if c_tag == "INFERRED" else ("tag-contra" if c_tag == "UNKNOWN" else "sev-tag"))
             tech_list = ev.get("primary_techniques", [])
             tech_str = ", ".join(tech_list) if tech_list else "None"
             h_lbl = ev.get("horizon_label") or ("T0 (Observed)" if c_tag != "FORECAST" else f"+{ev.get('lead_time_seconds', 0):.0f}s")
             c_val = ev.get("confidence", 0.0)
             s_val = ev.get("stage_confidence", 0.0)
+            stage_str = "FORECAST ABSTAINED" if (ev.get("stage") == "UNKNOWN" and c_tag == "UNKNOWN") else str(ev.get("stage", "UNKNOWN"))
+            conf_display = "Withheld" if (c_tag == "UNKNOWN" or c_val == 0.0) else f"{c_val:.2f} (Stage: {s_val:.2f})"
             tl_rows += f"""
             <tr>
               <td><strong>{html.escape(str(h_lbl))}</strong></td>
-              <td><strong>{html.escape(str(ev.get('stage', 'UNKNOWN')))}</strong></td>
+              <td><strong>{html.escape(stage_str)}</strong></td>
               <td><span class="tag-pill {badge_cls}">{html.escape(str(c_tag))}</span></td>
               <td class="mono">{html.escape(tech_str)}</td>
-              <td class="mono">{c_val:.2f} (Stage: {s_val:.2f})</td>
+              <td class="mono">{html.escape(conf_display)}</td>
               <td>{ev.get('supporting_evidence_count', 0)} supporting</td>
             </tr>
             """
@@ -1090,11 +1096,16 @@ def generate_markdown_report(report: NexSolveReport) -> str:
             "| :--- | :--- | :--- | :--- | :--- | :--- |",
         ])
         for ev in prog_sec.timeline:
-            h_lbl = ev.get("horizon_label") or ("T0" if ev.get("classification") != "FORECAST" else f"+{ev.get('lead_time_seconds', 0):.0f}s")
+            c_tag = ev.get("classification", "INFERRED")
+            h_lbl = ev.get("horizon_label") or ("T0" if c_tag != "FORECAST" else f"+{ev.get('lead_time_seconds', 0):.0f}s")
             tech_s = ", ".join(ev.get("primary_techniques", [])) or "None"
+            c_val = ev.get("confidence", 0.0)
+            s_val = ev.get("stage_confidence", 0.0)
+            stage_str = "FORECAST ABSTAINED" if (ev.get("stage") == "UNKNOWN" and c_tag == "UNKNOWN") else str(ev.get("stage", "UNKNOWN"))
+            conf_display = "Withheld" if (c_tag == "UNKNOWN" or c_val == 0.0) else f"{c_val:.2f} (Stage: {s_val:.2f})"
             lines.append(
-                f"| **{h_lbl}** | `{ev.get('stage', 'UNKNOWN')}` | `[{ev.get('classification', 'INFERRED')}]` | "
-                f"`{tech_s}` | {ev.get('confidence', 0.0):.2f} (Stage: {ev.get('stage_confidence', 0.0):.2f}) | "
+                f"| **{h_lbl}** | `{stage_str}` | `[{c_tag}]` | "
+                f"`{tech_s}` | {conf_display} | "
                 f"{ev.get('supporting_evidence_count', 0)} supporting |"
             )
 

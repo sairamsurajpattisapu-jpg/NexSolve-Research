@@ -19,35 +19,13 @@ interface MitreBehaviorPanelProps {
   predictedStage?: string | null
 }
 
-const DEFAULT_MITRE_MAP: Record<string, { id: string; name: string; tactic: string }> = {
-  RECONNAISSANCE: { id: 'T1046', name: 'Network Service Discovery', tactic: 'Discovery' },
-  COMMAND_AND_CONTROL: { id: 'T1071', name: 'Application Layer Protocol', tactic: 'Command and Control' },
-  EXPLOITATION: { id: 'T1190', name: 'Exploit Public-Facing Application', tactic: 'Initial Access' },
-  DENIAL_OF_SERVICE: { id: 'T1498', name: 'Network Denial of Service', tactic: 'Impact' },
-}
-
 export function MitreBehaviorPanel({
   techniques,
-  observedStage,
-  predictedStage,
+  observedStage: _observedStage,
+  predictedStage: _predictedStage,
 }: MitreBehaviorPanelProps) {
-  // Synthesize behavioral techniques if not explicitly supplied
+  // Use explicitly supplied techniques only (never synthesize unobserved techniques)
   const items: MitreTechniqueItem[] = techniques ?? []
-
-  if (items.length === 0 && (observedStage || predictedStage)) {
-    const activeStage = (predictedStage && predictedStage !== 'NORMAL' && predictedStage !== 'STABLE_BENIGN' ? predictedStage : observedStage) || 'RECONNAISSANCE'
-    const match = DEFAULT_MITRE_MAP[activeStage.toUpperCase()] ?? DEFAULT_MITRE_MAP.RECONNAISSANCE
-
-    items.push({
-      id: match.id,
-      technique: match.name,
-      tactic: match.tactic,
-      horizon: 'T+1 → T+3',
-      risk: 'HIGH',
-      evidence: 'Projected destination port dispersion and rapid connection concurrency increase.',
-      mappingRationale: 'Behavioral mapping grounded in MITRE ATT&CK enterprise telemetry patterns. Continuous state changes align with service probing kinematics.',
-    })
-  }
 
   return (
     <Panel className="mitre-behavior-panel">
@@ -80,7 +58,22 @@ export function MitreBehaviorPanel({
         </div>
       </div>
 
-      {/* Technique Cards Grid */}
+      {items.length === 0 ? (
+        <div
+          style={{
+            padding: '24px',
+            textAlign: 'center',
+            borderRadius: '6px',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border)',
+          }}
+        >
+          <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+            No MITRE ATT&CK techniques mapped or forecasted for this capture.
+          </span>
+        </div>
+      ) : (
+      /* Technique Cards Grid */
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '12px' }}>
         {items.map((t) => (
           <div
@@ -143,6 +136,7 @@ export function MitreBehaviorPanel({
           </div>
         ))}
       </div>
+      )}
     </Panel>
   )
 }

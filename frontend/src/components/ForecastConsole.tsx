@@ -61,18 +61,18 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
       return forecast.points[0] || {
         horizon: 0,
         lookaheadSeconds: 0,
-        stepAttackProbability: 0.1,
-        cumulativeRisk: 0.1,
-        riskLevel: 'LOW' as const,
-        predictedStage: 'Baseline Equilibrium',
-        confidence: 0.9,
-        uncertainty: 0.1,
-        explanation: ['Observed nominal state'],
+        stepAttackProbability: isAbstained ? null : 0.0,
+        cumulativeRisk: isAbstained ? null : 0.0,
+        riskLevel: isAbstained ? 'WITHHELD' : ('LOW' as const),
+        predictedStage: isAbstained ? 'UNKNOWN' : 'Baseline Equilibrium',
+        confidence: isAbstained ? null : 1.0,
+        uncertainty: isAbstained ? null : 0.0,
+        explanation: [isAbstained ? 'Forecast withheld due to safety boundary.' : 'Observed nominal state'],
         topDrivers: [],
       }
     }
     return forecast.points.find((p) => p.horizon === selectedHorizon) ?? forecast.points[forecast.points.length - 1]
-  }, [forecast.points, selectedHorizon])
+  }, [forecast.points, selectedHorizon, isAbstained])
 
   // Formatting helpers
   const formatPct = (val: number | null | undefined) =>
@@ -151,26 +151,49 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-            <span
-              style={{
-                fontSize: '11px',
-                fontFamily: 'var(--mono)',
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                padding: '3px 8px',
-                borderRadius: '4px',
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border)',
-                color: 'var(--text-primary)',
-                textTransform: 'uppercase',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-            >
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--text-primary)', display: 'inline-block' }} />
-              NEXSOLVE FORECAST ENGINE &middot; FORECAST READY
-            </span>
+            {analysis.forecastEngine ? (
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontFamily: 'var(--mono)',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  padding: '3px 8px',
+                  borderRadius: '4px',
+                  background: analysis.forecastEngine.status === 'research' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(34, 197, 94, 0.15)',
+                  border: analysis.forecastEngine.status === 'research' ? '1px solid #a855f7' : '1px solid #22c55e',
+                  color: analysis.forecastEngine.status === 'research' ? '#d8b4fe' : '#86efac',
+                  textTransform: 'uppercase',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: analysis.forecastEngine.status === 'research' ? '#a855f7' : '#22c55e', display: 'inline-block' }} />
+                {analysis.forecastEngine.name} &middot; {analysis.forecastEngine.status === 'research' ? 'RESEARCH (UNVERIFIED)' : 'PRODUCTION'}
+              </span>
+            ) : (
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontFamily: 'var(--mono)',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  padding: '3px 8px',
+                  borderRadius: '4px',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-primary)',
+                  textTransform: 'uppercase',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--text-primary)', display: 'inline-block' }} />
+                FROZEN WORLD MODEL &middot; PRODUCTION
+              </span>
+            )}
             <span
               style={{
                 fontSize: '11px',
@@ -180,7 +203,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
                 display: 'none',
               }}
             >
-              Multi-Step Attack Forecasting
+              NEXSOLVE FORECAST ENGINE &middot; Multi-Step Attack Forecasting
             </span>
             <span
               style={{
@@ -362,10 +385,14 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             </div>
             <div>
               <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 700, color: 'var(--ns-text-primary)' }}>
-                Insufficient temporal history.
+                {forecast.status === 'INSUFFICIENT_HISTORY'
+                  ? 'Insufficient temporal history.'
+                  : forecast.status === 'INCOMPATIBLE_FEATURES'
+                  ? 'Incompatible feature schema.'
+                  : 'Forecasting safety boundary enforced.'}
               </h3>
               <p style={{ margin: 0, fontSize: '13px', color: 'var(--ns-text-secondary)', lineHeight: 1.5 }}>
-                Forecasting requires at least 8 continuous 60-second windows without synthetic imputation.
+                {forecast.message || 'Forecasting requires at least 8 continuous 60-second windows without synthetic imputation.'}
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '4px' }}>
@@ -398,6 +425,52 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Research Mode Disclaimer / Precursor Banner */}
+      {analysis.forecastEngine?.status === 'research' && (
+        <div
+          style={{
+            background: analysis.forecastEngine.precursorDetected ? 'rgba(239, 68, 68, 0.1)' : 'rgba(168, 85, 247, 0.08)',
+            border: analysis.forecastEngine.precursorDetected ? '1px solid #ef4444' : '1px solid rgba(168, 85, 247, 0.3)',
+            borderRadius: '6px',
+            padding: '12px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Zap size={16} color={analysis.forecastEngine.precursorDetected ? '#ef4444' : '#a855f7'} />
+            <div>
+              <strong style={{ fontSize: '12.5px', color: 'var(--text-primary)', display: 'block' }}>
+                {analysis.forecastEngine.precursorDetected
+                  ? `PRECURSOR TRIGGERED · +${analysis.forecastEngine.leadTimeSeconds || 180}s ADVANCE ONSET WARNING`
+                  : 'NEXT-GEN RESEARCH ENGINE (NOT VERIFIED FOR PRODUCTION)'}
+              </strong>
+              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                {analysis.forecastEngine.precursorDetected
+                  ? 'Statistical flow burst detected (z_flows >= 2.20). Advance change-point indicates onset at T+3 (+180s). Operational status: Experimental.'
+                  : 'Evaluated under strict zero-leakage protocol. Production model remains protected.'}
+              </span>
+            </div>
+          </div>
+          <span
+            style={{
+              fontSize: '10px',
+              fontFamily: 'var(--mono)',
+              padding: '2px 6px',
+              borderRadius: '3px',
+              background: 'rgba(168, 85, 247, 0.2)',
+              color: '#d8b4fe',
+              border: '1px solid #a855f7',
+            }}
+          >
+            RESEARCH CANDIDATE v2.0
+          </span>
         </div>
       )}
 
@@ -447,12 +520,16 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             stepAttackProbability: null,
             cumulativeRisk: null,
             riskLevel: 'WITHHELD' as const,
-            predictedStage: null,
+            predictedStage: 'UNKNOWN',
             confidence: null,
           }
           const isSelected = selectedHorizon === h
           const stepProb = pt.stepAttackProbability
-          const stageLabel = pt.predictedStage || (isAbstained ? 'Withheld' : (stepProb !== null && stepProb >= 0.5 ? 'Attack Imminent' : 'Nominal Equilibrium'))
+          const stageLabel = isAbstained
+            ? 'UNKNOWN'
+            : (pt.predictedStage && pt.predictedStage !== 'UNKNOWN'
+                ? formatDisplayLabel(pt.predictedStage)
+                : (stepProb !== null && stepProb >= 0.5 ? 'Attack Imminent' : 'Nominal Equilibrium'))
           const probStr = stepProb !== null ? `${(stepProb * 100).toFixed(1)}%` : isAbstained ? 'Withheld' : '—'
           const confStr = pt.confidence !== null ? `${(pt.confidence * 100).toFixed(0)}% conf` : null
 
@@ -566,13 +643,15 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             CONFIDENCE / UNCERTAINTY
           </div>
           <div style={{ fontSize: '16px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
-            {activePoint.confidence !== null ? `${(activePoint.confidence * 100).toFixed(0)}%` : isAbstained ? 'Withheld' : '88%'}
-            <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)', marginLeft: '6px' }}>
-              (&plusmn;{activePoint.uncertainty !== null ? `${(activePoint.uncertainty * 100).toFixed(0)}%` : '12%'})
-            </span>
+            {activePoint.confidence !== null ? `${(activePoint.confidence * 100).toFixed(0)}%` : isAbstained ? 'Withheld' : 'N/A'}
+            {activePoint.uncertainty !== null && (
+              <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)', marginLeft: '6px' }}>
+                (&plusmn;{(activePoint.uncertainty * 100).toFixed(0)}%)
+              </span>
+            )}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
-            {isAbstained ? 'Safety abstention' : 'Epistemic model confidence'}
+            {isAbstained ? 'Safety abstention' : activePoint.confidence !== null ? 'Epistemic model confidence' : 'Confidence uncalibrated'}
           </div>
         </div>
       </section>

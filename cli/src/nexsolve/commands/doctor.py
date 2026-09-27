@@ -276,11 +276,12 @@ def run_doctor(args: argparse.Namespace) -> int:
 
     # 2. Dependencies
     libs = {
-        "torch": _check_import("torch", required=True),
+        "numpy": _check_import("numpy", required=True),
         "scapy": _check_import("scapy", required=True),
-        "dpkt": _check_import("dpkt", required=True),
         "fastapi": _check_import("fastapi", required=True),
         "uvicorn": _check_import("uvicorn", required=True),
+        "torch": _check_import("torch", required=False),
+        "dpkt": _check_import("dpkt", required=False),
     }
 
     # 3. Security Sensors
@@ -326,8 +327,9 @@ def run_doctor(args: argparse.Namespace) -> int:
     print(f"\n{term.C_BOLD}2. Core Engine Libraries: (REQUIRED){term.C_RESET}")
     for name, info in libs.items():
         state = info["state"]
-        color = term.C_GREEN if state == "AVAILABLE" else term.C_RED
-        print(f"   {color}[{state}]{term.C_RESET} {name:<12} (REQUIRED) v{info.get('version') or 'N/A'}")
+        tier = info.get("tier", "REQUIRED")
+        color = term.C_GREEN if state == "AVAILABLE" else (term.C_YELLOW if tier == "OPTIONAL" else term.C_RED)
+        print(f"   {color}[{state}]{term.C_RESET} {name:<12} ({tier}) v{info.get('version') or 'N/A'}")
 
     print(f"\n{term.C_BOLD}3. Deep Forensics & External Sensors: (OPTIONAL){term.C_RESET}")
     for name, info in sensors.items():
@@ -369,7 +371,7 @@ def run_doctor(args: argparse.Namespace) -> int:
         print(f"             {term.C_DIM}Tip: Start backend with: python -m uvicorn model_service.app:app --port 8000{term.C_RESET}")
 
     # Final Verdict
-    critical_failed = any(info["state"] != "AVAILABLE" for info in libs.values()) or model_check["state"] != "AVAILABLE"
+    critical_failed = any(info.get("tier") == "REQUIRED" and info["state"] != "AVAILABLE" for info in libs.values()) or model_check["state"] != "AVAILABLE"
     print(f"\n{term.C_BOLD}Diagnostic Verdict:{term.C_RESET}")
     if critical_failed:
         print(f"  {term.C_RED}[FAIL] One or more REQUIRED dependencies or model files are missing.{term.C_RESET}\n")

@@ -325,6 +325,7 @@ class ChunkInitRequest(BaseModel):
 
 class ChunkCompleteRequest(BaseModel):
     upload_id: str
+    engine: str = "production"
 
 
 @app.post("/api/pcap/upload/init", status_code=201)
@@ -449,7 +450,11 @@ async def complete_chunked_upload(payload: ChunkCompleteRequest) -> dict[str, An
         shutil.rmtree(session_dir, ignore_errors=True)
         raise HTTPException(status_code=422, detail="The file could not be parsed as a supported PCAP/PCAPNG capture.")
 
-    job = JOB_MANAGER.create_job(filename=filename, file_path=assembled_path)
+    job = JOB_MANAGER.create_job(
+        filename=filename,
+        file_path=assembled_path,
+        engine_type=getattr(payload, "engine", "production"),
+    )
     for cf in chunk_files:
         cf.unlink(missing_ok=True)
     meta_path.unlink(missing_ok=True)
@@ -467,8 +472,12 @@ async def abort_chunked_upload(payload: ChunkCompleteRequest) -> dict[str, Any]:
 
 @app.post("/api/pcap/upload", status_code=202)
 @app.post("/jobs", status_code=202)
-async def create_processing_job(file: UploadFile = File(...)) -> dict[str, Any]:
+async def create_processing_job(
+    request: Request,
+    file: UploadFile = File(...),
+) -> dict[str, Any]:
     """Asynchronously ingest and analyze an uploaded PCAP/PCAPNG capture."""
+    engine = request.query_params.get("engine") or request.headers.get("x-nexsolve-engine") or "production"
     raw_filename = file.filename or "capture.pcap"
     suffix = Path(raw_filename).suffix.lower()
 
@@ -507,7 +516,7 @@ async def create_processing_job(file: UploadFile = File(...)) -> dict[str, Any]:
         temp_path.unlink(missing_ok=True)
         raise HTTPException(status_code=422, detail="The file could not be parsed as a supported PCAP/PCAPNG capture.")
 
-    job = JOB_MANAGER.create_job(raw_filename, file_path=temp_path)
+    job = JOB_MANAGER.create_job(raw_filename, file_path=temp_path, engine_type=engine)
     return job.to_status_dict()
 
 
@@ -621,8 +630,9 @@ async def get_job_report_html(job_id: str) -> Response:
 
 
 @app.post("/api/pcap/analyze")
-async def analyze_pcap(file: UploadFile = File(...)) -> dict[str, Any]:
+async def analyze_pcap(request: Request, file: UploadFile = File(...)) -> dict[str, Any]:
     """Analyze an uploaded capture without writing to production data."""
+    engine = request.query_params.get("engine") or request.headers.get("x-nexsolve-engine") or "production"
     filename = file.filename or "capture.pcap"
     suffix = Path(filename).suffix.lower()
     if Path(filename).name != filename or suffix not in ALLOWED_EXTENSIONS:
@@ -654,7 +664,7 @@ async def analyze_pcap(file: UploadFile = File(...)) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="The uploaded capture is empty.")
 
     try:
-        res = analyze_uploaded_capture(filename, file_path=temp_path)
+        res = analyze_uploaded_capture(filename, file_path=temp_path, engine_type=engine)
         set_current_analysis(res["analysis_id"], res)
         return res
     except ValueError as error:

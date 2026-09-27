@@ -3,8 +3,76 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import asdict, dataclass, field
+from enum import StrEnum
 from pathlib import Path
 from typing import Any, Mapping, Sequence
+
+
+class ProvenanceCategory(StrEnum):
+    """Authoritative intelligence provenance tiers strictly guarding against category leakage."""
+
+    OBSERVED = "OBSERVED"
+    DERIVED = "DERIVED"
+    INFERRED = "INFERRED"
+    FORECAST = "FORECAST"
+    UNKNOWN = "UNKNOWN"
+
+
+_OBSERVED_FIELDS = {
+    "packet_count", "byte_count", "bytes", "total_bytes", "total_src_bytes", "total_dst_bytes",
+    "tcp_syn_count", "tcp_ack_count", "tcp_fin_count", "tcp_rst_count",
+    "tcp_psh_count", "tcp_urg_count", "packet_length", "payload_length",
+    "duration_seconds", "packet_timestamp_span_seconds", "temporal_window_coverage_seconds",
+    "src_ip", "dst_ip", "src_port", "dst_port", "protocol", "ip_version",
+    "ttl", "tcp_window", "tcp_seq", "tcp_ack", "icmp_type", "icmp_code",
+    "vlan_id", "fragment_offset", "more_fragments", "flow_count",
+}
+
+_DERIVED_FIELDS = {
+    "packet_rate", "byte_rate", "mean_packet_size", "std_packet_size",
+    "min_packet_size", "max_packet_size", "mean_duration", "mean_flow_bytes",
+    "mean_flow_packets", "mean_sttl", "mean_dttl", "mean_swin", "mean_dwin",
+    "mean_iat", "std_iat", "max_iat", "delta_flow_count", "delta_total_bytes",
+    "delta_total_packets", "delta_ports", "delta_iat", "rolling_total_bytes",
+    "unique_src_ports", "unique_dst_ports", "unique_src_ips", "unique_dst_ips",
+    "rate_trend", "churn_trend", "flow_churn", "peer_diversity", "flows", "entropy",
+}
+
+_INFERRED_FIELDS = {
+    "threat_level", "risk_score", "behavioral_risk", "anomaly_score",
+    "detected_events", "findings", "mitre_techniques", "mitre_tactics", "beaconing_signals",
+    "attack_patterns", "campaign_clusters", "prioritized_threats",
+    "incident_story", "analyst_decisions", "threat_stories", "observed_stage",
+}
+
+_FORECAST_FIELDS = {
+    "forecast_points", "attack_probability", "predicted_stage", "forecast_confidence",
+    "attack_horizon", "lead_time_seconds", "predicted_state", "forecast_trajectory",
+    "multi_horizon_predictions", "transition_probability",
+}
+
+
+def get_field_provenance(field_name: str) -> ProvenanceCategory:
+    """Returns the strict provenance category for a given field name, preventing category leakage."""
+    norm = field_name.lower().strip()
+    if norm in _OBSERVED_FIELDS:
+        return ProvenanceCategory.OBSERVED
+    if norm in _DERIVED_FIELDS:
+        return ProvenanceCategory.DERIVED
+    if norm in _INFERRED_FIELDS:
+        return ProvenanceCategory.INFERRED
+    if norm in _FORECAST_FIELDS:
+        return ProvenanceCategory.FORECAST
+    return ProvenanceCategory.UNKNOWN
+
+
+def classify_timeline_event(horizon_label: str, is_observed: bool = False) -> ProvenanceCategory:
+    """Classifies a timeline horizon event into authoritative provenance category."""
+    if horizon_label == "T0" or is_observed:
+        return ProvenanceCategory.OBSERVED
+    if horizon_label.startswith("T+"):
+        return ProvenanceCategory.FORECAST
+    return ProvenanceCategory.UNKNOWN
 
 
 @dataclass(slots=True, frozen=True)

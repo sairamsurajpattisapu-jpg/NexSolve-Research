@@ -26,22 +26,8 @@ const METRICS_OPTIONS: Array<{ key: string; label: string; unit: string; tone: s
 export function NetworkStateChart({ trajectories }: NetworkStateChartProps) {
   const [selectedMetric, setSelectedMetric] = useState<string>('unique_dst_ports')
 
-  // Generate synthetic high-fidelity 8 actual windows + 5 forecast windows if none supplied
-  const points: StateTrajectoryPoint[] = trajectories ?? [
-    { window: -7, label: 'W-7', isForecast: false, values: { flow_count: 24, total_packets: 180, total_bytes: 45000, unique_dst_ports: 4, mean_iat: 42, mean_tcp_window: 14600, mean_ttl: 64, delta_total_packets: 2 } },
-    { window: -6, label: 'W-6', isForecast: false, values: { flow_count: 26, total_packets: 195, total_bytes: 48000, unique_dst_ports: 4, mean_iat: 41, mean_tcp_window: 14600, mean_ttl: 64, delta_total_packets: 15 } },
-    { window: -5, label: 'W-5', isForecast: false, values: { flow_count: 25, total_packets: 190, total_bytes: 46000, unique_dst_ports: 5, mean_iat: 43, mean_tcp_window: 14600, mean_ttl: 64, delta_total_packets: -5 } },
-    { window: -4, label: 'W-4', isForecast: false, values: { flow_count: 28, total_packets: 210, total_bytes: 52000, unique_dst_ports: 5, mean_iat: 40, mean_tcp_window: 14600, mean_ttl: 64, delta_total_packets: 20 } },
-    { window: -3, label: 'W-3', isForecast: false, values: { flow_count: 31, total_packets: 230, total_bytes: 56000, unique_dst_ports: 6, mean_iat: 38, mean_tcp_window: 14600, mean_ttl: 64, delta_total_packets: 20 } },
-    { window: -2, label: 'W-2', isForecast: false, values: { flow_count: 35, total_packets: 260, total_bytes: 62000, unique_dst_ports: 8, mean_iat: 34, mean_tcp_window: 14600, mean_ttl: 63, delta_total_packets: 30 } },
-    { window: -1, label: 'W-1', isForecast: false, values: { flow_count: 42, total_packets: 320, total_bytes: 75000, unique_dst_ports: 12, mean_iat: 28, mean_tcp_window: 14400, mean_ttl: 62, delta_total_packets: 60 } },
-    { window: 0, label: 'T₀ (Now)', isForecast: false, values: { flow_count: 58, total_packets: 440, total_bytes: 98000, unique_dst_ports: 19, mean_iat: 21, mean_tcp_window: 14200, mean_ttl: 60, delta_total_packets: 120 } },
-    { window: 1, label: 'T+1', isForecast: true, values: { flow_count: 78, total_packets: 610, total_bytes: 135000, unique_dst_ports: 28, mean_iat: 15, mean_tcp_window: 13800, mean_ttl: 58, delta_total_packets: 170 } },
-    { window: 2, label: 'T+2', isForecast: true, values: { flow_count: 104, total_packets: 840, total_bytes: 184000, unique_dst_ports: 39, mean_iat: 11, mean_tcp_window: 13200, mean_ttl: 57, delta_total_packets: 230 } },
-    { window: 3, label: 'T+3', isForecast: true, values: { flow_count: 135, total_packets: 1120, total_bytes: 245000, unique_dst_ports: 52, mean_iat: 8, mean_tcp_window: 12400, mean_ttl: 56, delta_total_packets: 280 } },
-    { window: 4, label: 'T+4', isForecast: true, values: { flow_count: 168, total_packets: 1410, total_bytes: 310000, unique_dst_ports: 64, mean_iat: 6, mean_tcp_window: 11800, mean_ttl: 55, delta_total_packets: 290 } },
-    { window: 5, label: 'T+5', isForecast: true, values: { flow_count: 202, total_packets: 1720, total_bytes: 380000, unique_dst_ports: 76, mean_iat: 5, mean_tcp_window: 11200, mean_ttl: 55, delta_total_packets: 310 } },
-  ]
+  // Use explicitly supplied trajectories only (never fabricate synthetic state trajectories)
+  const points: StateTrajectoryPoint[] = trajectories ?? []
 
   const metricMeta = METRICS_OPTIONS.find((m) => m.key === selectedMetric) ?? METRICS_OPTIONS[0]
 
@@ -132,7 +118,22 @@ export function NetworkStateChart({ trajectories }: NetworkStateChartProps) {
         </div>
       </div>
 
-      {/* SVG Chart */}
+      {points.length === 0 ? (
+        <div
+          style={{
+            padding: '24px',
+            textAlign: 'center',
+            borderRadius: '6px',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border)',
+          }}
+        >
+          <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+            Discrete 45-feature window trajectory not supplied for this session.
+          </span>
+        </div>
+      ) : (
+      /* SVG Chart */
       <div style={{ position: 'relative', width: '100%', overflowX: 'auto' }}>
         <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', minWidth: '600px', height: 'auto', display: 'block' }}>
           {/* Horizontal Grid lines */}
@@ -251,6 +252,7 @@ export function NetworkStateChart({ trajectories }: NetworkStateChartProps) {
           <span>Lookback: 8 windows (480s) &middot; Projection: 5 steps (300s)</span>
         </div>
       </div>
+      )}
     </Panel>
   )
 }

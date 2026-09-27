@@ -200,7 +200,7 @@ class NexSolveClient:
             "magic": magic.hex(),
         }
 
-    def upload_pcap(self, pcap_path: Path | str) -> JobStatus:
+    def upload_pcap(self, pcap_path: Path | str, engine: str = "production") -> JobStatus:
         """Stream capture file to /jobs endpoint as multipart/form-data."""
         meta = self.validate_local_pcap(pcap_path)
         path = meta["path"]
@@ -215,13 +215,15 @@ class NexSolveClient:
         footer = f"\r\n--{boundary}--\r\n".encode("utf-8")
 
         reader = StreamingMultipartReader(header, path, footer)
-        url = f"{self.base_url}/jobs"
+        encoded_engine = urllib.parse.quote(engine)
+        url = f"{self.base_url}/jobs?engine={encoded_engine}"
         req = urllib.request.Request(
             url,
             data=reader,
             headers=self._headers({
                 "Content-Type": f"multipart/form-data; boundary={boundary}",
                 "Content-Length": str(len(reader)),
+                "X-NexSolve-Engine": engine,
             }),
             method="POST",
         )

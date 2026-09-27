@@ -199,8 +199,8 @@ export function adaptToCanonical(
         cumulativeRisk: cumRisk,
         riskLevel: classifyRisk(stepProb),
         predictedStage: (found.predictedStage as string) || (stepProb && stepProb >= 0.5 ? 'ATTACK_IMMINENT' : 'NORMAL_TRAFFIC'),
-        confidence: typeof found.confidence === 'number' ? found.confidence : 0.85,
-        uncertainty: typeof found.uncertainty === 'number' ? found.uncertainty : 0.15,
+        confidence: typeof found.confidence === 'number' ? found.confidence : null,
+        uncertainty: typeof found.uncertainty === 'number' ? found.uncertainty : null,
         explanation: Array.isArray(found.explanation) ? found.explanation.map(String) : ['Temporal trajectory projection'],
         topDrivers,
         evidenceAttribution,
@@ -400,10 +400,11 @@ export function adaptToCanonical(
     severity: String(item.severity || 'LOW'),
     isSupporting: false,
     explanation: String(item.explanation || 'Feature remains within nominal bounds, counterbalancing threat escalation.'),
-    reliability: Number(item.reliability || 0.85),
+    reliability: typeof item.reliability === 'number' ? item.reliability : 1.0,
   }))
 
   const apiBase = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
+  const forecastWithheld = isAbstained || !isModelReady
 
   return {
     id: analysisId,
@@ -451,7 +452,7 @@ export function adaptToCanonical(
     },
 
     forecast: {
-      isAvailable: !isAbstained && isModelReady,
+      isAvailable: !forecastWithheld,
       status: isAbstained ? 'INSUFFICIENT_HISTORY' : isModelReady ? 'READY' : 'INCOMPATIBLE_FEATURES',
       requiredWindows: 8,
       availableWindows: windowsCount,
@@ -462,10 +463,10 @@ export function adaptToCanonical(
       points,
       earlyWarning,
       confidenceSummary: {
-        state: (confidenceRaw.confidence_state as string) || 'CALIBRATED',
-        calibrationStatus: (confidenceRaw.calibration_status as string) || 'CALIBRATED',
-        uncertaintyLevel: (confidenceRaw.uncertainty_level as string) || 'LOW',
-        meanConfidence: typeof confidenceRaw.confidence_value === 'number' ? confidenceRaw.confidence_value : 0.88,
+        state: (confidenceRaw.confidence_state as string) || (forecastWithheld ? 'WITHHELD' : 'CALIBRATED'),
+        calibrationStatus: (confidenceRaw.calibration_status as string) || (forecastWithheld ? 'UNAVAILABLE' : 'CALIBRATED'),
+        uncertaintyLevel: (confidenceRaw.uncertainty_level as string) || (forecastWithheld ? 'UNKNOWN' : 'LOW'),
+        meanConfidence: typeof confidenceRaw.confidence_value === 'number' ? confidenceRaw.confidence_value : null,
       },
       alternativeTrajectories: Array.isArray(raw.alternative_trajectories)
         ? (raw.alternative_trajectories as any[]).map((t) => ({
@@ -495,9 +496,9 @@ export function adaptToCanonical(
     },
 
     progression: {
-      observedState: String(progressionRaw?.observed_state || 'RECONNAISSANCE'),
-      verdict: String(progressionRaw?.verdict || 'SUPPORTED'),
-      summary: String(progressionRaw?.summary || 'Empirical transition progression indicates ongoing reconnaissance activity with elevated likelihood of exploitation attempts.'),
+      observedState: String(progressionRaw?.observed_state || (forecastWithheld ? 'UNKNOWN' : 'BENIGN_OBSERVED')),
+      verdict: String(progressionRaw?.verdict || (forecastWithheld ? 'WITHHELD' : 'SUPPORTED')),
+      summary: String(progressionRaw?.summary || (forecastWithheld ? 'Attack progression forecast withheld due to insufficient historical context.' : 'Observed network telemetry analyzed.')),
       stages,
     },
 
@@ -521,14 +522,14 @@ export function adaptToCanonical(
         forecastHorizonSteps: 5,
       },
       model: {
-        champion: 'Final Network World Model v3.0.0 (Authoritative)',
-        researchHold: 'Candidate V2 (Frozen Baseline)',
+        champion: String(raw.model_name || (raw.final_world_model as any)?.metadata?.model_name || 'Final Network World Model v3.0.0 (Authoritative)'),
+        researchHold: (typeof raw.engine_tier === 'string' && raw.engine_tier.includes('RESEARCH')) ? String(raw.model_name || 'Multi-Event Research Candidate') : 'Candidate V2 (Frozen Baseline)',
         inputDimension: 45,
         outputMode: 'Multi-Step Trajectory Rollout (T+1 .. T+5)',
         decisionThreshold: 0.3,
       },
       chain: {
-        strength: Number(evidenceChain?.evidence_strength ?? 0.85),
+        strength: evidenceChain?.evidence_strength != null ? Number(evidenceChain.evidence_strength) : (supportingNodes.length > 0 ? 0.8 : 0.0),
         quality: String(evidenceChain?.evidence_quality || (supportingNodes.length > 0 ? 'HIGH' : 'DEGRADED')),
         supporting: supportingNodes,
         contradictory: contradictoryNodes,
@@ -554,5 +555,25 @@ export function adaptToCanonical(
 
     temporalGraph: (raw as any).temporal_graph || (raw as any).temporalGraph,
     graphFusion: (raw as any).graph_fusion || (raw as any).graphFusion,
+
+    forecastEngine: (() => {
+      const engineRaw = (raw.forecast_engine as Record<string, any>)
+        || (raw.forecastEngine as Record<string, any>)
+        || ((raw.final_world_model as Record<string, any>)?.forecast_engine)
+        || null
+      if (!engineRaw) return undefined
+      return {
+        name: String(engineRaw.name || 'Frozen World Model'),
+        version: String(engineRaw.version || '3.0.0'),
+        status: engineRaw.status === 'research' ? 'research' : 'production',
+        isProductionReady: Boolean(engineRaw.is_production_ready ?? (engineRaw.status === 'production')),
+        forecastTarget: engineRaw.forecast_target ? String(engineRaw.forecast_target) : undefined,
+        trainingProtocol: engineRaw.training_protocol ? String(engineRaw.training_protocol) : undefined,
+        leadTimeSeconds: typeof engineRaw.lead_time_seconds === 'number' ? engineRaw.lead_time_seconds : undefined,
+        precursorDetected: Boolean(engineRaw.precursor_detected),
+        validationVerdict: engineRaw.validation_verdict ? String(engineRaw.validation_verdict) : undefined,
+        description: engineRaw.description ? String(engineRaw.description) : undefined,
+      }
+    })(),
   }
 }

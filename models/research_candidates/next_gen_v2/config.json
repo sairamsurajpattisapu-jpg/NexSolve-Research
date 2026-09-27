@@ -1,0 +1,11 @@
+{
+  "model_family": "NextGen_v2_Causal_Precursor_Forecaster",
+  "lookback": 8,
+  "feature_count": 70,
+  "threshold_selection": {
+    "feature": "zscore_flows",
+    "threshold": 2.2,
+    "source": "Episode 1 Validation (FPR <= 5%)"
+  },
+  "verdict": "RESEARCH CANDIDATE \u2014 NOT YET VERIFIED"
+}

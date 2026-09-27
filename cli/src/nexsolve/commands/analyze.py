@@ -109,17 +109,18 @@ def run_analyze(args: argparse.Namespace) -> int:
         term.print_stage_start("ANALYSIS")
 
     # 3. Stream upload
+    engine_choice = getattr(args, "engine", "production")
     if verbose:
-        print(f"[DEBUG] Uploading capture payload to {server_url}/jobs", file=sys.stderr)
-    initial_job = client.upload_pcap(pcap_path)
+        print(f"[DEBUG] Uploading capture payload to {server_url}/jobs (engine={engine_choice})", file=sys.stderr)
+    initial_job = client.upload_pcap(pcap_path, engine=engine_choice)
     job_id = initial_job.job_id
 
     if verbose:
-        print(f"[DEBUG] Job registered with ID: {job_id}, status: {initial_job.status}", file=sys.stderr)
+        print(f"[DEBUG] Job registered with ID: {job_id}, status: {initial_job.status}, engine: {engine_choice}", file=sys.stderr)
 
     if not json_output and not quiet:
         term.print_checkmark("Upload completed")
-        term.print_checkmark(f"Analysis started ({job_id})")
+        term.print_checkmark(f"Analysis started ({job_id}) [Engine: {engine_choice.upper()}]")
 
     # 4. Status polling with truthful progress
     start_time = time.monotonic()
@@ -204,6 +205,19 @@ def run_analyze(args: argparse.Namespace) -> int:
     print(f"  Job ID:            {term.C_WHITE}{job_id}{term.C_RESET}")
     print(f"  Threat assessment: {term.C_WHITE}{summary.threat_level}{term.C_RESET} (Risk score: {summary.risk_score:.1f}/100)")
     print(f"  Forecast:          {term.C_CYAN}{summary.progression_verdict}{term.C_RESET}")
+
+    engine_info = result.get("forecast_engine") or result.get("forecastEngine") or {}
+    eng_name = engine_info.get("name", "Frozen World Model")
+    eng_status = str(engine_info.get("status", "production")).upper()
+    is_prod = engine_info.get("is_production_ready", True)
+    status_col = term.C_GREEN if is_prod else term.C_YELLOW
+    print(f"  Engine:            {status_col}{eng_name} [{eng_status}]{term.C_RESET}")
+    if not is_prod:
+        print(f"  Research notice:   {term.C_YELLOW}Model candidate is unverified — production weights protected.{term.C_RESET}")
+        if engine_info.get("precursor_detected"):
+            lead = engine_info.get("lead_time_seconds", 180)
+            print(f"  Precursor alert:   {term.C_BOLD}{term.C_RED}Attack onset projected +{lead}s ahead.{term.C_RESET}")
+
     print(f"  Report:            {term.C_WHITE}{report_location}{term.C_RESET}")
 
     term.print_visualization_box(job_id, summary.visualization_url, summary.report_url)

@@ -52,7 +52,14 @@ def run_progression(args: argparse.Namespace) -> int:
         try:
             from ml.forecasting.attack_progression import forecast_attack_progression
             history_cnt = data.get("window_count") or data.get("traffic", {}).get("windows", 8)
-            p_fc = forecast_attack_progression(findings, history_window_count=history_cnt)
+            is_abs = bool(data.get("abstention", {}).get("abstained") or data.get("forecast_status") == "FORECAST_ABSTAINED")
+            abs_reason = data.get("abstention", {}).get("explanation") or data.get("abstention", {}).get("reason")
+            p_fc = forecast_attack_progression(
+                findings,
+                history_window_count=history_cnt,
+                forecast_engine_abstained=is_abs,
+                forecast_engine_abstention_reason=abs_reason,
+            )
             progression = p_fc.to_dict()
         except ModuleNotFoundError as exc:
             raise NexSolveError(

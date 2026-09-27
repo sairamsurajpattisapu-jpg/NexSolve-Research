@@ -244,5 +244,17 @@ export interface CanonicalAnalysis {
     is_ood?: boolean
     evidence_sufficiency_score?: number
   } | null
+  forecastEngine?: {
+    name: string
+    version: string
+    status: 'production' | 'research'
+    isProductionReady: boolean
+    forecastTarget?: string
+    trainingProtocol?: string
+    leadTimeSeconds?: number
+    precursorDetected?: boolean
+    validationVerdict?: string
+    description?: string
+  }
 }
 

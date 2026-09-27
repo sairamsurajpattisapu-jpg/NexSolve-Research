@@ -1,0 +1,11 @@
+{
+  "saved_at_utc": "2026-09-27T04:54:46.560635+00:00",
+  "candidates": [
+    "Candidate_A_Temporal_GBDT",
+    "Candidate_B_Delta_Transition",
+    "Candidate_C_Hybrid_Residual",
+    "Candidate_D_Temporal_GRU"
+  ],
+  "gate_verdict": "NO VALIDATED MODEL IMPROVEMENT",
+  "selection_rule_passed": false
+}

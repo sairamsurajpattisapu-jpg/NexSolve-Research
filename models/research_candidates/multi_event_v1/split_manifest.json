@@ -1,0 +1,227 @@
+{
+  "created_at_utc": "2026-09-27 06:52:41 UTC",
+  "schema_version": "1.0.0-multi-event",
+  "feature_dimension": 70,
+  "window_seconds": 60,
+  "total_windows": 2818,
+  "total_onset_events": 15,
+  "train": {
+    "episodes": [
+      "ep_unsw_0",
+      "ep_ton_iot_0",
+      "ep_ton_iot_1a",
+      "ep_ton_iot_3"
+    ],
+    "windows": 1258,
+    "attack_windows": 912,
+    "benign_windows": 346,
+    "events_count": 5,
+    "events": [
+      {
+        "dataset_id": "unsw_nb15",
+        "capture_id": "unsw_capture_0",
+        "episode_id": "ep_unsw_0",
+        "window_index_before": 0,
+        "window_index_onset": 1,
+        "timestamp_before": 1421927340.0,
+        "timestamp_onset": 1421927400.0,
+        "attack_category": "exploits",
+        "pre_onset_benign_windows": 1,
+        "post_onset_attack_duration_windows": 118
+      },
+      {
+        "dataset_id": "ton_iot",
+        "capture_id": "ton_iot_cap_ep_ton_iot_1a",
+        "episode_id": "ep_ton_iot_1a",
+        "window_index_before": 11,
+        "window_index_onset": 12,
+        "timestamp_before": 1556541060.0,
+        "timestamp_onset": 1556541120.0,
+        "attack_category": "mitm",
+        "pre_onset_benign_windows": 12,
+        "post_onset_attack_duration_windows": 4
+      },
+      {
+        "dataset_id": "ton_iot",
+        "capture_id": "ton_iot_cap_ep_ton_iot_1a",
+        "episode_id": "ep_ton_iot_1a",
+        "window_index_before": 17,
+        "window_index_onset": 18,
+        "timestamp_before": 1556541420.0,
+        "timestamp_onset": 1556541480.0,
+        "attack_category": "mitm",
+        "pre_onset_benign_windows": 18,
+        "post_onset_attack_duration_windows": 7
+      },
+      {
+        "dataset_id": "ton_iot",
+        "capture_id": "ton_iot_cap_ep_ton_iot_1a",
+        "episode_id": "ep_ton_iot_1a",
+        "window_index_before": 26,
+        "window_index_onset": 27,
+        "timestamp_before": 1556541960.0,
+        "timestamp_onset": 1556542020.0,
+        "attack_category": "mitm",
+        "pre_onset_benign_windows": 27,
+        "post_onset_attack_duration_windows": 5
+      },
+      {
+        "dataset_id": "ton_iot",
+        "capture_id": "ton_iot_cap_ep_ton_iot_1a",
+        "episode_id": "ep_ton_iot_1a",
+        "window_index_before": 34,
+        "window_index_onset": 35,
+        "timestamp_before": 1556542440.0,
+        "timestamp_onset": 1556542500.0,
+        "attack_category": "mitm",
+        "pre_onset_benign_windows": 35,
+        "post_onset_attack_duration_windows": 5
+      }
+    ]
+  },
+  "validation": {
+    "episodes": [
+      "ep_unsw_1",
+      "ep_ton_iot_1b"
+    ],
+    "windows": 333,
+    "attack_windows": 33,
+    "benign_windows": 300,
+    "events_count": 3,
+    "events": [
+      {
+        "dataset_id": "ton_iot",
+        "capture_id": "ton_iot_cap_ep_ton_iot_1b",
+        "episode_id": "ep_ton_iot_1b",
+        "window_index_before": 1,
+        "window_index_onset": 2,
+        "timestamp_before": 1556542860.0,
+        "timestamp_onset": 1556542920.0,
+        "attack_category": "mitm",
+        "pre_onset_benign_windows": 2,
+        "post_onset_attack_duration_windows": 15
+      },
+      {
+        "dataset_id": "ton_iot",
+        "capture_id": "ton_iot_cap_ep_ton_iot_1b",
+        "episode_id": "ep_ton_iot_1b",
+        "window_index_before": 17,
+        "window_index_onset": 18,
+        "timestamp_before": 1556543820.0,
+        "timestamp_onset": 1556543880.0,
+        "attack_category": "mitm",
+        "pre_onset_benign_windows": 18,
+        "post_onset_attack_duration_windows": 14
+      },
+      {
+        "dataset_id": "ton_iot",
+        "capture_id": "ton_iot_cap_ep_ton_iot_1b",
+        "episode_id": "ep_ton_iot_1b",
+        "window_index_before": 35,
+        "window_index_onset": 36,
+        "timestamp_before": 1556544900.0,
+        "timestamp_onset": 1556544960.0,
+        "attack_category": "mitm",
+        "pre_onset_benign_windows": 36,
+        "post_onset_attack_duration_windows": 4
+      }
+    ]
+  },
+  "test": {
+    "episodes": [
+      "ep_unsw_2",
+      "ep_ton_iot_2",
+      "ep_cic_friday"
+    ],
+    "windows": 555,
+    "attack_windows": 170,
+    "benign_windows": 385,
+    "events_count": 7,
+    "events": [
+      {
+        "dataset_id": "unsw_nb15",
+        "capture_id": "unsw_capture_2",
+        "episode_id": "ep_unsw_2",
+        "window_index_before": 13,
+        "window_index_onset": 14,
+        "timestamp_before": 1424219760.0,
+        "timestamp_onset": 1424219820.0,
+        "attack_category": "fuzzers",
+        "pre_onset_benign_windows": 14,
+        "post_onset_attack_duration_windows": 11
+      },
+      {
+        "dataset_id": "ton_iot",
+        "capture_id": "ton_iot_cap_ep_ton_iot_2",
+        "episode_id": "ep_ton_iot_2",
+        "window_index_before": 7,
+        "window_index_onset": 8,
+        "timestamp_before": 1556546340.0,
+        "timestamp_onset": 1556546400.0,
+        "attack_category": "mitm",
+        "pre_onset_benign_windows": 8,
+        "post_onset_attack_duration_windows": 4
+      },
+      {
+        "dataset_id": "ton_iot",
+        "capture_id": "ton_iot_cap_ep_ton_iot_2",
+        "episode_id": "ep_ton_iot_2",
+        "window_index_before": 14,
+        "window_index_onset": 15,
+        "timestamp_before": 1556546760.0,
+        "timestamp_onset": 1556546820.0,
+        "attack_category": "mitm",
+        "pre_onset_benign_windows": 15,
+        "post_onset_attack_duration_windows": 13
+      },
+      {
+        "dataset_id": "ton_iot",
+        "capture_id": "ton_iot_cap_ep_ton_iot_2",
+        "episode_id": "ep_ton_iot_2",
+        "window_index_before": 31,
+        "window_index_onset": 32,
+        "timestamp_before": 1556547780.0,
+        "timestamp_onset": 1556547840.0,
+        "attack_category": "mitm",
+        "pre_onset_benign_windows": 32,
+        "post_onset_attack_duration_windows": 12
+      },
+      {
+        "dataset_id": "ton_iot",
+        "capture_id": "ton_iot_cap_ep_ton_iot_2",
+        "episode_id": "ep_ton_iot_2",
+        "window_index_before": 44,
+        "window_index_onset": 45,
+        "timestamp_before": 1556548560.0,
+        "timestamp_onset": 1556548620.0,
+        "attack_category": "mitm",
+        "pre_onset_benign_windows": 45,
+        "post_onset_attack_duration_windows": 1
+      },
+      {
+        "dataset_id": "cic_ids2017",
+        "capture_id": "cic_friday_capture",
+        "episode_id": "ep_cic_friday",
+        "window_index_before": 115,
+        "window_index_onset": 116,
+        "timestamp_before": 1499435640.0,
+        "timestamp_onset": 1499435700.0,
+        "attack_category": "portscan",
+        "pre_onset_benign_windows": 116,
+        "post_onset_attack_duration_windows": 98
+      },
+      {
+        "dataset_id": "cic_ids2017",
+        "capture_id": "cic_friday_capture",
+        "episode_id": "ep_cic_friday",
+        "window_index_before": 236,
+        "window_index_onset": 237,
+        "timestamp_before": 1499442900.0,
+        "timestamp_onset": 1499442960.0,
+        "attack_category": "ddos",
+        "pre_onset_benign_windows": 237,
+        "post_onset_attack_duration_windows": 21
+      }
+    ]
+  }
+}

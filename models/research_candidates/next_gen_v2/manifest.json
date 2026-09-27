@@ -1,0 +1,37 @@
+{
+  "candidate_id": "next_gen_v2_revalidated",
+  "model_type": "Clean Data-Driven Change-Point / Precursor Forecaster",
+  "feature_count": 70,
+  "lookback": 8,
+  "creation_timestamp_utc": "2026-09-27T05:43:25Z",
+  "selected_precursor_threshold": 2.2,
+  "validation_fpr": 0.027491408934707903,
+  "metrics_summary": {
+    "persistence_state_f1_t1": 0.9231,
+    "hybrid_state_f1_t1": 0.9231,
+    "hybrid_state_f1_t3": 0.875,
+    "fvp_state_t3": 0.075,
+    "hybrid_onset_f1_t3": 0.5,
+    "lead_time_seconds": 180,
+    "test_fpr": 0.0,
+    "best_calibrated_ece": 0.1654
+  },
+  "promotion_decision": {
+    "overall_gate_pass": false,
+    "verdict": "RESEARCH CANDIDATE \u2014 NOT YET VERIFIED",
+    "gate_results": {
+      "gate_1_frozen_weights_intact": true,
+      "gate_2_no_test_leakage": true,
+      "gate_3_beats_persistence_on_target": true,
+      "gate_4_independent_reproduction_ready": true,
+      "gate_5_multi_event_generalization": false,
+      "gate_6_acceptable_operational_fpr": true,
+      "gate_7_advance_lead_time_demonstrated": true,
+      "gate_8_valid_calibration": false,
+      "gate_9_low_data_not_leakage_artifact": true,
+      "gate_10_production_safety_preserved": true
+    },
+    "operational_action": "RETAIN_FROZEN_PRODUCTION_MODEL_DO_NOT_PROMOTE_V3",
+    "rationale": "Verdict: RESEARCH CANDIDATE \u2014 NOT YET VERIFIED. While the clean data-driven hybrid precursor model successfully eliminates test leakage, provides +180s advance lead time with 0.0% test FPR, and surpasses persistence at T+3 (FVP=+0.0750) and T+4 (FVP=+0.0735), it fails Gate 5 (Multi-Event Generalization). The UNSW-NB15 processed corpus contains only 2 attack onset events in total (1 in train/val, 1 in test). In accordance with the zero-leakage scientific revalidation directive, a model cannot be promoted based on a single unseen attack event. Furthermore, earlier claims of F1=1.0 at T+1..T+3 and F1=1.0 at 5% data were proven to be artifacts of test leakage and are hereby invalidated."
+  }
+}

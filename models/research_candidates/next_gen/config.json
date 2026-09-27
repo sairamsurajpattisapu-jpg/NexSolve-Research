@@ -1,0 +1,26 @@
+{
+  "model_name": "NexSolve-NextGen-Hybrid-Hazard-v1.0",
+  "architecture": "Hybrid State Persistence with Physical Precursor Change-Point Trigger and Lookback Memory",
+  "lookback": 8,
+  "input_dim": 61,
+  "horizons": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "precursor_rules": {
+    "flow_count_burst_threshold": 20.0,
+    "dst_bytes_probe_ceiling": 0.0,
+    "flow_count_secondary_threshold": 30.0,
+    "asymmetry_threshold": 0.8,
+    "memory_span_windows": 4,
+    "hazard_decay_alpha": 0.3
+  },
+  "calibration": {
+    "method": "Isotonic Regression on held-out temporal validation split",
+    "calibrated_ece": 0.0024,
+    "calibrated_brier": 0.0001
+  }
+}

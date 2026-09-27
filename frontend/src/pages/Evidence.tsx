@@ -537,42 +537,43 @@ export function Evidence() {
           </h3>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
-          {(progression?.stages || [
-            { step: 1, horizonMinutes: 1, leadTimeSeconds: 60, predictedState: 'RECONNAISSANCE', predictionType: 'STATE_PERSISTENCE', transitionProbability: 0.88 },
-            { step: 2, horizonMinutes: 2, leadTimeSeconds: 120, predictedState: 'PROBE_SCAN', predictionType: 'STATE_PERSISTENCE', transitionProbability: 0.79 },
-            { step: 3, horizonMinutes: 3, leadTimeSeconds: 180, predictedState: 'WEAPONIZATION', predictionType: 'DOWNSTREAM_PROGRESSION', transitionProbability: 0.68 },
-            { step: 4, horizonMinutes: 5, leadTimeSeconds: 300, predictedState: 'LATERAL_MOVEMENT', predictionType: 'DOWNSTREAM_PROGRESSION', transitionProbability: 0.54 },
-          ]).map((st) => (
-            <div
-              key={st.step}
-              style={{
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border)',
-                borderRadius: '5px',
-                padding: '12px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '6px',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  STAGE {st.step} (+{st.leadTimeSeconds}s)
-                </span>
-                <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', padding: '1px 5px', border: '1px solid var(--border)', borderRadius: '2px' }}>
-                  {st.predictionType}
-                </span>
+        {progression?.stages && progression.stages.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+            {progression.stages.map((st) => (
+              <div
+                key={st.step}
+                style={{
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '5px',
+                  padding: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)' }}>
+                    STAGE {st.step} (+{st.leadTimeSeconds}s)
+                  </span>
+                  <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', padding: '1px 5px', border: '1px solid var(--border)', borderRadius: '2px' }}>
+                    {st.predictionType}
+                  </span>
+                </div>
+                <div style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text-primary)' }}>
+                  {formatDisplayLabel(st.predictedState)}
+                </div>
+                <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                  Transition Prob: {st.transitionProbability !== null ? Math.round(st.transitionProbability * 100) + '%' : 'Withheld'}
+                </div>
               </div>
-              <div style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text-primary)' }}>
-                {formatDisplayLabel(st.predictedState)}
-              </div>
-              <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
-                Transition Prob: {st.transitionProbability ? Math.round(st.transitionProbability * 100) + '%' : 'N/A'}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ padding: '16px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '5px', fontSize: '12px', color: 'var(--text-muted)' }}>
+            Attack progression forecasting withheld or unavailable for this capture.
+          </div>
+        )}
       </Panel>
 
       {/* 7. WHY THIS FORECAST? & COUNTERFACTUAL EXPLANATION */}

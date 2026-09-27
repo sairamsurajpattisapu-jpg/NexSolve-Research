@@ -142,6 +142,7 @@ class ForecastSection:
     decision_threshold: float
     abstained: bool
     summary: str
+    forecast_engine: dict[str, Any] | None = None
     category: EpistemicCategory = "FORECAST"
 
     def to_dict(self) -> dict[str, Any]:
@@ -152,6 +153,7 @@ class ForecastSection:
             "decision_threshold": self.decision_threshold,
             "abstained": self.abstained,
             "summary": self.summary,
+            "forecast_engine": self.forecast_engine,
         }
 
 

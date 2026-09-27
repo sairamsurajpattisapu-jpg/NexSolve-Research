@@ -137,32 +137,34 @@ export function JobResult({ result, onReset }: JobResultProps) {
           }
         })
 
+        const isAbstained = Boolean(result.abstention?.abstained || (traffic?.windows ?? 0) < 8 || attackProgression?.verdict === 'ABSTAINED')
+
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* 1. High-Impact Executive Summary Panel */}
             <ExecutiveSummaryPanel
               overallThreat={threatLevel}
-              earlyWarningScore={earlyWarning?.early_warning_score ?? (isElevated ? Math.round(Number(detection?.risk_score ?? 60)) : 12)}
-              earlyWarningLevel={earlyWarning?.early_warning_level ?? (isElevated ? 'HIGH' : 'NORMAL')}
-              forecastVerdict={attackProgression?.verdict ?? (isElevated ? 'ATTACK_TRAJECTORY_DETECTED' : 'STABLE_EQUILIBRIUM')}
-              earliestWarningHorizon={timelinePoints.find((p) => (p.cumulativeRisk ?? 0) >= 0.5)?.horizon ? `T+${timelinePoints.find((p) => (p.cumulativeRisk ?? 0) >= 0.5)?.horizon}` : 'T+1'}
-              projectedStage={timelinePoints[2]?.predictedStage ?? 'NETWORK SERVICE DISCOVERY'}
-              topDriver={driversList[0]?.feature ?? 'unique_dst_ports'}
-              futureRiskPercent={t5 ? t5 * 100 : (isElevated ? 78.6 : 12.4)}
-              isAbstained={result.abstention?.abstained || (traffic?.windows ?? 0) < 8}
-              abstentionReason={result.abstention?.reason}
+              earlyWarningScore={earlyWarning?.early_warning_score ?? (isAbstained ? 0 : (isElevated ? Math.round(Number(detection?.risk_score ?? 60)) : 10))}
+              earlyWarningLevel={earlyWarning?.early_warning_level ?? (isAbstained ? 'NORMAL' : (isElevated ? 'HIGH' : 'NORMAL'))}
+              forecastVerdict={isAbstained ? 'ABSTAINED' : (attackProgression?.verdict ?? (isElevated ? 'ATTACK_TRAJECTORY_DETECTED' : 'STABLE_EQUILIBRIUM'))}
+              earliestWarningHorizon={!isAbstained && timelinePoints.find((p) => (p.cumulativeRisk ?? 0) >= 0.5)?.horizon ? `T+${timelinePoints.find((p) => (p.cumulativeRisk ?? 0) >= 0.5)?.horizon}` : 'None'}
+              projectedStage={isAbstained ? 'Withheld (Abstained)' : (timelinePoints[2]?.predictedStage ?? (isElevated ? 'ANOMALOUS_BURST' : 'STABLE_BENIGN'))}
+              topDriver={driversList[0]?.feature ?? 'None observed'}
+              futureRiskPercent={isAbstained ? 0.0 : (t5 !== null ? t5 * 100 : 0.0)}
+              isAbstained={isAbstained}
+              abstentionReason={result.abstention?.explanation ?? result.abstention?.reason}
             />
 
             {/* 2. Primary Command Center Hero Metrics */}
             <ForecastHero
               currentProbability={currentProb}
-              earlyWarningScore={earlyWarning?.early_warning_score ?? (isElevated ? Math.round(Number(detection?.risk_score ?? 60)) : 12)}
-              earlyWarningLevel={earlyWarning?.early_warning_level ?? (isElevated ? 'HIGH' : 'NORMAL')}
-              t1Risk={t1 ?? (isElevated ? 0.45 : 0.05)}
-              t3Risk={t3 ?? (isElevated ? 0.72 : 0.08)}
-              t5Risk={t5 ?? (isElevated ? 0.88 : 0.12)}
+              earlyWarningScore={earlyWarning?.early_warning_score ?? (isAbstained ? 0 : (isElevated ? Math.round(Number(detection?.risk_score ?? 60)) : 10))}
+              earlyWarningLevel={earlyWarning?.early_warning_level ?? (isAbstained ? 'NORMAL' : (isElevated ? 'HIGH' : 'NORMAL'))}
+              t1Risk={isAbstained ? null : t1}
+              t3Risk={isAbstained ? null : t3}
+              t5Risk={isAbstained ? null : t5}
               currentStage={currentStageStr}
-              forecastConfidence={confidence?.confidence_value ?? 0.82}
+              forecastConfidence={isAbstained ? 0.0 : (confidence?.confidence_value ?? 0.0)}
               lookbackWindows={result.window_count ?? traffic?.windows ?? 8}
             />
 
@@ -180,16 +182,10 @@ export function JobResult({ result, onReset }: JobResultProps) {
 
             {/* 7. Network Future Trajectory Interactive Curve */}
             <ForecastTimeline
-              currentRisk={currentProb ?? 0.05}
-              forecasts={timelinePoints.length > 0 ? timelinePoints : [
-                { horizon: 1, lookaheadSeconds: 60, attackProbability: isElevated ? 0.45 : 0.05, cumulativeRisk: isElevated ? 0.45 : 0.05, riskLevel: isElevated ? 'MEDIUM' : 'LOW', predictedStage: isElevated ? 'RECONNAISSANCE' : 'NORMAL' },
-                { horizon: 2, lookaheadSeconds: 120, attackProbability: isElevated ? 0.58 : 0.06, cumulativeRisk: isElevated ? 0.62 : 0.07, riskLevel: isElevated ? 'HIGH' : 'LOW', predictedStage: isElevated ? 'SERVICE_DISCOVERY' : 'NORMAL' },
-                { horizon: 3, lookaheadSeconds: 180, attackProbability: isElevated ? 0.71 : 0.06, cumulativeRisk: isElevated ? 0.75 : 0.08, riskLevel: isElevated ? 'HIGH' : 'LOW', predictedStage: isElevated ? 'EXPLOITATION' : 'NORMAL' },
-                { horizon: 4, lookaheadSeconds: 240, attackProbability: isElevated ? 0.80 : 0.07, cumulativeRisk: isElevated ? 0.84 : 0.09, riskLevel: isElevated ? 'CRITICAL' : 'LOW', predictedStage: isElevated ? 'COMMAND_CONTROL' : 'NORMAL' },
-                { horizon: 5, lookaheadSeconds: 300, attackProbability: isElevated ? 0.87 : 0.07, cumulativeRisk: isElevated ? 0.90 : 0.10, riskLevel: isElevated ? 'CRITICAL' : 'LOW', predictedStage: isElevated ? 'DENIAL_IMPACT' : 'NORMAL' },
-              ]}
-              abstained={result.abstention?.abstained || (traffic?.windows ?? 0) < 8}
-              abstainedReason={result.abstention?.reason}
+              currentRisk={currentProb ?? 0.0}
+              forecasts={timelinePoints}
+              abstained={isAbstained}
+              abstainedReason={result.abstention?.explanation ?? result.abstention?.reason}
             />
 
             {/* 8. Network State 45-Feature Trajectory */}
@@ -199,31 +195,43 @@ export function JobResult({ result, onReset }: JobResultProps) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(440px, 1fr))', gap: '16px' }}>
               <AttackProgressionTimeline
                 currentStageName={currentStageStr}
-                predictedStageName={timelinePoints[2]?.predictedStage ?? 'EXPLOITATION'}
-                verdict={attackProgression?.verdict ?? (isElevated ? 'SUPPORTED' : 'BASELINE_EQUILIBRIUM')}
+                predictedStageName={isAbstained ? undefined : timelinePoints[2]?.predictedStage}
+                verdict={isAbstained ? 'ABSTAINED' : (attackProgression?.verdict ?? (isElevated ? 'SUPPORTED' : 'BASELINE_EQUILIBRIUM'))}
+                stages={attackProgression?.timeline ? attackProgression.timeline.map((ev: any) => ({
+                  stage: ev.stage,
+                  name: ev.display_name || ev.stage,
+                  horizon: ev.horizon_label || 'T0',
+                  lookaheadSeconds: ev.lead_time_seconds || 0,
+                  risk: (ev.confidence ?? 0) >= 0.75 ? 'CRITICAL' : (ev.confidence ?? 0) >= 0.5 ? 'HIGH' : (ev.confidence ?? 0) >= 0.25 ? 'MEDIUM' : 'LOW',
+                  probability: ev.confidence ?? 0.0,
+                  evidence: ev.description || '',
+                  mitreId: ev.primary_techniques?.[0] || 'N/A',
+                  isCurrent: ev.horizon_label === 'T0',
+                  isForecasted: ev.classification === 'FORECAST',
+                })) : undefined}
               />
               <MitreBehaviorPanel
                 observedStage={currentStageStr}
-                predictedStage={timelinePoints[2]?.predictedStage ?? 'EXPLOITATION'}
+                predictedStage={isAbstained ? null : (timelinePoints[2]?.predictedStage ?? null)}
+                techniques={attackProgression?.observed_techniques ? attackProgression.observed_techniques.map((t: string) => ({
+                  id: t,
+                  technique: t,
+                  tactic: 'Observed Telemetry',
+                  horizon: 'T0',
+                  risk: isElevated ? 'HIGH' : 'LOW',
+                  evidence: 'Directly corroborated by passive telemetry extraction.',
+                  mappingRationale: 'Observed in current network activity.',
+                })) : []}
               />
             </div>
 
             {/* 10. Continuous Attribution & Driver Explainability */}
             <ExplainabilityPanel
-              drivers={driversList.length > 0 ? driversList : [
-                { feature: 'unique_dst_ports', current_value: 4, predicted_value: 28, direction: 'increasing', relative_change: 6.0, importance: 'HIGH', interpretation: 'Port cardinality surges rapidly across endpoints, representing systematic reconnaissance and scanning.' },
-                { feature: 'mean_iat', current_value: 42.5, predicted_value: 12.1, direction: 'decreasing', relative_change: -0.71, importance: 'HIGH', interpretation: 'Inter-arrival transmission gap collapses into high-velocity automated burst pacing.' },
-                { feature: 'total_packets', current_value: 180, predicted_value: 750, direction: 'increasing', relative_change: 3.16, importance: 'MEDIUM', interpretation: 'Packet volume accelerates significantly above baseline stationary distribution.' },
-                { feature: 'proto_tcp_count', current_value: 150, predicted_value: 680, direction: 'increasing', relative_change: 3.53, importance: 'MEDIUM', interpretation: 'TCP transport traffic concentration expands with heavy flag synchronization activity.' },
-              ]}
-              earlyWarningDrivers={earlyWarning?.drivers ?? [
-                'Cumulative 5-window threat risk accumulates toward high likelihood.',
-                'Forward trajectory exhibits accelerating risk delta over initial 180s.',
-                'Target port diversity divergence consistent with reconnaissance kinematics.',
-              ]}
-              abstainedReason={result.abstention?.abstained ? result.abstention.reason : null}
+              drivers={driversList}
+              earlyWarningDrivers={earlyWarning?.drivers ?? (isAbstained ? ['Forecasting withheld by safety guardrails.'] : ['Baseline network telemetry conforms to stable bounds.'])}
+              abstainedReason={isAbstained ? (result.abstention?.explanation ?? result.abstention?.reason ?? 'Forecasting withheld.') : null}
               currentStage={currentStageStr}
-              predictedStage={timelinePoints[2]?.predictedStage ?? 'EXPLOITATION'}
+              predictedStage={isAbstained ? 'ABSTAINED' : (timelinePoints[2]?.predictedStage ?? 'NORMAL')}
             />
           </div>
         )

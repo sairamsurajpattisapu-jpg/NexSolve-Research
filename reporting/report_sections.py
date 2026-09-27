@@ -190,6 +190,7 @@ def build_forecast_section(
     forecasts: list[dict[str, Any]],
     model_version: str,
     abstention: dict[str, Any] | None,
+    forecast_engine: dict[str, Any] | None = None,
 ) -> ForecastSection:
     points: list[ForecastPointReport] = []
     is_abstained = bool(abstention and abstention.get("abstained"))
@@ -243,7 +244,11 @@ def build_forecast_section(
                     )
                 )
     else:
-        summary = f"Generated {len(points)} multi-step temporal forecast horizons (60s intervals)."
+        eng_name = (forecast_engine.get("name") if forecast_engine else None) or model_version
+        if forecast_engine and forecast_engine.get("status") == "research":
+            summary = f"Generated {len(points)} multi-step temporal forecast horizons via {eng_name} [RESEARCH CANDIDATE — NOT VERIFIED FOR PRODUCTION]."
+        else:
+            summary = f"Generated {len(points)} multi-step temporal forecast horizons (60s intervals) via {eng_name}."
 
     return ForecastSection(
         model_version=model_version,
@@ -251,6 +256,7 @@ def build_forecast_section(
         decision_threshold=0.50,
         abstained=is_abstained,
         summary=summary,
+        forecast_engine=forecast_engine,
     )
 
 
@@ -514,12 +520,38 @@ def build_attack_progression(
 
     is_abstained = bool(progression.get("verdict") == "ABSTAINED" or (abstention and abstention.get("abstained")))
     ab_reason = progression.get("summary") if is_abstained else None
+    reason_msg = ab_reason or (abstention.get("explanation") if abstention else "Forecast engine abstained.")
 
     raw_conf = progression.get("stage_confidence", 0.0)
     stage_conf = float(raw_conf) if raw_conf is not None else 0.0
 
     raw_tech_conf = progression.get("technique_confidence", 0.0)
     tech_conf = float(raw_tech_conf) if raw_tech_conf is not None else 0.0
+
+    raw_timeline = list(progression.get("timeline", []))
+    sanitized_timeline = []
+    for ev in raw_timeline:
+        ev_copy = dict(ev)
+        h_lbl = str(ev_copy.get("horizon_label", ""))
+        lead_time = int(ev_copy.get("lead_time_seconds", 0) or 0)
+        is_future = bool(h_lbl.startswith("T+") or lead_time > 0)
+        if is_abstained and is_future:
+            ev_copy["stage"] = "UNKNOWN"
+            ev_copy["display_name"] = "Unknown / Abstained"
+            ev_copy["classification"] = "UNKNOWN"
+            ev_copy["confidence"] = 0.0
+            ev_copy["stage_confidence"] = 0.0
+            ev_copy["technique_confidence"] = 0.0
+            ev_copy["primary_techniques"] = []
+            ev_copy["secondary_stages"] = []
+            ev_copy["supporting_evidence"] = []
+            ev_copy["contradictory_evidence"] = []
+            ev_copy["supporting_evidence_count"] = 0
+            ev_copy["contradictory_evidence_count"] = 0
+            ev_copy["description"] = f"FORECAST ABSTAINED: {reason_msg}"
+        sanitized_timeline.append(ev_copy)
+
+    sanitized_transitions = [] if is_abstained else list(progression.get("transitions", []))
 
     return AttackProgressionSection(
         current_stage=canonical.value,
@@ -528,8 +560,8 @@ def build_attack_progression(
         stage_confidence=round(stage_conf, 4),
         technique_confidence=round(tech_conf, 4),
         observed_techniques=list(progression.get("observed_techniques", [])),
-        timeline=list(progression.get("timeline", [])),
-        transitions=list(progression.get("transitions", [])),
+        timeline=sanitized_timeline,
+        transitions=sanitized_transitions,
         validation=dict(progression.get("validation", {"valid": True, "issues": [], "warnings": []})),
         abstained=is_abstained,
         abstention_reason=ab_reason,

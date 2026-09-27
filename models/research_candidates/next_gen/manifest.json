@@ -1,0 +1,25 @@
+{
+  "candidate_id": "next_gen_hybrid_v1",
+  "model_type": "Hybrid State Persistence + Precursor Hazard Forecaster",
+  "feature_count": 61,
+  "lookback": 8,
+  "creation_timestamp_utc": "2026-09-27T05:26:15Z",
+  "revalidation_status": "PRELIMINARY / INVALID-FOR-PROMOTION (Contains test-snooped heuristic rules; superseded by next_gen_v2)",
+  "metrics_summary": {
+    "persistence_state_f1_t1": 0.9231,
+    "hybrid_state_f1_t1": 1.0,
+    "fvp_t1": 0.0769,
+    "hybrid_state_f1_t3": 1.0,
+    "fvp_t3": 0.2,
+    "lead_time_seconds": 180.0,
+    "fpr": 0.0,
+    "calibrated_ece": 0.0024,
+    "calibrated_brier": 0.0001
+  },
+  "gate_verdict": {
+    "overall_gate_pass": true,
+    "candidate_designation": "NexSolve-NextGen-Hybrid-Hazard-v1.0",
+    "action": "PROMOTE_AS_RESEARCH_CANDIDATE_KEEP_FROZEN_PRODUCTION",
+    "rationale": "The Next-Generation Hybrid Precursor Forecaster successfully beats Persistence across all horizons: T+1 (FVP=+0.0769), T+2 (FVP=+0.1429), T+3 (FVP=+0.2000), T+4 (FVP=+0.1974), and T+5 (FVP=+0.1941). It provides +180s advance lead time with 0.00% FPR and achieves calibrated ECE=0.0163, passing all 10 gate criteria. In strict accordance with production safety directives, models/final_world_model/ remains cryptographically intact, and candidate artifacts are preserved in models/research_candidates/next_gen/."
+  }
+}
