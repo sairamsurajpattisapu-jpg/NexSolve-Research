@@ -1164,22 +1164,22 @@ async def get_entity_world_timeline(entity_id: str, analysis_id: str = "current"
 @app.get("/api/model/info")
 async def get_model_info() -> dict[str, Any]:
     """Return explicit model artifact metadata, schema definitions, and promotion status."""
-    schema_45_path = ROOT / "models" / "nexsolve_world_model_45" / "feature_schema.json"
-    schema_45_features = []
-    if schema_45_path.exists():
-        try:
-            s_data = json.loads(schema_45_path.read_text(encoding="utf-8"))
-            schema_45_features = s_data.get("flow_features", []) + s_data.get("packet_features", []) + s_data.get("temporal_features", [])
-        except Exception:
-            pass
+    from world_model import FEATURE_NAMES_45
+    final_model_dir = ROOT / "models" / "final_world_model"
+    manifest_path = final_model_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
 
     return {
         "status": "success",
-        "model_name": "nexsolve_world_model_45",
-        "version": "1.0.0",
-        "feature_version": "pcap_v1",
+        "model_name": "final_world_model",
+        "model_id": "final_world_model",
+        "version": "3.0.0",
+        "feature_version": "18_family_world_model_v1",
         "feature_count": 45,
-        "canonical_features": schema_45_features,
+        "canonical_features": FEATURE_NAMES_45,
+        "model_status": "AUTHORITATIVE_FINAL_MODEL",
+        "frozen": True,
+        "manifest": manifest,
         "champion_baseline": {
             "name": "Persistence Baseline",
             "formula": "Y_{t+k} = Y_t",
@@ -1187,10 +1187,10 @@ async def get_model_info() -> dict[str, Any]:
             "rationale": "Empirical testing confirmed persistence achieves lowest Brier calibration error across contiguous evaluation episodes.",
         },
         "research_candidate": {
-            "name": "NumPy LSTM45",
-            "architecture": "Autoregressive LSTM (45 inputs, 24 hidden units, seq length 8)",
-            "status": "SCIENTIFIC_HOLD",
-            "rationale": "Gated under strict NexSolve promotion criteria: did not beat persistence across all 5 horizons.",
+            "name": "Candidate V2",
+            "architecture": "Unified World Model v2",
+            "status": "FROZEN_BASELINE",
+            "rationale": "Frozen baseline serving as input parity comparator for Final World Model v3.0.0.",
         },
         "temporal_parameters": {
             "window_duration_seconds": 60,

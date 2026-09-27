@@ -74,10 +74,10 @@ export function Reports() {
                 REPORTS
               </span>
               <h2 style={{ margin: '4px 0 8px 0', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-                No Analysis Report Available
+                No reports available
               </h2>
               <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--text-secondary)', maxWidth: '440px', lineHeight: 1.55 }}>
-                Execute a PCAP analysis to compile and export an executive assessment report.
+                No reports available. Complete an analysis to generate a report.
               </p>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '6px' }}>

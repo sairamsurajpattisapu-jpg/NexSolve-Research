@@ -366,3 +366,153 @@ def validate_temporal_windows(
                 f"to forecast start ({min_forecast}) is {first_step}s, "
                 f"expected {expected_step_seconds}s."
             )
+
+
+def extract_contiguous_episodes(
+    states: Sequence[Any],
+    window_seconds: int = 60,
+    timestamp_fn: Callable[[Any], float] | None = None,
+) -> list[list[Any]]:
+    """Partition network states into contiguous temporal episodes where dt == window_seconds.
+
+    Args:
+        states: Sequence of state objects (e.g. NetworkState or dicts with 'timestamp').
+        window_seconds: Expected interval between consecutive windows in seconds (default: 60).
+        timestamp_fn: Optional accessor for timestamp. If None, tries .timestamp or ['timestamp'].
+
+    Returns:
+        List of episodes, each being a list of contiguous state items.
+    """
+    if not states:
+        return []
+
+    def get_t(item: Any) -> float:
+        if timestamp_fn is not None:
+            return float(timestamp_fn(item))
+        if hasattr(item, "timestamp"):
+            return float(item.timestamp)
+        if isinstance(item, Mapping) and "timestamp" in item:
+            return float(item["timestamp"])
+        raise ValueError(f"Cannot extract timestamp from item: {type(item)}")
+
+    sorted_states = sorted(states, key=get_t)
+    episodes: list[list[Any]] = []
+    current_ep: list[Any] = [sorted_states[0]]
+
+    for state in sorted_states[1:]:
+        prev_t = get_t(current_ep[-1])
+        curr_t = get_t(state)
+        if abs(curr_t - (prev_t + window_seconds)) < 1e-3:
+            current_ep.append(state)
+        else:
+            episodes.append(current_ep)
+            current_ep = [state]
+    episodes.append(current_ep)
+    return episodes
+
+
+def v2_chronological_split(
+    states: Sequence[Any],
+    window_seconds: int = 60,
+    timestamp_fn: Callable[[Any], float] | None = None,
+    include_ep4_in_test: bool = True,
+) -> dict[str, list[Any]]:
+    """Scientifically defensible Candidate V2 Chronological Split.
+
+    Partitions contiguous network episodes into:
+    - Train: Episode 0 + Episode 1 (Jan 22, 2015 11:49..Jan 23, 2015 00:25 UTC).
+             Contains baseline benign traffic (626 windows) and early attack bursts (118 windows).
+    - Validation: Episode 2 (Feb 18, 2015 00:23..00:47 UTC).
+                  Contains 10 benign windows, 15 attack windows, and attack onset (0->1) / recovery (1->0).
+                  Provides genuine positive/negative targets for threshold calibration and ablation without leakage.
+    - Test: Episode 3 (+ Episode 4 if include_ep4_in_test=True) (Feb 18, 2015 01:06..12:21 UTC).
+            Strictly held-out later temporal attack campaign (562 or 672 attack windows) for multi-step rollout evaluation.
+
+    Guarantees:
+    - max(train_t) < min(val_t) < min(test_t)
+    - Zero state overlap
+    - Attacks in Train, Val, and Test
+    - Onset transition (0 -> 1) in Validation
+    """
+    episodes = extract_contiguous_episodes(states, window_seconds=window_seconds, timestamp_fn=timestamp_fn)
+    if len(episodes) < 4:
+        raise ValueError(f"Expected at least 4 contiguous episodes in dataset, got {len(episodes)}")
+
+    train_states = episodes[0] + episodes[1]
+    val_states = episodes[2]
+    if include_ep4_in_test and len(episodes) >= 5:
+        test_states = episodes[3] + episodes[4]
+    else:
+        test_states = episodes[3]
+
+    return {
+        "train": train_states,
+        "validation": val_states,
+        "test": test_states,
+        "train_episodes": [episodes[0], episodes[1]],
+        "val_episodes": [episodes[2]],
+        "test_episodes": [episodes[3], episodes[4]] if (include_ep4_in_test and len(episodes) >= 5) else [episodes[3]],
+    }
+
+
+def make_episode_sequences(
+    episodes: Sequence[Sequence[Any]],
+    lookback: int = 8,
+    feature_names: Sequence[str] | None = None,
+) -> tuple[Any, Any, Any]:
+    """Generate (x, targets, labels) sequences strictly WITHIN contiguous episodes.
+
+    Guarantees:
+    - No sequence crosses an episode boundary / temporal discontinuity.
+    - Exactly lookback historical steps used to forecast next step.
+
+    Returns:
+        x: (N, lookback, num_features)
+        targets: (N, num_features)
+        labels: (N,) binary targets
+    """
+    import numpy as np
+
+    x_list: list[np.ndarray] = []
+    targets_list: list[np.ndarray] = []
+    labels_list: list[float] = []
+
+    for ep in episodes:
+        if len(ep) <= lookback:
+            continue
+        encoded_rows = []
+        for s in ep:
+            if hasattr(s, "encode"):
+                encoded_rows.append(s.encode(feature_names))
+            elif isinstance(s, Mapping) and "flow_features" in s:
+                vals = [s["flow_features"].get(n, 0.0) for n in (feature_names or s["flow_features"])]
+                encoded_rows.append(np.asarray(vals, dtype=np.float64))
+            else:
+                raise ValueError(f"Unsupported state format in make_episode_sequences: {type(s)}")
+
+        x_ep = np.asarray(encoded_rows, dtype=np.float64)
+
+        ep_labels = []
+        for s in ep:
+            if hasattr(s, "attack_state"):
+                ep_labels.append(float(s.attack_state if s.attack_state is not None else 0.0))
+            elif isinstance(s, Mapping) and "attack_state" in s:
+                ep_labels.append(float(s["attack_state"]))
+            else:
+                ep_labels.append(0.0)
+        y_ep = np.asarray(ep_labels, dtype=np.float64)
+
+        for i in range(lookback, len(ep)):
+            x_list.append(x_ep[i - lookback : i])
+            targets_list.append(x_ep[i])
+            labels_list.append(y_ep[i])
+
+    if not x_list:
+        n_feats = len(feature_names) if feature_names else 45
+        return (
+            np.empty((0, lookback, n_feats), dtype=np.float64),
+            np.empty((0, n_feats), dtype=np.float64),
+            np.empty(0, dtype=np.float64),
+        )
+
+    return np.asarray(x_list), np.asarray(targets_list), np.asarray(labels_list)

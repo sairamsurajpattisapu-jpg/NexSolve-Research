@@ -114,10 +114,35 @@ export function adaptToCanonical(
     raw.window_count || validation.window_count || traffic.window_count || traffic.windows || traffic.windows_analyzed || validation.rows || 0
   )
   const isModelReady = Boolean(modelCompat.forecast_model_ready ?? (windowsCount >= 8))
-  const isAbstained = Boolean(abstention.abstained || attackHorizon?.state === 'ABSTAINED' || windowsCount < 8)
+  const isAbstained = Boolean(
+    abstention.abstained ||
+    (abstention as any).is_abstained ||
+    raw.is_abstained ||
+    attackHorizon?.state === 'ABSTAINED' ||
+    windowsCount < 8
+  )
 
   // Forecast Points
-  const rawForecasts = (raw.forecasts as Array<Record<string, unknown>>) || []
+  let rawForecasts = (raw.forecasts as Array<Record<string, unknown>>) || []
+  if (rawForecasts.length === 0 && raw.forecast && typeof raw.forecast === 'object') {
+    const fMap = raw.forecast as Record<string, any>
+    rawForecasts = [1, 2, 3, 4, 5].map((h) => {
+      const pt = fMap[`T+${h}`] || {}
+      return {
+        horizon: h,
+        lookaheadSeconds: Number(pt.lookahead_seconds ?? pt.lookaheadSeconds ?? h * 60),
+        attackProbability: pt.attack_probability !== undefined ? pt.attack_probability : null,
+        cumulativeRisk: pt.attack_probability !== undefined && pt.attack_probability !== null ? Math.min(1.0, pt.attack_probability * (1 + (h - 1) * 0.15)) : null,
+        predictedStage: pt.predicted_stage || null,
+        riskLevel: pt.risk_level || classifyRisk(pt.attack_probability),
+        confidence: pt.confidence_score !== undefined ? pt.confidence_score : null,
+        uncertainty: pt.confidence_score !== undefined ? Math.max(0, 1.0 - pt.confidence_score) : null,
+        explanation: pt.predicted_stage ? [`State dynamics project ${pt.predicted_stage} at T+${h}`] : [],
+        topDrivers: [],
+        evidenceAttribution: null,
+      }
+    })
+  }
   const points: CanonicalForecastPoint[] = []
 
   // Ensure horizons 1..5
@@ -191,7 +216,7 @@ export function adaptToCanonical(
         predictedStage: null,
         confidence: null,
         uncertainty: null,
-        explanation: [isAbstained ? (abstention.reason as string || 'Forecast withheld: Insufficient continuous temporal history (< 8 windows).') : 'Forecast point withheld.'],
+        explanation: [isAbstained ? ((abstention.reason || (abstention as any).explanation || raw.abstention_explanation) as string || 'Forecast withheld: Insufficient continuous temporal history (< 8 windows).') : 'Forecast point withheld.'],
         topDrivers: [],
         evidenceAttribution: null,
       })
@@ -199,17 +224,22 @@ export function adaptToCanonical(
   })
 
   // Feature vector extraction (45 features)
+  const rawFeatures = (raw.current_state as Record<string, any>)?.features
+    || (raw.currentState as Record<string, any>)?.features
+    || (raw.network_state as Record<string, any>)?.features
+    || {}
   const features: FeatureDescriptor[] = Object.entries(CANONICAL_FEATURE_SEMANTICS).map(([name, meta]) => {
     let val: number | string = 0
-    if (traffic[name] !== undefined) {
+    if (traffic[name] !== undefined && traffic[name] !== null) {
       val = traffic[name] as number
+    } else if (rawFeatures[name] !== undefined && rawFeatures[name] !== null) {
+      val = rawFeatures[name] as number
     } else if (name.startsWith('proto_')) {
       const p = name.replace('proto_', '').replace('_count', '').toUpperCase()
       const protoCounts = (traffic.protocol_counts as Record<string, number>) || {}
       val = protoCounts[p] || 0
     } else {
-      // Default baseline stationary values for demonstration
-      val = meta.unit === 'ms' ? 14.2 : meta.unit === 'hops' ? 64 : meta.unit.includes('bytes') ? 512 : 1
+      val = 0
     }
 
     return {
@@ -247,88 +277,46 @@ export function adaptToCanonical(
   }
 
   // Attack progression stages
-  const rawStages = (progressionRaw?.forecast_points as Array<Record<string, unknown>>) || []
+  const rawStages = (progressionRaw?.forecast_points as Array<Record<string, unknown>>)
+    || (progressionRaw?.stages as Array<Record<string, unknown>>)
+    || []
   const stages: ProgressionStage[] = rawStages.map((st, idx) => {
-    const pState = String(st.predicted_state || 'BENIGN_OBSERVATION')
+    const pState = String(st.predicted_state || st.name || 'BENIGN_OBSERVATION')
     const mitreTech = String(st.predicted_technique || (pState === 'RECONNAISSANCE' ? 'T1046' : pState === 'DENIAL_OF_SERVICE' ? 'T1498' : pState === 'COMMAND_AND_CONTROL' ? 'T1071' : 'T1190'))
     return {
-      step: idx + 1,
-      horizonMinutes: Number(st.horizon_minutes || idx + 1),
+      step: Number(st.horizon_step ?? st.step ?? idx + 1),
+      horizonMinutes: Number(st.horizon_minutes || st.horizon_step || idx + 1),
       leadTimeSeconds: Number(st.lead_time_seconds || (idx + 1) * 60),
       predictedState: pState,
-      predictionType: (st.prediction_type as any) || 'STATE_PERSISTENCE',
-      transitionProbability: typeof st.transition_probability === 'number' ? st.transition_probability : null,
-      evidence: Array.isArray(st.supporting_evidence) ? st.supporting_evidence.map(String) : [],
+      predictionType: (st.prediction_type as any) || (st.status === 'OBSERVED' ? 'STATE_PERSISTENCE' : 'DOWNSTREAM_PROGRESSION'),
+      transitionProbability: typeof st.transition_probability === 'number' ? st.transition_probability : typeof st.probability === 'number' ? st.probability : null,
+      evidence: Array.isArray(st.supporting_evidence) ? st.supporting_evidence.map(String) : Array.isArray(st.evidence) ? st.evidence.map(String) : [],
       abstained: Boolean(st.abstained),
       abstentionReason: (st.abstention_reason as string) || null,
       mitreTechnique: mitreTech,
-      behavioralRationale: Array.isArray(st.supporting_evidence) && st.supporting_evidence.length > 0 ? String(st.supporting_evidence[0]) : null,
+      behavioralRationale: Array.isArray(st.supporting_evidence) && st.supporting_evidence.length > 0 ? String(st.supporting_evidence[0]) : (st.description as string) || null,
     }
   })
 
   if (stages.length === 0 && !isAbstained) {
-    stages.push(
-      {
-        step: 1,
-        horizonMinutes: 1,
-        leadTimeSeconds: 60,
-        predictedState: 'RECONNAISSANCE',
-        predictionType: 'STATE_PERSISTENCE',
-        transitionProbability: 0.975,
-        evidence: ['Sustained destination port diversity', 'Automated scanning cadence'],
-        abstained: false,
-        mitreTechnique: 'T1046',
-        behavioralRationale: 'Continuous destination port diversity and scan cadence observed at T.',
-      },
-      {
-        step: 2,
-        horizonMinutes: 2,
-        leadTimeSeconds: 120,
-        predictedState: 'RECONNAISSANCE',
-        predictionType: 'STATE_PERSISTENCE',
-        transitionProbability: 0.950,
-        evidence: ['Port enumeration persists across forward window'],
-        abstained: false,
-        mitreTechnique: 'T1046',
-        behavioralRationale: 'High probability persistence of active scanning across second window.',
-      },
-      {
-        step: 3,
-        horizonMinutes: 3,
-        leadTimeSeconds: 180,
-        predictedState: 'EXPLOITATION',
-        predictionType: 'DOWNSTREAM_PROGRESSION',
-        transitionProbability: 0.873,
-        evidence: ['Burst volume on target web ports', 'TCP SYN flag dominance'],
-        abstained: false,
-        mitreTechnique: 'T1190',
-        behavioralRationale: 'Downstream transition probability into public service exploitation.',
-      },
-      {
-        step: 4,
-        horizonMinutes: 4,
-        leadTimeSeconds: 240,
-        predictedState: 'COMMAND_AND_CONTROL',
-        predictionType: 'DOWNSTREAM_PROGRESSION',
-        transitionProbability: 0.880,
-        evidence: ['Asymmetric payload transfer on remote port'],
-        abstained: false,
-        mitreTechnique: 'T1071',
-        behavioralRationale: 'Downstream beaconing channel establishment.',
-      },
-      {
-        step: 5,
-        horizonMinutes: 5,
-        leadTimeSeconds: 300,
-        predictedState: 'DENIAL_OF_SERVICE',
-        predictionType: 'DOWNSTREAM_PROGRESSION',
-        transitionProbability: 0.890,
-        evidence: ['Packet volume surge consistent with flood onset'],
-        abstained: false,
-        mitreTechnique: 'T1498',
-        behavioralRationale: 'Downstream resource exhaustion attempt.',
+    points.forEach((pt) => {
+      if (pt.stepAttackProbability !== null) {
+        const pState = pt.predictedStage || (pt.stepAttackProbability >= 0.5 ? 'ATTACK_IMMINENT' : 'BENIGN_OBSERVATION')
+        const tech = pState === 'RECONNAISSANCE' ? 'T1046' : pState === 'DENIAL_OF_SERVICE' ? 'T1498' : pState === 'COMMAND_AND_CONTROL' ? 'T1071' : 'T1190'
+        stages.push({
+          step: pt.horizon,
+          horizonMinutes: pt.horizon,
+          leadTimeSeconds: pt.lookaheadSeconds,
+          predictedState: pState,
+          predictionType: 'STATE_PERSISTENCE',
+          transitionProbability: pt.stepAttackProbability,
+          evidence: pt.explanation || [],
+          abstained: false,
+          mitreTechnique: tech,
+          behavioralRationale: `Observed ${pState} at T+${pt.horizon} (probability: ${(pt.stepAttackProbability * 100).toFixed(1)}%).`,
+        })
       }
-    )
+    })
   }
 
   // MITRE technique mappings
@@ -360,44 +348,32 @@ export function adaptToCanonical(
   ]
 
   // Explainability drivers
-  const explanationDrivers: FeatureExplanationItem[] = [
-    {
-      feature: 'mean_iat',
-      currentValue: 42.5,
-      predictedValue: 11.2,
-      direction: 'decreasing',
-      relativeChange: -0.736,
-      importance: 'HIGH',
-      interpretation: 'Inter-arrival transmission gap collapses into high-velocity automated burst pacing.',
-    },
-    {
-      feature: 'unique_dst_ports',
-      currentValue: 4,
-      predictedValue: 32,
-      direction: 'increasing',
-      relativeChange: 7.0,
-      importance: 'HIGH',
-      interpretation: 'Target port cardinality surges across endpoints, indicating systematic port scanning.',
-    },
-    {
-      feature: 'mean_swin',
-      currentValue: 29200,
-      predictedValue: 14600,
-      direction: 'decreasing',
-      relativeChange: -0.5,
-      importance: 'MEDIUM',
-      interpretation: 'Client TCP window size shrinks, characteristic of scripted flooding tools.',
-    },
-    {
-      feature: 'delta_flow_count',
-      currentValue: 12,
-      predictedValue: 84,
-      direction: 'increasing',
-      relativeChange: 6.0,
-      importance: 'MEDIUM',
-      interpretation: 'New 5-tuple flow initiation velocity accelerates significantly above stationary baseline.',
-    },
-  ]
+  const explanationDrivers: FeatureExplanationItem[] = []
+  if (points.length > 0 && points[0].topDrivers && points[0].topDrivers.length > 0) {
+    points[0].topDrivers.forEach((d: any) => {
+      explanationDrivers.push({
+        feature: String(d.feature || 'driver'),
+        currentValue: Number(d.current_value ?? d.currentValue ?? 0),
+        predictedValue: Number(d.predicted_value ?? d.predictedValue ?? 0),
+        direction: (d.direction as any) || 'stable',
+        relativeChange: Number(d.relative_change ?? d.relativeChange ?? 0),
+        importance: (d.importance as any) || 'MEDIUM',
+        interpretation: String(d.interpretation || 'Temporal feature trajectory influence.'),
+      })
+    })
+  } else if (raw.network_risk_indicators && Array.isArray(raw.network_risk_indicators)) {
+    raw.network_risk_indicators.slice(0, 4).forEach((ind: any) => {
+      explanationDrivers.push({
+        feature: String(ind.indicator_type || 'risk_indicator'),
+        currentValue: Number(ind.current_value ?? 0),
+        predictedValue: Number(ind.predicted_value ?? 0),
+        direction: ind.severity === 'HIGH' || ind.severity === 'CRITICAL' ? 'increasing' : 'stable',
+        relativeChange: 0,
+        importance: ind.severity === 'CRITICAL' ? 'HIGH' : 'MEDIUM',
+        interpretation: String(ind.observation || ind.description || 'Observed network risk indicator.'),
+      })
+    })
+  }
 
   // Evidence Chain nodes
   const rawSupporting = (evidenceChain?.supporting as Array<Record<string, unknown>>) || []
@@ -439,10 +415,10 @@ export function adaptToCanonical(
     input: {
       filename: (sourceObj.name as string) || (uploadObj.filename as string) || 'capture.pcap',
       format,
-      sizeBytes: Number(uploadObj.size_bytes || sourceObj.size_bytes || 4194304),
+      sizeBytes: Number(uploadObj.size_bytes || uploadObj.file_size_bytes || sourceObj.size_bytes || 0),
       captureDurationSeconds: Number(traffic.duration_seconds || traffic.temporal_window_coverage_seconds || windowsCount * 60),
-      packetCount: Number(traffic.packets || traffic.packet_count || 14250),
-      flowCount: Number(traffic.flows || 3120),
+      packetCount: Number(traffic.packets || traffic.total_packets || traffic.packet_count || 0),
+      flowCount: Number(traffic.flows || traffic.total_flows || traffic.flow_count || 0),
       windowCount: windowsCount,
     },
 
@@ -465,11 +441,11 @@ export function adaptToCanonical(
         packets: Number(raw.packet_count || traffic.total_packets || traffic.packet_count || traffic.packets || 0),
         flows: Number(traffic.total_flows || traffic.flow_count || traffic.flows || 0),
         bytes: Number(traffic.total_bytes || traffic.bytes || 0),
-        uniqueSrcIps: Number(traffic.unique_src_ips || 12),
-        uniqueDstIps: Number(traffic.unique_dst_ips || 4),
-        uniqueDstPorts: Number(traffic.unique_dst_ports || 8),
-        protocols: (traffic.protocol_counts as Record<string, number>) || { TCP: 8500, UDP: 1200, ICMP: 50 },
-        threatLevel: (detection.threat_level as any) || 'medium',
+        uniqueSrcIps: Number(traffic.unique_src_ips || 0),
+        uniqueDstIps: Number(traffic.unique_dst_ips || 0),
+        uniqueDstPorts: Number(traffic.unique_dst_ports || 0),
+        protocols: (traffic.protocol_counts as Record<string, number>) || {},
+        threatLevel: (detection.threat_level as any) || 'low',
       },
       features,
     },
@@ -545,52 +521,17 @@ export function adaptToCanonical(
         forecastHorizonSteps: 5,
       },
       model: {
-        champion: 'Persistence Baseline (Empirical Champion)',
-        researchHold: 'LSTM45 Research Candidate (Hold status)',
+        champion: 'Final Network World Model v3.0.0 (Authoritative)',
+        researchHold: 'Candidate V2 (Frozen Baseline)',
         inputDimension: 45,
         outputMode: 'Multi-Step Trajectory Rollout (T+1 .. T+5)',
-        decisionThreshold: 0.5,
+        decisionThreshold: 0.3,
       },
       chain: {
-        strength: Number(evidenceChain?.evidence_strength || 0.85),
-        quality: String(evidenceChain?.evidence_quality || 'HIGH'),
-        supporting: supportingNodes.length > 0 ? supportingNodes : [
-          {
-            name: 'unique_dst_ports',
-            observed: 32,
-            baseline: 4,
-            delta: 28,
-            direction: 'INCREASE',
-            severity: 'HIGH',
-            isSupporting: true,
-            explanation: 'Destination port cardinality surged by +700%, indicating active network reconnaissance.',
-            reliability: 0.94,
-          },
-          {
-            name: 'mean_iat',
-            observed: 11.2,
-            baseline: 42.5,
-            delta: -31.3,
-            direction: 'DECREASE',
-            severity: 'HIGH',
-            isSupporting: true,
-            explanation: 'Inter-arrival timing collapsed by -73.6%, reflecting automated high-speed request pacing.',
-            reliability: 0.91,
-          },
-        ],
-        contradictory: contradictoryNodes.length > 0 ? contradictoryNodes : [
-          {
-            name: 'tcp_rst_count',
-            observed: 2,
-            baseline: 3,
-            delta: -1,
-            direction: 'STABLE',
-            severity: 'LOW',
-            isSupporting: false,
-            explanation: 'TCP connection abort rate remains low and stable, counterbalancing brute-force hypotheses.',
-            reliability: 0.88,
-          },
-        ],
+        strength: Number(evidenceChain?.evidence_strength ?? 0.85),
+        quality: String(evidenceChain?.evidence_quality || (supportingNodes.length > 0 ? 'HIGH' : 'DEGRADED')),
+        supporting: supportingNodes,
+        contradictory: contradictoryNodes,
         limitations: [
           'Passive packet capture cannot measure TCP round-trip latency without active probes; mean_tcp_rtt is strictly excluded to prevent zero-filling or synthetic imputation.',
           'Forecasts require at least 8 continuous 60-second temporal windows (480s) to establish network state momentum.',
@@ -603,6 +544,13 @@ export function adaptToCanonical(
       jsonUrl: `${apiBase}/jobs/${analysisId}/report.json`,
       htmlUrl: `${apiBase}/jobs/${analysisId}/report.html`,
     },
+
+    networkRiskIndicators: Array.isArray(raw.network_risk_indicators)
+      ? raw.network_risk_indicators
+      : Array.isArray((raw.final_world_model as any)?.network_risk_indicators)
+      ? (raw.final_world_model as any).network_risk_indicators
+      : [],
+    uncertaintyDiagnostics: (raw.uncertainty as Record<string, any>) || (raw.final_world_model as any)?.uncertainty || null,
 
     temporalGraph: (raw as any).temporal_graph || (raw as any).temporalGraph,
     graphFusion: (raw as any).graph_fusion || (raw as any).graphFusion,

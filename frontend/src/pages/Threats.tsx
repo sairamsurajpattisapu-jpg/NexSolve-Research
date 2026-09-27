@@ -1,5 +1,6 @@
-import { ChevronDown, ChevronRight, Search, SlidersHorizontal } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ChevronDown, ChevronRight, FileUp, Search, SlidersHorizontal } from 'lucide-react'
 import { ForecastTrustPanel } from '../components/ForecastTrustPanel'
 import { EmptyState, ErrorState, LoadingState, Panel, SectionHeading, SeverityPill } from '../components/Ui'
 import { formatTimestamp } from '../utils/format'
@@ -12,7 +13,32 @@ export function Threats() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   if (loading) return <LoadingState message="Loading detection findings" />
-  if (error || !data) return <ErrorState message={error ?? 'No analysis has been loaded.'} onRetry={() => void reload()} />
+  if (error) return <ErrorState message={error} onRetry={() => void reload()} />
+
+  if (!data || !data.results?.detection) {
+    return (
+      <div className="page-stack page-enter" style={{ width: '100%', padding: '20px 0 40px 0' }}>
+        <SectionHeading
+          eyebrow="Threat Assessment"
+          title="Detection Findings & Evidence Trail"
+          description="Traffic-derived adversary indicators, confidence levels, and grounded MITRE techniques."
+        />
+        <Panel style={{ padding: '48px 32px', textAlign: 'center', margin: '24px 0' }}>
+          <div style={{ maxWidth: '440px', margin: '0 auto' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
+              No threat observations
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.5 }}>
+              No threat observations. Analyze a network capture to generate threat observations.
+            </p>
+            <Link to="/console/analyze" className="button button-primary" style={{ display: 'inline-flex', gap: '6px' }}>
+              <FileUp size={14} /> Analyze PCAP
+            </Link>
+          </div>
+        </Panel>
+      </div>
+    )
+  }
 
   const normalizedQuery = query.trim().toLowerCase().replaceAll('_', ' ')
   const findings = data.results.detection.findings.filter(
@@ -53,7 +79,7 @@ export function Threats() {
       <SectionHeading
         eyebrow="Threat Assessment"
         title="Detection Findings & Evidence Trail"
-        description={`Traffic-derived adversary indicators, confidence levels, and grounded MITRE techniques from ${data.results.source?.name ?? 'active telemetry'}.`}
+        description={`Traffic-derived adversary indicators, confidence levels, and grounded MITRE techniques from ${data.results.source?.name ?? data.results.source?.filename ?? 'active telemetry'}.`}
         action={
           <span
             style={{
@@ -72,8 +98,8 @@ export function Threats() {
         }
       />
 
-      {/* Forecast Trust Panel (Grounded Evidence Chain) */}
-      <ForecastTrustPanel initialResponse={trustResponse} allowFixtureSwitching={!trustResponse} />
+      {/* Forecast Trust Panel (Grounded Evidence Chain - rendered only when forecast telemetry exists) */}
+      {trustResponse && <ForecastTrustPanel initialResponse={trustResponse} allowFixtureSwitching={false} />}
 
       {/* Filter and Search Bar */}
       <Panel className="filter-panel" style={{ padding: '12px 16px', marginBottom: '16px' }}>

@@ -6,7 +6,6 @@ import {
   refreshProductionData,
   subscribe,
   setUploadedAnalysis,
-  ANALYSIS_ID,
   uploadPcap,
 } from '../stores/productionStore'
 
@@ -14,14 +13,15 @@ export function useProductionData() {
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
   useEffect(() => {
-    if (!snapshot.data) void refreshProductionData()
-  }, [snapshot.analysisSource, snapshot.data])
+    void refreshProductionData()
+  }, [])
 
-  const dynamicAnalysisId = snapshot.data?.results?.analysis_id ?? (snapshot.analysisSource === 'production' ? ANALYSIS_ID : 'unknown')
+  const dynamicAnalysisId = snapshot.data?.results?.analysis_id ?? ''
+  const hasValidData = Boolean(snapshot.data?.results)
 
   return {
     ...snapshot,
-    reload: refreshProductionData,
+    reload: () => refreshProductionData(true),
     analyzePcap: uploadPcap,
     clearUploadedAnalysis,
     clearUploadError,
@@ -29,7 +29,7 @@ export function useProductionData() {
     analysisId: dynamicAnalysisId,
     apiConnected: snapshot.apiConnected,
     provenance: snapshot.provenance,
-    isReferenceDataset: snapshot.provenance === 'reference',
-    isLiveCapture: snapshot.provenance === 'uploaded',
+    isReferenceDataset: false,
+    isLiveCapture: hasValidData && (snapshot.provenance === 'uploaded' || snapshot.analysisSource === 'uploaded'),
   }
 }

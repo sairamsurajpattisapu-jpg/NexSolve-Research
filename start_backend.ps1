@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 Write-Host "==================================================" -ForegroundColor Cyan
 Write-Host "   NEXSOLVE API BACKEND SERVICE STARTUP          " -ForegroundColor Cyan
-Write-Host "   SIH 2026 Problem Statement ID: 26153          " -ForegroundColor Cyan
+Write-Host "   AI-Based Network Attack Forecasting Platform   " -ForegroundColor Cyan
 Write-Host "==================================================" -ForegroundColor Cyan
 
 $VenvPython = ".\.venv\Scripts\python.exe"

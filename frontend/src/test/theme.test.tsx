@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Layout } from '../components/Layout'
 import { ReportActions } from '../components/ReportActions'
 import { Settings } from '../pages/Settings'
-import { applyTheme, getTheme, THEME_STORAGE_KEY } from '../stores/themeStore'
+import { applyTheme, getTheme, THEME_STORAGE_KEY, toggleTheme } from '../stores/themeStore'
 
 describe('NexSolve Theme System & Controls', () => {
   beforeEach(() => {
@@ -19,27 +19,19 @@ describe('NexSolve Theme System & Controls', () => {
     expect(document.documentElement.style.colorScheme).toBe('dark')
   })
 
-  it('switches to LIGHT theme and updates DOM and storage', () => {
+  it('enforces permanent DARK theme even if applyTheme or toggleTheme is invoked', () => {
     applyTheme('light')
-    expect(getTheme()).toBe('light')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
-    expect(document.documentElement.style.colorScheme).toBe('light')
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('light')
-  })
-
-  it('switches back from LIGHT to DARK theme', () => {
-    applyTheme('light')
-    expect(getTheme()).toBe('light')
-
-    applyTheme('dark')
     expect(getTheme()).toBe('dark')
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
     expect(document.documentElement.style.colorScheme).toBe('dark')
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark')
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBeNull()
+
+    toggleTheme()
+    expect(getTheme()).toBe('dark')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
   })
 
-  it('toggles theme using the navbar toggle button in Layout', async () => {
-    const user = userEvent.setup()
+  it('does not render theme toggle button in Layout navbar', () => {
     render(
       <MemoryRouter initialEntries={['/dashboard']}>
         <Routes>
@@ -50,23 +42,11 @@ describe('NexSolve Theme System & Controls', () => {
       </MemoryRouter>
     )
 
-    const toggleBtn = screen.getByRole('button', { name: /switch to light theme/i })
-    expect(toggleBtn).toBeInTheDocument()
-
-    // Click to toggle to Light
-    await user.click(toggleBtn)
-    expect(getTheme()).toBe('light')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
-
-    // Click to toggle back to Dark
-    const toggleBackBtn = screen.getByRole('button', { name: /switch to dark theme/i })
-    await user.click(toggleBackBtn)
-    expect(getTheme()).toBe('dark')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+    expect(screen.queryByRole('button', { name: /switch to/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /theme/i })).not.toBeInTheDocument()
   })
 
-  it('switches themes using Settings page appearance buttons', async () => {
-    const user = userEvent.setup()
+  it('displays permanent dark console theme in Settings and has no light switch buttons', async () => {
     render(
       <MemoryRouter initialEntries={['/settings']}>
         <Routes>
@@ -75,25 +55,9 @@ describe('NexSolve Theme System & Controls', () => {
       </MemoryRouter>
     )
 
-    // Wait for settings to render
-    const lightBtn = await screen.findByRole('button', { name: /light theme/i })
-    const darkBtn = await screen.findByRole('button', { name: /dark theme/i })
-
-    expect(darkBtn).toHaveAttribute('aria-pressed', 'true')
-    expect(lightBtn).toHaveAttribute('aria-pressed', 'false')
-
-    // Click Light Theme
-    await user.click(lightBtn)
-    expect(getTheme()).toBe('light')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
-    expect(lightBtn).toHaveAttribute('aria-pressed', 'true')
-    expect(darkBtn).toHaveAttribute('aria-pressed', 'false')
-
-    // Click Dark Theme
-    await user.click(darkBtn)
-    expect(getTheme()).toBe('dark')
-    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
-    expect(darkBtn).toHaveAttribute('aria-pressed', 'true')
+    expect(await screen.findByText(/Dark · Monochromatic SOC Console \(Permanent\)/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /light theme/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /switch to light/i })).not.toBeInTheDocument()
   })
 
   it('toggles reduced motion preference in Settings and updates document class', async () => {

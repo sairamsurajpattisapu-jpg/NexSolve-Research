@@ -745,13 +745,13 @@ def candidates_to_network_states(candidates: Iterable[NetworkStateCandidate], fe
     states = []
     # If the first candidate has no temporal features, only convert candidates from index 1 onward
     # (which all have observed temporal features derived from their predecessor)
-    conv_seq = sequence[1:] if (len(sequence) > 1 and not sequence[0].temporal_features) else sequence
+    conv_seq = sequence[1:] if (len(sequence) > 8 and not sequence[0].temporal_features) else sequence
     for candidate in conv_seq:
         states.append(NetworkState(
             candidate.start_timestamp,
             {name: float(candidate.flow_features[name]) for name in schema["flow_features"]},
             {name: float(candidate.packet_features[name]) for name in schema["packet_features"]},
-            {name: float(candidate.temporal_features[name]) for name in schema["temporal_features"]},
+            {name: float(candidate.temporal_features.get(name, 0.0)) for name in schema["temporal_features"]},
             None,
             True,
         ))

@@ -72,17 +72,18 @@ STAGE_PROGRESS_MAP: dict[JobStage, float] = {
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_DIR = ROOT / "runtime"
 RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
-MODEL_DIR = ROOT / "models" / "nexsolve_world_model"
-MODEL_DIR_45 = ROOT / "models" / "nexsolve_world_model_45"
+FINAL_MODEL_DIR = ROOT / "models" / "final_world_model"
+MODEL_DIR = FINAL_MODEL_DIR
+MODEL_DIR_45 = FINAL_MODEL_DIR
 import json
-MODEL_SCHEMA = json.loads((MODEL_DIR / "feature_schema.json").read_text(encoding="utf-8"))
-MODEL_SCHEMA_45 = json.loads((MODEL_DIR / "feature_schema_45.json").read_text(encoding="utf-8")) if (MODEL_DIR / "feature_schema_45.json").exists() else json.loads((MODEL_DIR_45 / "feature_schema.json").read_text(encoding="utf-8"))
-CONFIG = json.loads((MODEL_DIR / "config.json").read_text(encoding="utf-8"))
-CONFIG_45 = json.loads((MODEL_DIR_45 / "config.json").read_text(encoding="utf-8")) if (MODEL_DIR_45 / "config.json").exists() else CONFIG
-FLOW_FEATURES = tuple(MODEL_SCHEMA["flow_features"])
+from nexsolve_core.state import MODEL_SCHEMA_45
+MODEL_SCHEMA = MODEL_SCHEMA_45
+CONFIG = json.loads((FINAL_MODEL_DIR / "config.json").read_text(encoding="utf-8"))
+CONFIG_45 = CONFIG
+FLOW_FEATURES = tuple(MODEL_SCHEMA_45["flow_features"])
 FLOW_FEATURES_45 = tuple(MODEL_SCHEMA_45["flow_features"])
-PACKET_FEATURES = tuple(MODEL_SCHEMA["packet_features"])
-TEMPORAL_FEATURES = tuple(MODEL_SCHEMA["temporal_features"])
+PACKET_FEATURES = tuple(MODEL_SCHEMA_45["packet_features"])
+TEMPORAL_FEATURES = tuple(MODEL_SCHEMA_45["temporal_features"])
 
 
 @dataclass
@@ -400,28 +401,16 @@ class JobManager:
                         if f.dst_ip: dst_ips.add(f.dst_ip)
                         if f.dst_port is not None: dst_ports.add(f.dst_port)
 
-            active_schema = MODEL_SCHEMA
-            active_model_dir = MODEL_DIR
+            active_schema = MODEL_SCHEMA_45
+            active_model_dir = FINAL_MODEL_DIR
             active_config = CONFIG
-            active_flow_features = FLOW_FEATURES
-            schema_variant = "46_feature_canonical"
+            active_flow_features = FLOW_FEATURES_45
+            schema_variant = "45_feature_pcap_compatible"
 
-            # Check if 45-feature PCAP-compatible schema can be activated:
-            # Only when the primary 46-feature gate failed solely due to mean_tcp_rtt
-            if not compatibility.get("model_ready", False):
-                missing = compatibility.get("missing_features", [])
-                if set(missing) == {"flow_features.mean_tcp_rtt"}:
-                    compat_45 = evaluate_model_compatibility(candidates, MODEL_SCHEMA_45, history.status).to_dict()
-                    if compat_45.get("model_ready", False) and MODEL_DIR_45.exists():
-                        compatibility = compat_45
-                        active_schema = MODEL_SCHEMA_45
-                        active_model_dir = MODEL_DIR_45
-                        active_config = CONFIG_45
-                        active_flow_features = FLOW_FEATURES_45
-                        schema_variant = "45_feature_pcap_compatible"
-
+            compat_45 = evaluate_model_compatibility(candidates, MODEL_SCHEMA_45, history.status).to_dict()
+            compatibility = compat_45
             compatibility["schema_variant"] = schema_variant
-            compatibility["active_schema"] = "MODEL_SCHEMA_45" if schema_variant == "45_feature_pcap_compatible" else "MODEL_SCHEMA_46"
+            compatibility["active_schema"] = "MODEL_SCHEMA_45"
 
             traffic = traffic_summary(windows)
             detection = analyze_packet_windows(windows)
@@ -443,50 +432,148 @@ class JobManager:
             t_forecast_start = time.perf_counter()
             self._update_stage(job_id, "FORECAST")
             forecast_points: list[dict[str, Any]] = []
-            trajectory_result = None
 
-            from ml.forecasting.forecasting_engine import ForecastingPipeline
-            forecasting_pipeline = ForecastingPipeline(active_model_dir)
+            from ml.final_production_inference import FinalProductionInferenceEngine
+            from nexsolve_core.state import candidates_to_network_states
+
+            production_engine = FinalProductionInferenceEngine(FINAL_MODEL_DIR)
 
             if compatibility.get("model_ready", False):
-                try:
-                    states = candidates_to_network_states(candidates, active_schema, history.status)
-                    trajectory_result = forecasting_pipeline.execute_forecast(states, horizons=(1, 2, 3, 4, 5))
-                    for pt in trajectory_result.forecasts:
-                        forecast_points.append({
-                            "horizon": pt.horizon,
-                            "lookaheadSeconds": pt.lookahead_seconds,
-                            "attackProbability": pt.attack_probability,
-                            "cumulativeRisk": pt.cumulative_risk,
-                            "riskLevel": pt.risk_level.value,
-                            "predictedStage": pt.predicted_stage,
-                            "confidence": pt.confidence,
-                            "uncertainty": pt.uncertainty,
-                            "explanation": [d.interpretation for d in pt.top_drivers] if pt.top_drivers else [pt.behavioral_interpretation],
-                            "topDrivers": [d.to_dict() for d in pt.top_drivers],
-                            "evidenceAttribution": pt.evidence_attribution.to_dict() if pt.evidence_attribution is not None else None,
-                        })
-                except Exception:
-                    # Model evaluation fallback to abstained points
-                    for h in (1, 2, 3, 4, 5):
-                        forecast_points.append({
-                            "horizon": h,
-                            "attackProbability": None,
-                            "predictedStage": None,
-                            "confidence": None,
-                            "uncertainty": None,
-                            "explanation": ["Forecast execution bypassed due to state compatibility."],
-                        })
+                states = candidates_to_network_states(candidates, MODEL_SCHEMA_45, history.status)
+
+                import dataclasses
+                all_flows_dict = []
+                for cw in canonical_windows:
+                    for f in cw.flows:
+                        if isinstance(f, dict):
+                            all_flows_dict.append(f)
+                        elif dataclasses.is_dataclass(f):
+                            all_flows_dict.append(dataclasses.asdict(f))
+                        elif hasattr(f, "__dict__"):
+                            all_flows_dict.append(f.__dict__)
+
+                final_inference_result = production_engine.run_inference(
+                    sequence=states,
+                    analysis_id=job_id,
+                    flows=all_flows_dict,
+                    capture_quality=quality,
+                )
             else:
-                reason = compatibility.get("reason", "Incompatible feature contract for world model.")
+                if len(windows) < 8:
+                    abstention_reason = "INSUFFICIENT_HISTORY"
+                    abstention_explanation = "Forecast withheld: Forecasting requires at least 8 continuous 60-second windows. Static traffic analysis completed successfully."
+                elif history.status == "GAPPED_HISTORY":
+                    abstention_reason = "NON_CONTIGUOUS_TIMESTAMPS"
+                    abstention_explanation = "Forecast withheld: Input sequence contains non-contiguous temporal windows."
+                else:
+                    abstention_reason = "MODEL_FEATURE_CONTRACT_MISMATCH"
+                    reasons = compatibility.get("reasons", [])
+                    abstention_explanation = f"Forecast withheld: {reasons[0]}" if reasons else "Forecast withheld: feature contract mismatch."
+
+                final_inference_result = {
+                    "forecast_status": "FORECAST_ABSTAINED",
+                    "is_abstained": True,
+                    "abstention": {
+                        "abstained": True,
+                        "operational_tier": "ABSTAINED",
+                        "reason": abstention_reason,
+                        "explanation": abstention_explanation,
+                    },
+                    "abstention_reason": abstention_reason,
+                    "abstention_explanation": abstention_explanation,
+                    "forecast": {},
+                    "network_risk_indicators": [],
+                    "host_risk": [],
+                    "communication_risk": [],
+                    "uncertainty": {},
+                    "evidence": [],
+                }
+
+            is_forecast_available = not final_inference_result.get("is_abstained", False)
+
+            from ml.forecasting.forecasting_engine import FeatureDriver, _explain_feature_change, EarlyWarningAssessment, EarlyWarningLevel
+            from world_model import FEATURE_NAMES_45
+
+            if is_forecast_available:
+                forecast_map = final_inference_result.get("forecast", {})
+                curr_state_dict = {name: float(val) for name, val in zip(FEATURE_NAMES_45, states[-1].encode(FEATURE_NAMES_45))} if states else {}
+                all_drivers = []
+                for h in (1, 2, 3, 4, 5):
+                    h_key = f"T+{h}"
+                    h_data = forecast_map.get(h_key, {})
+                    p = float(h_data.get("attack_probability", 0.0))
+                    p_stage = h_data.get("predicted_stage", "BENIGN_OBSERVATION")
+                    r_level = h_data.get("risk_level", "LOW")
+                    conf = float(h_data.get("confidence_score", 0.85))
+                    unc = round(1.0 - conf, 4)
+
+                    pred_feat_dict = h_data.get("predicted_features", {})
+                    feat_deltas = []
+                    for name in FEATURE_NAMES_45:
+                        c_val = curr_state_dict.get(name, 0.0)
+                        p_val = pred_feat_dict.get(name, 0.0)
+                        direction, rel, importance, interp = _explain_feature_change(name, c_val, p_val)
+                        feat_deltas.append(FeatureDriver(
+                            feature=name,
+                            current_value=round(c_val, 4),
+                            predicted_value=round(p_val, 4),
+                            direction=direction,
+                            relative_change=round(rel, 4),
+                            importance=importance,
+                            interpretation=interp,
+                        ))
+                    top_drivers = sorted(feat_deltas, key=lambda d: abs(d.relative_change), reverse=True)[:5]
+                    if top_drivers:
+                        all_drivers.extend(top_drivers)
+
+                    forecast_points.append({
+                        "horizon": h,
+                        "lookaheadSeconds": h * 60,
+                        "attackProbability": p,
+                        "cumulativeRisk": round(min(1.0, p * (1.0 + (h - 1) * 0.15)), 4),
+                        "riskLevel": r_level,
+                        "predictedStage": p_stage,
+                        "confidence": conf,
+                        "uncertainty": unc,
+                        "explanation": [d.interpretation for d in top_drivers[:3]] if top_drivers else [f"State dynamics project {p_stage} at T+{h} (risk: {p*100:.1f}%)."],
+                        "topDrivers": [d.to_dict() for d in top_drivers],
+                        "evidenceAttribution": None,
+                    })
+
+                max_p = max((float(h_data.get("attack_probability", 0.0)) for h_data in forecast_map.values()), default=0.0)
+                ew_score = int(round(max_p * 100))
+                ew_level = (
+                    EarlyWarningLevel.CRITICAL if ew_score >= 70
+                    else EarlyWarningLevel.HIGH if ew_score >= 40
+                    else EarlyWarningLevel.ELEVATED if ew_score >= 15
+                    else EarlyWarningLevel.NORMAL
+                )
+                early_warning_dict = EarlyWarningAssessment(
+                    early_warning_score=ew_score,
+                    early_warning_level=ew_level,
+                    drivers=[d.interpretation for d in all_drivers[:3]] if all_drivers else ["Observed baseline network telemetry."],
+                    score_components={"max_attack_probability": round(max_p, 4)},
+                ).to_dict()
+            else:
+                early_warning_dict = EarlyWarningAssessment(
+                    early_warning_score=0,
+                    early_warning_level=EarlyWarningLevel.NORMAL,
+                    drivers=["Forecasting withheld."],
+                    score_components={},
+                ).to_dict()
+                reason = final_inference_result.get("abstention_explanation") or "insufficient continuous temporal history."
+                reason_str = reason if "Forecast abstained" in reason else f"Forecast abstained: {reason}"
                 for h in (1, 2, 3, 4, 5):
                     forecast_points.append({
                         "horizon": h,
+                        "lookaheadSeconds": h * 60,
                         "attackProbability": None,
                         "predictedStage": None,
                         "confidence": None,
                         "uncertainty": None,
-                        "explanation": [f"Forecast abstained: {reason}"],
+                        "explanation": [reason_str],
+                        "topDrivers": [],
+                        "evidenceAttribution": None,
                     })
             forecasting_ms = round((time.perf_counter() - t_forecast_start) * 1000, 2)
 
@@ -675,6 +762,8 @@ class JobManager:
             analysis_result = {
                 "analysis_id": job_id,
                 "status": "completed",
+                "model_version": "final_world_model v3.0.0",
+                "model_name": "final_world_model",
                 "source": {"name": clean_name, "kind": "uploaded_pcap", "filename": clean_name, "size_bytes": capture_size_bytes},
                 "upload": {"filename": clean_name, "size_bytes": capture_size_bytes, "format": suffix[1:]},
                 "validation": _validation(windows, compatibility),
@@ -709,10 +798,12 @@ class JobManager:
                 "flow_statistics": flow_statistics.to_dict(),
                 "signature_evidence": suricata_report.to_dict(),
                 "threat_assessment": threat_assessment.to_dict(),
-                # Trust Layer
+                # Trust Layer & Frozen World Model
                 "forecasts": forecast_points,
-                "forecast_trajectory": trajectory_result.to_dict() if trajectory_result else None,
-                "early_warning": trajectory_result.early_warning.to_dict() if trajectory_result else None,
+                "forecast": final_inference_result.get("forecast", {}),
+                "final_world_model": final_inference_result,
+                "forecast_trajectory": None,
+                "early_warning": early_warning_dict,
                 "attack_horizon": intelligence.attack_horizon,
                 "attackHorizon": intelligence.attack_horizon,
                 "attack_progression": progression_forecast.to_dict(),
@@ -722,28 +813,34 @@ class JobManager:
                 "confidence": intelligence.confidence,
                 "unknown_behavior": intelligence.unknown_behavior,
                 "unknownBehavior": intelligence.unknown_behavior,
-                "abstention": intelligence.abstention,
+                "abstention": final_inference_result.get("abstention", intelligence.abstention),
+                "uncertainty": final_inference_result.get("uncertainty", {}),
+                "network_risk_indicators": final_inference_result.get("network_risk_indicators", []),
+                "host_risk": final_inference_result.get("host_risk", []),
+                "communication_risk": final_inference_result.get("communication_risk", []),
+                "evidence": final_inference_result.get("evidence", []),
                 "analysis_state": (
                     "ANALYSIS_COMPLETE_FORECAST_READY"
-                    if compatibility.get("model_ready", False)
+                    if is_forecast_available
                     else "ANALYSIS_COMPLETE_FORECAST_UNAVAILABLE"
                 ),
                 "forecast_summary": {
-                    "available": bool(compatibility.get("model_ready", False)),
+                    "available": is_forecast_available,
                     "status": (
                         "READY"
-                        if compatibility.get("model_ready", False)
-                        else ("INSUFFICIENT_HISTORY" if len(windows) < 8 else "INCOMPATIBLE_FEATURES")
+                        if is_forecast_available
+                        else ("INSUFFICIENT_HISTORY" if len(windows) < 8 else final_inference_result.get("abstention_reason", "INCOMPATIBLE_FEATURES"))
                     ),
                     "required_windows": 8,
                     "available_windows": len(windows),
                     "required_window_seconds": 60,
                     "message": (
-                        "Forecast rollouts generated successfully."
-                        if compatibility.get("model_ready", False)
+                        "Forecast rollouts generated successfully by Final Network World Model."
+                        if is_forecast_available
                         else (
-                            "Forecasting requires at least 8 continuous 60-second windows. "
-                            "Static traffic analysis completed successfully."
+                            "Forecasting requires at least 8 continuous 60-second windows. Static traffic analysis completed successfully."
+                            if len(windows) < 8
+                            else (final_inference_result.get("abstention_explanation") or "Forecast withheld: insufficient continuous temporal history.")
                         )
                     ),
                 },
@@ -764,7 +861,7 @@ class JobManager:
                 analysis_result=analysis_result,
                 job_id=job_id,
                 capture_hash=capture_hash,
-                model_version=str(CONFIG.get("model_type", "nexsolve_world_model")),
+                model_version="final_world_model v3.0.0",
                 processing_seconds=total_duration,
             )
             report_json = generate_json_report(report_obj)
@@ -837,9 +934,9 @@ class JobManager:
             if file_path:
                 try:
                     fp = Path(file_path)
-                    fp.unlink(missing_ok=True)
                     parent = fp.parent
                     if parent.name.startswith("upl-") and parent.parent == RUNTIME_DIR / "chunks":
+                        fp.unlink(missing_ok=True)
                         import shutil
                         shutil.rmtree(parent, ignore_errors=True)
                         if parent.exists():

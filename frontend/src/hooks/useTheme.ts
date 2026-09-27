@@ -8,7 +8,7 @@ export function useTheme() {
     theme,
     setTheme: applyTheme,
     toggleTheme,
-    isDark: theme === 'dark',
-    isLight: theme === 'light',
+    isDark: true,
+    isLight: false,
   }
 }

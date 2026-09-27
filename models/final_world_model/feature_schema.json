@@ -1,0 +1,1785 @@
+{
+  "schema_version": "18_family_world_model_v1",
+  "feature_count": 115,
+  "schema_hash": "b323f869ef582658b874e1a8de1a3d8053fa381ac3f33f7cd724ddcddb2f52fa",
+  "families": {
+    "packet": [
+      {
+        "name": "packet_count",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Total packets observed in 60s window",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "count(packets)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "mean_packet_size",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Mean byte length of packet frames",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "sum(bytes) / count(packets)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "std_packet_size",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Standard deviation of packet byte lengths",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "std(bytes)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "min_packet_size",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Minimum packet length in window",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "min(bytes)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "max_packet_size",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Maximum packet length in window",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "max(bytes)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "mean_ttl",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Mean IP Time-To-Live in window",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "mean(IP.ttl)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "std_ttl",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Standard deviation of IP Time-To-Live",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "std(IP.ttl)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "min_ttl",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Minimum IP Time-To-Live",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "min(IP.ttl)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "max_ttl",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Maximum IP Time-To-Live",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "max(IP.ttl)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "tcp_syn_count",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Total TCP SYN flag packets observed",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "count(TCP.flags == SYN)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "tcp_ack_count",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Total TCP ACK flag packets observed",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "count(TCP.flags == ACK)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "tcp_fin_count",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Total TCP FIN flag packets observed",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "count(TCP.flags == FIN)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "tcp_rst_count",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Total TCP RST flag packets observed",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "count(TCP.flags == RST)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "tcp_psh_count",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Total TCP PSH flag packets observed",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "count(TCP.flags == PSH)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "tcp_urg_count",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Total TCP URG flag packets observed",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "count(TCP.flags == URG)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "mean_tcp_window",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Mean TCP advertised receive window size",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "mean(TCP.window)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "std_tcp_window",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Standard deviation of TCP advertised window",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "std(TCP.window)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "fragment_count",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Total fragmented IP packets observed",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "count(IP.flags == MF or frag_offset > 0)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "retransmission_count",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Total passive TCP retransmissions observed",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "count(retransmitted_packets)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "mean_iat",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Mean inter-arrival time between consecutive packets",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "mean(t_{i} - t_{i-1})",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "std_iat",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Standard deviation of packet inter-arrival times",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "std(t_{i} - t_{i-1})",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "max_iat",
+        "family": "packet",
+        "dtype": "float",
+        "source": "PACKET_HEADER",
+        "semantic_meaning": "Maximum packet inter-arrival time in window",
+        "required_telemetry": [
+          "pcap_packets"
+        ],
+        "availability_condition": "Available when passive packet capture frames are present",
+        "computation": "max(t_{i} - t_{i-1})",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "flow": [
+      {
+        "name": "flow_count",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Total bidirectional flow sessions active in window",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "count(flows)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "total_src_bytes",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Total payload/header bytes originating from source",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "sum(src_bytes)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "total_dst_bytes",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Total payload/header bytes originating from destination",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "sum(dst_bytes)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "total_packets",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Total flow packets observed across all sessions",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "sum(flow_packets)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "mean_duration",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Mean active duration of network flows",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "mean(flow_duration)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "mean_flow_bytes",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Mean total volume per flow session",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "mean(src_bytes + dst_bytes)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "mean_flow_packets",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Mean packet count per flow session",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "mean(flow_packets)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "mean_sttl",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Mean source IP TTL across flows",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "mean(sttl)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "mean_dttl",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Mean destination IP TTL across flows",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "mean(dttl)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "mean_swin",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Mean source TCP window advertisement",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "mean(swin)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "mean_dwin",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Mean destination TCP window advertisement",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "mean(dwin)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "flow_mean_iat",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Mean flow session inter-arrival time",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "mean(flow_iat)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "unique_src_ports",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Distinct client/source port count in window",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "count(distinct(src_port))",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "unique_dst_ports",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Distinct server/destination port count in window",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "count(distinct(dst_port))",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "proto_tcp_count",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Count of flows utilizing TCP protocol",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "count(proto == TCP)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "proto_udp_count",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Count of flows utilizing UDP protocol",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "count(proto == UDP)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "proto_other_count",
+        "family": "flow",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Count of flows utilizing non-TCP/UDP protocols",
+        "required_telemetry": [
+          "flow_records"
+        ],
+        "availability_condition": "Available in NetFlow, IPFIX, or aggregated PCAP flow sessions",
+        "computation": "count(proto not in (TCP, UDP))",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "tcp": [
+      {
+        "name": "tcp_syn_ack_ratio",
+        "family": "tcp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Ratio of SYN to ACK packets (probing vs established)",
+        "required_telemetry": [
+          "tcp_frames"
+        ],
+        "availability_condition": "Available when TCP packets are present in window",
+        "computation": "syn_count / max(1, ack_count)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "tcp_rst_ratio",
+        "family": "tcp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Ratio of RST packets to total TCP flows (connection teardown anomalies)",
+        "required_telemetry": [
+          "tcp_frames"
+        ],
+        "availability_condition": "Available when TCP packets are present in window",
+        "computation": "rst_count / max(1, flow_count)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "tcp_zero_window_count",
+        "family": "tcp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Count of zero-window advertisement packets (buffer exhaustion)",
+        "required_telemetry": [
+          "tcp_frames"
+        ],
+        "availability_condition": "Available when TCP packets are present in window",
+        "computation": "count(TCP.window == 0)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "tcp_handshake_completion_rate",
+        "family": "tcp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Fraction of completed 3-way handshakes to SYN attempts",
+        "required_telemetry": [
+          "tcp_frames"
+        ],
+        "availability_condition": "Available when TCP packets are present in window",
+        "computation": "established_handshakes / max(1, syn_attempts)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "udp": [
+      {
+        "name": "udp_packet_count",
+        "family": "udp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Total UDP packets in window",
+        "required_telemetry": [
+          "udp_frames"
+        ],
+        "availability_condition": "Available when UDP traffic is present",
+        "computation": "count(proto == UDP)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "udp_byte_ratio",
+        "family": "udp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Ratio of UDP bytes to total network volume",
+        "required_telemetry": [
+          "udp_frames"
+        ],
+        "availability_condition": "Available when UDP traffic is present",
+        "computation": "udp_bytes / max(1.0, total_bytes)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "udp_port_entropy",
+        "family": "udp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Shannon entropy of destination UDP ports (amplification scan detection)",
+        "required_telemetry": [
+          "udp_frames"
+        ],
+        "availability_condition": "Available when UDP traffic is present",
+        "computation": "-sum(p * log2(p))",
+        "normalization": "MIN_MAX",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "dns": [
+      {
+        "name": "dns_query_count",
+        "family": "dns",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Total DNS query transactions observed",
+        "required_telemetry": [
+          "dns_frames"
+        ],
+        "availability_condition": "Available when DNS protocol (port 53/5353) is observed",
+        "computation": "count(DNS.qr == 0)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "dns_response_count",
+        "family": "dns",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Total DNS response transactions observed",
+        "required_telemetry": [
+          "dns_frames"
+        ],
+        "availability_condition": "Available when DNS protocol (port 53/5353) is observed",
+        "computation": "count(DNS.qr == 1)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "dns_query_response_ratio",
+        "family": "dns",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Ratio of DNS queries to responses (tunneling / dead resolver)",
+        "required_telemetry": [
+          "dns_frames"
+        ],
+        "availability_condition": "Available when DNS protocol (port 53/5353) is observed",
+        "computation": "dns_queries / max(1, dns_responses)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "dns_nxdomain_rate",
+        "family": "dns",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Proportion of DNS responses with NXDOMAIN code (DGA / scanning)",
+        "required_telemetry": [
+          "dns_frames"
+        ],
+        "availability_condition": "Available when DNS protocol (port 53/5353) is observed",
+        "computation": "count(rcode == 3) / max(1, dns_responses)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "http": [
+      {
+        "name": "http_request_count",
+        "family": "http",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Total HTTP plaintext requests observed",
+        "required_telemetry": [
+          "http_frames"
+        ],
+        "availability_condition": "Available when unencrypted HTTP traffic is present",
+        "computation": "count(HTTP.request)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "http_error_rate_4xx_5xx",
+        "family": "http",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Proportion of HTTP responses with status >= 400",
+        "required_telemetry": [
+          "http_frames"
+        ],
+        "availability_condition": "Available when unencrypted HTTP traffic is present",
+        "computation": "count(status >= 400) / max(1, responses)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "http_post_ratio",
+        "family": "http",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Proportion of HTTP requests using POST/PUT methods",
+        "required_telemetry": [
+          "http_frames"
+        ],
+        "availability_condition": "Available when unencrypted HTTP traffic is present",
+        "computation": "count(method in (POST, PUT)) / max(1, requests)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "tls": [
+      {
+        "name": "tls_client_hello_count",
+        "family": "tls",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Total TLS Client Hello handshakes initiated",
+        "required_telemetry": [
+          "tls_frames"
+        ],
+        "availability_condition": "Available when TLS traffic (port 443/8443) is observed",
+        "computation": "count(TLS.handshake == 1)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "tls_sni_ratio",
+        "family": "tls",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Proportion of TLS handshakes containing Server Name Indication",
+        "required_telemetry": [
+          "tls_frames"
+        ],
+        "availability_condition": "Available when TLS traffic (port 443/8443) is observed",
+        "computation": "count(has_sni) / max(1, client_hellos)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "tls_resume_session_rate",
+        "family": "tls",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Rate of TLS session resumption or pre-shared key handshakes",
+        "required_telemetry": [
+          "tls_frames"
+        ],
+        "availability_condition": "Available when TLS traffic (port 443/8443) is observed",
+        "computation": "count(session_resumed) / max(1, handshakes)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "ssh": [
+      {
+        "name": "ssh_session_count",
+        "family": "ssh",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Total SSH connection attempts/sessions observed",
+        "required_telemetry": [
+          "ssh_frames"
+        ],
+        "availability_condition": "Available when SSH protocol is observed",
+        "computation": "count(port == 22)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "ssh_inbound_outbound_ratio",
+        "family": "ssh",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Byte asymmetry ratio in SSH sessions",
+        "required_telemetry": [
+          "ssh_frames"
+        ],
+        "availability_condition": "Available when SSH protocol is observed",
+        "computation": "ssh_rx_bytes / max(1.0, ssh_tx_bytes)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "icmp": [
+      {
+        "name": "icmp_echo_request_count",
+        "family": "icmp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Total ICMP Echo Request (ping) packets",
+        "required_telemetry": [
+          "icmp_frames"
+        ],
+        "availability_condition": "Available when ICMP packets are observed",
+        "computation": "count(ICMP.type == 8)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "icmp_unreachable_count",
+        "family": "icmp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Total ICMP Destination Unreachable packets",
+        "required_telemetry": [
+          "icmp_frames"
+        ],
+        "availability_condition": "Available when ICMP packets are observed",
+        "computation": "count(ICMP.type == 3)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "icmp_volume_ratio",
+        "family": "icmp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Ratio of ICMP bytes to total observed volume",
+        "required_telemetry": [
+          "icmp_frames"
+        ],
+        "availability_condition": "Available when ICMP packets are observed",
+        "computation": "icmp_bytes / max(1.0, total_bytes)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "arp": [
+      {
+        "name": "arp_request_count",
+        "family": "arp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Total ARP request frames in local broadcast domain",
+        "required_telemetry": [
+          "arp_frames"
+        ],
+        "availability_condition": "Available when Layer 2 Ethernet capture includes ARP",
+        "computation": "count(ARP.op == 1)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "arp_reply_ratio",
+        "family": "arp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Ratio of ARP replies to ARP requests (poisoning / discovery)",
+        "required_telemetry": [
+          "arp_frames"
+        ],
+        "availability_condition": "Available when Layer 2 Ethernet capture includes ARP",
+        "computation": "arp_replies / max(1, arp_requests)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "arp_gratuitous_count",
+        "family": "arp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Total gratuitous ARP advertisements observed",
+        "required_telemetry": [
+          "arp_frames"
+        ],
+        "availability_condition": "Available when Layer 2 Ethernet capture includes ARP",
+        "computation": "count(gratuitous_arp)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "dhcp": [
+      {
+        "name": "dhcp_discover_count",
+        "family": "dhcp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Total DHCP Discover broadcasts",
+        "required_telemetry": [
+          "dhcp_frames"
+        ],
+        "availability_condition": "Available when DHCP traffic (ports 67/68) is present",
+        "computation": "count(DHCP.msg == 1)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "dhcp_offer_ack_ratio",
+        "family": "dhcp",
+        "dtype": "float",
+        "source": "PROTOCOL_PARSER",
+        "semantic_meaning": "Ratio of DHCP Ack to DHCP Discover requests",
+        "required_telemetry": [
+          "dhcp_frames"
+        ],
+        "availability_condition": "Available when DHCP traffic (ports 67/68) is present",
+        "computation": "dhcp_acks / max(1, dhcp_discovers)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "temporal": [
+      {
+        "name": "delta_flow_count",
+        "family": "temporal",
+        "dtype": "float",
+        "source": "TEMPORAL_WINDOW",
+        "semantic_meaning": "First-order discrete velocity of flow session count",
+        "required_telemetry": [
+          "historical_windows"
+        ],
+        "availability_condition": "Available when at least 2 contiguous windows are observed",
+        "computation": "flow_count_t - flow_count_{t-1}",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "delta_total_bytes",
+        "family": "temporal",
+        "dtype": "float",
+        "source": "TEMPORAL_WINDOW",
+        "semantic_meaning": "First-order discrete velocity of total byte volume",
+        "required_telemetry": [
+          "historical_windows"
+        ],
+        "availability_condition": "Available when at least 2 contiguous windows are observed",
+        "computation": "bytes_t - bytes_{t-1}",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "delta_total_packets",
+        "family": "temporal",
+        "dtype": "float",
+        "source": "TEMPORAL_WINDOW",
+        "semantic_meaning": "First-order discrete velocity of packet volume",
+        "required_telemetry": [
+          "historical_windows"
+        ],
+        "availability_condition": "Available when at least 2 contiguous windows are observed",
+        "computation": "packets_t - packets_{t-1}",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "delta_ports",
+        "family": "temporal",
+        "dtype": "float",
+        "source": "TEMPORAL_WINDOW",
+        "semantic_meaning": "Velocity of unique endpoint port diversity",
+        "required_telemetry": [
+          "historical_windows"
+        ],
+        "availability_condition": "Available when at least 2 contiguous windows are observed",
+        "computation": "ports_t - ports_{t-1}",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "delta_iat",
+        "family": "temporal",
+        "dtype": "float",
+        "source": "TEMPORAL_WINDOW",
+        "semantic_meaning": "Velocity of mean inter-arrival time",
+        "required_telemetry": [
+          "historical_windows"
+        ],
+        "availability_condition": "Available when at least 2 contiguous windows are observed",
+        "computation": "iat_t - iat_{t-1}",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "rolling_total_bytes",
+        "family": "temporal",
+        "dtype": "float",
+        "source": "TEMPORAL_WINDOW",
+        "semantic_meaning": "4-window rolling causal moving average of total bytes",
+        "required_telemetry": [
+          "historical_windows"
+        ],
+        "availability_condition": "Available when at least 2 contiguous windows are observed",
+        "computation": "mean(bytes_{t-3:t})",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "acceleration_total_bytes",
+        "family": "temporal",
+        "dtype": "float",
+        "source": "TEMPORAL_WINDOW",
+        "semantic_meaning": "Second-order discrete acceleration of byte volume",
+        "required_telemetry": [
+          "historical_windows"
+        ],
+        "availability_condition": "Available when at least 2 contiguous windows are observed",
+        "computation": "delta_bytes_t - delta_bytes_{t-1}",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "rolling_volatility_bytes",
+        "family": "temporal",
+        "dtype": "float",
+        "source": "TEMPORAL_WINDOW",
+        "semantic_meaning": "Rolling standard deviation of bytes over lookback history",
+        "required_telemetry": [
+          "historical_windows"
+        ],
+        "availability_condition": "Available when at least 2 contiguous windows are observed",
+        "computation": "std(bytes_{t-L:t})",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "burstiness_index",
+        "family": "temporal",
+        "dtype": "float",
+        "source": "TEMPORAL_WINDOW",
+        "semantic_meaning": "Ratio of max 1-second packet rate to average window rate",
+        "required_telemetry": [
+          "historical_windows"
+        ],
+        "availability_condition": "Available when at least 2 contiguous windows are observed",
+        "computation": "max_sec_rate / max(1.0, mean_rate)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "behavioral": [
+      {
+        "name": "peer_diversity",
+        "family": "behavioral",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Ratio of distinct peer IP addresses to active flow sessions",
+        "required_telemetry": [
+          "flows",
+          "history"
+        ],
+        "availability_condition": "Available when flow sessions and peer endpoints are tracked",
+        "computation": "unique_peers / max(1, flow_count)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "new_peer_rate",
+        "family": "behavioral",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Fraction of communicating peers never observed in prior lookback windows",
+        "required_telemetry": [
+          "flows",
+          "history"
+        ],
+        "availability_condition": "Available when flow sessions and peer endpoints are tracked",
+        "computation": "new_peers / max(1, total_peers)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "dest_diversity",
+        "family": "behavioral",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Ratio of destination IPs to total flows",
+        "required_telemetry": [
+          "flows",
+          "history"
+        ],
+        "availability_condition": "Available when flow sessions and peer endpoints are tracked",
+        "computation": "unique_dst / max(1, flow_count)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "src_diversity",
+        "family": "behavioral",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Ratio of source IPs to total flows",
+        "required_telemetry": [
+          "flows",
+          "history"
+        ],
+        "availability_condition": "Available when flow sessions and peer endpoints are tracked",
+        "computation": "unique_src / max(1, flow_count)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "port_entropy",
+        "family": "behavioral",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Shannon entropy of destination ports across all traffic",
+        "required_telemetry": [
+          "flows",
+          "history"
+        ],
+        "availability_condition": "Available when flow sessions and peer endpoints are tracked",
+        "computation": "-sum(p_port * log2(p_port))",
+        "normalization": "MIN_MAX",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "protocol_entropy",
+        "family": "behavioral",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Shannon entropy of Layer 4 protocols",
+        "required_telemetry": [
+          "flows",
+          "history"
+        ],
+        "availability_condition": "Available when flow sessions and peer endpoints are tracked",
+        "computation": "-sum(p_proto * log2(p_proto))",
+        "normalization": "MIN_MAX",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "fan_in_ratio",
+        "family": "behavioral",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Ratio of inbound flows to unique inbound sources",
+        "required_telemetry": [
+          "flows",
+          "history"
+        ],
+        "availability_condition": "Available when flow sessions and peer endpoints are tracked",
+        "computation": "inbound_flows / max(1, inbound_srcs)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "fan_out_ratio",
+        "family": "behavioral",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Ratio of outbound flows to unique outbound destinations",
+        "required_telemetry": [
+          "flows",
+          "history"
+        ],
+        "availability_condition": "Available when flow sessions and peer endpoints are tracked",
+        "computation": "outbound_flows / max(1, outbound_dsts)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "traffic_concentration_gini",
+        "family": "behavioral",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Gini concentration coefficient of traffic across active flows",
+        "required_telemetry": [
+          "flows",
+          "history"
+        ],
+        "availability_condition": "Available when flow sessions and peer endpoints are tracked",
+        "computation": "gini(bytes_per_flow)",
+        "normalization": "MIN_MAX",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "edge_churn_rate",
+        "family": "behavioral",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Proportion of active communication edges modified since prior window",
+        "required_telemetry": [
+          "flows",
+          "history"
+        ],
+        "availability_condition": "Available when flow sessions and peer endpoints are tracked",
+        "computation": "symmetric_diff(E_t, E_{t-1}) / max(1, |E_t|)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "connection_churn_rate",
+        "family": "behavioral",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Fraction of new TCP/UDP connections opened and closed in window",
+        "required_telemetry": [
+          "flows",
+          "history"
+        ],
+        "availability_condition": "Available when flow sessions and peer endpoints are tracked",
+        "computation": "churned_conns / max(1, active_conns)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "behavioral_novelty_score",
+        "family": "behavioral",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Mahalanobis novelty score against historical baseline envelope",
+        "required_telemetry": [
+          "flows",
+          "history"
+        ],
+        "availability_condition": "Available when flow sessions and peer endpoints are tracked",
+        "computation": "mahalanobis(curr, baseline)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "host": [
+      {
+        "name": "host_active_count",
+        "family": "host",
+        "dtype": "float",
+        "source": "GRAPH_SNAPSHOT",
+        "semantic_meaning": "Total active network endpoints communicating in window",
+        "required_telemetry": [
+          "host_states"
+        ],
+        "availability_condition": "Available when IP endpoints are observable",
+        "computation": "count(distinct(nodes))",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "host_max_outbound_fanout",
+        "family": "host",
+        "dtype": "float",
+        "source": "GRAPH_SNAPSHOT",
+        "semantic_meaning": "Maximum outbound peer count observed from any single host",
+        "required_telemetry": [
+          "host_states"
+        ],
+        "availability_condition": "Available when IP endpoints are observable",
+        "computation": "max(host.out_degree)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "host_max_inbound_fanin",
+        "family": "host",
+        "dtype": "float",
+        "source": "GRAPH_SNAPSHOT",
+        "semantic_meaning": "Maximum inbound peer count targeting any single host",
+        "required_telemetry": [
+          "host_states"
+        ],
+        "availability_condition": "Available when IP endpoints are observable",
+        "computation": "max(host.in_degree)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "host_internal_external_ratio",
+        "family": "host",
+        "dtype": "float",
+        "source": "GRAPH_SNAPSHOT",
+        "semantic_meaning": "Ratio of internal-to-internal vs internal-to-external flows",
+        "required_telemetry": [
+          "host_states"
+        ],
+        "availability_condition": "Available when IP endpoints are observable",
+        "computation": "int_flows / max(1, ext_flows)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "host_max_port_spread",
+        "family": "host",
+        "dtype": "float",
+        "source": "GRAPH_SNAPSHOT",
+        "semantic_meaning": "Maximum unique destination ports probed by a single host",
+        "required_telemetry": [
+          "host_states"
+        ],
+        "availability_condition": "Available when IP endpoints are observable",
+        "computation": "max(host.distinct_ports)",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "graph": [
+      {
+        "name": "graph_node_count",
+        "family": "graph",
+        "dtype": "float",
+        "source": "GRAPH_SNAPSHOT",
+        "semantic_meaning": "Number of active vertices in communication graph G_t",
+        "required_telemetry": [
+          "temporal_graph"
+        ],
+        "availability_condition": "Available when network topology graph G_t is constructed",
+        "computation": "|V_t|",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "graph_edge_count",
+        "family": "graph",
+        "dtype": "float",
+        "source": "GRAPH_SNAPSHOT",
+        "semantic_meaning": "Number of directed communication edges in G_t",
+        "required_telemetry": [
+          "temporal_graph"
+        ],
+        "availability_condition": "Available when network topology graph G_t is constructed",
+        "computation": "|E_t|",
+        "normalization": "LOG1P_Z",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "graph_density",
+        "family": "graph",
+        "dtype": "float",
+        "source": "GRAPH_SNAPSHOT",
+        "semantic_meaning": "Edge density of communication graph",
+        "required_telemetry": [
+          "temporal_graph"
+        ],
+        "availability_condition": "Available when network topology graph G_t is constructed",
+        "computation": "2 * |E| / (|V| * (|V| - 1))",
+        "normalization": "MIN_MAX",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "graph_mean_degree",
+        "family": "graph",
+        "dtype": "float",
+        "source": "GRAPH_SNAPSHOT",
+        "semantic_meaning": "Mean degree across all active nodes in G_t",
+        "required_telemetry": [
+          "temporal_graph"
+        ],
+        "availability_condition": "Available when network topology graph G_t is constructed",
+        "computation": "mean(degree(v))",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "graph_max_betweenness",
+        "family": "graph",
+        "dtype": "float",
+        "source": "GRAPH_SNAPSHOT",
+        "semantic_meaning": "Maximum node betweenness centrality in G_t",
+        "required_telemetry": [
+          "temporal_graph"
+        ],
+        "availability_condition": "Available when network topology graph G_t is constructed",
+        "computation": "max(betweenness(v))",
+        "normalization": "MIN_MAX",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "graph_edge_churn",
+        "family": "graph",
+        "dtype": "float",
+        "source": "GRAPH_SNAPSHOT",
+        "semantic_meaning": "Fraction of edges changed from snapshot G_{t-1} to G_t",
+        "required_telemetry": [
+          "temporal_graph"
+        ],
+        "availability_condition": "Available when network topology graph G_t is constructed",
+        "computation": "|E_t \\ E_{t-1}| / max(1, |E_t|)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "graph_node_churn",
+        "family": "graph",
+        "dtype": "float",
+        "source": "GRAPH_SNAPSHOT",
+        "semantic_meaning": "Fraction of nodes emerging or disappearing from G_t",
+        "required_telemetry": [
+          "temporal_graph"
+        ],
+        "availability_condition": "Available when network topology graph G_t is constructed",
+        "computation": "|V_t \\ V_{t-1}| / max(1, |V_t|)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "graph_observability_score",
+        "family": "graph",
+        "dtype": "float",
+        "source": "GRAPH_SNAPSHOT",
+        "semantic_meaning": "Ratio of observed endpoints to routable subnet scope",
+        "required_telemetry": [
+          "temporal_graph"
+        ],
+        "availability_condition": "Available when network topology graph G_t is constructed",
+        "computation": "observed_ips / total_scope_ips",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "statistical": [
+      {
+        "name": "iat_skewness",
+        "family": "statistical",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Third standardized moment (skewness) of inter-arrival distribution",
+        "required_telemetry": [
+          "packet_sizes",
+          "inter_arrivals"
+        ],
+        "availability_condition": "Available when individual packet records or flow distributions are available",
+        "computation": "skew(iat)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "iat_kurtosis",
+        "family": "statistical",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Fourth standardized moment (kurtosis) of inter-arrival distribution",
+        "required_telemetry": [
+          "packet_sizes",
+          "inter_arrivals"
+        ],
+        "availability_condition": "Available when individual packet records or flow distributions are available",
+        "computation": "kurtosis(iat)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "packet_size_skewness",
+        "family": "statistical",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Skewness of packet byte length distribution",
+        "required_telemetry": [
+          "packet_sizes",
+          "inter_arrivals"
+        ],
+        "availability_condition": "Available when individual packet records or flow distributions are available",
+        "computation": "skew(packet_size)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "packet_size_kurtosis",
+        "family": "statistical",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "Kurtosis of packet byte length distribution",
+        "required_telemetry": [
+          "packet_sizes",
+          "inter_arrivals"
+        ],
+        "availability_condition": "Available when individual packet records or flow distributions are available",
+        "computation": "kurtosis(packet_size)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "packet_size_p90",
+        "family": "statistical",
+        "dtype": "float",
+        "source": "FLOW_AGGREGATE",
+        "semantic_meaning": "90th percentile of packet sizes in window",
+        "required_telemetry": [
+          "packet_sizes",
+          "inter_arrivals"
+        ],
+        "availability_condition": "Available when individual packet records or flow distributions are available",
+        "computation": "quantile(packet_size, 0.90)",
+        "normalization": "Z_SCORE",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "observability": [
+      {
+        "name": "telemetry_completeness_score",
+        "family": "observability",
+        "dtype": "float",
+        "source": "OBSERVABILITY_SENSOR",
+        "semantic_meaning": "Proportion of expected protocol headers successfully parsed",
+        "required_telemetry": [
+          "capture_metadata"
+        ],
+        "availability_condition": "Always computable from ingestion diagnostics",
+        "computation": "parsed_headers / max(1, expected_headers)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "payload_truncation_ratio",
+        "family": "observability",
+        "dtype": "float",
+        "source": "OBSERVABILITY_SENSOR",
+        "semantic_meaning": "Fraction of captured frames truncated prior to layer 4 payload",
+        "required_telemetry": [
+          "capture_metadata"
+        ],
+        "availability_condition": "Always computable from ingestion diagnostics",
+        "computation": "truncated_packets / max(1, total_packets)",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "sensor_coverage_ratio",
+        "family": "observability",
+        "dtype": "float",
+        "source": "OBSERVABILITY_SENSOR",
+        "semantic_meaning": "Coverage ratio of observation window (capture active fraction)",
+        "required_telemetry": [
+          "capture_metadata"
+        ],
+        "availability_condition": "Always computable from ingestion diagnostics",
+        "computation": "active_sensor_seconds / 60.0",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "sampling_rate_estimate",
+        "family": "observability",
+        "dtype": "float",
+        "source": "OBSERVABILITY_SENSOR",
+        "semantic_meaning": "Estimated packet capture sampling ratio (1.0 = unsampled full capture)",
+        "required_telemetry": [
+          "capture_metadata"
+        ],
+        "availability_condition": "Always computable from ingestion diagnostics",
+        "computation": "1.0 / sampling_divisor",
+        "normalization": "RATIO",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ],
+    "missingness": [
+      {
+        "name": "is_packet_telemetry_missing",
+        "family": "missingness",
+        "dtype": "float",
+        "source": "OBSERVABILITY_SENSOR",
+        "semantic_meaning": "Binary flag indicating whether raw packet layer is absent",
+        "required_telemetry": [
+          "protocol_presence"
+        ],
+        "availability_condition": "Always computable across all capture formats",
+        "computation": "1 if packet_features_missing else 0",
+        "normalization": "IDENTITY",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "is_tcp_telemetry_missing",
+        "family": "missingness",
+        "dtype": "float",
+        "source": "OBSERVABILITY_SENSOR",
+        "semantic_meaning": "Binary flag indicating absence of observed TCP traffic",
+        "required_telemetry": [
+          "protocol_presence"
+        ],
+        "availability_condition": "Always computable across all capture formats",
+        "computation": "1 if tcp_count == 0 else 0",
+        "normalization": "IDENTITY",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "is_udp_telemetry_missing",
+        "family": "missingness",
+        "dtype": "float",
+        "source": "OBSERVABILITY_SENSOR",
+        "semantic_meaning": "Binary flag indicating absence of observed UDP traffic",
+        "required_telemetry": [
+          "protocol_presence"
+        ],
+        "availability_condition": "Always computable across all capture formats",
+        "computation": "1 if udp_count == 0 else 0",
+        "normalization": "IDENTITY",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "is_dns_telemetry_missing",
+        "family": "missingness",
+        "dtype": "float",
+        "source": "OBSERVABILITY_SENSOR",
+        "semantic_meaning": "Binary flag indicating absence of DNS transactions",
+        "required_telemetry": [
+          "protocol_presence"
+        ],
+        "availability_condition": "Always computable across all capture formats",
+        "computation": "1 if dns_queries == 0 else 0",
+        "normalization": "IDENTITY",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "is_tls_telemetry_missing",
+        "family": "missingness",
+        "dtype": "float",
+        "source": "OBSERVABILITY_SENSOR",
+        "semantic_meaning": "Binary flag indicating absence of TLS handshakes",
+        "required_telemetry": [
+          "protocol_presence"
+        ],
+        "availability_condition": "Always computable across all capture formats",
+        "computation": "1 if tls_handshakes == 0 else 0",
+        "normalization": "IDENTITY",
+        "is_causal": true,
+        "is_safe_for_production": true
+      },
+      {
+        "name": "is_graph_telemetry_missing",
+        "family": "missingness",
+        "dtype": "float",
+        "source": "OBSERVABILITY_SENSOR",
+        "semantic_meaning": "Binary flag indicating absence of multi-endpoint topology",
+        "required_telemetry": [
+          "protocol_presence"
+        ],
+        "availability_condition": "Always computable across all capture formats",
+        "computation": "1 if node_count < 2 else 0",
+        "normalization": "IDENTITY",
+        "is_causal": true,
+        "is_safe_for_production": true
+      }
+    ]
+  }
+}

@@ -13,13 +13,36 @@ export interface AnalysisHistoryEntry {
 
 const STORAGE_KEY = 'nexsolve-analysis-history'
 
+/**
+ * Filter out any known legacy fixture or fake demo analyses.
+ * Preserves genuine user analysis records.
+ */
+function isFixtureOrFakeRecord(item: AnalysisHistoryEntry): boolean {
+  if (!item || !item.id) return true
+  if (item.provenance === 'reference') return true
+  if (item.id === 'production-cic-ids2017' || item.id === 'file.pcap') return true
+  if (item.id.startsWith('production-cic') || item.id.includes('demo') || item.id.includes('fixture')) return true
+  if (item.filename === 'file.pcap' && item.status === 'PROCESSING') return true
+  return false
+}
+
 export function getAnalysisHistory(): AnalysisHistoryEntry[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as AnalysisHistoryEntry[]
+      if (!Array.isArray(parsed)) return []
+
       let needsResave = false
-      const migrated = parsed.map((item) => {
+      const filtered = parsed.filter((item) => {
+        if (isFixtureOrFakeRecord(item)) {
+          needsResave = true
+          return false
+        }
+        return true
+      })
+
+      const migrated = filtered.map((item) => {
         if (item.peakRiskPct !== undefined) {
           const normalized = normalizeRiskPercentage(item.peakRiskPct)
           if (normalized !== item.peakRiskPct) {
@@ -32,6 +55,7 @@ export function getAnalysisHistory(): AnalysisHistoryEntry[] {
         }
         return item
       })
+
       if (needsResave) {
         try {
           const serialized = JSON.stringify(migrated)
@@ -50,6 +74,9 @@ export function getAnalysisHistory(): AnalysisHistoryEntry[] {
 }
 
 export function recordAnalysisHistory(entry: AnalysisHistoryEntry): void {
+  // Never record fixture or fake records
+  if (isFixtureOrFakeRecord(entry)) return
+
   try {
     const current = getAnalysisHistory()
     const filtered = current.filter((item) => item.id !== entry.id)

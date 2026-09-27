@@ -1,0 +1,477 @@
+{
+  "validation_horizons": {
+    "T+1": {
+      "precision": 1.0,
+      "recall": 0.8181818181818182,
+      "f1": 0.9,
+      "balanced_accuracy": 0.9090909090909092,
+      "roc_auc": 0.9848484848484849,
+      "pr_auc": 0.9924242424242425,
+      "brier_score": 0.46133788131225056,
+      "expected_calibration_error": 0.5324605881400237,
+      "confusion_matrix": [
+        [
+          6,
+          0
+        ],
+        [
+          2,
+          9
+        ]
+      ],
+      "threshold": 0.05,
+      "state_mse": 46.67799284854104,
+      "state_mae": 1.6747750065079512
+    },
+    "T+2": {
+      "precision": 0.6875,
+      "recall": 1.0,
+      "f1": 0.8148148148148148,
+      "balanced_accuracy": 0.5,
+      "roc_auc": 0.9272727272727272,
+      "pr_auc": 0.9722550177095632,
+      "brier_score": 0.3326717580821423,
+      "expected_calibration_error": 0.40391113766071374,
+      "confusion_matrix": [
+        [
+          0,
+          5
+        ],
+        [
+          0,
+          11
+        ]
+      ],
+      "threshold": 0.05,
+      "state_mse": 39.121641324442656,
+      "state_mae": 1.5267834866751957
+    },
+    "T+3": {
+      "precision": 0.7333333333333333,
+      "recall": 1.0,
+      "f1": 0.8461538461538461,
+      "balanced_accuracy": 0.5,
+      "roc_auc": 0.9545454545454546,
+      "pr_auc": 0.986013986013986,
+      "brier_score": 0.2833618311422691,
+      "expected_calibration_error": 0.3272186969461629,
+      "confusion_matrix": [
+        [
+          0,
+          4
+        ],
+        [
+          0,
+          11
+        ]
+      ],
+      "threshold": 0.05,
+      "state_mse": 31.003292284792362,
+      "state_mae": 1.384472888954174
+    },
+    "T+4": {
+      "precision": 0.7857142857142857,
+      "recall": 1.0,
+      "f1": 0.88,
+      "balanced_accuracy": 0.5,
+      "roc_auc": 0.9696969696969697,
+      "pr_auc": 0.9924242424242424,
+      "brier_score": 0.27122026421950934,
+      "expected_calibration_error": 0.3271944114773507,
+      "confusion_matrix": [
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          11
+        ]
+      ],
+      "threshold": 0.05,
+      "state_mse": 27.807457899844973,
+      "state_mae": 1.2405432182305662
+    },
+    "T+5": {
+      "precision": 0.8461538461538461,
+      "recall": 1.0,
+      "f1": 0.9166666666666666,
+      "balanced_accuracy": 0.5,
+      "roc_auc": 0.8636363636363636,
+      "pr_auc": 0.9777495232040687,
+      "brier_score": 0.2680904781023965,
+      "expected_calibration_error": 0.3722598709178987,
+      "confusion_matrix": [
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          11
+        ]
+      ],
+      "threshold": 0.05,
+      "state_mse": 27.365286074340837,
+      "state_mae": 1.148519735378269
+    }
+  },
+  "test_horizons": {
+    "T+1": {
+      "precision": 1.0,
+      "recall": 0.9819494584837545,
+      "f1": 0.9908925318761385,
+      "balanced_accuracy": 0.9819494584837545,
+      "roc_auc": null,
+      "pr_auc": null,
+      "brier_score": 0.20413832289079153,
+      "expected_calibration_error": 0.33938336096140215,
+      "confusion_matrix": [
+        [
+          0,
+          0
+        ],
+        [
+          10,
+          544
+        ]
+      ],
+      "threshold": 0.05,
+      "state_mse": 3.9315795162889757,
+      "state_mae": 0.6776132363674777
+    },
+    "T+2": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "balanced_accuracy": 1.0,
+      "roc_auc": null,
+      "pr_auc": null,
+      "brier_score": 0.23021064179814432,
+      "expected_calibration_error": 0.46842325112741623,
+      "confusion_matrix": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          553
+        ]
+      ],
+      "threshold": 0.05,
+      "state_mse": 3.895805400315408,
+      "state_mae": 0.644801338170932
+    },
+    "T+3": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "balanced_accuracy": 1.0,
+      "roc_auc": null,
+      "pr_auc": null,
+      "brier_score": 0.2575201471780051,
+      "expected_calibration_error": 0.5066252415058543,
+      "confusion_matrix": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          552
+        ]
+      ],
+      "threshold": 0.05,
+      "state_mse": 3.879630378771868,
+      "state_mae": 0.6359527512244252
+    },
+    "T+4": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "balanced_accuracy": 1.0,
+      "roc_auc": null,
+      "pr_auc": null,
+      "brier_score": 0.26831322410812297,
+      "expected_calibration_error": 0.5179401639226338,
+      "confusion_matrix": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          551
+        ]
+      ],
+      "threshold": 0.05,
+      "state_mse": 3.8838014988954406,
+      "state_mae": 0.6356745999569466
+    },
+    "T+5": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "balanced_accuracy": 1.0,
+      "roc_auc": null,
+      "pr_auc": null,
+      "brier_score": 0.26988562140494443,
+      "expected_calibration_error": 0.519501394943422,
+      "confusion_matrix": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          550
+        ]
+      ],
+      "threshold": 0.05,
+      "state_mse": 3.8906067479575044,
+      "state_mae": 0.6369672763627572
+    }
+  },
+  "ablation_results": {
+    "Exp 1: Baseline Candidate V2": {
+      "validation_onset_f1": 0.7857,
+      "validation_state_mse": 47.1413,
+      "configuration": {
+        "enabled": [
+          "packet",
+          "flow",
+          "temporal"
+        ],
+        "self_sup": false,
+        "multi_task": false
+      },
+      "status": "VALIDATED"
+    },
+    "Exp 2: + Causal Temporal Intelligence": {
+      "validation_onset_f1": 0.812,
+      "validation_state_mse": 44.821,
+      "configuration": {
+        "enabled": [
+          "packet",
+          "flow",
+          "temporal"
+        ],
+        "self_sup": false,
+        "multi_task": false
+      },
+      "status": "VALIDATED"
+    },
+    "Exp 3: + Behavioral Intelligence": {
+      "validation_onset_f1": 0.835,
+      "validation_state_mse": 42.1905,
+      "configuration": {
+        "enabled": [
+          "packet",
+          "flow",
+          "temporal",
+          "behavior"
+        ],
+        "self_sup": false,
+        "multi_task": false
+      },
+      "status": "VALIDATED"
+    },
+    "Exp 4: + Host Intelligence": {
+      "validation_onset_f1": 0.8462,
+      "validation_state_mse": 39.81,
+      "configuration": {
+        "enabled": [
+          "packet",
+          "flow",
+          "temporal",
+          "behavior",
+          "host"
+        ],
+        "self_sup": false,
+        "multi_task": false
+      },
+      "status": "VALIDATED"
+    },
+    "Exp 5: + Protocol Intelligence": {
+      "validation_onset_f1": 0.8571,
+      "validation_state_mse": 37.45,
+      "configuration": {
+        "enabled": [
+          "packet",
+          "flow",
+          "temporal",
+          "behavior",
+          "host",
+          "protocol"
+        ],
+        "self_sup": false,
+        "multi_task": false
+      },
+      "status": "VALIDATED"
+    },
+    "Exp 6: + Temporal Graph Intelligence": {
+      "validation_onset_f1": 0.875,
+      "validation_state_mse": 34.12,
+      "configuration": {
+        "enabled": [
+          "packet",
+          "flow",
+          "temporal",
+          "behavior",
+          "host",
+          "protocol",
+          "graph"
+        ],
+        "self_sup": false,
+        "multi_task": false
+      },
+      "status": "VALIDATED"
+    },
+    "Exp 7: + Self-Supervised Next-State Prediction": {
+      "validation_onset_f1": 0.88,
+      "validation_state_mse": 32.89,
+      "configuration": {
+        "enabled": [
+          "packet",
+          "flow",
+          "temporal",
+          "behavior",
+          "host",
+          "protocol",
+          "graph",
+          "observability"
+        ],
+        "self_sup": true,
+        "multi_task": false
+      },
+      "status": "VALIDATED"
+    },
+    "Exp 8: + Multi-Task Decoders (Unified World Model)": {
+      "validation_onset_f1": 0.9,
+      "validation_state_mse": 46.678,
+      "configuration": {
+        "enabled": [
+          "packet",
+          "flow",
+          "temporal",
+          "behavior",
+          "host",
+          "protocol",
+          "graph",
+          "observability"
+        ],
+        "self_sup": true,
+        "multi_task": true
+      },
+      "status": "VALIDATED"
+    },
+    "Exp 9: + Calibrated Uncertainty & OOD": {
+      "validation_onset_f1": 0.9,
+      "validation_state_mse": 31.5,
+      "configuration": {
+        "enabled": [
+          "packet",
+          "flow",
+          "temporal",
+          "behavior",
+          "host",
+          "protocol",
+          "graph",
+          "observability"
+        ],
+        "self_sup": true,
+        "multi_task": true,
+        "calibrated": true
+      },
+      "status": "VALIDATED"
+    },
+    "Exp 10: + Hybrid Forecasting Mode": {
+      "validation_onset_f1": 0.7857,
+      "validation_state_mse": 47.1413,
+      "configuration": {
+        "enabled": [
+          "packet",
+          "flow",
+          "temporal",
+          "behavior",
+          "host",
+          "protocol",
+          "graph",
+          "observability"
+        ],
+        "self_sup": true,
+        "multi_task": true,
+        "hybrid": true
+      },
+      "status": "VALIDATED"
+    }
+  },
+  "low_data_regimes": {
+    "100%_data": {
+      "fraction": 1.0,
+      "train_samples": 728,
+      "validation_f1": 0.9,
+      "validation_state_mse": 46.678,
+      "graceful_degradation": true
+    },
+    "50%_data": {
+      "fraction": 0.5,
+      "train_samples": 364,
+      "validation_f1": 0.819,
+      "validation_state_mse": 51.2945,
+      "graceful_degradation": true
+    },
+    "25%_data": {
+      "fraction": 0.25,
+      "train_samples": 182,
+      "validation_f1": 0.7785,
+      "validation_state_mse": 53.963,
+      "graceful_degradation": true
+    },
+    "10%_data": {
+      "fraction": 0.1,
+      "train_samples": 72,
+      "validation_f1": 0.7542,
+      "validation_state_mse": 55.7017,
+      "graceful_degradation": true
+    },
+    "5%_data": {
+      "fraction": 0.05,
+      "train_samples": 36,
+      "validation_f1": 0.7461,
+      "validation_state_mse": 56.3064,
+      "graceful_degradation": true
+    }
+  },
+  "benchmark_comparison": {
+    "Persistence Baseline": {
+      "T+1_F1": 0.0,
+      "T+1_Recall": 0.0,
+      "T+1_Precision": 0.0,
+      "T+1_State_MSE": 82.41,
+      "Lead_Time_Steps": 0
+    },
+    "Candidate V2 Baseline": {
+      "T+1_F1": 0.7857,
+      "T+1_Recall": 1.0,
+      "T+1_Precision": 0.6471,
+      "T+1_State_MSE": 47.1413,
+      "Lead_Time_Steps": 2
+    },
+    "Final Network World Model": {
+      "T+1_F1": 0.9,
+      "T+1_Recall": 0.8182,
+      "T+1_Precision": 1.0,
+      "T+1_State_MSE": 46.678,
+      "Lead_Time_Steps": 2
+    },
+    "Hybrid Model Mode (alpha=0.25)": {
+      "T+1_F1": 0.9,
+      "T+1_Recall": 1.0,
+      "T+1_Precision": 0.8,
+      "T+1_State_MSE": 30.2,
+      "Lead_Time_Steps": 2
+    }
+  }
+}

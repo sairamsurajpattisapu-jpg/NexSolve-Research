@@ -1,12 +1,10 @@
 import { useState } from 'react'
-import { Key, Moon, Monitor, Server, Shield, Sun, User } from 'lucide-react'
+import { Key, Monitor, Server, Shield, User } from 'lucide-react'
 import { Panel, SectionHeading, StatusPill } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
-import { useTheme } from '../hooks/useTheme'
 
 export function Settings() {
   const { data } = useProductionData()
-  const { setTheme, isDark, isLight } = useTheme()
   const analysisId = data?.results?.analysis_id ?? 'active-session'
 
   const [activeTab, setActiveTab] = useState<'appearance' | 'analysis' | 'system' | 'account'>('appearance')
@@ -109,27 +107,10 @@ export function Settings() {
           <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
               <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
-                COLOR THEME
+                VISUAL THEME
               </label>
-              <div className="theme-selector-group" role="group" aria-label="Theme selection" style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  type="button"
-                  className={`button ${isDark ? 'button-primary' : 'button-quiet'}`}
-                  style={{ fontSize: '12px', height: '34px', gap: '6px' }}
-                  onClick={() => setTheme('dark')}
-                  aria-pressed={isDark}
-                >
-                  <Moon size={14} /> Dark Theme {isDark ? '(Active)' : ''}
-                </button>
-                <button
-                  type="button"
-                  className={`button ${isLight ? 'button-primary' : 'button-quiet'}`}
-                  style={{ fontSize: '12px', height: '34px', gap: '6px' }}
-                  onClick={() => setTheme('light')}
-                  aria-pressed={isLight}
-                >
-                  <Sun size={14} /> Light Theme {isLight ? '(Active)' : ''}
-                </button>
+              <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'var(--mono)', padding: '8px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px' }}>
+                Dark &middot; Monochromatic SOC Console (Permanent)
               </div>
             </div>
 
@@ -226,7 +207,7 @@ export function Settings() {
             </div>
             <div>
               <span>Platform release</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>v0.9.4 Production</strong>
+              <strong style={{ fontFamily: 'var(--mono)' }}>Production</strong>
             </div>
             <div>
               <span>Active session identifier</span>

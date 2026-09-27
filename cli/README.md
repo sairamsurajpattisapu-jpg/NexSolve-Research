@@ -1,7 +1,7 @@
 # NexSolve CLI
 
 **NexSolve AI Network Attack Forecasting Command-Line Interface**  
-*SIH 2026 Problem Statement ID: 26153*
+*AI-Based Network Attack Forecasting Platform*
 
 The NexSolve CLI provides SOC analysts, automated ingestion agents, and CI/CD pipelines with direct terminal access to the NexSolve World Model attack forecasting system.
 

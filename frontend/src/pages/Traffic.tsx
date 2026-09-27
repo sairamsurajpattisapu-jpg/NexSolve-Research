@@ -1,4 +1,5 @@
-import { Activity, Boxes, Network, RefreshCw, Zap } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Activity, Boxes, FileUp, Network, RefreshCw, Zap } from 'lucide-react'
 import { ActivityChart, ProtocolBars } from '../components/Charts'
 import { ErrorState, LoadingState, MetricCard, Panel, SectionHeading } from '../components/Ui'
 import { formatNumber, formatPercent } from '../utils/format'
@@ -8,7 +9,32 @@ export function Traffic() {
   const { data, loading, error, reload } = useProductionData()
 
   if (loading) return <LoadingState message="Loading traffic telemetry" />
-  if (error || !data) return <ErrorState message={error ?? 'No analysis has been loaded.'} onRetry={() => void reload()} />
+  if (error) return <ErrorState message={error} onRetry={() => void reload()} />
+
+  if (!data || !data.results?.traffic) {
+    return (
+      <div className="page-stack page-enter" style={{ width: '100%', padding: '20px 0 40px 0' }}>
+        <SectionHeading
+          eyebrow="Network Telemetry"
+          title="Traffic Analytics & Temporal Dynamics"
+          description="Passive wire telemetry reconstructed across discrete 60-second tumbling observation windows."
+        />
+        <Panel style={{ padding: '48px 32px', textAlign: 'center', margin: '24px 0' }}>
+          <div style={{ maxWidth: '440px', margin: '0 auto' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
+              No telemetry available
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px', lineHeight: 1.5 }}>
+              No telemetry available. Analyze a PCAP to populate traffic telemetry.
+            </p>
+            <Link to="/console/analyze" className="button button-primary" style={{ display: 'inline-flex', gap: '6px' }}>
+              <FileUp size={14} /> Analyze PCAP
+            </Link>
+          </div>
+        </Panel>
+      </div>
+    )
+  }
 
   const { traffic } = data.results
   const windows = traffic.windows_data ?? []
@@ -90,7 +116,7 @@ export function Traffic() {
           <div className="detail-list" style={{ marginTop: '12px' }}>
             <div>
               <span>Reconstructed 5-tuple flows</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>{formatNumber(traffic.flows || 1420)}</strong>
+              <strong style={{ fontFamily: 'var(--mono)' }}>{formatNumber(traffic.flows ?? 0)}</strong>
             </div>
             <div>
               <span>Analysis windows</span>
@@ -106,7 +132,7 @@ export function Traffic() {
             </div>
             <div>
               <span>Data source</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>{data.results.source?.name ?? 'CIC packet windows'}</strong>
+              <strong style={{ fontFamily: 'var(--mono)' }}>{data.results.source?.name ?? data.results.source?.filename ?? 'Passive Wire Ingestion'}</strong>
             </div>
           </div>
         </Panel>

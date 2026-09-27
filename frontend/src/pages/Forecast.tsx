@@ -46,7 +46,7 @@ export function Forecast() {
     if (jobId) {
       if (polledResult) {
         setActiveAnalysis(polledResult)
-      } else if (data?.results && (data.results.analysis_id === jobId || data.results.analysis_id === 'production-cic-ids2017')) {
+      } else if (data?.results && data.results.analysis_id === jobId) {
         const canonical = adaptToCanonical(data.results, data.results.analysis_id)
         setActiveAnalysis(canonical)
       }

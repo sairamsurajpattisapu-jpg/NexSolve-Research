@@ -1,0 +1,14 @@
+{
+  "manifest_version": "1.0",
+  "model_id": "nexsolve_candidate_v1",
+  "timestamp_utc": "2026-09-26T15:07:02.245327+00:00",
+  "artifact_hashes": {
+    "model.npz": "c490ef03ff682fdcf4c2f73fb35eb21a04ebf518b150d20fae9459978e6f7be0",
+    "preprocessing.npz": "26072c7585d5cc72098ed36907f2f051adc2b77b58c529f9fbf4f14c92809b6e",
+    "config.json": "22dc269bfdf6bde1cbffe02a18314e7a952080f0edc59b0bf29bbe7e094c756c",
+    "feature_schema.json": "3e04f16499319874695c036fe41ce56650a7146c9585dca9c320dc32c1acef45",
+    "metadata.json": "ecab19a09d720dfde8719cf792ad8a51df9e9e52d934ea9dc9fd562b5f409659",
+    "metrics.json": "6f0655bb61746b10861b1fdea8bfe4f4dc3bab5756b98ef162d47e1381b084ce"
+  },
+  "status": "candidate_trained_and_validated"
+}

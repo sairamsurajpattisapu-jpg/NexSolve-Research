@@ -156,6 +156,8 @@ def test_production_analysis_is_read_only_and_uses_real_windows():
 
 
 def test_production_traffic_and_missing_analysis_are_structured():
+    from model_service.active_analysis import reset_to_production
+    reset_to_production()
     traffic = client.get("/api/traffic")
     assert traffic.status_code == 200
     assert len(traffic.json()["windows_data"]) == 484

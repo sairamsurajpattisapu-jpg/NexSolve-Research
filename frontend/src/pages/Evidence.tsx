@@ -60,7 +60,35 @@ export function Evidence() {
 
   if (storeLoading && !analysis) return <LoadingState message="Loading technical evidence..." />
   if (storeError && !analysis) return <ErrorState message={storeError} onRetry={() => void reload()} />
-  if (!analysis) return <LoadingState message="Retrieving canonical evidence..." />
+  if (!analysis) {
+    return (
+      <div className="page-stack page-enter" style={{ maxWidth: '640px', margin: '60px auto', textAlign: 'center' }}>
+        <Panel>
+          <div style={{ padding: '36px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ShieldAlert size={24} color="var(--text-primary)" />
+            </div>
+            <div>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
+                EVIDENCE
+              </span>
+              <h2 style={{ margin: '4px 0 8px 0', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+                No Evidence Available
+              </h2>
+              <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--text-secondary)', maxWidth: '440px', lineHeight: 1.55 }}>
+                Analyze a network capture to inspect counterfactual feature attributions and evidence chains.
+              </p>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '6px' }}>
+              <Link to="/console/analyze" className="button button-primary" style={{ fontSize: '12px' }}>
+                Analyze Capture
+              </Link>
+            </div>
+          </div>
+        </Panel>
+      </div>
+    )
+  }
 
   const { evidence, input, currentState, forecast, progression, mitre, explanations } = analysis
   const chain = evidence.chain

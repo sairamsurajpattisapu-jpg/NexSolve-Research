@@ -2,26 +2,21 @@ import { useEffect, useRef, useState, type DragEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
-  ArrowUpRight,
   CheckCircle2,
   FileUp,
-  Gauge,
-  Radio,
-  ShieldAlert,
   Sparkles,
   TimerReset,
   X,
 } from 'lucide-react'
-import { ActivityChart, ProtocolBars } from '../components/Charts'
 import { CircuitBoard } from '../components/CircuitBoard'
 import { CsvRequirementsModal } from '../components/CsvRequirementsModal'
 import { JobProgress } from '../components/JobProgress'
 import { JobResult } from '../components/JobResult'
-import { ErrorState, LoadingState, MetricCard, Panel, SectionHeading, AnalysisStatusBadge } from '../components/Ui'
+import { ErrorState, LoadingState, Panel, SectionHeading, AnalysisStatusBadge } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
 import { api, ApiError } from '../services/api'
 import type { JobStatusResponse, UploadedAnalysisResponse } from '../types/api'
-import { formatNumber, normalizeRiskPercentage } from '../utils/format'
+import { normalizeRiskPercentage } from '../utils/format'
 import {
   MAX_PCAP_UPLOAD_BYTES,
   MAX_PCAP_UPLOAD_LABEL,
@@ -72,11 +67,8 @@ export function Dashboard() {
     }
   }, [effectiveResult])
 
-  if (loading && !data) return <LoadingState message="Preparing analysis..." />
-  if (error || !data) return <ErrorState message={error ?? 'No analysis has been loaded.'} onRetry={() => void reload()} />
-
-  const { traffic, detection } = data.results
-  const windows = traffic.windows_data ?? []
+  if (loading && !data && analysisSource === 'production') return <LoadingState message="Preparing analysis..." />
+  if (error) return <ErrorState message={error} onRetry={() => void reload()} />
 
   const handleFileSelect = (selected: File | null) => {
     setClearedManually(false)
@@ -576,80 +568,7 @@ export function Dashboard() {
         <JobResult result={effectiveResult} onReset={handleUploadAnother} />
       )}
 
-      {/* 4. Production Reference Benchmark Panels when no live PCAP is active */}
-      {!effectiveResult && (
-        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border)' }}>
-          <div className="provenance-banner reference-mode" data-testid="provenance-banner-reference" style={{ marginBottom: '16px' }}>
-            <div className="provenance-badge-group">
-              <span className="provenance-pill reference-pill">VERIFIED REFERENCE DATASET</span>
-              <span className="provenance-pill dataset-pill">CIC-IDS2017</span>
-              <span className="provenance-pill status-pill">No PCAP analyzed yet</span>
-            </div>
-            <div className="provenance-details">
-              <p>
-                The metrics and telemetry below reflect the verified <strong>CIC-IDS2017</strong> benchmark reference dataset for baseline exploration. <strong>No PCAP has been analyzed yet.</strong>
-              </p>
-            </div>
-          </div>
-
-          <div className="reference-section-header" style={{ marginBottom: '12px' }}>
-            <span className="eyebrow" style={{ color: 'var(--amber)' }}>
-              CIC-IDS2017 REFERENCE BENCHMARK METRICS (FOR COMPARISON ONLY)
-            </span>
-          </div>
-
-          <div className="metric-grid" style={{ marginBottom: '16px' }}>
-            <MetricCard
-              label="Heuristic risk"
-              value={Number.isFinite(detection.risk_score) ? detection.risk_score.toFixed(1) : 'Unavailable'}
-              detail="CIC-IDS2017 reference benchmark"
-              tone="danger"
-              icon={<Gauge size={16} />}
-            />
-            <MetricCard
-              label="Packets analyzed"
-              value={formatNumber(traffic.packets)}
-              detail={`${formatNumber(traffic.windows)} reference windows`}
-              tone="accent"
-              icon={<Radio size={16} />}
-            />
-            <MetricCard
-              label="Detected indicators"
-              value={formatNumber(detection.detected_events)}
-              detail="Reference heuristics"
-              tone="warning"
-              icon={<ShieldAlert size={16} />}
-            />
-            <MetricCard
-              label="Retransmissions"
-              value={formatNumber(traffic.retransmissions)}
-              detail="Reference TCP activity"
-              icon={<ArrowUpRight size={16} />}
-            />
-          </div>
-
-          <div className="content-grid content-grid-wide">
-            <Panel>
-              <SectionHeading
-                eyebrow="REFERENCE TELEMETRY"
-                title="Packet activity"
-                description="Aggregated 60s windows from the CIC-IDS2017 reference baseline."
-              />
-              <ActivityChart windows={windows} />
-            </Panel>
-            <Panel>
-              <SectionHeading
-                eyebrow="REFERENCE TELEMETRY"
-                title="Protocol mix"
-                description="Observed protocols from the reference baseline."
-              />
-              <ProtocolBars protocols={traffic.protocol_counts} />
-            </Panel>
-          </div>
-        </div>
-      )}
-
-      {/* 5. Analysis History Architecture Panel */}
+      {/* 4. Analysis History Architecture Panel */}
       <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div>
@@ -678,7 +597,7 @@ export function Dashboard() {
         {history.length === 0 ? (
           <Panel style={{ padding: '20px', textAlign: 'center', background: 'var(--bg-surface)' }}>
             <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
-              No previous analyses in current session. Analyzed captures will appear here with instant context restoration.
+              No analyses yet. Your analyzed captures will appear here.
             </p>
           </Panel>
         ) : (

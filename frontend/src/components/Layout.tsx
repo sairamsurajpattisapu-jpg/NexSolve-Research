@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, Moon, Plus, Sun, TrendingUp, X } from 'lucide-react'
-import { useTheme } from '../hooks/useTheme'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Menu, Plus, TrendingUp, X } from 'lucide-react'
 import { ClosingPlasmaBackground } from './ClosingPlasmaBackground'
 
 import { clearUploadedAnalysis } from '../stores/productionStore'
@@ -23,6 +22,20 @@ const settingsNavigation = {
   label: 'Settings',
 }
 
+/**
+ * Strict active route matcher ensuring only ONE primary navigation item is selected at a time.
+ * Prevents '/console' from greedily matching all '/console/*' child pages.
+ */
+function isRouteActive(pathname: string, matchPaths: string[]): boolean {
+  const normalized = pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname
+  return matchPaths.some((p) => {
+    if (normalized === p) return true
+    if (p === '/console' || p === '/overview') {
+      return normalized === p
+    }
+    return normalized.startsWith(`${p}/`)
+  })
+}
 
 import { getServiceStateInfo } from '../utils/serviceState'
 
@@ -36,7 +49,6 @@ export function Layout({
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-  const { isDark, toggleTheme } = useTheme()
   const navRef = useRef<HTMLDivElement>(null)
   const drawerRef = useRef<HTMLElement>(null)
 
@@ -54,26 +66,19 @@ export function Layout({
     statusTone = 'warning status-pulse'
   }
 
-  // Derive contextual navigation indicators
-  const { data, analysisSource, analysisId, isLiveCapture } = useProductionData()
-  const isReference = analysisSource !== 'uploaded' && !isLiveCapture
-  const contextFilename = isReference
-    ? 'CIC-IDS2017 Reference Benchmark'
-    : (data?.results?.source?.filename || data?.results?.source?.name || 'Uploaded Capture')
+  // Derive contextual navigation indicators for real active user analysis
+  const { data, analysisId, isLiveCapture } = useProductionData()
+  const contextFilename = isLiveCapture
+    ? (data?.results?.source?.filename || data?.results?.source?.name || 'Uploaded Capture')
+    : 'No Active Capture'
   const contextStatusText =
     statusLabel === 'ANALYZING'
       ? 'Analyzing Telemetry'
-      : (data?.results?.forecasts && data.results.forecasts.length > 0) || Boolean((data?.results as any)?.attack_horizon)
-      ? 'Forecast Ready'
-      : isReference
-      ? 'Reference Baseline Active'
-      : 'Baseline Active'
-  const contextDotColor =
-    contextStatusText === 'Forecast Ready'
-      ? 'var(--success)'
-      : contextStatusText === 'Analyzing Telemetry'
-      ? 'var(--accent)'
-      : 'var(--amber)'
+      : isLiveCapture
+      ? ((data?.results?.forecasts && data.results.forecasts.length > 0) || Boolean((data?.results as any)?.attack_horizon)
+        ? 'Forecast Ready'
+        : 'Analysis Complete')
+      : 'Ready'
 
   const handleNewAnalysis = async () => {
     setOpen(false)
@@ -128,26 +133,11 @@ export function Layout({
             <NavLink className="brand-block" to="/console" aria-label="NexSolve">
               <span className="brand-label">NexSolve</span>
             </NavLink>
-            <span
-              style={{
-                fontSize: '10px',
-                fontFamily: 'var(--mono)',
-                color: 'var(--text-muted)',
-                padding: '2px 6px',
-                background: 'var(--bg-secondary)',
-                borderRadius: '3px',
-                border: '1px solid var(--border)',
-              }}
-            >
-              v0.9
-            </span>
           </div>
 
           <nav className="desktop-nav" aria-label="Primary navigation">
             {primaryNavigation.map(({ to, matchPaths, label }) => {
-              const isCurrentActive = matchPaths.some(
-                (p) => location.pathname === p || location.pathname.startsWith(`${p}/`)
-              )
+              const isCurrentActive = isRouteActive(location.pathname, matchPaths)
               return (
                 <NavLink
                   key={to}
@@ -162,7 +152,7 @@ export function Layout({
             <NavLink
               to={settingsNavigation.to}
               onClick={() => setOpen(false)}
-              className={`nav-link ${settingsNavigation.matchPaths.some((p) => location.pathname === p || location.pathname.startsWith(`${p}/`)) ? 'active' : ''}`}
+              className={`nav-link ${isRouteActive(location.pathname, settingsNavigation.matchPaths) ? 'active' : ''}`}
               style={{ marginLeft: '8px', opacity: 0.85 }}
             >
               <span>{settingsNavigation.label}</span>
@@ -174,16 +164,6 @@ export function Layout({
               <span className={`status-dot status-${statusTone}`} aria-hidden="true" />
               <span className="status-text">{statusLabel}</span>
             </div>
-
-            <button
-              type="button"
-              className="theme-toggle-btn"
-              onClick={toggleTheme}
-              aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-              title={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-            >
-              {isDark ? <Sun size={14} /> : <Moon size={14} />}
-            </button>
 
             <button
               type="button"
@@ -332,7 +312,7 @@ export function Layout({
             {/* Footer */}
             <div style={{ marginTop: 'auto', padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-secondary)' }}>
               <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
-                NexSolve v0.9 &middot; Cyber Operations
+                NexSolve &middot; Cyber Operations
               </span>
               <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '1px 6px', borderRadius: '3px' }}>
                 OFFLINE-FIRST
@@ -343,7 +323,7 @@ export function Layout({
       )}
 
       <main className="main-area">
-        {/* Subtle Navigation Context Banner */}
+        {/* Navigation Context Banner */}
         <div
           className="navigation-context-strip"
           data-testid="navigation-context-strip"
@@ -372,33 +352,16 @@ export function Layout({
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              {isReference ? (
+              {isLiveCapture && (
                 <span
                   style={{
                     fontSize: '9.5px',
                     fontFamily: 'var(--mono)',
                     padding: '1px 6px',
                     borderRadius: '3px',
-                    background: 'rgba(234, 179, 8, 0.12)',
-                    border: '1px solid rgba(234, 179, 8, 0.35)',
-                    color: 'var(--amber)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                    fontWeight: 700,
-                  }}
-                >
-                  DEMO / REFERENCE
-                </span>
-              ) : (
-                <span
-                  style={{
-                    fontSize: '9.5px',
-                    fontFamily: 'var(--mono)',
-                    padding: '1px 6px',
-                    borderRadius: '3px',
-                    background: 'rgba(16, 185, 129, 0.12)',
-                    border: '1px solid rgba(16, 185, 129, 0.35)',
-                    color: 'var(--success)',
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-primary)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.06em',
                     fontWeight: 700,
@@ -417,7 +380,7 @@ export function Layout({
                     width: '6px',
                     height: '6px',
                     borderRadius: '50%',
-                    background: contextDotColor,
+                    background: isLiveCapture ? 'var(--success)' : 'var(--text-muted)',
                     display: 'inline-block',
                   }}
                 />
@@ -425,18 +388,7 @@ export function Layout({
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '10.5px', color: 'var(--text-muted)' }}>
-              <span>ID: {(analysisId || 'production-cic-ids2017').slice(0, 16)}</span>
-              {isReference && (
-                <Link
-                  to="/console/analyze"
-                  style={{
-                    color: 'var(--text-secondary)',
-                    textDecoration: 'underline',
-                  }}
-                >
-                  Analyze your PCAP
-                </Link>
-              )}
+              <span>ID: {isLiveCapture && analysisId ? analysisId.slice(0, 16) : '—'}</span>
             </div>
           </div>
         </div>
@@ -451,3 +403,4 @@ export function Layout({
   )
 }
 
+export default Layout

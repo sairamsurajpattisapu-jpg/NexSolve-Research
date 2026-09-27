@@ -25,11 +25,11 @@ beforeEach(() => {
 })
 
 describe('Dashboard', () => {
-  it('renders metrics from the API data', () => {
+  it('renders upload entry point and recent analyses when no analysis is active', () => {
+    hookState = { data: null, loading: false, error: null, analysisSource: 'uploaded' }
     renderPage(<Dashboard />)
-    expect(screen.getByText('12', { selector: '.metric-accent strong' })).toBeInTheDocument()
-    expect(screen.getByText('70.0', { selector: '.metric-danger strong' })).toBeInTheDocument()
-    expect(screen.getByText('Packet activity')).toBeInTheDocument()
+    expect(screen.getByText('Analyze network traffic')).toBeInTheDocument()
+    expect(screen.getByText('No analyses yet. Your analyzed captures will appear here.')).toBeInTheDocument()
   })
 
   it('renders the loading state', () => {
@@ -56,18 +56,17 @@ describe('Dashboard', () => {
     expect(screen.getByText('Choose a .pcap or .pcapng capture.')).toBeInTheDocument()
     hookState = { data: fixture, loading: false, error: null, analysisSource: 'uploaded' }
     renderPage(<Dashboard />)
-    fireEvent.click(screen.getByRole('button', { name: /Return to (reference dataset|production)/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Upload Another/i }))
     expect(clearUploadedAnalysis).toHaveBeenCalled()
   })
 
-  it('renders reference dataset provenance labels when no PCAP is uploaded', () => {
-    hookState = { data: fixture, loading: false, error: null, analysisSource: 'production' }
+  it('does not render fake reference benchmark metrics when no PCAP is uploaded', () => {
+    hookState = { data: null, loading: false, error: null, analysisSource: 'uploaded' }
     renderPage(<Dashboard />)
-    expect(screen.getByTestId('provenance-banner-reference')).toBeInTheDocument()
-    expect(screen.getAllByText('VERIFIED REFERENCE DATASET').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('CIC-IDS2017').length).toBeGreaterThan(0)
-    expect(screen.getByText('No PCAP analyzed yet')).toBeInTheDocument()
-    expect(screen.getByText(/CIC-IDS2017 REFERENCE BENCHMARK METRICS/i)).toBeInTheDocument()
+    expect(screen.queryByTestId('provenance-banner-reference')).not.toBeInTheDocument()
+    expect(screen.queryByText('VERIFIED REFERENCE DATASET')).not.toBeInTheDocument()
+    expect(screen.queryByText('CIC-IDS2017')).not.toBeInTheDocument()
+    expect(screen.queryByText(/CIC-IDS2017 REFERENCE BENCHMARK METRICS/i)).not.toBeInTheDocument()
   })
 
   it('renders live PCAP analysis provenance when an uploaded capture is active', () => {

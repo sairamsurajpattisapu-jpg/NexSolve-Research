@@ -1,0 +1,42 @@
+{
+  "model_format": "NumPy NPZ",
+  "architecture": "NumpyLSTM",
+  "model_id": "nexsolve_candidate_v2",
+  "promoted_ablation": "ExpA_wpos_1.0",
+  "input_size": 45,
+  "hidden_size": 24,
+  "output_size": 46,
+  "lookback": 8,
+  "forecast_horizons": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "window_seconds": 60,
+  "learning_rate": 0.002,
+  "epochs": 40,
+  "seed": 42,
+  "feature_count": 45,
+  "calibrated_threshold": 0.3,
+  "hybrid_alpha": 0.5,
+  "temporal_split": {
+    "strategy": "v2_contiguous_episode_chronological",
+    "train": {
+      "windows": 744,
+      "attacks": 118,
+      "benign": 626
+    },
+    "validation": {
+      "windows": 25,
+      "attacks": 15,
+      "benign": 10
+    },
+    "test": {
+      "windows": 562,
+      "attacks": 562,
+      "benign": 0
+    }
+  }
+}

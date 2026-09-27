@@ -1,0 +1,44 @@
+{
+  "model_id": "final_world_model",
+  "model_name": "NexSolve Unified Network World Model",
+  "version": "3.0.0",
+  "architecture": "MultiViewEncoders_GatedFusion_RecurrentAccumulator_MultiTaskDecoders",
+  "d_z": 32,
+  "hidden_dim": 32,
+  "state_dim": 45,
+  "lookback": 8,
+  "forecast_horizons": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "window_seconds": 60,
+  "calibrated_threshold": 0.3,
+  "default_threshold": 0.5,
+  "hybrid_alpha": 0.25,
+  "enabled_views": [
+    "packet",
+    "observability",
+    "flow",
+    "host",
+    "temporal",
+    "graph",
+    "behavior",
+    "protocol"
+  ],
+  "temporal_split": {
+    "train_episodes": [
+      0,
+      1
+    ],
+    "val_episodes": [
+      2
+    ],
+    "test_episodes": [
+      3
+    ],
+    "lookahead_leakage": "strictly_prevented"
+  }
+}

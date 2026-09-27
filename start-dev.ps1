@@ -8,7 +8,7 @@ $ScriptDir = $PSScriptRoot
 
 Write-Host "==================================================" -ForegroundColor Cyan
 Write-Host "   NEXSOLVE CYBER ATTACK FORECAST PLATFORM        " -ForegroundColor Cyan
-Write-Host "   Local Development Stack (SIH Problem #26153)   " -ForegroundColor Cyan
+Write-Host "   AI-Based Network Attack Forecasting Platform   " -ForegroundColor Cyan
 Write-Host "==================================================" -ForegroundColor Cyan
 
 $VenvPython = Join-Path $ScriptDir ".venv\Scripts\python.exe"

@@ -1,8 +1,7 @@
 import { api, ApiError } from '../services/api'
 import type { AnalysisData, AnalysisProvenance, UploadedAnalysisResponse } from '../types/api'
-import { REFERENCE_BENCHMARK_DATA } from './referenceFixture'
 
-export const ANALYSIS_ID = 'production-cic-ids2017'
+export const ANALYSIS_ID = ''
 const UPLOAD_ID_KEY = 'nexsolve-upload-analysis-id'
 const STORAGE_ACTIVE_KEY = 'nexsolve-current-analysis-id'
 
@@ -10,18 +9,19 @@ type StoreState = {
   data: AnalysisData | null
   loading: boolean
   error: string | null
-  analysisSource: 'production' | 'uploaded'
+  analysisSource: 'uploaded' | 'production'
   provenance: AnalysisProvenance
   uploadError: string | null
   apiConnected: boolean
 }
 
+// Initial state must be completely EMPTY (no fake/reference analysis)
 let state: StoreState = {
-  data: REFERENCE_BENCHMARK_DATA,
+  data: null,
   loading: false,
   error: null,
-  analysisSource: 'production',
-  provenance: 'reference',
+  analysisSource: 'uploaded',
+  provenance: 'uploaded',
   uploadError: null,
   apiConnected: true,
 }
@@ -32,6 +32,27 @@ function emit() {
   listeners.forEach((listener) => listener())
 }
 
+// Sanitize legacy demo/fixture IDs from browser storage
+function sanitizeStorage(): string | null {
+  try {
+    const rawSession = sessionStorage.getItem(UPLOAD_ID_KEY)
+    if (rawSession === 'production-cic-ids2017' || rawSession?.includes('demo') || rawSession?.includes('fixture')) {
+      sessionStorage.removeItem(UPLOAD_ID_KEY)
+    }
+    const rawLocal = localStorage.getItem(STORAGE_ACTIVE_KEY)
+    if (rawLocal === 'production-cic-ids2017' || rawLocal?.includes('demo') || rawLocal?.includes('fixture')) {
+      localStorage.removeItem(STORAGE_ACTIVE_KEY)
+    }
+    const candidate = sessionStorage.getItem(UPLOAD_ID_KEY) ?? localStorage.getItem(STORAGE_ACTIVE_KEY)
+    if (candidate && candidate !== 'production-cic-ids2017' && !candidate.includes('demo') && !candidate.includes('fixture')) {
+      return candidate
+    }
+  } catch {
+    // Storage quota or privacy sandbox safe
+  }
+  return null
+}
+
 async function fetchData(targetAnalysisId?: string) {
   state = { ...state, loading: true, error: null }
   emit()
@@ -40,11 +61,10 @@ async function fetchData(targetAnalysisId?: string) {
     if (!resolvedId) {
       try {
         const currentMeta = await api.getCurrentAnalysis()
-        if (currentMeta?.analysis_id) {
+        if (currentMeta?.analysis_id && currentMeta.analysis_id !== 'production-cic-ids2017' && !currentMeta.analysis_id.includes('demo') && !currentMeta.analysis_id.includes('fixture')) {
           resolvedId = currentMeta.analysis_id
         }
       } catch (cause) {
-        // If it's a network unreachable error, timeout, or HTML mismatch, don't cascade 4 more doomed requests
         if (
           cause instanceof ApiError &&
           (cause.status === 0 ||
@@ -52,63 +72,79 @@ async function fetchData(targetAnalysisId?: string) {
             cause.message.includes('HTML instead of JSON') ||
             cause.message.includes('Vercel deployment detected'))
         ) {
-          throw cause
+          state = { ...state, loading: false, apiConnected: false }
+          emit()
+          return
         }
-        // If current analysis endpoint fails (e.g. 404 or backend returns mock), use stored cache
-        resolvedId = sessionStorage.getItem(UPLOAD_ID_KEY) ?? localStorage.getItem(STORAGE_ACTIVE_KEY) ?? ANALYSIS_ID
+        resolvedId = sanitizeStorage() ?? undefined
       }
     }
-    const finalId = resolvedId ?? ANALYSIS_ID
 
-    const [results, status, report, health] = await Promise.all([
-      api.results(finalId),
-      api.status(finalId),
-      api.report(finalId),
-      api.health(),
-    ])
-    const traffic = finalId === ANALYSIS_ID ? await api.traffic() : results.traffic
-    const isProd = finalId === ANALYSIS_ID
-
-    if (!isProd) {
-      sessionStorage.setItem(UPLOAD_ID_KEY, finalId)
-      localStorage.setItem(STORAGE_ACTIVE_KEY, finalId)
-    } else {
-      sessionStorage.removeItem(UPLOAD_ID_KEY)
-      localStorage.removeItem(STORAGE_ACTIVE_KEY)
+    // If no real user analysis ID exists, check backend health and keep data null (EMPTY STATE)
+    if (!resolvedId) {
+      try {
+        await api.health()
+        state = {
+          ...state,
+          data: null,
+          loading: false,
+          error: null,
+          apiConnected: true,
+          analysisSource: 'uploaded',
+          provenance: 'uploaded',
+        }
+      } catch {
+        state = {
+          ...state,
+          data: null,
+          loading: false,
+          error: null,
+          apiConnected: false,
+          analysisSource: 'uploaded',
+          provenance: 'uploaded',
+        }
+      }
+      return
     }
 
-    const provenance: AnalysisProvenance = isProd ? 'reference' : 'uploaded'
+    // Real analysis ID exists - fetch actual analysis artifacts
+    const [results, status, report, health] = await Promise.all([
+      api.results(resolvedId),
+      api.status(resolvedId),
+      api.report(resolvedId),
+      api.health(),
+    ])
+    const traffic = results.traffic
+
+    try {
+      sessionStorage.setItem(UPLOAD_ID_KEY, resolvedId)
+      localStorage.setItem(STORAGE_ACTIVE_KEY, resolvedId)
+    } catch {
+      // Storage safe
+    }
 
     state = {
       data: { results: { ...results, traffic }, status, report, health },
       loading: false,
       error: null,
-      analysisSource: isProd ? 'production' : 'uploaded',
-      provenance,
+      analysisSource: 'uploaded',
+      provenance: 'uploaded',
       uploadError: null,
       apiConnected: true,
     }
   } catch (cause) {
-    if (targetAnalysisId && targetAnalysisId !== ANALYSIS_ID && cause instanceof ApiError && cause.status === 404) {
+    if (targetAnalysisId && cause instanceof ApiError && cause.status === 404) {
       sessionStorage.removeItem(UPLOAD_ID_KEY)
       localStorage.removeItem(STORAGE_ACTIVE_KEY)
-      try {
-        await api.setCurrentAnalysis(ANALYSIS_ID)
-      } catch {
-        // Ignore reset error
-      }
-      await fetchData(ANALYSIS_ID)
-      return
     }
-    const fallbackData = state.data ?? REFERENCE_BENCHMARK_DATA
     state = {
       ...state,
-      data: fallbackData,
+      data: null,
       loading: false,
       error: null,
       apiConnected: false,
-      analysisSource: 'production',
-      provenance: 'reference',
+      analysisSource: 'uploaded',
+      provenance: 'uploaded',
     }
   } finally {
     request = null
@@ -118,14 +154,12 @@ async function fetchData(targetAnalysisId?: string) {
 
 export async function setUploadedAnalysis(uploaded: UploadedAnalysisResponse): Promise<void> {
   const analysisId = uploaded.analysis_id
-  const isProd = analysisId === ANALYSIS_ID
 
-  if (!isProd) {
+  try {
     sessionStorage.setItem(UPLOAD_ID_KEY, analysisId)
     localStorage.setItem(STORAGE_ACTIVE_KEY, analysisId)
-  } else {
-    sessionStorage.removeItem(UPLOAD_ID_KEY)
-    localStorage.removeItem(STORAGE_ACTIVE_KEY)
+  } catch {
+    // Storage safe
   }
 
   try {
@@ -147,14 +181,12 @@ export async function setUploadedAnalysis(uploaded: UploadedAnalysisResponse): P
       service_status: 'ok',
       model_loaded: true,
       model_version: '1.0.0',
-      feature_count: 46,
+      feature_count: 45,
       sequence_length: 8,
       K: 5,
       packet_features_available: true,
     }),
   ])
-
-  const provenance: AnalysisProvenance = isProd ? 'reference' : 'uploaded'
 
   state = {
     data: {
@@ -184,8 +216,8 @@ export async function setUploadedAnalysis(uploaded: UploadedAnalysisResponse): P
     loading: false,
     error: null,
     apiConnected: true,
-    analysisSource: isProd ? 'production' : 'uploaded',
-    provenance,
+    analysisSource: 'uploaded',
+    provenance: 'uploaded',
     uploadError: null,
   }
   emit()
@@ -216,7 +248,7 @@ export async function uploadPcap(file: File): Promise<string | null> {
 
 export async function clearUploadedAnalysis() {
   const uploadId = sessionStorage.getItem(UPLOAD_ID_KEY) ?? localStorage.getItem(STORAGE_ACTIVE_KEY)
-  if (uploadId && uploadId !== ANALYSIS_ID) {
+  if (uploadId && uploadId !== 'production-cic-ids2017') {
     try {
       await api.deleteAnalysis(uploadId)
     } catch {
@@ -225,22 +257,16 @@ export async function clearUploadedAnalysis() {
   }
   sessionStorage.removeItem(UPLOAD_ID_KEY)
   localStorage.removeItem(STORAGE_ACTIVE_KEY)
-  try {
-    await api.setCurrentAnalysis(ANALYSIS_ID)
-  } catch {
-    // Best effort reset
-  }
   state = {
     data: null,
-    loading: true,
+    loading: false,
     error: null,
-    apiConnected: true,
-    analysisSource: 'production',
-    provenance: 'reference',
+    apiConnected: state.apiConnected,
+    analysisSource: 'uploaded',
+    provenance: 'uploaded',
     uploadError: null,
   }
   emit()
-  return fetchData(ANALYSIS_ID)
 }
 
 export function subscribe(listener: () => void) {
@@ -252,7 +278,13 @@ export function getSnapshot() {
   return state
 }
 
-export function refreshProductionData() {
+let initialFetchInitiated = false
+
+export function refreshProductionData(force = false) {
+  if (!force && initialFetchInitiated && !request) {
+    return Promise.resolve()
+  }
+  initialFetchInitiated = true
   if (!request) request = fetchData()
   return request
 }

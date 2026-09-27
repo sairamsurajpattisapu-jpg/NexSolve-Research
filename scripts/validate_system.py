@@ -82,7 +82,7 @@ def run_tests():
 
 def main():
     print("=" * 65)
-    print("NEXSOLVE-RESEARCH SIH 2026 SCIENTIFIC SYSTEM VALIDATION")
+    print("NEXSOLVE-RESEARCH SCIENTIFIC SYSTEM VALIDATION")
     print("=" * 65)
     run_step("1. Canonical Feature Contract & Safety Gate", check_feature_contracts)
     run_step("2. World Model State Transition & K-Step Rollout", check_world_model_and_rollout)

@@ -229,5 +229,20 @@ export interface CanonicalAnalysis {
 
   temporalGraph?: import('./api').TemporalGraphSequencePayload
   graphFusion?: import('./api').GraphFusionPayload
+  networkRiskIndicators?: Array<{
+    indicator_type: string
+    entity: string
+    observation: string
+    severity: string
+    evidence: string[]
+  }>
+  uncertaintyDiagnostics?: {
+    epistemic_uncertainty?: number
+    aleatoric_uncertainty?: number
+    total_uncertainty?: number
+    ood_score?: number
+    is_ood?: boolean
+    evidence_sufficiency_score?: number
+  } | null
 }
 

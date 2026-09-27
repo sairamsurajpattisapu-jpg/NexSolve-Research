@@ -1,0 +1,13 @@
+{
+  "model_name": "NexSolve Unified Network World Model",
+  "model_id": "final_world_model",
+  "created_at_utc": "2026-09-26T17:03:36.108220+00:00",
+  "git_commit": "b05b25aaacb0e855f2572e4506f7ae2c3b5752a3",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "python_version": "3.11.9",
+  "training_epochs": 15,
+  "training_time_seconds": 22.14,
+  "dataset": "UNSW-NB15",
+  "feature_count_canonical": 45,
+  "feature_count_total_catalog": 115
+}

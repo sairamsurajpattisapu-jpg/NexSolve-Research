@@ -1,8 +1,6 @@
 # NexSolve
 
 > **AI-Powered Network Attack Forecasting & Early-Warning Platform**  
-> **Smart India Hackathon 2026** · Problem Statement ID: **26153**  
-> **Title**: "AI based Network Attack Forecasting from Network Traffic Data"  
 > **Scientific Model**: Autoregressive LSTM World Model (`45_feature_pcap_compatible`) · 100% Offline Edge Execution
 
 ---
@@ -578,5 +576,5 @@ NexSolve-Research/
 
 ## 18. License & Attribution
 
-Developed for the **Smart India Hackathon 2026** (Problem Statement 26153).  
+NexSolve — AI-Based Network Attack Forecasting Platform.  
 All benchmark claims and evaluations are fully reproducible using the commands in `reports/REPRODUCIBILITY.md`.

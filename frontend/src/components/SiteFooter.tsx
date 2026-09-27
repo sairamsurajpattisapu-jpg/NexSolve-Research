@@ -18,7 +18,7 @@ export function SiteFooter() {
         <div className="footer-brand-col">
           <div className="footer-brand-header">
             <span className="brand-label">NEXSOLVE</span>
-            <span className="footer-version-tag">RESEARCH &middot; v0.9.4</span>
+            <span className="footer-version-tag">RESEARCH</span>
           </div>
           <p className="footer-desc">
             Autonomous network attack forecasting from passive telemetry. Temporal trajectory simulation across forward lookahead horizons.

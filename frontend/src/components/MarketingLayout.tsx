@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Link, Outlet } from 'react-router-dom'
-import { ArrowRight, ChevronDown, Moon, Sun, X } from 'lucide-react'
-import { useTheme } from '../hooks/useTheme'
+import { ArrowRight, ChevronDown, X } from 'lucide-react'
 import { LiquidChromeBackground } from './LiquidChromeBackground'
 import { SiteFooter } from './SiteFooter'
 
 export function MarketingLayout() {
   const [open, setOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
-  const { isDark, toggleTheme } = useTheme()
   const navRef = useRef<HTMLElement>(null)
   const drawerRef = useRef<HTMLElement>(null)
   const moreDropdownRef = useRef<HTMLDivElement>(null)
@@ -176,16 +174,6 @@ export function MarketingLayout() {
           </nav>
 
           <div className="navbar-right">
-            <button
-              type="button"
-              className="theme-toggle-btn"
-              onClick={toggleTheme}
-              aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-              title={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-            >
-              {isDark ? <Sun size={14} /> : <Moon size={14} />}
-            </button>
-
             <Link
               to="/console"
               className="header-console-btn"

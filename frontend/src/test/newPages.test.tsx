@@ -150,8 +150,8 @@ describe('New Product Pages Suite', () => {
       )
 
       expect(screen.getByText(/System configuration/i)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /Dark Theme/i })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /Light Theme/i })).toBeInTheDocument()
+      expect(screen.getByText(/Dark · Monochromatic SOC Console \(Permanent\)/i)).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Light Theme/i })).not.toBeInTheDocument()
 
       const motionToggle = screen.getByRole('button', { name: /Toggle Reduced Motion/i })
       expect(motionToggle).toBeInTheDocument()

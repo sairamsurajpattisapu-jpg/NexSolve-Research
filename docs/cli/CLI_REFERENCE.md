@@ -1,7 +1,6 @@
 # NexSolve CLI Reference & Architecture Manual
 
-**AI-Based Network Attack Forecasting Platform**  
-*Smart India Hackathon 2026 · Problem Statement ID: 26153*
+**AI-Based Network Attack Forecasting Platform**
 
 ---
 

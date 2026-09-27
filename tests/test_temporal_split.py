@@ -134,3 +134,143 @@ def test_invalid_split_ratios() -> None:
 
     with pytest.raises(ValueError, match="strictly positive"):
         TemporalSplitter(train_ratio=-0.1, val_ratio=0.5, test_ratio=0.6)
+
+
+def test_v2_chronological_split_synthetic() -> None:
+    from ml.forecasting.temporal_split import (
+        extract_contiguous_episodes,
+        make_episode_sequences,
+        v2_chronological_split,
+    )
+
+    # Construct 5 episodes with distinct timestamps and gaps
+    # Episode 0: 20 states, mixed (10 benign, 10 attack)
+    ep0 = [DummyItem(item_id=f"e0_{i}", timestamp=1000.0 + i * 60.0, label=1 if i >= 10 else 0) for i in range(20)]
+    # Episode 1: 15 states, pure benign, gap of 300s
+    t_start_ep1 = ep0[-1].timestamp + 300.0
+    ep1 = [DummyItem(item_id=f"e1_{i}", timestamp=t_start_ep1 + i * 60.0, label=0) for i in range(15)]
+    # Episode 2: 12 states, mixed with onset 0->1, gap of 500s
+    t_start_ep2 = ep1[-1].timestamp + 500.0
+    ep2 = [DummyItem(item_id=f"e2_{i}", timestamp=t_start_ep2 + i * 60.0, label=1 if i >= 6 else 0) for i in range(12)]
+    # Episode 3: 25 states, attacks, gap of 400s
+    t_start_ep3 = ep2[-1].timestamp + 400.0
+    ep3 = [DummyItem(item_id=f"e3_{i}", timestamp=t_start_ep3 + i * 60.0, label=1) for i in range(25)]
+    # Episode 4: 10 states, attacks, gap of 200s
+    t_start_ep4 = ep3[-1].timestamp + 200.0
+    ep4 = [DummyItem(item_id=f"e4_{i}", timestamp=t_start_ep4 + i * 60.0, label=1) for i in range(10)]
+
+    all_items = ep0 + ep1 + ep2 + ep3 + ep4
+
+    split = v2_chronological_split(all_items, window_seconds=60, timestamp_fn=lambda x: x.timestamp)
+
+    # 1. Monotonicity: max(train) < min(val) < min(test)
+    max_train_t = max(x.timestamp for x in split["train"])
+    min_val_t = min(x.timestamp for x in split["validation"])
+    max_val_t = max(x.timestamp for x in split["validation"])
+    min_test_t = min(x.timestamp for x in split["test"])
+
+    assert max_train_t < min_val_t
+    assert max_val_t < min_test_t
+
+    # 2. No leakage / zero overlap
+    train_ids = {x.item_id for x in split["train"]}
+    val_ids = {x.item_id for x in split["validation"]}
+    test_ids = {x.item_id for x in split["test"]}
+    assert train_ids.isdisjoint(val_ids)
+    assert val_ids.isdisjoint(test_ids)
+    assert train_ids.isdisjoint(test_ids)
+
+    # 3. Attack presence across all three splits
+    assert any(x.label == 1 for x in split["train"])
+    assert any(x.label == 1 for x in split["validation"])
+    assert any(x.label == 1 for x in split["test"])
+
+    # 4. Validation contains onset transition (0 -> 1)
+    val_labels = [x.label for x in split["validation"]]
+    transitions = sum(1 for a, b in zip(val_labels[:-1], val_labels[1:]) if a == 0 and b == 1)
+    assert transitions >= 1
+
+
+def test_v2_make_episode_sequences_no_cross_boundary() -> None:
+    from ml.forecasting.temporal_split import make_episode_sequences
+
+    # Episode A: 10 items (t=0..9)
+    # Episode B: 10 items (t=100..109, large gap)
+    class StateStub:
+        def __init__(self, t: float, val: float, atk: int):
+            self.timestamp = t
+            self.val = val
+            self.attack_state = atk
+
+        def encode(self, names=None):
+            return np.array([self.val], dtype=np.float64)
+
+    import numpy as np
+
+    ep_a = [StateStub(float(i), float(i), 0) for i in range(10)]
+    ep_b = [StateStub(100.0 + float(i), 100.0 + float(i), 1) for i in range(10)]
+
+    x, targets, labels = make_episode_sequences([ep_a, ep_b], lookback=8)
+
+    # Lookback=8: each 10-item episode produces 10-8 = 2 sequences
+    # Total sequences: 4
+    assert len(x) == 4
+    assert len(targets) == 4
+    assert len(labels) == 4
+
+    # Sequences from ep_a have targets from ep_a (val < 10, label = 0)
+    assert targets[0][0] == 8.0
+    assert labels[0] == 0.0
+    assert targets[1][0] == 9.0
+    assert labels[1] == 0.0
+
+    # Sequences from ep_b have targets from ep_b (val >= 108, label = 1)
+    # The history MUST NOT contain items from ep_a!
+    assert x[2][0][0] == 100.0  # first item of lookback in ep_b
+    assert targets[2][0] == 108.0
+    assert labels[2] == 1.0
+
+
+def test_v2_chronological_split_real_dataset() -> None:
+    import json
+    from pathlib import Path
+    from ml.forecasting.temporal_split import v2_chronological_split, make_episode_sequences
+
+    cache_file = Path("data/processed/unsw_network_states.json")
+    if not cache_file.exists():
+        pytest.skip("Processed dataset not found on disk")
+
+    raw_data = json.loads(cache_file.read_text(encoding="utf-8"))
+    states = raw_data["states"]
+
+    split = v2_chronological_split(states, window_seconds=60)
+
+    # Train: 744 states (118 attacks, 626 benign)
+    assert len(split["train"]) == 744
+    train_attacks = sum(1 for s in split["train"] if s.get("attack_state") == 1)
+    assert train_attacks == 118
+
+    # Validation: 25 states (15 attacks, 10 benign)
+    assert len(split["validation"]) == 25
+    val_attacks = sum(1 for s in split["validation"] if s.get("attack_state") == 1)
+    assert val_attacks == 15
+
+    # Test: at least 562 states, all attacks
+    assert len(split["test"]) >= 562
+    test_attacks = sum(1 for s in split["test"] if s.get("attack_state") == 1)
+    assert test_attacks == len(split["test"])
+
+    # Strict chronological ordering
+    max_train_t = max(s["timestamp"] for s in split["train"])
+    min_val_t = min(s["timestamp"] for s in split["validation"])
+    max_val_t = max(s["timestamp"] for s in split["validation"])
+    min_test_t = min(s["timestamp"] for s in split["test"])
+
+    assert max_train_t < min_val_t
+    assert max_val_t < min_test_t
+
+    # Validation onset transition exists
+    val_labels = [s.get("attack_state", 0) for s in split["validation"]]
+    onsets = sum(1 for a, b in zip(val_labels[:-1], val_labels[1:]) if a == 0 and b == 1)
+    assert onsets >= 1
+

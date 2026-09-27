@@ -11,16 +11,16 @@ describe('Console Entry & Reference Transparency Suite', () => {
     vi.restoreAllMocks()
   })
 
-  it('1. Opening /console with reference benchmark explicitly badges DEMO / REFERENCE and clean empty state', () => {
+  it('1. Opening /console with no active analysis displays clean empty state without fake data', () => {
     vi.spyOn(useProductionDataModule, 'useProductionData').mockReturnValue({
-      data: REFERENCE_BENCHMARK_DATA,
+      data: null,
       loading: false,
       error: null,
-      analysisSource: 'production',
-      provenance: 'reference',
-      isReferenceDataset: true,
+      analysisSource: 'uploaded',
+      provenance: 'uploaded',
+      isReferenceDataset: false,
       isLiveCapture: false,
-      analysisId: 'production-cic-ids2017',
+      analysisId: '',
       apiConnected: true,
       uploadError: null,
       reload: vi.fn(),
@@ -38,32 +38,29 @@ describe('Console Entry & Reference Transparency Suite', () => {
       </MemoryRouter>
     )
 
-    // Header badge
-    expect(screen.getByText('NO ACTIVE USER SESSION')).toBeInTheDocument()
+    // Header and callout badges
+    expect(screen.getAllByText('NO ACTIVE ANALYSIS').length).toBeGreaterThan(0)
 
     // Clean callout for visitor
-    expect(screen.getByText('NO ACTIVE ANALYSIS')).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: /Ready to analyze network traffic captures/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Start New Analysis/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /View CLI Instructions/i })).toBeInTheDocument()
 
-    // Reference benchmark explicit labeling
-    expect(screen.getByText('DEMO / REFERENCE ANALYSIS')).toBeInTheDocument()
-    expect(screen.getByText('CIC-IDS2017 BENCHMARK FIXTURE')).toBeInTheDocument()
-    expect(screen.getByText(/The metrics below reflect the pre-computed CIC-IDS2017 benchmark baseline for model verification/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /View Reference Forecast/i })).toBeInTheDocument()
+    // Verify absence of fake benchmark / demo states
+    expect(screen.queryByText('DEMO / REFERENCE ANALYSIS')).not.toBeInTheDocument()
+    expect(screen.queryByText('CIC-IDS2017 BENCHMARK FIXTURE')).not.toBeInTheDocument()
   })
 
-  it('2. Layout navigation context strip displays DEMO / REFERENCE badge and Analyze your PCAP link for reference benchmark', () => {
+  it('2. Layout does not render fake reference context strip when no live capture is active', () => {
     vi.spyOn(useProductionDataModule, 'useProductionData').mockReturnValue({
-      data: REFERENCE_BENCHMARK_DATA,
+      data: null,
       loading: false,
       error: null,
-      analysisSource: 'production',
-      provenance: 'reference',
-      isReferenceDataset: true,
+      analysisSource: 'uploaded',
+      provenance: 'uploaded',
+      isReferenceDataset: false,
       isLiveCapture: false,
-      analysisId: 'production-cic-ids2017',
+      analysisId: '',
       apiConnected: true,
       uploadError: null,
       reload: vi.fn(),
@@ -85,10 +82,13 @@ describe('Console Entry & Reference Transparency Suite', () => {
 
     const contextStrip = screen.getByTestId('navigation-context-strip')
     expect(contextStrip).toBeInTheDocument()
-    expect(contextStrip).toHaveTextContent('DEMO / REFERENCE')
-    expect(contextStrip).toHaveTextContent('CIC-IDS2017 Reference Benchmark')
-    expect(contextStrip).toHaveTextContent('Reference Baseline Active')
-    expect(screen.getByRole('link', { name: /Analyze your PCAP/i })).toBeInTheDocument()
+    expect(contextStrip).not.toHaveTextContent('DEMO / REFERENCE')
+    expect(contextStrip).not.toHaveTextContent('CIC-IDS2017 Reference Benchmark')
+    expect(contextStrip).not.toHaveTextContent('Reference Baseline Active')
+    expect(contextStrip).toHaveTextContent(/Analysis:/i)
+    expect(contextStrip).toHaveTextContent(/Status:/i)
+    expect(contextStrip).toHaveTextContent('No Active Capture')
+    expect(contextStrip).toHaveTextContent('Ready')
   })
 
   it('3. Layout navigation context strip displays LIVE CAPTURE badge when live upload is active', () => {

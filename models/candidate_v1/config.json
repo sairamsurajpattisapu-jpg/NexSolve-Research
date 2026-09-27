@@ -1,0 +1,22 @@
+{
+  "model_format": "NumPy NPZ",
+  "architecture": "NumpyLSTM",
+  "input_size": 45,
+  "hidden_size": 24,
+  "output_size": 46,
+  "lookback": 8,
+  "forecast_horizons": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "window_seconds": 60,
+  "learning_rate": 0.002,
+  "epochs": 40,
+  "seed": 42,
+  "feature_count": 45,
+  "packet_features_available": false,
+  "loss_function": "State MSE (45 features) + BCE (attack logit)"
+}
