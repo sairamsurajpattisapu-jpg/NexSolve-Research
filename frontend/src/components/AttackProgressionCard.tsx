@@ -41,14 +41,14 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
       >
         <div
           style={{
-            background: 'rgba(104, 225, 216, 0.05)',
-            border: '1px solid rgba(104, 225, 216, 0.3)',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border)',
             borderRadius: '6px',
             padding: '14px',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--teal)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Observed State (Ground Truth @ T0)
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -56,26 +56,26 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
                 <span
                   style={{
                     fontSize: '9px',
-                    fontFamily: 'var(--mono)',
-                    fontWeight: 700,
-                    padding: '1px 5px',
-                    borderRadius: '3px',
-                    background: progression.classification === 'OBSERVED' ? 'rgba(74, 222, 128, 0.15)' : 'rgba(104, 225, 216, 0.15)',
-                    color: progression.classification === 'OBSERVED' ? 'var(--green, #4ade80)' : 'var(--teal)',
-                    border: '1px solid currentColor',
+                    fontFamily: 'var(--font-sans)',
+                    fontWeight: 600,
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                    background: 'var(--bg-elevated)',
+                    color: progression.classification === 'OBSERVED' ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    border: '1px solid var(--border)',
                   }}
                 >
                   {progression.classification}
                 </span>
               )}
-              <Activity size={14} color="var(--teal)" />
+              <Activity size={14} color="var(--text-muted)" />
             </div>
           </div>
-          <strong style={{ fontSize: '18px', color: 'var(--white)', display: 'block', marginBottom: '4px' }}>
+          <strong style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '4px', letterSpacing: '-0.01em' }}>
             {observedState.replace(/_/g, ' ')}
           </strong>
           {progression.stage_confidence !== undefined && progression.stage_confidence > 0 && (
-            <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-secondary)', marginBottom: '4px', fontVariantNumeric: 'tabular-nums' }}>
               Stage Confidence: {(progression.stage_confidence * 100).toFixed(0)}%
               {progression.technique_confidence !== undefined && progression.technique_confidence > 0 && (
                 <span style={{ marginLeft: '8px', color: 'var(--text-muted)' }}>
@@ -90,19 +90,20 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
                 <span
                   key={tech}
                   style={{
-                    fontSize: '9px',
+                    fontSize: '10px',
                     fontFamily: 'var(--mono)',
                     padding: '2px 6px',
-                    borderRadius: '3px',
-                    background: 'rgba(104, 225, 216, 0.15)',
-                    color: 'var(--teal)',
+                    borderRadius: '4px',
+                    background: 'var(--bg-elevated)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-secondary)',
                   }}
                 >
                   {tech}
                 </span>
               ))
             ) : (
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>No attack techniques active</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>No attack techniques active</span>
             )}
           </div>
         </div>
@@ -116,7 +117,7 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Scientific Semantic Guardrail
             </span>
             <Clock size={14} color="var(--text-muted)" />
@@ -124,8 +125,8 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
           <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             {progression.summary}
           </p>
-          <div style={{ marginTop: '8px', fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--amber)' }}>
-            Supported: {progression.supported_horizons.map(h => `T+${h}m`).join(', ') || 'None'} {progression.unsupported_horizons.length > 0 && `· Withheld: ${progression.unsupported_horizons.map(h => `T+${h}m`).join(', ')}`}
+          <div style={{ marginTop: '8px', fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+            Supported: <span style={{ color: 'var(--text-secondary)' }}>{progression.supported_horizons.map(h => `T+${h}m`).join(', ') || 'None'}</span> {progression.unsupported_horizons.length > 0 && <span>· Withheld: <span style={{ color: 'var(--text-secondary)' }}>{progression.unsupported_horizons.map(h => `T+${h}m`).join(', ')}</span></span>}
           </div>
         </div>
       </div>
@@ -135,7 +136,7 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
         <span className="eyebrow" style={{ margin: 0 }}>
           Continuous Temporal Progression Trajectory (T+1 .. T+5)
         </span>
-        <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+        <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
           Strictly Past-Conditioned: P(S_T+K | S_T)
         </span>
       </div>
@@ -158,18 +159,16 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
             <div
               key={pt.horizon_minutes}
               style={{
-                border: `1px solid ${
-                  isPtAbstained
-                    ? 'var(--border)'
-                    : isProgression
-                    ? 'rgba(237, 128, 111, 0.4)'
-                    : 'rgba(104, 225, 216, 0.3)'
-                }`,
+                border: isPtAbstained
+                  ? '1px solid var(--border)'
+                  : isProgression
+                  ? '1px solid rgba(244, 63, 94, 0.28)'
+                  : '1px solid var(--border)',
                 background: isPtAbstained
                   ? 'rgba(255, 255, 255, 0.01)'
                   : isProgression
-                  ? 'rgba(237, 128, 111, 0.05)'
-                  : 'rgba(104, 225, 216, 0.03)',
+                  ? 'rgba(244, 63, 94, 0.03)'
+                  : 'var(--bg-secondary)',
                 borderRadius: '6px',
                 padding: '12px',
                 display: 'flex',
@@ -178,11 +177,11 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
               }}
             >
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <strong style={{ fontFamily: 'var(--mono)', fontSize: '12px', color: 'var(--text-primary)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <strong style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
                     T+{pt.horizon_minutes}m
                   </strong>
-                  <span style={{ fontFamily: 'var(--mono)', fontSize: '9px', color: 'var(--text-muted)' }}>
+                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: '10px', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
                     +{pt.lead_time_seconds}s
                   </span>
                 </div>
@@ -193,11 +192,13 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
                     <span
                       style={{
                         fontSize: '9px',
-                        fontFamily: 'var(--mono)',
-                        padding: '2px 5px',
-                        borderRadius: '3px',
-                        background: 'rgba(245, 158, 11, 0.1)',
+                        fontFamily: 'var(--font-sans)',
+                        fontWeight: 600,
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        background: 'rgba(245, 158, 11, 0.08)',
                         color: 'var(--amber)',
+                        border: '1px solid rgba(245, 158, 11, 0.25)',
                       }}
                     >
                       ABSTAINED
@@ -206,11 +207,13 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
                     <span
                       style={{
                         fontSize: '9px',
-                        fontFamily: 'var(--mono)',
-                        padding: '2px 5px',
-                        borderRadius: '3px',
-                        background: 'rgba(104, 225, 216, 0.15)',
-                        color: 'var(--teal)',
+                        fontFamily: 'var(--font-sans)',
+                        fontWeight: 600,
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        background: 'var(--bg-elevated)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border)',
                       }}
                     >
                       STATE PERSISTENCE
@@ -219,11 +222,13 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
                     <span
                       style={{
                         fontSize: '9px',
-                        fontFamily: 'var(--mono)',
-                        padding: '2px 5px',
-                        borderRadius: '3px',
-                        background: 'rgba(237, 128, 111, 0.15)',
+                        fontFamily: 'var(--font-sans)',
+                        fontWeight: 600,
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        background: 'rgba(244, 63, 94, 0.1)',
                         color: 'var(--red)',
+                        border: '1px solid rgba(244, 63, 94, 0.3)',
                       }}
                     >
                       DOWNSTREAM PROGRESSION
@@ -233,13 +238,14 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
 
                 {/* State Label */}
                 <div style={{ marginBottom: '8px' }}>
-                  <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>
                     {isPersistence ? 'Active Ongoing Stage:' : isProgression ? 'Predicted Next Stage:' : 'Status:'}
                   </span>
                   <strong
                     style={{
                       fontSize: '13px',
-                      color: isPtAbstained ? 'var(--text-muted)' : isProgression ? 'var(--red)' : 'var(--white)',
+                      fontWeight: 600,
+                      color: isPtAbstained ? 'var(--text-muted)' : isProgression ? 'var(--text-primary)' : 'var(--text-primary)',
                     }}
                   >
                     {isPtAbstained ? 'Withheld' : pt.predicted_state.replace(/_/g, ' ')}
@@ -256,14 +262,15 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
                       <span
                         style={{
                           fontSize: '16px',
-                          fontWeight: 700,
-                          fontFamily: 'var(--mono)',
-                          color: isProgression ? 'var(--red)' : 'var(--teal)',
+                          fontWeight: 600,
+                          fontFamily: 'var(--font-sans)',
+                          fontVariantNumeric: 'tabular-nums',
+                          color: isProgression ? 'var(--red)' : 'var(--text-primary)',
                         }}
                       >
                         {probPercent}%
                       </span>
-                      <span style={{ fontSize: '9px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>
                         at T+{pt.horizon_minutes} min
                       </span>
                     </div>
@@ -273,17 +280,18 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
                 {/* Forecast techniques (Strictly empty for persistence) */}
                 {isProgression && pt.forecast_techniques.length > 0 && (
                   <div style={{ marginTop: '6px' }}>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)' }}>Predicted Techniques:</span>
-                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '2px' }}>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Predicted Techniques:</span>
+                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '3px' }}>
                       {pt.forecast_techniques.map((tech) => (
                         <span
                           key={tech}
                           style={{
-                            fontSize: '8px',
+                            fontSize: '9px',
                             fontFamily: 'var(--mono)',
-                            padding: '1px 4px',
-                            borderRadius: '2px',
-                            background: 'rgba(237, 128, 111, 0.2)',
+                            padding: '1px 5px',
+                            borderRadius: '3px',
+                            background: 'rgba(244, 63, 94, 0.1)',
+                            border: '1px solid rgba(244, 63, 94, 0.25)',
                             color: 'var(--red)',
                           }}
                         >
@@ -301,7 +309,7 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
                       fontSize: '10px',
                       color: 'var(--amber)',
                       lineHeight: 1.4,
-                      background: 'rgba(245, 158, 11, 0.05)',
+                      background: 'rgba(245, 158, 11, 0.04)',
                       padding: '6px 8px',
                       borderRadius: '4px',
                       borderLeft: '2px solid var(--amber)',
@@ -315,7 +323,7 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
               {/* Supporting evidence snippet */}
               {pt.supporting_evidence.length > 0 && (
                 <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid var(--border)' }}>
-                  <small style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', lineHeight: 1.3 }}>
+                  <small style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', lineHeight: 1.4 }}>
                     {pt.supporting_evidence[0]}
                   </small>
                 </div>
@@ -332,7 +340,7 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
             <span className="eyebrow" style={{ margin: 0 }}>
               Attack Progression Timeline (Observed &rarr; Forecast)
             </span>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
               {progression.timeline.length} Temporal Checkpoints
             </span>
           </div>
@@ -340,16 +348,16 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
             {progression.timeline.map((ev, idx) => {
               const clsTone =
                 ev.classification === 'OBSERVED'
-                  ? 'var(--green, #4ade80)'
+                  ? 'var(--text-primary)'
                   : ev.classification === 'FORECAST'
-                  ? 'var(--teal)'
+                  ? 'var(--text-secondary)'
                   : 'var(--amber)'
               const clsBg =
                 ev.classification === 'OBSERVED'
-                  ? 'rgba(74, 222, 128, 0.15)'
+                  ? 'var(--bg-elevated)'
                   : ev.classification === 'FORECAST'
-                  ? 'rgba(104, 225, 216, 0.15)'
-                  : 'rgba(245, 158, 11, 0.15)'
+                  ? 'rgba(255, 255, 255, 0.04)'
+                  : 'rgba(245, 158, 11, 0.08)'
               const timeLabel =
                 ev.horizon_label || (ev.classification === 'FORECAST' ? `+${ev.lead_time_seconds ?? 0}s` : 'T0')
               const isSelected = selectedTimelineIdx === idx
@@ -361,8 +369,8 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
                     display: 'flex',
                     flexDirection: 'column',
                     borderRadius: '4px',
-                    background: isSelected ? 'rgba(255, 255, 255, 0.03)' : 'var(--bg-secondary)',
-                    border: isSelected ? '1px solid var(--accent, var(--teal))' : '1px solid var(--border)',
+                    background: isSelected ? 'var(--bg-elevated)' : 'var(--bg-secondary)',
+                    border: isSelected ? '1px solid var(--border-strong)' : '1px solid var(--border)',
                     fontSize: '12px',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
@@ -378,33 +386,33 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--text-muted)', minWidth: '40px' }}>
+                      <span style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--text-muted)', minWidth: '40px', fontVariantNumeric: 'tabular-nums' }}>
                         {timeLabel}
                       </span>
-                      <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>
+                      <strong style={{ fontFamily: 'var(--font-sans)', fontWeight: 500, color: 'var(--text-primary)' }}>
                         {ev.stage.replace(/_/g, ' ')}
                       </strong>
                       <span
                         style={{
                           fontSize: '9px',
-                          fontFamily: 'var(--mono)',
+                          fontFamily: 'var(--font-sans)',
                           padding: '1px 6px',
                           borderRadius: '3px',
-                          fontWeight: 700,
+                          fontWeight: 600,
                           background: clsBg,
                           color: clsTone,
-                          border: '1px solid currentColor',
+                          border: '1px solid var(--border)',
                         }}
                       >
                         {ev.classification}
                       </span>
                       {ev.primary_techniques && ev.primary_techniques.length > 0 && (
-                        <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--amber)' }}>
+                        <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
                           [{ev.primary_techniques.join(', ')}]
                         </span>
                       )}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontFamily: 'var(--mono)', fontSize: '11px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontFamily: 'var(--font-sans)', fontSize: '11px', fontVariantNumeric: 'tabular-nums' }}>
                       <span style={{ color: 'var(--text-secondary)' }}>
                         Conf: {(ev.confidence * 100).toFixed(0)}%
                       </span>
@@ -464,11 +472,11 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
               <span
                 style={{
                   fontSize: '10px',
-                  fontFamily: 'var(--mono)',
+                  fontFamily: 'var(--font-sans)',
                   padding: '2px 8px',
                   borderRadius: '4px',
-                  fontWeight: 700,
-                  background: progression.validation.valid ? 'rgba(74, 222, 128, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                  fontWeight: 600,
+                  background: progression.validation.valid ? 'rgba(74, 222, 128, 0.08)' : 'rgba(239, 68, 68, 0.08)',
                   color: progression.validation.valid ? 'var(--green, #4ade80)' : 'var(--danger)',
                   border: '1px solid currentColor',
                 }}
@@ -497,20 +505,21 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>
+                    <strong style={{ fontFamily: 'var(--font-sans)', fontWeight: 500, color: 'var(--text-primary)' }}>
                       {tr.from_stage} &rarr; {tr.to_stage}
                     </strong>
                     <span
                       style={{
                         fontSize: '9px',
-                        fontFamily: 'var(--mono)',
+                        fontFamily: 'var(--font-sans)',
                         padding: '1px 5px',
                         borderRadius: '3px',
+                        fontWeight: 600,
                         background: isValid
                           ? isUnusual
-                            ? 'rgba(245, 158, 11, 0.15)'
-                            : 'rgba(74, 222, 128, 0.15)'
-                          : 'rgba(239, 68, 68, 0.15)',
+                            ? 'rgba(245, 158, 11, 0.1)'
+                            : 'rgba(74, 222, 128, 0.1)'
+                          : 'rgba(239, 68, 68, 0.1)',
                         color: isValid
                           ? isUnusual
                             ? 'var(--amber)'
@@ -524,7 +533,7 @@ export function AttackProgressionCard({ progression }: AttackProgressionCardProp
                       {tr.reason}
                     </span>
                   </div>
-                  <span style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
+                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: '11px', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
                     Conf: {(tr.confidence * 100).toFixed(0)}%
                   </span>
                 </div>

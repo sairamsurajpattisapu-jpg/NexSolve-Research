@@ -682,9 +682,14 @@ export function CliQuickstartSection() {
         <p style={{ fontSize: '13px', color: 'var(--ns-text-secondary)', margin: '0 0 16px 0' }}>
           Launch the operational security console to visualize communication topology and timeline projections.
         </p>
-        <Link to="/console" className="button button-primary" style={{ padding: '8px 20px', fontSize: '12px', gap: '6px' }}>
-          <span>Open Web Console</span> <ArrowRight size={13} />
-        </Link>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Link to="/console/analyze" className="button button-primary" style={{ padding: '8px 20px', fontSize: '12px', gap: '6px' }}>
+            <span>Analyze a PCAP</span> <ArrowRight size={13} />
+          </Link>
+          <Link to="/console" className="button button-quiet" style={{ padding: '8px 20px', fontSize: '12px', gap: '6px' }}>
+            <span>Open Web Console</span>
+          </Link>
+        </div>
       </div>
     </section>
   )

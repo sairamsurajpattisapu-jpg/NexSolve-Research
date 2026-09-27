@@ -166,8 +166,9 @@ export function Landing() {
     sections.forEach((s) => observer.observe(s))
 
     // Handle scroll for /cli-quickstart and #cli-quickstart
+    let timerId: ReturnType<typeof setTimeout> | null = null
     if (window.location.pathname.includes('cli') || window.location.hash.includes('cli')) {
-      setTimeout(() => {
+      timerId = setTimeout(() => {
         const el = document.getElementById('cli-quickstart')
         if (el) {
           el.scrollIntoView({ behavior: 'smooth' })
@@ -175,7 +176,10 @@ export function Landing() {
       }, 100)
     }
 
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      if (timerId) clearTimeout(timerId)
+    }
   }, [])
 
   const currentStep = PIPELINE_STEPS[activeStep]
@@ -209,20 +213,20 @@ export function Landing() {
 
           <div className="hero-cta-container">
             {/* PRIMARY: Analyze a PCAP → */}
-            <a
-              href="#cli-quickstart"
+            <Link
+              to="/console/analyze"
               className="hero-btn-primary"
-              aria-label="Use NexSolve CLI — Analyze a PCAP"
+              aria-label="Analyze a PCAP"
             >
               <span>Analyze a PCAP</span>
               <ArrowRight size={15} />
-            </a>
+            </Link>
 
             {/* SECONDARY: View CLI Commands */}
             <a
               href="#cli-quickstart"
               className="hero-btn-secondary"
-              aria-label="View CLI Commands"
+              aria-label="Use NexSolve CLI — View CLI Commands"
             >
               <Terminal size={14} />
               <span>View CLI Commands</span>
@@ -465,15 +469,15 @@ export function Landing() {
         </p>
 
         <div className="hero-cta-container" style={{ margin: 0 }}>
-          <a
-            href="#cli-quickstart"
+          <Link
+            to="/console/analyze"
             className="hero-btn-primary"
             style={{ padding: '0 32px', height: 48 }}
-            aria-label="Use NexSolve CLI — Analyze a PCAP"
+            aria-label="Analyze a PCAP"
           >
             <span>Analyze a PCAP</span>
             <ArrowRight size={16} />
-          </a>
+          </Link>
           <Link
             to="/console"
             className="hero-btn-secondary"

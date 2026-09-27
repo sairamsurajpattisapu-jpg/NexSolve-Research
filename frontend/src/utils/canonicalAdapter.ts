@@ -96,6 +96,9 @@ export function adaptToCanonical(
   const evidenceChain = (raw.evidence_chain as Record<string, unknown>) || (raw.evidenceChain as Record<string, unknown>)
   const abstention = (raw.abstention as Record<string, unknown>) || {}
   const confidenceRaw = (raw.confidence as Record<string, unknown>) || {}
+  const forecastSummary = (raw.forecast_summary as Record<string, unknown>) || {}
+  const fwm = (raw.final_world_model as Record<string, unknown>) || {}
+  const historyObj = ((raw.network_state as Record<string, unknown>)?.history as Record<string, unknown>) || {}
 
   const isProd = analysisId === 'production-cic-ids2017'
   const provenance = isProd ? 'reference' : 'live'
@@ -114,13 +117,66 @@ export function adaptToCanonical(
     raw.window_count || validation.window_count || traffic.window_count || traffic.windows || traffic.windows_analyzed || validation.rows || 0
   )
   const isModelReady = Boolean(modelCompat.forecast_model_ready ?? (windowsCount >= 8))
+
+  // Authoritative Abstention Detection & Status Extraction from Backend
+  const backendAbstentionReason =
+    (forecastSummary.status as string) ||
+    (abstention.abstention_reason as string) ||
+    (abstention.reason as string) ||
+    (fwm.abstention_reason as string) ||
+    (historyObj.status as string) ||
+    null
+
+  const backendAbstentionExplanation =
+    (forecastSummary.message as string) ||
+    (abstention.abstention_explanation as string) ||
+    (abstention.explanation as string) ||
+    (fwm.abstention_explanation as string) ||
+    (historyObj.reason as string) ||
+    null
+
   const isAbstained = Boolean(
+    forecastSummary.available === false ||
+    raw.is_forecast_available === false ||
     abstention.abstained ||
     (abstention as any).is_abstained ||
     raw.is_abstained ||
+    fwm.is_abstained ||
     attackHorizon?.state === 'ABSTAINED' ||
+    historyObj.status === 'GAPPED_HISTORY' ||
+    backendAbstentionReason === 'NON_CONTIGUOUS_TIMESTAMPS' ||
     windowsCount < 8
   )
+
+  let forecastStatus: string = 'READY'
+  if (isAbstained) {
+    if (backendAbstentionReason && backendAbstentionReason !== 'READY' && backendAbstentionReason !== 'FORECAST_READY') {
+      forecastStatus = backendAbstentionReason
+    } else if (historyObj.status === 'GAPPED_HISTORY') {
+      forecastStatus = 'NON_CONTIGUOUS_TIMESTAMPS'
+    } else if (windowsCount < 8) {
+      forecastStatus = 'INSUFFICIENT_HISTORY'
+    } else if (!isModelReady) {
+      forecastStatus = 'INCOMPATIBLE_FEATURES'
+    } else {
+      forecastStatus = 'ABSTAINED'
+    }
+  } else if (!isModelReady) {
+    forecastStatus = 'INCOMPATIBLE_FEATURES'
+  }
+
+  let forecastMessage = 'Multi-step forecast trajectory successfully generated using continuous temporal rollout.'
+  if (isAbstained) {
+    if (backendAbstentionExplanation && backendAbstentionExplanation.trim().length > 0) {
+      forecastMessage = backendAbstentionExplanation
+    } else if (forecastStatus === 'NON_CONTIGUOUS_TIMESTAMPS' || forecastStatus === 'GAPPED_HISTORY') {
+      forecastMessage = 'Forecast withheld: Input sequence contains non-contiguous temporal windows or excessive time gaps.'
+    } else if (forecastStatus === 'INSUFFICIENT_HISTORY' || windowsCount < 8) {
+      forecastMessage = `Forecasting requires at least 8 continuous 60-second windows. Static traffic analysis completed successfully.`
+    } else {
+      forecastMessage = 'Forecasting withheld: Preconditions for continuous temporal rollout were not met.'
+    }
+  }
 
   // Forecast Points
   let rawForecasts = (raw.forecasts as Array<Record<string, unknown>>) || []
@@ -216,7 +272,7 @@ export function adaptToCanonical(
         predictedStage: null,
         confidence: null,
         uncertainty: null,
-        explanation: [isAbstained ? ((abstention.reason || (abstention as any).explanation || raw.abstention_explanation) as string || 'Forecast withheld: Insufficient continuous temporal history (< 8 windows).') : 'Forecast point withheld.'],
+        explanation: [isAbstained ? (forecastMessage || `Forecast withheld: ${forecastStatus}.`) : 'Forecast point withheld.'],
         topDrivers: [],
         evidenceAttribution: null,
       })
@@ -453,12 +509,12 @@ export function adaptToCanonical(
 
     forecast: {
       isAvailable: !forecastWithheld,
-      status: isAbstained ? 'INSUFFICIENT_HISTORY' : isModelReady ? 'READY' : 'INCOMPATIBLE_FEATURES',
+      status: forecastStatus,
       requiredWindows: 8,
       availableWindows: windowsCount,
-      message: isAbstained
-        ? `Forecasting withheld: The input capture contains ${windowsCount} continuous windows. NexSolve requires at least 8 continuous 60-second windows (480s) to establish state momentum.`
-        : 'Multi-step forecast trajectory successfully generated using continuous temporal rollout.',
+      observedWindows: windowsCount,
+      continuousWindows: (forecastStatus === 'NON_CONTIGUOUS_TIMESTAMPS' || forecastStatus === 'GAPPED_HISTORY') ? 0 : windowsCount,
+      message: forecastMessage,
       horizons: horizonsList,
       points,
       earlyWarning,

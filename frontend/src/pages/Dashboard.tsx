@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type DragEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type DragEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -47,6 +47,17 @@ export function Dashboard() {
   const [clearedManually, setClearedManually] = useState<boolean>(false)
 
   const effectiveResult = clearedManually ? null : (jobResult ?? (analysisSource === 'uploaded' ? (data?.results as unknown as UploadedAnalysisResponse) : null))
+
+  // Ensure the Analyze page always mounts scrolled to top
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    if (document.documentElement) {
+      document.documentElement.scrollTop = 0
+    }
+    if (document.body) {
+      document.body.scrollTop = 0
+    }
+  }, [])
 
   // Sync history when effectiveResult is available
   useEffect(() => {
@@ -102,6 +113,7 @@ export function Dashboard() {
 
   const submitCapture = async () => {
     if (!file || uploading) return
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     if (file.size > MAX_PCAP_UPLOAD_BYTES) {
       setSelectionError(`Capture exceeds the maximum allowed upload size of ${MAX_PCAP_UPLOAD_LABEL}.`)
       return
@@ -129,6 +141,7 @@ export function Dashboard() {
       setFile(null)
       // Navigate to dedicated forecast rollout route with the created job ID
       navigate(`/console/forecast/${job.job_id}`)
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
 
       // Poll until completion so live processing status is shown directly on Dashboard
       let cur = job
@@ -259,14 +272,7 @@ export function Dashboard() {
         aria-label="Choose PCAP capture"
         type="file"
         accept=".pcap,.pcapng"
-        style={{
-          position: 'fixed',
-          top: '-9999px',
-          left: '-9999px',
-          width: '1px',
-          height: '1px',
-          opacity: 0,
-        }}
+        style={{ display: 'none' }}
         onClick={(event) => {
           // Reset value so selecting the same capture file repeatedly always triggers onChange
           (event.target as HTMLInputElement).value = ''
@@ -360,7 +366,7 @@ export function Dashboard() {
               <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '13.5px', lineHeight: 1.5 }}>
                 Upload network telemetry to reconstruct the current network state and forecast future attack progression.
               </p>
-              <small style={{ display: 'block', marginTop: '10px', fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--text-muted)' }}>
+              <small style={{ display: 'block', marginTop: '10px', fontFamily: 'var(--font-sans)', fontSize: '11.5px', color: 'var(--text-muted)' }}>
                 Supported: .pcap, .pcapng &middot; Maximum size: {MAX_PCAP_UPLOAD_DESCRIPTION}
               </small>
 
@@ -382,7 +388,7 @@ export function Dashboard() {
           ) : (
             /* Analysis Confirmation Card (Before Processing) */
             <div style={{ maxWidth: '640px', width: '100%', margin: '0 auto' }}>
-              <div style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', marginBottom: '4px' }}>
+              <div style={{ fontSize: '10.5px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.08em', marginBottom: '4px', textTransform: 'uppercase' }}>
                 ANALYSIS CONFIRMATION
               </div>
               <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 14px 0', color: 'var(--text-primary)' }}>
@@ -414,19 +420,19 @@ export function Dashboard() {
                 }}
               >
                 <div>
-                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>FILENAME</span>
+                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.04em' }}>FILENAME</span>
                   <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '13px', marginTop: '2px', wordBreak: 'break-all' }}>
                     {file.name}
                   </strong>
                 </div>
                 <div>
-                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>FILE SIZE</span>
+                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.04em' }}>FILE SIZE</span>
                   <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '13px', marginTop: '2px' }}>
                     {(file.size / (1024 * 1024)).toFixed(2)} MB
                   </strong>
                 </div>
                 <div>
-                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>FORMAT</span>
+                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.04em' }}>FORMAT</span>
                   <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '13px', marginTop: '2px' }}>
                     {file.name.toLowerCase().endsWith('.pcapng')
                       ? 'PCAPNG (Next Generation)'
@@ -436,14 +442,14 @@ export function Dashboard() {
                   </strong>
                 </div>
                 <div>
-                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>FORECAST HORIZONS</span>
+                  <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontSize: '10.5px', fontWeight: 600, letterSpacing: '0.04em' }}>FORECAST HORIZONS</span>
                   <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '13px', marginTop: '2px' }}>
                     Multi-Horizon (T+1..T+5)
                   </strong>
                 </div>
                 <div style={{ gridColumn: 'span 2', paddingTop: '6px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <CheckCircle2 size={14} color="var(--success)" />
-                  <span style={{ color: 'var(--success)', fontFamily: 'var(--mono)', fontSize: '11px', fontWeight: 600 }}>
+                  <span style={{ color: 'var(--success)', fontFamily: 'var(--font-sans)', fontSize: '11px', fontWeight: 600 }}>
                     Format validated &middot; Ready for ingestion
                   </span>
                 </div>
@@ -620,8 +626,8 @@ export function Dashboard() {
                     <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)', display: 'block' }}>
                       {item.filename}
                     </strong>
-                    <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
-                      ID: {item.id.slice(0, 16)} &middot; {item.filesize || 'Capture'} &middot; {new Date(item.timestamp).toLocaleTimeString()}
+                    <span style={{ fontSize: '11.5px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
+                      ID: <code style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>{item.id.slice(0, 16)}</code> &middot; {item.filesize || 'Capture'} &middot; {new Date(item.timestamp).toLocaleTimeString()}
                     </span>
                   </div>
                 </div>
@@ -634,7 +640,9 @@ export function Dashboard() {
                       <span
                         style={{
                           fontSize: '12px',
-                          fontFamily: 'var(--mono)',
+                          fontFamily: 'var(--font-sans)',
+                          fontWeight: 600,
+                          fontVariantNumeric: 'tabular-nums',
                           color: norm > 60 ? 'var(--danger)' : 'var(--text-primary)',
                         }}
                       >

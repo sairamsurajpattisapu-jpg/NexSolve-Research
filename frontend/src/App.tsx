@@ -1,4 +1,5 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { useLayoutEffect } from 'react'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { MarketingLayout } from './components/MarketingLayout'
 import { useProductionData } from './hooks/useProductionData'
@@ -25,6 +26,38 @@ import { Workflow } from './pages/Workflow'
 
 import { AnalysisProvider } from './context/AnalysisContext'
 
+function ScrollToTop() {
+  const { pathname, search } = useLocation()
+
+  useLayoutEffect(() => {
+    if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual'
+    }
+
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    if (document.documentElement) {
+      document.documentElement.scrollTop = 0
+    }
+    if (document.body) {
+      document.body.scrollTop = 0
+    }
+
+    const rafId = requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+      if (document.documentElement) {
+        document.documentElement.scrollTop = 0
+      }
+      if (document.body) {
+        document.body.scrollTop = 0
+      }
+    })
+
+    return () => cancelAnimationFrame(rafId)
+  }, [pathname, search])
+
+  return null
+}
+
 function App() {
   const { loading, error, analysisSource, provenance, apiConnected } = useProductionData()
   const status = loading
@@ -36,6 +69,7 @@ function App() {
   return (
     <AnalysisProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
         {/* Marketing / Explanatory Pages */}
         <Route element={<MarketingLayout />}>

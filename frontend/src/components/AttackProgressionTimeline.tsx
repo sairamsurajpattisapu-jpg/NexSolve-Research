@@ -47,10 +47,10 @@ export function AttackProgressionTimeline({
     <Panel className="attack-progression-timeline">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
         <div>
-          <span className="eyebrow" style={{ color: 'var(--accent)', margin: 0 }}>
+          <span className="eyebrow" style={{ color: 'var(--text-secondary)', margin: 0 }}>
             TEMPORAL KINEMATICS & TRANSITION MATRIX
           </span>
-          <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '4px 0 2px 0', color: 'var(--text-primary)' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '4px 0 2px 0', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
             Attack Progression Timeline
           </h3>
           <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--text-muted)', maxWidth: '640px' }}>
@@ -62,9 +62,9 @@ export function AttackProgressionTimeline({
           <span
             style={{
               fontSize: '11px',
-              fontFamily: 'var(--mono)',
-              fontWeight: 700,
-              padding: '4px 10px',
+              fontFamily: 'var(--font-sans)',
+              fontWeight: 600,
+              padding: '3px 10px',
               borderRadius: '4px',
               background: 'var(--bg-secondary)',
               color: 'var(--text-primary)',
@@ -108,12 +108,12 @@ export function AttackProgressionTimeline({
                 padding: '14px 16px',
                 borderRadius: '6px',
                 background: node.isCurrent
-                  ? 'var(--bg-surface)'
+                  ? 'var(--bg-elevated)'
                   : node.isForecasted
                   ? 'var(--bg-secondary)'
                   : 'transparent',
                 border: node.isCurrent || node.isForecasted
-                  ? '1px solid var(--text-primary)'
+                  ? '1px solid var(--border-strong)'
                   : '1px solid var(--border)',
                 transition: 'all 0.15s ease',
               }}
@@ -122,16 +122,17 @@ export function AttackProgressionTimeline({
               <div style={{ textAlign: 'center' }}>
                 <span
                   style={{
-                    fontFamily: 'var(--mono)',
+                    fontFamily: 'var(--font-sans)',
                     fontSize: '13px',
-                    fontWeight: 700,
-                    color: node.isCurrent ? 'var(--accent)' : 'var(--text-primary)',
+                    fontWeight: 600,
+                    fontVariantNumeric: 'tabular-nums',
+                    color: 'var(--text-primary)',
                     display: 'block',
                   }}
                 >
                   {node.horizon}
                 </span>
-                <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
+                <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>
                   +{node.lookaheadSeconds}s
                 </span>
                 {node.isCurrent && (
@@ -139,9 +140,9 @@ export function AttackProgressionTimeline({
                     style={{
                       display: 'block',
                       fontSize: '9px',
-                      fontFamily: 'var(--mono)',
-                      color: 'var(--accent)',
-                      fontWeight: 700,
+                      fontFamily: 'var(--font-sans)',
+                      color: 'var(--text-secondary)',
+                      fontWeight: 600,
                       marginTop: '2px',
                     }}
                   >
@@ -153,9 +154,9 @@ export function AttackProgressionTimeline({
                     style={{
                       display: 'block',
                       fontSize: '9px',
-                      fontFamily: 'var(--mono)',
+                      fontFamily: 'var(--font-sans)',
                       color: isElevated ? 'var(--danger)' : 'var(--warning)',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       marginTop: '2px',
                     }}
                   >
@@ -175,10 +176,10 @@ export function AttackProgressionTimeline({
                       style={{
                         fontSize: '10px',
                         fontFamily: 'var(--mono)',
-                        padding: '1px 5px',
+                        padding: '1px 6px',
                         borderRadius: '3px',
-                        background: 'var(--button-secondary-bg)',
-                        color: 'var(--accent)',
+                        background: 'var(--bg-elevated)',
+                        color: 'var(--text-secondary)',
                         border: '1px solid var(--border)',
                       }}
                     >
@@ -194,7 +195,7 @@ export function AttackProgressionTimeline({
               {/* Right Risk & Probability */}
               <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                 <RiskBadge level={isUnknown ? 'WITHHELD' : node.risk} size="sm" />
-                <span style={{ fontFamily: 'var(--mono)', fontSize: '13px', fontWeight: 700, color: isElevated ? 'var(--danger)' : 'var(--text-primary)' }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: isElevated ? 'var(--danger)' : 'var(--text-primary)' }}>
                   {isUnknown || typeof node.probability !== 'number' ? 'Withheld' : `${(node.probability * 100).toFixed(0)}% Likelihood`}
                 </span>
               </div>

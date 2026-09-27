@@ -116,23 +116,23 @@ export function Traffic() {
           <div className="detail-list" style={{ marginTop: '12px' }}>
             <div>
               <span>Reconstructed 5-tuple flows</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>{formatNumber(traffic.flows ?? 0)}</strong>
+              <strong style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>{formatNumber(traffic.flows ?? 0)}</strong>
             </div>
             <div>
               <span>Analysis windows</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>{formatNumber(traffic.windows)} windows</strong>
+              <strong style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>{formatNumber(traffic.windows)} windows</strong>
             </div>
             <div>
               <span>Peak window density</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>{formatNumber(Math.max(...windows.map((item) => item.packet_count), 0))} packets</strong>
+              <strong style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>{formatNumber(Math.max(...windows.map((item) => item.packet_count), 0))} packets</strong>
             </div>
             <div>
               <span>Fragmented packets</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>{formatNumber(traffic.fragmented_packets)}</strong>
+              <strong style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>{formatNumber(traffic.fragmented_packets)}</strong>
             </div>
             <div>
               <span>Data source</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>{data.results.source?.name ?? data.results.source?.filename ?? 'Passive Wire Ingestion'}</strong>
+              <strong style={{ fontFamily: 'var(--font-sans)' }}>{data.results.source?.name ?? data.results.source?.filename ?? 'Passive Wire Ingestion'}</strong>
             </div>
           </div>
         </Panel>

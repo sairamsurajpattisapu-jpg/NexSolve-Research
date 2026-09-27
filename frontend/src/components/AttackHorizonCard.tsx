@@ -75,12 +75,14 @@ export function AttackHorizonCard({
                     type="button"
                     className={`button button-quiet ${selectedFixtureKey === key ? 'active' : ''}`}
                     style={{
-                      padding: '4px 8px',
-                      fontSize: '9px',
-                      fontFamily: 'var(--mono)',
-                      borderColor: selectedFixtureKey === key ? 'var(--accent)' : 'var(--border)',
-                      color: selectedFixtureKey === key ? 'var(--accent)' : 'var(--text-secondary)',
-                      background: selectedFixtureKey === key ? 'var(--accent-muted)' : 'var(--button-secondary-bg)',
+                      padding: '4px 10px',
+                      fontSize: '11px',
+                      fontFamily: 'var(--font-sans)',
+                      fontWeight: 500,
+                      borderRadius: '6px',
+                      borderColor: selectedFixtureKey === key ? 'rgba(255, 255, 255, 0.2)' : 'var(--border)',
+                      color: selectedFixtureKey === key ? 'var(--text-primary)' : 'var(--text-muted)',
+                      background: selectedFixtureKey === key ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
                     }}
                     onClick={() => setSelectedFixtureKey(key)}
                   >
@@ -99,52 +101,52 @@ export function AttackHorizonCard({
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
           gap: '12px',
-          marginTop: '12px',
+          marginTop: '16px',
           marginBottom: '16px',
         }}
       >
-        <div className="metric-card metric-accent" style={{ padding: '14px', minHeight: 'auto' }}>
-          <div className="metric-top">
+        <div className="metric-card" style={{ padding: '16px', minHeight: 'auto', background: 'rgba(255, 255, 255, 0.015)', border: '1px solid var(--border)', borderRadius: '10px' }}>
+          <div className="metric-top" style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-sans)' }}>
             <span>Attack Horizon</span>
-            <Clock size={14} />
+            <Clock size={13} />
           </div>
-          <strong style={{ fontSize: '20px', marginTop: '8px' }}>
+          <strong style={{ fontSize: '20px', fontWeight: 600, marginTop: '8px', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>
             {payload.horizon_windows > 0 ? `${payload.horizon_windows} windows` : '0 windows'}
           </strong>
-          <small>{payload.horizon_seconds > 0 ? `${payload.horizon_seconds} seconds continuous` : 'No attack span'}</small>
+          <small style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-sans)', marginTop: '2px' }}>{payload.horizon_seconds > 0 ? `${payload.horizon_seconds} seconds continuous` : 'No attack span'}</small>
         </div>
 
-        <div className="metric-card" style={{ padding: '14px', minHeight: 'auto' }}>
-          <div className="metric-top">
+        <div className="metric-card" style={{ padding: '16px', minHeight: 'auto', background: 'rgba(255, 255, 255, 0.015)', border: '1px solid var(--border)', borderRadius: '10px' }}>
+          <div className="metric-top" style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-sans)' }}>
             <span>Onset Lead Time</span>
-            <StateIcon size={14} />
+            <StateIcon size={13} />
           </div>
-          <strong style={{ fontSize: '20px', marginTop: '8px' }}>
+          <strong style={{ fontSize: '20px', fontWeight: 600, marginTop: '8px', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>
             {payload.lead_time_seconds !== null ? `${payload.lead_time_seconds}s` : 'N/A'}
           </strong>
-          <small>{payload.onset_horizon !== null ? `Begins at window T+${payload.onset_horizon}` : 'No onset detected'}</small>
+          <small style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-sans)', marginTop: '2px' }}>{payload.onset_horizon !== null ? `Begins at window T+${payload.onset_horizon}` : 'No onset detected'}</small>
         </div>
 
-        <div className="metric-card" style={{ padding: '14px', minHeight: 'auto' }}>
-          <div className="metric-top">
+        <div className="metric-card" style={{ padding: '16px', minHeight: 'auto', background: 'rgba(255, 255, 255, 0.015)', border: '1px solid var(--border)', borderRadius: '10px' }}>
+          <div className="metric-top" style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-sans)' }}>
             <span>Temporal Consistency</span>
-            <Sliders size={14} />
+            <Sliders size={13} />
           </div>
-          <strong style={{ fontSize: '20px', marginTop: '8px' }}>
+          <strong style={{ fontSize: '20px', fontWeight: 600, marginTop: '8px', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>
             {(payload.temporal_consistency * 100).toFixed(0)}%
           </strong>
-          <small>{payload.decay_observed ? 'Monotonic decay observed' : 'Contiguous sequence'}</small>
+          <small style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-sans)', marginTop: '2px' }}>{payload.decay_observed ? 'Monotonic decay observed' : 'Contiguous sequence'}</small>
         </div>
 
-        <div className="metric-card" style={{ padding: '14px', minHeight: 'auto' }}>
-          <div className="metric-top">
+        <div className="metric-card" style={{ padding: '16px', minHeight: 'auto', background: 'rgba(255, 255, 255, 0.015)', border: '1px solid var(--border)', borderRadius: '10px' }}>
+          <div className="metric-top" style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-sans)' }}>
             <span>Calibration Status</span>
-            <Shield size={14} />
+            <Shield size={13} />
           </div>
-          <strong style={{ fontSize: '16px', marginTop: '10px', color: 'var(--amber)' }}>
+          <strong style={{ fontSize: '15px', fontWeight: 600, marginTop: '10px', fontFamily: 'var(--font-sans)', color: 'var(--text-secondary)' }}>
             {payload.confidence_summary.calibration_status}
           </strong>
-          <small>Raw model scores; uncalibrated</small>
+          <small style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-sans)', marginTop: '2px' }}>Raw model scores; uncalibrated</small>
         </div>
       </div>
 
@@ -152,158 +154,194 @@ export function AttackHorizonCard({
         className="horizon-summary-banner"
         style={{
           padding: '12px 14px',
-          background: 'rgba(255, 255, 255, 0.03)',
-          borderLeft: `3px solid ${config.tone === 'danger' ? 'var(--red)' : config.tone === 'warning' ? 'var(--amber)' : config.tone === 'success' ? 'var(--teal)' : 'var(--muted)'}`,
+          background: 'var(--bg-secondary)',
+          borderLeft: `2px solid ${config.tone === 'danger' ? 'var(--danger)' : config.tone === 'warning' ? 'var(--warning)' : 'var(--border-strong)'}`,
           borderRadius: '4px',
           marginBottom: '16px',
         }}
       >
-        <p style={{ fontSize: '11px', color: 'var(--subtle)', margin: 0, lineHeight: 1.5 }}>
+        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.5 }}>
           {payload.summary}
         </p>
         {payload.current_stage && (
-          <div style={{ marginTop: '6px', fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
-            Observed Stage @ T0: <strong style={{ color: 'var(--teal)' }}>{payload.current_stage}</strong>
+          <div style={{ marginTop: '6px', fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
+            Observed Stage @ T0: <strong style={{ color: 'var(--text-primary)' }}>{payload.current_stage}</strong>
             {payload.escalation_horizon && (
-              <> &middot; Impending Escalation: <strong style={{ color: 'var(--red)' }}>T+{payload.escalation_horizon} ({payload.lead_time_to_escalation_seconds}s lead time)</strong></>
+              <> &middot; Impending Escalation: <strong style={{ color: 'var(--danger)' }}>T+{payload.escalation_horizon} ({payload.lead_time_to_escalation_seconds}s lead time)</strong></>
             )}
           </div>
         )}
         {payload.abstention_reason && (
-          <small style={{ display: 'block', marginTop: '6px', color: 'var(--amber)', fontFamily: 'var(--mono)', fontSize: '10px' }}>
+          <small style={{ display: 'block', marginTop: '6px', color: 'var(--warning)', fontFamily: 'var(--font-sans)', fontSize: '11px' }}>
             Abstention reason: {payload.abstention_reason}
           </small>
         )}
       </div>
 
       <div className="horizon-evidence-chain">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <span className="eyebrow" style={{ margin: 0 }}>
-            Predictive Forecast Timeline (t0 Observed &rarr; T+1 to T+5 Forward Rollout)
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <span className="eyebrow" style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)' }}>
+            Sequential Horizon Rollout (T0 Observed &rarr; T+1 to T+5 Forward Windows)
           </span>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--amber)' }}>
+          <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
             Status: UNCALIBRATED FORECAST MARGIN
           </span>
         </div>
 
         <div
+          className="horizon-timeline-instrument"
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(6, 1fr)',
-            gap: '8px',
+            border: '1px solid var(--border)',
+            borderRadius: '10px',
+            background: 'rgba(255, 255, 255, 0.012)',
+            overflow: 'hidden',
           }}
         >
-          {/* T0: Current State Anchor */}
+          {/* Timeline Rule Bar */}
           <div
             style={{
-              border: '1px solid rgba(104, 225, 216, 0.4)',
-              background: 'rgba(104, 225, 216, 0.06)',
-              borderRadius: '5px',
-              padding: '10px 8px',
-              textAlign: 'center',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '8px 14px',
+              borderBottom: '1px solid var(--border)',
+              background: 'rgba(255, 255, 255, 0.02)',
+              fontSize: '11px',
+              color: 'var(--text-muted)',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--teal)', fontSize: '9px', fontFamily: 'var(--mono)', marginBottom: '6px' }}>
-              <strong>t0 (Now)</strong>
-              <span>Observed</span>
-            </div>
-            <div style={{ margin: '8px 0' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, fontFamily: 'var(--mono)', color: 'var(--white)' }}>
-                CURRENT
-              </span>
-              <small style={{ display: 'block', color: 'var(--teal)', fontSize: '8px', marginTop: '2px', fontFamily: 'var(--mono)' }}>
-                Ground Truth
-              </small>
-            </div>
-            <div style={{ fontSize: '9px', color: 'var(--subtle)', marginTop: '4px' }}>
-              Active Window
-            </div>
+            <span>Decision Baseline: &theta;={payload.decision_threshold.toFixed(2)}</span>
+            <span>60s Temporal Resolution &middot; Continuous Forward Projection</span>
           </div>
 
-          {/* T+1 through T+5 Forward Forecast Horizons */}
-          {payload.evidence_chain.map((point) => {
-            const isAbstained = point.abstained || point.attack_probability === null
-            const isAttack = !isAbstained && point.above_threshold
-            const isWithinHorizon =
-              payload.onset_horizon !== null &&
-              payload.end_horizon !== null &&
-              point.horizon >= payload.onset_horizon &&
-              point.horizon <= payload.end_horizon
-
-            return (
-              <div
-                key={point.horizon}
-                style={{
-                  border: `1px solid ${isWithinHorizon ? 'rgba(237, 128, 111, 0.6)' : isAttack ? 'rgba(237, 128, 111, 0.3)' : 'var(--border)'}`,
-                  background: isWithinHorizon
-                    ? 'rgba(237, 128, 111, 0.12)'
-                    : isAttack
-                    ? 'rgba(237, 128, 111, 0.05)'
-                    : 'var(--bg-secondary)',
-                  borderRadius: '5px',
-                  padding: '10px 8px',
-                  textAlign: 'center',
-                  position: 'relative',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--muted)', fontSize: '9px', fontFamily: 'var(--mono)', marginBottom: '6px' }}>
-                  <strong>T+{point.horizon}</strong>
-                  <span>+{point.horizon_seconds}s</span>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(6, 1fr)',
+            }}
+          >
+            {/* T0: Current State Anchor */}
+            <div
+              style={{
+                borderRight: '1px solid var(--border)',
+                background: 'rgba(255, 255, 255, 0.02)',
+                padding: '14px 12px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: '140px',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-muted)', fontSize: '10px', fontFamily: 'var(--font-sans)', marginBottom: '8px' }}>
+                  <strong style={{ color: 'var(--text-primary)', fontSize: '11px' }}>t0 (Now)</strong>
+                  <span>Observed</span>
                 </div>
-
-                <div style={{ margin: '6px 0' }}>
-                  {isAbstained ? (
-                    <span style={{ color: 'var(--amber)', fontSize: '11px', fontFamily: 'var(--mono)' }}>Withheld</span>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <span
-                        style={{
-                          fontSize: '15px',
-                          fontWeight: 700,
-                          fontFamily: 'var(--mono)',
-                          color: isAttack ? 'var(--red)' : 'var(--teal)',
-                        }}
-                      >
-                        {point.attack_probability?.toFixed(2)}
-                      </span>
-                      <small style={{ color: 'var(--muted)', fontSize: '8px' }}>
-                        vs &theta;={payload.decision_threshold.toFixed(2)}
-                      </small>
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ fontSize: '9px', color: 'var(--subtle)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {point.predicted_stage ?? (isAttack ? 'Suspicious' : 'Baseline')}
-                </div>
-
-                <div style={{ marginTop: '6px', fontSize: '8px', fontFamily: 'var(--mono)' }}>
-                  {isWithinHorizon ? (
-                    <span style={{ color: 'var(--red)', fontWeight: 700 }}>In Horizon</span>
-                  ) : isAbstained ? (
-                    <span style={{ color: 'var(--muted)' }}>Abstained</span>
-                  ) : (
-                    <span style={{ color: 'var(--muted)' }}>Beyond Span</span>
-                  )}
-                </div>
-
-                <div style={{ marginTop: '3px' }}>
-                  <span
-                    style={{
-                      fontSize: '7px',
-                      fontFamily: 'var(--mono)',
-                      color: 'var(--amber)',
-                      background: 'rgba(245, 158, 11, 0.1)',
-                      padding: '1px 3px',
-                      borderRadius: '2px',
-                    }}
-                  >
-                    UNCALIBRATED
+                <div style={{ margin: '8px 0' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font-sans)', color: 'var(--text-primary)', display: 'block' }}>
+                    CURRENT
                   </span>
+                  <small style={{ display: 'block', color: 'var(--text-muted)', fontSize: '10px', marginTop: '3px', fontFamily: 'var(--font-sans)' }}>
+                    Ground Truth
+                  </small>
                 </div>
               </div>
-            )
-          })}
+              <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', marginTop: '8px' }}>
+                Active Window
+              </div>
+            </div>
+
+            {/* T+1 through T+5 Forward Forecast Horizons */}
+            {payload.evidence_chain.map((point, idx) => {
+              const isAbstained = point.abstained || point.attack_probability === null
+              const isAttack = !isAbstained && point.above_threshold
+              const isWithinHorizon =
+                payload.onset_horizon !== null &&
+                payload.end_horizon !== null &&
+                point.horizon >= payload.onset_horizon &&
+                point.horizon <= payload.end_horizon
+              const isLast = idx === payload.evidence_chain.length - 1
+
+              return (
+                <div
+                  key={point.horizon}
+                  style={{
+                    borderRight: isLast ? 'none' : '1px solid var(--border)',
+                    background: isWithinHorizon
+                      ? 'rgba(244, 63, 94, 0.04)'
+                      : 'transparent',
+                    padding: '14px 12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    minHeight: '140px',
+                    position: 'relative',
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-muted)', fontSize: '10px', fontFamily: 'var(--font-sans)', marginBottom: '8px' }}>
+                      <strong style={{ color: isWithinHorizon ? 'var(--text-primary)' : 'var(--text-secondary)', fontSize: '11px' }}>
+                        T+{point.horizon}
+                      </strong>
+                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>+{point.horizon_seconds}s</span>
+                    </div>
+
+                    <div style={{ margin: '6px 0' }}>
+                      {isAbstained ? (
+                        <span style={{ color: 'var(--warning)', fontSize: '12px', fontWeight: 500, fontFamily: 'var(--font-sans)' }}>Withheld</span>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span
+                            style={{
+                              fontSize: '18px',
+                              fontWeight: 600,
+                              fontFamily: 'var(--font-sans)',
+                              fontVariantNumeric: 'tabular-nums',
+                              color: isAttack ? 'var(--text-primary)' : 'var(--text-secondary)',
+                            }}
+                          >
+                            {point.attack_probability?.toFixed(2)}
+                          </span>
+                          <small style={{ color: 'var(--text-muted)', fontSize: '9.5px', marginTop: '2px', fontVariantNumeric: 'tabular-nums' }}>
+                            vs &theta;={payload.decision_threshold.toFixed(2)}
+                          </small>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {point.predicted_stage ?? (isAttack ? 'Suspicious' : 'Baseline')}
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.04)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ fontSize: '10px', fontFamily: 'var(--font-sans)' }}>
+                      {isWithinHorizon ? (
+                        <span style={{ color: 'var(--danger)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--danger)', display: 'inline-block' }} />
+                          In Horizon
+                        </span>
+                      ) : isAbstained ? (
+                        <span style={{ color: 'var(--text-muted)' }}>Abstained</span>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)' }}>Beyond Span</span>
+                      )}
+                    </div>
+                    <span
+                      style={{
+                        fontSize: '8px',
+                        fontFamily: 'var(--font-sans)',
+                        letterSpacing: '0.04em',
+                        color: 'var(--text-very-muted)',
+                      }}
+                    >
+                      UNCALIBRATED
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     </Panel>

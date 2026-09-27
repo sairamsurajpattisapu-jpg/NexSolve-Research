@@ -153,9 +153,11 @@ export interface CanonicalAnalysis {
 
   forecast: {
     isAvailable: boolean
-    status: 'READY' | 'INSUFFICIENT_HISTORY' | 'INCOMPATIBLE_FEATURES' | 'ABSTAINED'
+    status: 'READY' | 'INSUFFICIENT_HISTORY' | 'NON_CONTIGUOUS_TIMESTAMPS' | 'GAPPED_HISTORY' | 'INCOMPATIBLE_FEATURES' | 'DATA_QUALITY_INSUFFICIENT' | 'ABSTAINED' | string
     requiredWindows: number
     availableWindows: number
+    observedWindows?: number
+    continuousWindows?: number
     message: string
     horizons: number[]
     points: CanonicalForecastPoint[]

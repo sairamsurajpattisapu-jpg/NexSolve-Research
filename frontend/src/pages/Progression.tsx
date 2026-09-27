@@ -96,7 +96,7 @@ export function Progression() {
               <GitBranch size={24} color="var(--text-muted)" />
             </div>
             <div>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 ATTACK PROGRESSION
               </span>
               <h2 style={{ margin: '4px 0 8px 0', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
@@ -148,10 +148,10 @@ export function Progression() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               ATTACK PROGRESSION TIMELINE &middot; MULTI-STEP DYNAMICS
             </span>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
               {input.filename || 'Active Capture'}
             </span>
           </div>
@@ -180,7 +180,7 @@ export function Progression() {
       <Panel style={{ marginBottom: '24px', padding: '22px 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
           <Clock size={16} color="var(--text-primary)" />
-          <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             3-TIER OPERATIONAL LINKAGE
           </span>
         </div>
@@ -189,7 +189,7 @@ export function Progression() {
           {/* Tier 1: Observed Evidence */}
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                 01 &middot; OBSERVED EVIDENCE
               </span>
               <StatusPill tone="neutral">PASSIVE TELEMETRY</StatusPill>
@@ -200,7 +200,7 @@ export function Progression() {
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: '0 0 10px 0' }}>
               {(currentState.summary.flows ?? 0).toLocaleString()} active bidirectional flows; inter-arrival time moments show abnormal variance; SYN/ACK handshake asymmetry elevated.
             </p>
-            <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
               Verified 45-feature schema &middot; 8 tumbling windows
             </div>
           </div>
@@ -208,7 +208,7 @@ export function Progression() {
           {/* Tier 2: Detected Behavior */}
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                 02 &middot; DETECTED BEHAVIOR
               </span>
               <StatusPill tone="warning">ACTIVE STATE</StatusPill>
@@ -219,7 +219,7 @@ export function Progression() {
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: '0 0 10px 0' }}>
               {STAGE_LABELS[currentStage]?.desc}
             </p>
-            <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
               Baseline Status: {currentState.summary.threatLevel.toUpperCase()}
             </div>
           </div>
@@ -227,7 +227,7 @@ export function Progression() {
           {/* Tier 3: Predicted Progression */}
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                 03 &middot; PREDICTED PROGRESSION
               </span>
               <StatusPill tone={!isForecastAvailable ? 'neutral' : (stepAttackProb ?? 0) > 0.6 ? 'danger' : 'warning'}>
@@ -242,7 +242,7 @@ export function Progression() {
                 ? 'Stage progression forecasting withheld due to safety boundaries (insufficient historical context or non-contiguous telemetry).'
                 : (STAGE_LABELS[predictedStage]?.desc)}
             </p>
-            <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
               Step Prob: {typeof stepAttackProb === 'number' ? `${Math.round(stepAttackProb * 100)}%` : 'Withheld'} &middot; Compound: {typeof cumulativeRiskProb === 'number' ? `${Math.round(cumulativeRiskProb * 100)}%` : 'Withheld'}
             </div>
           </div>
@@ -253,7 +253,7 @@ export function Progression() {
       <Panel style={{ marginBottom: '24px' }}>
         <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               SELECT PROSPECTIVE HORIZON
             </span>
             <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -342,7 +342,7 @@ export function Progression() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '12px',
-                      fontFamily: 'var(--mono)',
+                      fontFamily: 'var(--font-sans)',
                       fontWeight: 700,
                     }}
                   >
@@ -369,7 +369,7 @@ export function Progression() {
       <Panel style={{ marginBottom: '24px', padding: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
           <ShieldAlert size={16} color="var(--text-primary)" />
-          <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             MITRE ATT&CK BEHAVIORAL INTERPRETATION
           </span>
         </div>

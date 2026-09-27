@@ -38,12 +38,14 @@ export function MitreBehaviorPanel({
             <span
               style={{
                 fontSize: '10px',
-                fontFamily: 'var(--mono)',
-                padding: '2px 6px',
-                borderRadius: '3px',
-                background: 'var(--bg-secondary)',
+                fontFamily: 'var(--font-sans)',
+                fontWeight: 600,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: 'var(--bg-elevated)',
                 color: 'var(--text-muted)',
                 border: '1px solid var(--border)',
+                letterSpacing: '0.04em',
               }}
             >
               BEHAVIORAL INFERENCE · NOT DIRECT CLASSIFICATION
@@ -106,7 +108,7 @@ export function MitreBehaviorPanel({
                 <strong style={{ display: 'block', fontSize: '14px', color: 'var(--text-primary)', marginTop: '2px' }}>
                   {t.technique}
                 </strong>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
                   Tactic: {t.tactic} &middot; Horizon: {t.horizon}
                 </span>
               </div>
@@ -114,7 +116,7 @@ export function MitreBehaviorPanel({
             </div>
 
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--mono)', textTransform: 'uppercase' }}>
+              <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--font-sans)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '2px' }}>
                 Observed Evidence:
               </span>
               {t.evidence}
@@ -122,9 +124,10 @@ export function MitreBehaviorPanel({
 
             <div
               style={{
-                fontSize: '11px',
-                fontFamily: 'var(--mono)',
-                color: 'var(--text-muted)',
+                fontSize: '12px',
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.4,
                 background: 'var(--bg-primary)',
                 padding: '8px 10px',
                 borderRadius: '4px',

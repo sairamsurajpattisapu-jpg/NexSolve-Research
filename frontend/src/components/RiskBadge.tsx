@@ -13,44 +13,44 @@ interface RiskBadgeProps {
 
 const LEVEL_STYLES: Record<string, { bg: string; text: string; border: string }> = {
   CRITICAL: {
-    bg: 'rgba(237, 128, 111, 0.15)',
-    text: 'var(--danger, #ed806f)',
-    border: 'rgba(237, 128, 111, 0.4)',
+    bg: 'rgba(244, 63, 94, 0.1)',
+    text: 'var(--danger, #f43f5e)',
+    border: 'rgba(244, 63, 94, 0.25)',
   },
   HIGH: {
-    bg: 'rgba(242, 187, 113, 0.15)',
-    text: 'var(--warning, #f2bb71)',
-    border: 'rgba(242, 187, 113, 0.4)',
+    bg: 'rgba(245, 158, 11, 0.1)',
+    text: 'var(--warning, #f59e0b)',
+    border: 'rgba(245, 158, 11, 0.25)',
   },
   ELEVATED: {
-    bg: 'rgba(242, 187, 113, 0.12)',
-    text: 'var(--warning, #f2bb71)',
-    border: 'rgba(242, 187, 113, 0.3)',
+    bg: 'rgba(245, 158, 11, 0.08)',
+    text: 'var(--warning, #f59e0b)',
+    border: 'rgba(245, 158, 11, 0.2)',
   },
   MEDIUM: {
-    bg: 'rgba(104, 225, 216, 0.12)',
-    text: 'var(--accent, #68e1d8)',
-    border: 'rgba(104, 225, 216, 0.3)',
+    bg: 'var(--bg-elevated)',
+    text: 'var(--text-secondary, #94a3b8)',
+    border: 'var(--border, rgba(255, 255, 255, 0.08))',
   },
   LOW: {
-    bg: 'rgba(16, 185, 129, 0.12)',
-    text: 'var(--success, #10b981)',
-    border: 'rgba(16, 185, 129, 0.3)',
+    bg: 'rgba(74, 222, 128, 0.08)',
+    text: 'var(--success, #4ade80)',
+    border: 'rgba(74, 222, 128, 0.2)',
   },
   NORMAL: {
-    bg: 'rgba(16, 185, 129, 0.12)',
-    text: 'var(--success, #10b981)',
-    border: 'rgba(16, 185, 129, 0.3)',
+    bg: 'rgba(74, 222, 128, 0.08)',
+    text: 'var(--success, #4ade80)',
+    border: 'rgba(74, 222, 128, 0.2)',
   },
   ABSTAINED: {
-    bg: 'rgba(133, 158, 156, 0.12)',
-    text: 'var(--text-muted, #859e9c)',
-    border: 'rgba(133, 158, 156, 0.3)',
+    bg: 'var(--bg-secondary)',
+    text: 'var(--text-muted, #64748b)',
+    border: 'var(--border)',
   },
   UNCALIBRATED: {
-    bg: 'rgba(104, 225, 216, 0.08)',
-    text: 'var(--text-secondary, #ccdcda)',
-    border: 'rgba(104, 225, 216, 0.2)',
+    bg: 'var(--bg-elevated)',
+    text: 'var(--text-secondary)',
+    border: 'var(--border)',
   },
 }
 
@@ -78,9 +78,9 @@ export function RiskBadge({
         display: 'inline-flex',
         alignItems: 'center',
         gap: '5px',
-        fontFamily: 'var(--mono)',
-        fontWeight: 700,
-        letterSpacing: '0.04em',
+        fontFamily: 'var(--font-sans)',
+        fontWeight: 600,
+        letterSpacing: '0.02em',
         background: styling.bg,
         color: styling.text,
         border: `1px solid ${styling.border}`,
@@ -99,7 +99,7 @@ export function RiskBadge({
       />
       <span>{normKey}</span>
       {showScore && score !== undefined && score !== null && (
-        <span style={{ opacity: 0.85, fontWeight: 500 }}>
+        <span style={{ opacity: 0.85, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
           ({typeof score === 'number' ? (score <= 1.0 ? `${Math.round(score * 100)}%` : `${score}/100`) : score})
         </span>
       )}

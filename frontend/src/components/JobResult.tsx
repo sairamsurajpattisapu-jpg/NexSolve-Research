@@ -63,14 +63,14 @@ export function JobResult({ result, onReset }: JobResultProps) {
                 Analysis complete
               </span>
             </div>
-            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.02em', fontFamily: 'var(--font-sans)' }}>
               {result.source?.name || 'Uploaded Capture'}
             </h2>
             <div style={{ display: 'none' }}>
               <h3>Network Predictive Assessment</h3>
             </div>
-            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
-              {traffic?.packets?.toLocaleString() ?? 0} packets &middot; {(traffic?.flows ?? 0).toLocaleString()} flows &middot; {result.window_count ?? traffic?.windows ?? 1} windows
+            <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
+              <span style={{ fontVariantNumeric: 'tabular-nums' }}>{traffic?.packets?.toLocaleString() ?? 0}</span> packets &middot; <span style={{ fontVariantNumeric: 'tabular-nums' }}>{(traffic?.flows ?? 0).toLocaleString()}</span> flows &middot; <span style={{ fontVariantNumeric: 'tabular-nums' }}>{result.window_count ?? traffic?.windows ?? 1}</span> windows
             </p>
           </div>
           <ReportActions jobId={jobId} onReset={onReset} />
@@ -83,22 +83,22 @@ export function JobResult({ result, onReset }: JobResultProps) {
               display: 'flex',
               alignItems: 'center',
               flexWrap: 'wrap',
-              gap: '12px',
-              marginTop: '10px',
-              paddingTop: '8px',
+              gap: '14px',
+              marginTop: '12px',
+              paddingTop: '10px',
               borderTop: '1px solid var(--border)',
-              fontSize: '10px',
-              fontFamily: 'var(--mono)',
+              fontSize: '11px',
+              fontFamily: 'var(--font-sans)',
               color: 'var(--text-muted)',
             }}
           >
             <span>
-              Total Pipeline: <strong style={{ color: 'var(--text-primary)' }}>{result.processing_metrics.total_processing_ms ?? 0} ms</strong>
+              Total Pipeline: <strong style={{ color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>{result.processing_metrics.total_processing_ms ?? 0} ms</strong>
             </span>
-            <span>Parsing: {result.processing_metrics.pcap_parsing_ms ?? 0} ms</span>
-            <span>State Extraction: {result.processing_metrics.network_state_extraction_ms ?? 0} ms</span>
-            <span>Forecasting Head: {result.processing_metrics.forecasting_ms ?? 0} ms</span>
-            <span>Evidence Generation: {result.processing_metrics.evidence_generation_ms ?? 0} ms</span>
+            <span>Parsing: <span style={{ fontVariantNumeric: 'tabular-nums' }}>{result.processing_metrics.pcap_parsing_ms ?? 0} ms</span></span>
+            <span>State Extraction: <span style={{ fontVariantNumeric: 'tabular-nums' }}>{result.processing_metrics.network_state_extraction_ms ?? 0} ms</span></span>
+            <span>Forecasting Head: <span style={{ fontVariantNumeric: 'tabular-nums' }}>{result.processing_metrics.forecasting_ms ?? 0} ms</span></span>
+            <span>Evidence Generation: <span style={{ fontVariantNumeric: 'tabular-nums' }}>{result.processing_metrics.evidence_generation_ms ?? 0} ms</span></span>
           </div>
         )}
       </Panel>
@@ -137,7 +137,12 @@ export function JobResult({ result, onReset }: JobResultProps) {
           }
         })
 
-        const isAbstained = Boolean(result.abstention?.abstained || (traffic?.windows ?? 0) < 8 || attackProgression?.verdict === 'ABSTAINED')
+        const isAbstained = Boolean(
+          result.abstention?.abstained ||
+          (result.forecast_summary as any)?.available === false ||
+          (traffic?.windows ?? 0) < 8 ||
+          attackProgression?.verdict === 'ABSTAINED'
+        )
 
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -152,7 +157,7 @@ export function JobResult({ result, onReset }: JobResultProps) {
               topDriver={driversList[0]?.feature ?? 'None observed'}
               futureRiskPercent={isAbstained ? 0.0 : (t5 !== null ? t5 * 100 : 0.0)}
               isAbstained={isAbstained}
-              abstentionReason={result.abstention?.explanation ?? result.abstention?.reason}
+              abstentionReason={result.abstention?.explanation ?? (result.forecast_summary as any)?.message ?? result.abstention?.reason}
             />
 
             {/* 2. Primary Command Center Hero Metrics */}
@@ -185,7 +190,7 @@ export function JobResult({ result, onReset }: JobResultProps) {
               currentRisk={currentProb ?? 0.0}
               forecasts={timelinePoints}
               abstained={isAbstained}
-              abstainedReason={result.abstention?.explanation ?? result.abstention?.reason}
+              abstainedReason={result.abstention?.explanation ?? (result.forecast_summary as any)?.message ?? result.abstention?.reason}
             />
 
             {/* 8. Network State 45-Feature Trajectory */}
@@ -251,19 +256,19 @@ export function JobResult({ result, onReset }: JobResultProps) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <ShieldAlert size={20} color="var(--text-primary)" />
+          <ShieldAlert size={18} color="var(--text-secondary)" />
           <div>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', textTransform: 'uppercase', color: 'var(--text-primary)', fontWeight: 700 }}>
-              CURRENT NETWORK STATE (T₀)
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontWeight: 600 }}>
+              Current Network State (T₀)
             </span>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px', fontFamily: 'var(--font-sans)' }}>
               {isElevated ? 'Elevated attack-like traffic observed' : 'Baseline network activity within normal parameters'}
             </div>
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block' }}>Risk index</span>
-          <strong style={{ fontSize: '18px', fontFamily: 'var(--mono)', color: isElevated ? 'var(--danger)' : 'var(--success)' }}>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', fontFamily: 'var(--font-sans)' }}>Risk index</span>
+          <strong style={{ fontSize: '18px', fontWeight: 600, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: isElevated ? 'var(--danger)' : 'var(--success)' }}>
             {detection?.risk_score !== undefined ? Number(detection.risk_score).toFixed(1) : '0.0'}
           </strong>
         </div>
@@ -386,26 +391,26 @@ export function JobResult({ result, onReset }: JobResultProps) {
         }}
       >
         <Panel className="metric-card" style={{ minHeight: 'auto', padding: '12px 14px' }}>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Observed Traffic</span>
-          <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--mono)', marginTop: '2px' }}>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>Observed Traffic</span>
+          <div style={{ fontSize: '16px', fontWeight: 600, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
             {traffic?.packets?.toLocaleString() ?? 0} pkts
           </div>
         </Panel>
         <Panel className="metric-card" style={{ minHeight: 'auto', padding: '12px 14px' }}>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Reconstructed Flows</span>
-          <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--mono)', marginTop: '2px' }}>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>Reconstructed Flows</span>
+          <div style={{ fontSize: '16px', fontWeight: 600, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
             {(traffic?.flows ?? 0).toLocaleString()} flows
           </div>
         </Panel>
         <Panel className="metric-card" style={{ minHeight: 'auto', padding: '12px 14px' }}>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Capture Integrity</span>
-          <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--mono)', marginTop: '2px', color: 'var(--accent)' }}>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>Capture Integrity</span>
+          <div style={{ fontSize: '16px', fontWeight: 600, fontFamily: 'var(--font-sans)', marginTop: '2px', color: 'var(--text-primary)' }}>
             {quality ? (Number(quality.packet_loss_ratio ?? 0) > 0.05 ? 'DEGRADED' : 'HIGH QUALITY') : 'VERIFIED'}
           </div>
         </Panel>
         <Panel className="metric-card" style={{ minHeight: 'auto', padding: '12px 14px' }}>
-          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Temporal Windows</span>
-          <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--mono)', marginTop: '2px' }}>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>Temporal Windows</span>
+          <div style={{ fontSize: '16px', fontWeight: 600, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
             {result.window_count ?? traffic?.windows ?? 1} windows (60s)
           </div>
         </Panel>
@@ -470,14 +475,14 @@ export function JobResult({ result, onReset }: JobResultProps) {
                   paddingTop: '10px',
                   borderTop: '1px solid var(--border)',
                   fontSize: '11px',
-                  fontFamily: 'var(--mono)',
+                  fontFamily: 'var(--font-sans)',
                   color: 'var(--text-muted)',
                 }}
               >
-                <span>Parsing: {result.processing_metrics.pcap_parsing_ms ?? 0}ms</span>
-                <span>Extraction: {result.processing_metrics.network_state_extraction_ms ?? 0}ms</span>
-                <span>Forecasting: {result.processing_metrics.forecasting_ms ?? 0}ms</span>
-                <span>Evidence: {result.processing_metrics.evidence_generation_ms ?? 0}ms</span>
+                <span>Parsing: <span style={{ fontVariantNumeric: 'tabular-nums' }}>{result.processing_metrics.pcap_parsing_ms ?? 0}ms</span></span>
+                <span>Extraction: <span style={{ fontVariantNumeric: 'tabular-nums' }}>{result.processing_metrics.network_state_extraction_ms ?? 0}ms</span></span>
+                <span>Forecasting: <span style={{ fontVariantNumeric: 'tabular-nums' }}>{result.processing_metrics.forecasting_ms ?? 0}ms</span></span>
+                <span>Evidence: <span style={{ fontVariantNumeric: 'tabular-nums' }}>{result.processing_metrics.evidence_generation_ms ?? 0}ms</span></span>
               </div>
             )}
           </div>

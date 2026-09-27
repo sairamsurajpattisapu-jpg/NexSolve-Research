@@ -241,14 +241,14 @@ export function Reports() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span
                 style={{
-                  fontSize: '10px',
-                  fontFamily: 'var(--mono)',
+                  fontSize: '11px',
+                  fontFamily: 'var(--font-sans)',
                   padding: '3px 8px',
                   borderRadius: '3px',
                   border: '1px solid var(--border)',
                   background: 'var(--text-primary)',
                   color: 'var(--bg-primary)',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   letterSpacing: '0.04em',
                 }}
               >
@@ -269,10 +269,10 @@ export function Reports() {
               color: 'var(--text-secondary)',
             }}
           >
-            <span><strong>Source:</strong> <span style={{ fontFamily: 'var(--mono)' }}>{input.filename}</span></span>
-            <span><strong>Status:</strong> <span style={{ fontFamily: 'var(--mono)' }}>{analysis.status.toUpperCase()}</span></span>
-            <span><strong>Generated:</strong> <span style={{ fontFamily: 'var(--mono)' }}>{analysis.createdAt || 'UTC'}</span></span>
-            <span><strong>Ingestion:</strong> <span style={{ fontFamily: 'var(--mono)' }}>{input.format.toUpperCase()} Passive Capture</span></span>
+            <span><strong>Source:</strong> <span style={{ fontFamily: 'var(--font-sans)' }}>{input.filename}</span></span>
+            <span><strong>Status:</strong> <span style={{ fontFamily: 'var(--font-sans)' }}>{analysis.status.toUpperCase()}</span></span>
+            <span><strong>Generated:</strong> <span style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>{analysis.createdAt || 'UTC'}</span></span>
+            <span><strong>Ingestion:</strong> <span style={{ fontFamily: 'var(--font-sans)' }}>{input.format.toUpperCase()} Passive Capture</span></span>
           </div>
         </div>
 
@@ -286,7 +286,7 @@ export function Reports() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '12px' }}>
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '8px' }}>
-              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 CURRENT ASSESSMENT
               </span>
               <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '3px' }}>
@@ -298,7 +298,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '8px' }}>
-              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 FORECAST HORIZON
               </span>
               <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '3px' }}>
@@ -310,7 +310,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '8px' }}>
-              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 PRIMARY SIGNAL DRIVER
               </span>
               <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '3px' }}>
@@ -322,7 +322,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '8px' }}>
-              <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 PROJECTED TRAJECTORY
               </span>
               <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '3px' }}>
@@ -345,7 +345,7 @@ export function Reports() {
               color: 'var(--text-secondary)',
             }}
           >
-            <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>
+            <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontSize: '11px', letterSpacing: '0.02em' }}>
               ASSESSMENT CONTEXT:
             </strong>{' '}
             Current network assessment reflects telemetry anomalies detected in observed wire traffic at T0. Multi-horizon projections reflect modeled state evolution over forward 60-second observation windows. An active threat signal at T0 indicates anomalous pressure but does not guarantee continuous escalation; observed dynamics may stabilize, localize, or decay as lookahead deepens.
@@ -365,21 +365,21 @@ export function Reports() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Observed Packet Volume:</span>
-                <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>{formatNumber(input.packetCount)} packets</strong>
+                <strong style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)' }}>{formatNumber(input.packetCount)} packets</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Reconstructed Flow Volume:</span>
-                <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>{formatNumber(input.flowCount)} flows</strong>
+                <strong style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)' }}>{formatNumber(input.flowCount)} flows</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Active Endpoints:</span>
-                <span style={{ fontFamily: 'var(--mono)' }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>
                   {currentState?.summary?.uniqueSrcIps || 1} Source Hosts &middot; {currentState?.summary?.uniqueDstIps || 1} Destination Hosts
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Capture Span:</span>
-                <span style={{ fontFamily: 'var(--mono)' }}>{input.captureDurationSeconds}s ({input.windowCount} observation windows)</span>
+                <span style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>{input.captureDurationSeconds}s ({input.windowCount} observation windows)</span>
               </div>
             </div>
 
@@ -387,21 +387,21 @@ export function Reports() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Continuous State Representation:</span>
-                <span style={{ fontFamily: 'var(--mono)', fontWeight: 600 }}>45-Feature Normalized Vector</span>
+                <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600 }}>45-Feature Normalized Vector</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Temporal Window Stride:</span>
-                <span style={{ fontFamily: 'var(--mono)' }}>60s Discrete Tumbling Slices</span>
+                <span style={{ fontFamily: 'var(--font-sans)' }}>60s Discrete Tumbling Slices</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Precondition Gate:</span>
-                <span style={{ fontFamily: 'var(--mono)', fontWeight: 600, color: input.windowCount >= 8 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, color: input.windowCount >= 8 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
                   {input.windowCount >= 8 ? 'Qualified (≥8 Windows)' : 'Early Stage (<8 Windows)'}
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Round-Trip Time Integrity:</span>
-                <span style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>Deliberately Omitted (Zero Imputation)</span>
+                <span style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-secondary)' }}>Deliberately Omitted (Zero Imputation)</span>
               </div>
             </div>
           </div>
@@ -426,7 +426,7 @@ export function Reports() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 THREAT LEVEL
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -435,7 +435,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 OBSERVED DRIVER
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -444,7 +444,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 PROJECTED STAGE
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -453,7 +453,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 EARLIEST LEAD TIME
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -462,10 +462,10 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 ASSESSMENT CONFIDENCE
               </span>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
                 {maxRiskPoint.confidence ? (maxRiskPoint.confidence * 100).toFixed(0) + '%' : '82%'}
               </div>
             </div>
@@ -502,14 +502,14 @@ export function Reports() {
                   fontSize: '11px',
                 }}
               >
-                <strong style={{ fontFamily: 'var(--mono)' }}>T+{p.horizon} (+{p.horizon * 60}s)</strong>
-                <span style={{ fontFamily: 'var(--mono)', fontWeight: 600 }}>
+                <strong style={{ fontFamily: 'var(--font-sans)' }}>T+{p.horizon} (+{p.horizon * 60}s)</strong>
+                <span style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
                   {p.stepAttackProbability !== null ? (p.stepAttackProbability * 100).toFixed(1) + '%' : 'N/A'}
                 </span>
-                <span style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--text-primary)' }}>
                   {p.cumulativeRisk !== null ? (p.cumulativeRisk * 100).toFixed(1) + '%' : 'N/A'}
                 </span>
-                <span style={{ fontFamily: 'var(--mono)', fontSize: '10.5px' }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '10.5px' }}>
                   {formatDisplayLabel(p.predictedStage || 'RECONNAISSANCE')}
                 </span>
                 <span style={{ color: 'var(--text-secondary)', fontSize: '10.5px' }}>
@@ -536,7 +536,7 @@ export function Reports() {
 
           {/* Sequential Attack Progression Timeline */}
           <div>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+            <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
               SEQUENTIAL KILL-CHAIN PROGRESSION
             </span>
             {(progression?.stages && progression.stages.length > 0) ? (
@@ -552,10 +552,10 @@ export function Reports() {
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                      <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+                      <span style={{ fontSize: '9px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
                         STAGE {st.step} (+{st.leadTimeSeconds}s)
                       </span>
-                      <span style={{ fontSize: '8.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+                      <span style={{ fontSize: '8.5px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
                         {formatDisplayLabel(st.predictionType)}
                       </span>
                     </div>
@@ -599,14 +599,15 @@ export function Reports() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                 <span
                   style={{
-                    fontSize: '9.5px',
-                    fontFamily: 'var(--mono)',
-                    fontWeight: 700,
+                    fontSize: '10px',
+                    fontFamily: 'var(--font-sans)',
+                    fontWeight: 600,
+                    letterSpacing: '0.04em',
                     padding: '2px 6px',
                     borderRadius: '3px',
                     background: 'var(--bg-secondary)',
                     border: '1px solid var(--border)',
-                    color: 'var(--text-primary)',
+                    color: 'var(--text-secondary)',
                   }}
                 >
                   OBSERVED
@@ -629,7 +630,7 @@ export function Reports() {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
                       <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>{formatDisplayLabel(node.name)}</strong>
-                      <span style={{ fontSize: '8.5px', fontFamily: 'var(--mono)', color: node.isSupporting ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                      <span style={{ fontSize: '8.5px', fontFamily: 'var(--font-sans)', color: node.isSupporting ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
                         {node.isSupporting ? 'SUPPORTING' : 'CONTRADICTORY'}
                       </span>
                     </div>
@@ -644,14 +645,15 @@ export function Reports() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                 <span
                   style={{
-                    fontSize: '9.5px',
-                    fontFamily: 'var(--mono)',
-                    fontWeight: 700,
+                    fontSize: '10px',
+                    fontFamily: 'var(--font-sans)',
+                    fontWeight: 600,
+                    letterSpacing: '0.04em',
                     padding: '2px 6px',
                     borderRadius: '3px',
                     background: 'var(--bg-secondary)',
                     border: '1px solid var(--border)',
-                    color: 'var(--text-primary)',
+                    color: 'var(--text-secondary)',
                   }}
                 >
                   DERIVED
@@ -678,7 +680,7 @@ export function Reports() {
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
                       <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>{formatDisplayLabel(d.feature)}</strong>
-                      <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+                      <span style={{ fontSize: '9px', fontFamily: 'var(--font-sans)', color: 'var(--text-secondary)' }}>
                         {d.direction} {d.relativeChange ? `(${d.relativeChange > 0 ? '+' : ''}${d.relativeChange.toFixed(1)}x)` : ''}
                       </span>
                     </div>
@@ -693,14 +695,15 @@ export function Reports() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                 <span
                   style={{
-                    fontSize: '9.5px',
-                    fontFamily: 'var(--mono)',
-                    fontWeight: 700,
+                    fontSize: '10px',
+                    fontFamily: 'var(--font-sans)',
+                    fontWeight: 600,
+                    letterSpacing: '0.04em',
                     padding: '2px 6px',
                     borderRadius: '3px',
                     background: 'var(--bg-secondary)',
                     border: '1px solid var(--border)',
-                    color: 'var(--text-primary)',
+                    color: 'var(--text-secondary)',
                   }}
                 >
                   PROJECTED
@@ -729,9 +732,9 @@ export function Reports() {
                       <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)', fontSize: '11px' }}>
                         {m.techniqueId}: {m.techniqueName}
                       </strong>
-                      <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>{m.forecastStep}</span>
+                      <span style={{ fontSize: '9px', fontFamily: 'var(--font-sans)', color: 'var(--text-secondary)' }}>{m.forecastStep}</span>
                     </div>
-                    <div style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>TACTIC: {m.tactic}</div>
+                    <div style={{ fontSize: '9.5px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>TACTIC: {m.tactic}</div>
                     <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontSize: '10.5px', lineHeight: 1.4 }}>
                       {m.interpretation}
                     </p>
@@ -776,43 +779,43 @@ export function Reports() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' }}>
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 FRAMES PARSED
               </span>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
                 100%
               </div>
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 TRUNCATED FRAMES
               </span>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
                 0
               </div>
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 MALFORMED HEADERS
               </span>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
                 0
               </div>
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 PACKET LOSS
               </span>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
                 0.0%
               </div>
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 TIMESTAMP CONTINUITY
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -821,7 +824,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '2px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 WINDOW STRIDE
               </span>
               <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -841,28 +844,28 @@ export function Reports() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-              <span style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>1.</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, color: 'var(--text-primary)' }}>1.</span>
               <span>
                 <strong style={{ color: 'var(--text-primary)' }}>Model Activation Scores:</strong> Forward-step scores represent neural state activations and transition signals, not calibrated actuarial event probabilities of attack occurrence.
               </span>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-              <span style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>2.</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, color: 'var(--text-primary)' }}>2.</span>
               <span>
                 <strong style={{ color: 'var(--text-primary)' }}>Contextual MITRE Alignment:</strong> MITRE ATT&amp;CK mappings are contextual behavioral alignments derived from telemetry distributions, not direct signature classifications or deep payload matches.
               </span>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-              <span style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>3.</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, color: 'var(--text-primary)' }}>3.</span>
               <span>
                 <strong style={{ color: 'var(--text-primary)' }}>Horizon Confidence Decay:</strong> Predictive confidence naturally decreases as lookahead extends from T+1 (+60s) to T+5 (+300s) due to recursive latent state variance.
               </span>
             </div>
 
             <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-              <span style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>4.</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 700, color: 'var(--text-primary)' }}>4.</span>
               <span>
                 <strong style={{ color: 'var(--text-primary)' }}>Round-Trip Time Omission:</strong> RTT metrics are deliberately omitted from passive captures to avoid synthetic data imputation and preserve evidentiary integrity.
               </span>
@@ -880,44 +883,44 @@ export function Reports() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>ARCHITECTURE</span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>ARCHITECTURE</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>LSTM Network State Model</strong>
               <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Recursive latent dynamic forecasting</span>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>CANONICAL STATE</span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>CANONICAL STATE</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>45-Feature Contract</strong>
               <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Layer 3/4 passive telemetry vector</span>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>TEMPORAL RESOLUTION</span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>TEMPORAL RESOLUTION</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>60-Second Windows</strong>
               <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Discrete tumbling slices (zero overlap)</span>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>LOOKAHEAD HORIZON</span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>LOOKAHEAD HORIZON</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>T+1 &rarr; T+5 (+300s)</strong>
               <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Multi-step forward projection</span>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>REFERENCE BASELINE</span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>REFERENCE BASELINE</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>Zero-Drift Standard</strong>
               <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Empirical persistence baseline</span>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>INPUT TELEMETRY</span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>INPUT TELEMETRY</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>{input.format.toUpperCase()} Passive Capture</strong>
               <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{input.windowCount} windows &middot; {input.captureDurationSeconds}s</span>
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>PROVENANCE & AUDIT</span>
-              <strong style={{ display: 'block', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', marginTop: '2px', wordBreak: 'break-all' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>PROVENANCE & AUDIT</span>
+              <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px', wordBreak: 'break-all' }}>
                 {analysis.provenanceLabel || (analysis.provenance === 'live' ? 'Live Telemetry' : 'Reference Dataset')}
               </strong>
               <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
@@ -926,7 +929,7 @@ export function Reports() {
             </div>
 
             <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>DATA PRECONDITION GATE</span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>DATA PRECONDITION GATE</span>
               <strong style={{ display: 'block', fontSize: '11px', color: 'var(--text-primary)', marginTop: '2px' }}>
                 {input.windowCount >= 8 ? 'QUALIFIED (≥8 Windows)' : 'EARLY STAGE (<8 Windows)'}
               </strong>

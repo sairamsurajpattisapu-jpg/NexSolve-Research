@@ -58,21 +58,21 @@ export function ForecastHero({
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px', marginTop: '14px' }}>
-            <div style={{ fontSize: '38px', fontWeight: 800, fontFamily: 'var(--mono)', letterSpacing: '-0.03em', color: isCritical ? 'var(--danger)' : isHighRisk ? 'var(--warning)' : 'var(--accent)' }}>
+            <div style={{ fontSize: '38px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.03em', color: isCritical ? 'var(--danger)' : isHighRisk ? 'var(--warning)' : 'var(--text-primary)' }}>
               {earlyWarningScore !== null ? earlyWarningScore : '—'}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-sans)' }}>
                 Early Warning
               </span>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
                 Scale 0-100 &middot; Risk Momentum
               </span>
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid var(--border)', marginTop: '16px', fontSize: '12px', fontFamily: 'var(--mono)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid var(--border)', marginTop: '16px', fontSize: '12px', fontFamily: 'var(--font-sans)' }}>
           <div>
             <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10px' }}>CURRENT STAGE</span>
             <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>
@@ -81,7 +81,7 @@ export function ForecastHero({
           </div>
           <div style={{ textAlign: 'right' }}>
             <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10px' }}>CURRENT RISK</span>
-            <strong style={{ color: isHighRisk ? 'var(--danger)' : 'var(--accent)', fontSize: '13px' }}>
+            <strong style={{ color: isHighRisk ? 'var(--danger)' : 'var(--text-primary)', fontSize: '13px', fontVariantNumeric: 'tabular-nums' }}>
               {currentProbability !== null ? `${(currentProbability * 100).toFixed(1)}%` : 'Withheld'}
             </strong>
           </div>
@@ -107,7 +107,7 @@ export function ForecastHero({
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12px' }}>
                 <span style={{ color: 'var(--text-muted)' }}>T+1 (+60s)</span>
-                <strong style={{ fontFamily: 'var(--mono)', color: (t1Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--text-primary)' }}>
+                <strong style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: (t1Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--text-primary)' }}>
                   {t1Risk !== null ? `${(t1Risk * 100).toFixed(1)}%` : 'Withheld'}
                 </strong>
               </div>
@@ -115,7 +115,7 @@ export function ForecastHero({
                 style={{
                   height: '4px',
                   borderRadius: '2px',
-                  background: 'var(--bg-secondary)',
+                  background: 'rgba(255, 255, 255, 0.05)',
                   overflow: 'hidden',
                 }}
               >
@@ -124,7 +124,7 @@ export function ForecastHero({
                     display: 'block',
                     height: '100%',
                     width: `${(t1Risk ?? 0) * 100}%`,
-                    background: (t1Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--accent)',
+                    background: (t1Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'rgba(255, 255, 255, 0.4)',
                   }}
                 />
               </div>
@@ -134,7 +134,7 @@ export function ForecastHero({
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12px' }}>
                 <span style={{ color: 'var(--text-muted)' }}>T+3 (+180s)</span>
-                <strong style={{ fontFamily: 'var(--mono)', color: (t3Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--text-primary)' }}>
+                <strong style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: (t3Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--text-primary)' }}>
                   {t3Risk !== null ? `${(t3Risk * 100).toFixed(1)}%` : 'Withheld'}
                 </strong>
               </div>
@@ -142,7 +142,7 @@ export function ForecastHero({
                 style={{
                   height: '4px',
                   borderRadius: '2px',
-                  background: 'var(--bg-secondary)',
+                  background: 'rgba(255, 255, 255, 0.05)',
                   overflow: 'hidden',
                 }}
               >
@@ -151,7 +151,7 @@ export function ForecastHero({
                     display: 'block',
                     height: '100%',
                     width: `${(t3Risk ?? 0) * 100}%`,
-                    background: (t3Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--accent)',
+                    background: (t3Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'rgba(255, 255, 255, 0.4)',
                   }}
                 />
               </div>
@@ -161,7 +161,7 @@ export function ForecastHero({
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '12px' }}>
                 <span style={{ color: 'var(--text-muted)' }}>T+5 (+300s)</span>
-                <strong style={{ fontFamily: 'var(--mono)', color: (t5Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--text-primary)' }}>
+                <strong style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: (t5Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--text-primary)' }}>
                   {t5Risk !== null ? `${(t5Risk * 100).toFixed(1)}%` : 'Withheld'}
                 </strong>
               </div>
@@ -169,7 +169,7 @@ export function ForecastHero({
                 style={{
                   height: '4px',
                   borderRadius: '2px',
-                  background: 'var(--bg-secondary)',
+                  background: 'rgba(255, 255, 255, 0.05)',
                   overflow: 'hidden',
                 }}
               >
@@ -178,7 +178,7 @@ export function ForecastHero({
                     display: 'block',
                     height: '100%',
                     width: `${(t5Risk ?? 0) * 100}%`,
-                    background: (t5Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'var(--accent)',
+                    background: (t5Risk ?? 0) >= 0.5 ? 'var(--danger)' : 'rgba(255, 255, 255, 0.4)',
                   }}
                 />
               </div>
@@ -186,7 +186,7 @@ export function ForecastHero({
           </div>
         </div>
 
-        <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
+        <div style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
           Risk(H) = 1 - ∏(1 - p_h) &middot; Monotonic
         </div>
       </Panel>
@@ -204,14 +204,14 @@ export function ForecastHero({
           <span className="eyebrow" style={{ color: 'var(--text-muted)' }}>
             DATA &amp; MODEL INTEGRITY
           </span>
-          <h4 style={{ margin: '4px 0 12px 0', fontSize: '14px', color: 'var(--text-primary)' }}>
+          <h4 style={{ margin: '4px 0 12px 0', fontSize: '14px', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontWeight: 600 }}>
             Network Telemetry
           </h4>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11.5px', fontFamily: 'var(--mono)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11.5px', fontFamily: 'var(--font-sans)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>Feature Schema:</span>
-              <strong style={{ color: 'var(--accent)' }}>45 passive features</strong>
+              <strong style={{ color: 'var(--text-secondary)' }}>45 passive features</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>TCP RTT:</span>
@@ -219,11 +219,11 @@ export function ForecastHero({
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>History:</span>
-              <strong style={{ color: 'var(--text-primary)' }}>{lookbackWindows} / 8 required windows</strong>
+              <strong style={{ color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>{lookbackWindows} / 8 required windows</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>Assessment Confidence:</span>
-              <strong style={{ color: 'var(--text-primary)' }}>
+              <strong style={{ color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
                 {forecastConfidence !== null && forecastConfidence !== undefined ? `${(forecastConfidence * 100).toFixed(0)}%` : 'Uncalibrated'}
               </strong>
             </div>
@@ -236,9 +236,10 @@ export function ForecastHero({
             alignItems: 'center',
             gap: '6px',
             fontSize: '10.5px',
-            fontFamily: 'var(--mono)',
-            color: 'var(--success)',
-            background: 'rgba(16, 185, 129, 0.08)',
+            fontFamily: 'var(--font-sans)',
+            color: 'var(--text-secondary)',
+            background: 'rgba(255, 255, 255, 0.04)',
+            border: '1px solid var(--border)',
             padding: '4px 8px',
             borderRadius: '4px',
           }}

@@ -109,7 +109,7 @@ export function Settings() {
               <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
                 VISUAL THEME
               </label>
-              <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'var(--mono)', padding: '8px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px' }}>
+              <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', padding: '8px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px' }}>
                 Dark &middot; Monochromatic SOC Console (Permanent)
               </div>
             </div>
@@ -161,23 +161,23 @@ export function Settings() {
           <div className="detail-list" style={{ marginTop: '16px' }}>
             <div>
               <span>Canonical schema contract</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>45 Continuous Features (Audited)</strong>
+              <strong style={{ fontFamily: 'var(--font-sans)' }}>45 Continuous Features (Audited)</strong>
             </div>
             <div>
               <span>Temporal window aggregation</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>60-second Non-Overlapping Windows</strong>
+              <strong style={{ fontFamily: 'var(--font-sans)' }}>60-second Non-Overlapping Windows</strong>
             </div>
             <div>
               <span>Forward forecast lookahead</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>T+1 to T+5 (+60s to +300s Horizons)</strong>
+              <strong style={{ fontFamily: 'var(--font-sans)' }}>T+1 to T+5 (+60s to +300s Horizons)</strong>
             </div>
             <div>
               <span>Calibrated abstention threshold</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>&ge; 8 Continuous Windows (480 seconds)</strong>
+              <strong style={{ fontFamily: 'var(--font-sans)' }}>&ge; 8 Continuous Windows (480 seconds)</strong>
             </div>
             <div>
               <span>Data integrity guarantee</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>Zero Synthetic Imputation</strong>
+              <strong style={{ fontFamily: 'var(--font-sans)' }}>Zero Synthetic Imputation</strong>
             </div>
           </div>
         </Panel>
@@ -207,7 +207,7 @@ export function Settings() {
             </div>
             <div>
               <span>Platform release</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>Production</strong>
+              <strong style={{ fontFamily: 'var(--font-sans)' }}>Production</strong>
             </div>
             <div>
               <span>Active session identifier</span>
@@ -237,7 +237,7 @@ export function Settings() {
             </div>
             <div>
               <span><Key size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Cryptographic provenance key</span>
-              <strong style={{ fontFamily: 'var(--mono)' }}>SHA-256 Digest Enforced</strong>
+              <strong style={{ fontFamily: 'var(--font-sans)' }}>SHA-256 Digest Enforced</strong>
             </div>
             <div>
               <span>Outbound telemetry transmission</span>

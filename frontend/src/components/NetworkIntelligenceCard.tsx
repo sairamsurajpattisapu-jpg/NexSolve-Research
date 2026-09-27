@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { Activity, Radio, Shield, Waves, ChevronDown, ChevronUp } from 'lucide-react'
 import { Panel } from './Ui'
 
@@ -43,14 +43,16 @@ export function NetworkIntelligenceCard({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="eyebrow" style={{ color: 'var(--accent)', margin: 0 }}>
+            <span className="eyebrow" style={{ color: 'var(--text-muted)', margin: 0 }}>
               Multi-Modal Network Intelligence
             </span>
             <span
               style={{
                 fontSize: '10px',
-                fontFamily: 'var(--mono)',
-                background: 'rgba(255, 255, 255, 0.06)',
+                fontFamily: 'var(--font-sans)',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                background: 'rgba(255, 255, 255, 0.04)',
                 border: '1px solid var(--border)',
                 padding: '1px 6px',
                 borderRadius: '3px',
@@ -99,11 +101,11 @@ export function NetworkIntelligenceCard({
         <div style={{ padding: '12px', borderRadius: '6px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
             <Activity size={15} color="var(--accent)" />
-            <strong style={{ fontSize: '12px', textTransform: 'uppercase', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+            <strong style={{ fontSize: '11px', textTransform: 'uppercase', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
               TCP Session State (Zeek)
             </strong>
           </div>
-          <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: 'var(--mono)' }}>
+          <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>
             {totalSessions > 0 ? `${totalSessions} Sessions` : '0 Sessions'}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -117,11 +119,11 @@ export function NetworkIntelligenceCard({
         <div style={{ padding: '12px', borderRadius: '6px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
             <Radio size={15} color="var(--accent)" />
-            <strong style={{ fontSize: '12px', textTransform: 'uppercase', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+            <strong style={{ fontSize: '11px', textTransform: 'uppercase', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
               Periodicity (RITA)
             </strong>
           </div>
-          <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: 'var(--mono)' }}>
+          <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>
             {totalGroups > 0 ? `${totalGroups} Pairs Evaluated` : '0 Pairs'}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -135,11 +137,11 @@ export function NetworkIntelligenceCard({
         <div style={{ padding: '12px', borderRadius: '6px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
             <Waves size={15} color="var(--accent)" />
-            <strong style={{ fontSize: '12px', textTransform: 'uppercase', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+            <strong style={{ fontSize: '11px', textTransform: 'uppercase', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
               Flow Dynamics (NFStream)
             </strong>
           </div>
-          <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: 'var(--mono)' }}>
+          <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>
             {totalFlows.toLocaleString()} Flows
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -151,11 +153,11 @@ export function NetworkIntelligenceCard({
         <div style={{ padding: '12px', borderRadius: '6px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
             <Shield size={15} color={alertCount > 0 ? 'var(--danger)' : 'var(--text-muted)'} />
-            <strong style={{ fontSize: '12px', textTransform: 'uppercase', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+            <strong style={{ fontSize: '11px', textTransform: 'uppercase', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
               Signatures (Suricata)
             </strong>
           </div>
-          <div style={{ fontSize: '15px', fontWeight: 700, fontFamily: 'var(--mono)' }}>
+          <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>
             {alertCount > 0 ? `${alertCount} Alerts` : '0 Alerts'}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -184,19 +186,19 @@ export function NetworkIntelligenceCard({
             </strong>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ color: 'var(--text-muted)' }}>Established (S1/SF):</span>
-              <span style={{ fontFamily: 'var(--mono)' }}>{establishedSessions}</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>{establishedSessions}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ color: 'var(--text-muted)' }}>Closed cleanly (SF):</span>
-              <span style={{ fontFamily: 'var(--mono)' }}>{Number(sessionState?.closed_sessions ?? 0)}</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>{Number(sessionState?.closed_sessions ?? 0)}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ color: 'var(--text-muted)' }}>Reset (RSTO/RSTR):</span>
-              <span style={{ fontFamily: 'var(--mono)' }}>{Number(sessionState?.reset_sessions ?? 0)}</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>{Number(sessionState?.reset_sessions ?? 0)}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>Incomplete (OTH / Midstream):</span>
-              <span style={{ fontFamily: 'var(--mono)' }}>{Number(sessionState?.incomplete_sessions ?? 0)}</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>{Number(sessionState?.incomplete_sessions ?? 0)}</span>
             </div>
           </div>
 
@@ -207,19 +209,19 @@ export function NetworkIntelligenceCard({
             </strong>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ color: 'var(--text-muted)' }}>Periodic / Highly Periodic:</span>
-              <span style={{ fontFamily: 'var(--mono)' }}>{periodicGroups}</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>{periodicGroups}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ color: 'var(--text-muted)' }}>Irregular dispersion:</span>
-              <span style={{ fontFamily: 'var(--mono)' }}>{irregularGroups}</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>{irregularGroups}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
               <span style={{ color: 'var(--text-muted)' }}>Insufficient observations (&lt;4 conns):</span>
-              <span style={{ fontFamily: 'var(--mono)' }}>{insufficientGroups}</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums' }}>{insufficientGroups}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-muted)' }}>Methodology:</span>
-              <span style={{ fontFamily: 'var(--mono)', fontSize: '11px' }}>Bowley Skew + MAD</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: '11px' }}>Bowley Skew + MAD</span>
             </div>
           </div>
         </div>

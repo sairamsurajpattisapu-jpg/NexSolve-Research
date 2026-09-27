@@ -13,14 +13,14 @@ interface NetworkStateChartProps {
 }
 
 const METRICS_OPTIONS: Array<{ key: string; label: string; unit: string; tone: string }> = [
-  { key: 'flow_count', label: 'Flow Count', unit: 'flows', tone: 'var(--accent, #68e1d8)' },
-  { key: 'total_packets', label: 'Packet Count', unit: 'pkts', tone: 'var(--warning, #f2bb71)' },
-  { key: 'total_bytes', label: 'Total Bytes', unit: 'bytes', tone: '#38bdf8' },
-  { key: 'unique_dst_ports', label: 'Unique Destination Ports', unit: 'ports', tone: 'var(--danger, #ed806f)' },
-  { key: 'mean_iat', label: 'Inter-Arrival Time (IAT)', unit: 'ms', tone: '#a78bfa' },
-  { key: 'mean_tcp_window', label: 'Mean TCP Window', unit: 'bytes', tone: '#34d399' },
-  { key: 'mean_ttl', label: 'Mean TTL', unit: 'hops', tone: '#f472b6' },
-  { key: 'delta_total_packets', label: 'Temporal Packet Delta', unit: 'Δpkts', tone: '#fb923c' },
+  { key: 'flow_count', label: 'Flow Count', unit: 'flows', tone: 'var(--text-primary)' },
+  { key: 'total_packets', label: 'Packet Count', unit: 'pkts', tone: 'var(--text-primary)' },
+  { key: 'total_bytes', label: 'Total Bytes', unit: 'bytes', tone: 'var(--text-primary)' },
+  { key: 'unique_dst_ports', label: 'Unique Destination Ports', unit: 'ports', tone: 'var(--text-primary)' },
+  { key: 'mean_iat', label: 'Inter-Arrival Time (IAT)', unit: 'ms', tone: 'var(--text-primary)' },
+  { key: 'mean_tcp_window', label: 'Mean TCP Window', unit: 'bytes', tone: 'var(--text-primary)' },
+  { key: 'mean_ttl', label: 'Mean TTL', unit: 'hops', tone: 'var(--text-primary)' },
+  { key: 'delta_total_packets', label: 'Temporal Packet Delta', unit: 'Δpkts', tone: 'var(--text-primary)' },
 ]
 
 export function NetworkStateChart({ trajectories }: NetworkStateChartProps) {
@@ -68,23 +68,24 @@ export function NetworkStateChart({ trajectories }: NetworkStateChartProps) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="eyebrow" style={{ color: 'var(--accent)', margin: 0 }}>
-              CONTINUOUS 45-DIMENSIONAL RECONSTRUCTION
+            <span className="eyebrow" style={{ margin: 0, fontSize: '11px', color: 'var(--text-secondary)' }}>
+              Continuous 45-Dimensional Reconstruction
             </span>
             <span
               style={{
                 fontSize: '10px',
-                fontFamily: 'var(--mono)',
-                padding: '2px 6px',
-                borderRadius: '3px',
-                background: 'rgba(104, 225, 216, 0.1)',
-                color: 'var(--accent)',
+                fontFamily: 'var(--font-sans)',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-muted)',
               }}
             >
-              PHYSICAL NETWORK STATE
+              Physical Network State
             </span>
           </div>
-          <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '4px 0 2px 0', color: 'var(--text-primary)' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '4px 0 2px 0', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
             Network State Trajectory
           </h3>
           <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--text-muted)', maxWidth: '640px' }}>
@@ -94,23 +95,23 @@ export function NetworkStateChart({ trajectories }: NetworkStateChartProps) {
 
         {/* Feature Selector Dropdown */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>FEATURE:</span>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>Feature:</span>
           <select
             value={selectedMetric}
             onChange={(e) => setSelectedMetric(e.target.value)}
             style={{
-              background: 'var(--bg-secondary)',
+              background: 'rgba(255, 255, 255, 0.03)',
               border: '1px solid var(--border)',
-              borderRadius: '4px',
-              padding: '6px 10px',
+              borderRadius: '6px',
+              padding: '6px 12px',
               fontSize: '12px',
-              fontFamily: 'var(--mono)',
+              fontFamily: 'var(--font-sans)',
               color: 'var(--text-primary)',
               cursor: 'pointer',
             }}
           >
             {METRICS_OPTIONS.map((opt) => (
-              <option key={opt.key} value={opt.key}>
+              <option key={opt.key} value={opt.key} style={{ background: '#0D0E10', color: '#F5F5F5' }}>
                 {opt.label} ({opt.unit})
               </option>
             ))}
@@ -171,17 +172,17 @@ export function NetworkStateChart({ trajectories }: NetworkStateChartProps) {
             y1={padding.top}
             x2={padding.left + forecastOffset * xStep}
             y2={padding.top + innerH}
-            stroke="var(--accent)"
-            strokeWidth="1.2"
+            stroke="rgba(255, 255, 255, 0.2)"
+            strokeWidth="1"
             strokeDasharray="4 2"
           />
           <text
             x={padding.left + forecastOffset * xStep}
             y={padding.top - 8}
-            fill="var(--accent)"
+            fill="var(--text-secondary)"
             fontSize="10"
-            fontFamily="var(--mono)"
-            fontWeight="bold"
+            fontFamily="var(--font-sans)"
+            fontWeight="600"
             textAnchor="middle"
           >
             NOW (T₀)
@@ -218,18 +219,18 @@ export function NetworkStateChart({ trajectories }: NetworkStateChartProps) {
                 <circle
                   cx={x}
                   cy={y}
-                  r={p.window === 0 ? 5 : 3.5}
+                  r={p.window === 0 ? 4.5 : 3}
                   fill={p.isForecast ? 'var(--bg-surface)' : metricMeta.tone}
                   stroke={metricMeta.tone}
-                  strokeWidth="2"
+                  strokeWidth="1.5"
                 />
                 <text
                   x={x}
                   y={padding.top + innerH + 16}
-                  fill={p.window === 0 ? 'var(--accent)' : 'var(--text-muted)'}
+                  fill={p.window === 0 ? 'var(--text-primary)' : 'var(--text-muted)'}
                   fontSize="10"
-                  fontWeight={p.window === 0 ? 'bold' : 'normal'}
-                  fontFamily="var(--mono)"
+                  fontWeight={p.window === 0 ? '600' : 'normal'}
+                  fontFamily="var(--font-sans)"
                   textAnchor="middle"
                 >
                   {p.label}
@@ -240,7 +241,7 @@ export function NetworkStateChart({ trajectories }: NetworkStateChartProps) {
         </svg>
 
         {/* Legend Footnote */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
           <div style={{ display: 'flex', gap: '16px' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ width: '12px', height: '2px', background: metricMeta.tone }} /> Actual Observed Windows

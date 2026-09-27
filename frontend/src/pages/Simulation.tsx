@@ -121,25 +121,25 @@ export function Simulation() {
       {/* Header */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             COUNTERFACTUAL STATE MODELING
           </span>
           <span
             style={{
               fontSize: '10px',
-              background: 'rgba(234, 179, 8, 0.15)',
-              border: '1px solid rgba(234, 179, 8, 0.3)',
+              background: 'rgba(234, 179, 8, 0.08)',
+              border: '1px solid rgba(234, 179, 8, 0.25)',
               color: 'var(--warning)',
               padding: '2px 8px',
               borderRadius: '4px',
-              fontFamily: 'var(--mono)',
-              fontWeight: 700,
+              fontFamily: 'var(--font-sans)',
+              fontWeight: 600,
             }}
           >
             MODELLED COUNTERFACTUAL
           </span>
         </div>
-        <h1 style={{ fontSize: '26px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+        <h1 style={{ fontSize: '26px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
           What-If Defence Simulator
         </h1>
         <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0, maxWidth: '820px', lineHeight: 1.5 }}>
@@ -158,8 +158,8 @@ export function Simulation() {
       {/* Strict Scientific Notice / Modelled Counterfactual Banner */}
       <div
         style={{
-          background: 'rgba(56, 189, 248, 0.08)',
-          border: '1px solid rgba(56, 189, 248, 0.25)',
+          background: 'var(--bg-secondary)',
+          border: '1px solid var(--border)',
           borderRadius: '8px',
           padding: '14px 18px',
           display: 'flex',
@@ -168,9 +168,9 @@ export function Simulation() {
           marginBottom: '20px',
         }}
       >
-        <ShieldCheck size={20} color="var(--accent)" style={{ flexShrink: 0 }} />
-        <div style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.5 }}>
-          <strong>MODELLED COUNTERFACTUAL NOTICE:</strong> This module mathematically perturbs the autoregressive state transition
+        <ShieldCheck size={20} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
+        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          <strong style={{ color: 'var(--text-primary)' }}>MODELLED COUNTERFACTUAL NOTICE:</strong> This module mathematically perturbs the autoregressive state transition
           matrix based on known firewall, routing, and endpoint intervention dampening coefficients. It models potential threat reduction
           and does not execute live network blocking.
         </div>
@@ -183,12 +183,12 @@ export function Simulation() {
           <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Sliders size={16} color="var(--accent)" />
+                <Sliders size={16} color="var(--text-secondary)" />
                 <h2 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
                   Defensive Policy Controls
                 </h2>
               </div>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
                 {activeCount} active intervention{activeCount === 1 ? '' : 's'}
               </span>
             </div>
@@ -200,7 +200,7 @@ export function Simulation() {
                   key={inv.id}
                   style={{
                     background: inv.enabled ? 'var(--bg-secondary)' : 'rgba(0,0,0,0.15)',
-                    border: `1px solid ${inv.enabled ? 'var(--accent)' : 'var(--border)'}`,
+                    border: `1px solid ${inv.enabled ? 'var(--border-strong)' : 'var(--border)'}`,
                     borderRadius: '8px',
                     padding: '14px',
                     transition: 'all 0.15s ease',
@@ -220,19 +220,19 @@ export function Simulation() {
                         {inv.title}
                       </label>
                     </div>
-                    <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 6px', background: 'var(--border)', borderRadius: '3px', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 600, padding: '2px 6px', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-muted)' }}>
                       {inv.type}
                     </span>
                   </div>
 
-                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 10px 0', lineHeight: 1.4 }}>
                     {inv.description}
                   </p>
 
                   {inv.enabled && (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--border)' }}>
                       <div>
-                        <label style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+                        <label style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                           TARGET ENTITY / PORT
                         </label>
                         <input
@@ -254,8 +254,8 @@ export function Simulation() {
 
                       <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>INTENSITY</span>
-                          <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)' }}>
+                          <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>INTENSITY</span>
+                          <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
                             {(inv.intensity * 100).toFixed(0)}%
                           </span>
                         </div>
@@ -295,11 +295,11 @@ export function Simulation() {
           <Panel>
             <div style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   PROJECTED THREAT MITIGATION
                 </span>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
-                  <span style={{ fontSize: '28px', fontWeight: 800, fontFamily: 'var(--mono)', color: (simulationResult?.risk_reduction_pct || 0) > 0 ? 'var(--success)' : 'var(--text-primary)' }}>
+                  <span style={{ fontSize: '28px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: (simulationResult?.risk_reduction_pct || 0) > 0 ? 'var(--success)' : 'var(--text-primary)', letterSpacing: '-0.02em' }}>
                     -{(simulationResult?.risk_reduction_pct || 0).toFixed(1)}%
                   </span>
                   <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Peak Horizon Attack Probability</span>
@@ -307,17 +307,17 @@ export function Simulation() {
               </div>
               <div
                 style={{
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: '10px',
-                  background: 'rgba(34, 197, 94, 0.12)',
-                  border: '1px solid rgba(34, 197, 94, 0.25)',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '8px',
+                  background: 'rgba(34, 197, 94, 0.08)',
+                  border: '1px solid rgba(34, 197, 94, 0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <TrendingDown size={28} color="var(--success)" />
+                <TrendingDown size={24} color="var(--success)" />
               </div>
             </div>
           </Panel>
@@ -327,9 +327,9 @@ export function Simulation() {
             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <h3 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Layers size={16} color="var(--accent)" /> Horizon Progression: Baseline vs Counterfactual
+                  <Layers size={16} color="var(--text-secondary)" /> Horizon Progression: Baseline vs Counterfactual
                 </h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11px', fontFamily: 'var(--mono)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11px', fontFamily: 'var(--font-sans)' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--danger)' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)' }} /> Baseline
                   </span>
@@ -349,8 +349,8 @@ export function Simulation() {
 
                   return (
                     <div key={pt.horizon} style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--mono)', marginBottom: '8px' }}>
-                        <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--font-sans)', marginBottom: '8px', fontVariantNumeric: 'tabular-nums' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                           T+{pt.horizon} ({pt.lookaheadSeconds}s / {pt.horizon} min)
                         </span>
                         <span style={{ color: delta > 0 ? 'var(--success)' : 'var(--text-muted)' }}>
@@ -360,22 +360,22 @@ export function Simulation() {
 
                       {/* Baseline Bar */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', width: '70px' }}>Baseline:</span>
-                        <div style={{ flex: 1, height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                          <div style={{ width: `${Math.min(100, baseProb * 100)}%`, height: '100%', background: 'var(--danger)', borderRadius: '4px' }} />
+                        <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', width: '70px' }}>Baseline:</span>
+                        <div style={{ flex: 1, height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.min(100, baseProb * 100)}%`, height: '100%', background: 'var(--danger)', borderRadius: '3px' }} />
                         </div>
-                        <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', width: '45px', textAlign: 'right', color: 'var(--danger)' }}>
+                        <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', width: '45px', textAlign: 'right', color: 'var(--danger)' }}>
                           {(baseProb * 100).toFixed(0)}%
                         </span>
                       </div>
 
                       {/* Counterfactual Bar */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', width: '70px' }}>Mitigated:</span>
-                        <div style={{ flex: 1, height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                          <div style={{ width: `${Math.min(100, cfProb * 100)}%`, height: '100%', background: 'var(--success)', borderRadius: '4px' }} />
+                        <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', width: '70px' }}>Mitigated:</span>
+                        <div style={{ flex: 1, height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.min(100, cfProb * 100)}%`, height: '100%', background: 'var(--success)', borderRadius: '3px' }} />
                         </div>
-                        <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', width: '45px', textAlign: 'right', color: 'var(--success)', fontWeight: 700 }}>
+                        <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', width: '45px', textAlign: 'right', color: 'var(--success)', fontWeight: 600 }}>
                           {(cfProb * 100).toFixed(0)}%
                         </span>
                       </div>
@@ -386,12 +386,12 @@ export function Simulation() {
 
               {/* Applied Effects Breakdown */}
               <div style={{ marginTop: '12px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-                <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   ACTIVE MITIGATION IMPACTS:
                 </span>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {simulationResult?.applied_interventions?.map((eff, i) => (
-                    <div key={i} style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+                    <div key={i} style={{ fontSize: '12px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
                       <span style={{ color: 'var(--success)' }}>&check;</span>
                       <div>
                         <strong style={{ color: 'var(--text-primary)' }}>{eff.action}</strong> &mdash; {eff.feature_impact}
@@ -399,7 +399,7 @@ export function Simulation() {
                     </div>
                   ))}
                   {(!simulationResult?.applied_interventions || simulationResult.applied_interventions.length === 0) && (
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>No interventions applied. Baseline trajectory matches unmodified state dynamics.</span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No interventions applied. Baseline trajectory matches unmodified state dynamics.</span>
                   )}
                 </div>
               </div>

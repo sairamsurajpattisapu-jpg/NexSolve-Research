@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, Plus, TrendingUp, X } from 'lucide-react'
 import { ClosingPlasmaBackground } from './ClosingPlasmaBackground'
@@ -51,6 +51,17 @@ export function Layout({
   const location = useLocation()
   const navRef = useRef<HTMLDivElement>(null)
   const drawerRef = useRef<HTMLElement>(null)
+
+  // Ensure scroll is restored to top on every navigation/route transition before paint
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    if (document.documentElement) {
+      document.documentElement.scrollTop = 0
+    }
+    if (document.body) {
+      document.body.scrollTop = 0
+    }
+  }, [location.pathname])
 
   const serviceState = getServiceStateInfo(status)
 
@@ -191,7 +202,7 @@ export function Layout({
             {/* Drawer Header */}
             <div className="drawer-header">
               <div>
-                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   NEXSOLVE CONTROL
                 </span>
                 <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: '2px 0 0 0', letterSpacing: '-0.02em' }}>
@@ -311,10 +322,10 @@ export function Layout({
 
             {/* Footer */}
             <div style={{ marginTop: 'auto', padding: '16px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-secondary)' }}>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
                 NexSolve &middot; Cyber Operations
               </span>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '1px 6px', borderRadius: '3px' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-secondary)', border: '1px solid var(--border)', padding: '2px 7px', borderRadius: '4px' }}>
                 OFFLINE-FIRST
               </span>
             </div>
@@ -330,8 +341,8 @@ export function Layout({
           style={{
             background: 'var(--bg-secondary)',
             borderBottom: '1px solid var(--border)',
-            fontSize: '11px',
-            fontFamily: 'var(--mono)',
+            fontSize: '11.5px',
+            fontFamily: 'var(--font-sans)',
             width: '100%',
           }}
         >
@@ -342,7 +353,7 @@ export function Layout({
               maxWidth: 'var(--site-max-width, 1240px)',
               marginInline: 'auto',
               paddingInline: 'var(--site-gutter-desktop, 32px)',
-              paddingBlock: '6px',
+              paddingBlock: '7px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -355,16 +366,16 @@ export function Layout({
               {isLiveCapture && (
                 <span
                   style={{
-                    fontSize: '9.5px',
-                    fontFamily: 'var(--mono)',
-                    padding: '1px 6px',
-                    borderRadius: '3px',
-                    background: 'rgba(255, 255, 255, 0.06)',
+                    fontSize: '10px',
+                    fontFamily: 'var(--font-sans)',
+                    padding: '2px 7px',
+                    borderRadius: '4px',
+                    background: 'rgba(255, 255, 255, 0.05)',
                     border: '1px solid var(--border)',
                     color: 'var(--text-primary)',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                    fontWeight: 700,
+                    letterSpacing: '0.04em',
+                    fontWeight: 600,
                   }}
                 >
                   LIVE CAPTURE
@@ -387,8 +398,8 @@ export function Layout({
                 {contextStatusText}
               </span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '10.5px', color: 'var(--text-muted)' }}>
-              <span>ID: {isLiveCapture && analysisId ? analysisId.slice(0, 16) : '—'}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11px', color: 'var(--text-muted)' }}>
+              <span>ID: <code style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>{isLiveCapture && analysisId ? analysisId.slice(0, 16) : '—'}</code></span>
             </div>
           </div>
         </div>

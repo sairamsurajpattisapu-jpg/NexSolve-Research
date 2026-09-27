@@ -56,6 +56,11 @@ export function Forecast() {
     }
   }, [jobId, polledResult, data])
 
+  // Ensure scroll is pinned at top when opening forecast view
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [userOpenedForecast, Boolean(activeAnalysis)])
+
   // CASE 1: Polling an active job that is still processing or completing
   if (jobId && !userOpenedForecast && (isPolling || (job && jobStatus !== 'COMPLETED' && !jobError) || (!activeAnalysis && !jobError))) {
     return (
@@ -148,9 +153,9 @@ export function Forecast() {
     return (
       <div className="page-stack page-enter" style={{ width: '100%', padding: '24px 0' }}>
         <div style={{ marginBottom: '24px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 10px', borderRadius: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', marginBottom: '12px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 10px', borderRadius: '4px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--border)', fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', marginBottom: '12px' }}>
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--text-primary)', display: 'inline-block' }} />
-            LOADING FORECAST
+            Loading Forecast
           </div>
           <div style={{ height: '24px', width: '280px', background: 'var(--bg-secondary)', borderRadius: '4px', marginBottom: '8px' }} />
           <div style={{ height: '14px', width: '420px', background: 'var(--bg-secondary)', borderRadius: '4px' }} />

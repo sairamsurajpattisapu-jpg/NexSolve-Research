@@ -69,7 +69,7 @@ export function Evidence() {
               <ShieldAlert size={24} color="var(--text-primary)" />
             </div>
             <div>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
                 EVIDENCE
               </span>
               <h2 style={{ margin: '4px 0 8px 0', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
@@ -154,25 +154,25 @@ export function Evidence() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', fontSize: '12.5px' }}>
           <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--mono)', textTransform: 'uppercase' }}>
+            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               Input Filename
             </span>
-            <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--mono)', fontSize: '13px' }}>
+            <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontSize: '13px' }}>
               {input.filename}
             </strong>
           </div>
 
           <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--mono)', textTransform: 'uppercase' }}>
+            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               Format Contract
             </span>
-            <span style={{ fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--text-primary)' }}>
+            <span style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-primary)' }}>
               {input.format.toUpperCase()} (Passive Wire Capture)
             </span>
           </div>
 
           <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--mono)', textTransform: 'uppercase' }}>
+            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               Analysis Identifier
             </span>
             <span style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
@@ -181,28 +181,28 @@ export function Evidence() {
           </div>
 
           <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--mono)', textTransform: 'uppercase' }}>
+            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               Window Configuration
             </span>
-            <span style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>
+            <span style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
               60s Discrete Tumbling Windows ({input.windowCount} windows)
             </span>
           </div>
 
           <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--mono)', textTransform: 'uppercase' }}>
+            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               Feature Schema
             </span>
-            <span style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>
+            <span style={{ fontFamily: 'var(--font-sans)', color: 'var(--text-primary)' }}>
               {evidence.configuration.schemaVersion} ({evidence.model.inputDimension} Passive Features)
             </span>
           </div>
 
           <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--mono)', textTransform: 'uppercase' }}>
+            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '10.5px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
               Analysis Timestamp
             </span>
-            <span style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+            <span style={{ fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-secondary)' }}>
               {analysis.createdAt || currentState?.timestamp || 'Synchronized UTC'}
             </span>
           </div>
@@ -232,29 +232,29 @@ export function Evidence() {
         {/* Compact Representation (Summary) */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: networkStateExpanded ? '16px' : '0' }}>
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '12px', borderRadius: '4px' }}>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>PACKET THROUGHPUT</span>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>PACKET THROUGHPUT</span>
+            <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
               {currentState?.summary?.packets ? currentState.summary.packets.toLocaleString() : input.packetCount.toLocaleString()} pkts
             </div>
           </div>
 
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '12px', borderRadius: '4px' }}>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>FLOW CONCURRENCY</span>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>FLOW CONCURRENCY</span>
+            <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
               {currentState?.summary?.flows ? currentState.summary.flows.toLocaleString() : input.flowCount.toLocaleString()} flows
             </div>
           </div>
 
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '12px', borderRadius: '4px' }}>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>AGGREGATE BYTES</span>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>AGGREGATE BYTES</span>
+            <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
               {currentState?.summary?.bytes ? (currentState.summary.bytes / 1024 / 1024).toFixed(2) : (input.sizeBytes / 1024 / 1024).toFixed(2)} MB
             </div>
           </div>
 
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '12px', borderRadius: '4px' }}>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>UNIQUE HOSTS</span>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>UNIQUE HOSTS</span>
+            <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
               {currentState?.summary?.uniqueSrcIps || 1} src &middot; {currentState?.summary?.uniqueDstIps || 1} dst
             </div>
           </div>
@@ -264,10 +264,10 @@ export function Evidence() {
         {networkStateExpanded && (
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
                 NORMALIZED 45-DIMENSIONAL CONTINUOUS STATE VECTOR
               </span>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
                 POLICY: RTT STRICTLY OMITTED (ZERO SYNTHETIC IMPUTATION)
               </span>
             </div>
@@ -333,7 +333,7 @@ export function Evidence() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', fontSize: '12px' }}>
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '14px', borderRadius: '5px' }}>
-            <div style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>CURRENT DISCRETE STATE</div>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>CURRENT DISCRETE STATE</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
               State S_t (T0 = Window {input.windowCount || 8})
             </div>
@@ -343,7 +343,7 @@ export function Evidence() {
           </div>
 
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '14px', borderRadius: '5px' }}>
-            <div style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>HISTORICAL CONTEXT DEPTH</div>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>HISTORICAL CONTEXT DEPTH</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
               8 Continuous Windows (480 Seconds)
             </div>
@@ -353,7 +353,7 @@ export function Evidence() {
           </div>
 
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '14px', borderRadius: '5px' }}>
-            <div style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>FORECAST HORIZONS</div>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>FORECAST HORIZONS</div>
             <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
               T+1 through T+5 (+60s to +300s Lookahead)
             </div>
@@ -375,7 +375,7 @@ export function Evidence() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', fontSize: '12px' }}>
           <div style={{ border: '1px solid var(--border)', padding: '12px', borderRadius: '4px' }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: '10px', fontFamily: 'var(--mono)' }}>PREDICTOR TYPE</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em' }}>PREDICTOR TYPE</span>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
               NumPy LSTM State Transition Model
             </div>
@@ -385,7 +385,7 @@ export function Evidence() {
           </div>
 
           <div style={{ border: '1px solid var(--border)', padding: '12px', borderRadius: '4px' }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: '10px', fontFamily: 'var(--mono)' }}>INPUT/OUTPUT TENSOR</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em' }}>INPUT/OUTPUT TENSOR</span>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
               45 Features In &rarr; 45 Features Out + Attack Head
             </div>
@@ -395,7 +395,7 @@ export function Evidence() {
           </div>
 
           <div style={{ border: '1px solid var(--border)', padding: '12px', borderRadius: '4px' }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: '10px', fontFamily: 'var(--mono)' }}>SIMULATION MECHANISM</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em' }}>SIMULATION MECHANISM</span>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
               Deterministic K-Step Rollout
             </div>
@@ -405,7 +405,7 @@ export function Evidence() {
           </div>
 
           <div style={{ border: '1px solid var(--border)', padding: '12px', borderRadius: '4px' }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: '10px', fontFamily: 'var(--mono)' }}>DECISION POLICY</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em' }}>DECISION POLICY</span>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
               Operating Threshold P &ge; 0.50
             </div>
@@ -420,7 +420,7 @@ export function Evidence() {
       <Panel>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
           <div>
-            <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               FORWARD SIMULATION EVIDENCE
             </span>
             <h3 style={{ margin: '2px 0 0 0', fontSize: '16px', color: 'var(--text-primary)' }}>
@@ -438,13 +438,13 @@ export function Evidence() {
                 style={{
                   padding: '4px 12px',
                   fontSize: '11px',
-                  fontFamily: 'var(--mono)',
+                  fontFamily: 'var(--font-sans)',
                   border: 'none',
                   borderRadius: '3px',
                   background: selectedHorizonTab === h ? 'var(--text-primary)' : 'transparent',
                   color: selectedHorizonTab === h ? 'var(--bg-primary)' : 'var(--text-primary)',
                   cursor: 'pointer',
-                  fontWeight: selectedHorizonTab === h ? 700 : 500,
+                  fontWeight: selectedHorizonTab === h ? 600 : 500,
                 }}
               >
                 T+{h} (+{h * 60}s)
@@ -458,23 +458,23 @@ export function Evidence() {
           <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', borderBottom: '1px solid var(--border)', paddingBottom: '14px', marginBottom: '14px' }}>
               <div>
-                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>STEP ATTACK PROBABILITY</span>
-                <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>STEP ATTACK PROBABILITY</span>
+                <div style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
                   {activePoint.stepAttackProbability !== null ? (activePoint.stepAttackProbability * 100).toFixed(1) + '%' : 'N/A'}
                 </div>
                 <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>P(Attack at T+{activePoint.horizon})</span>
               </div>
 
               <div>
-                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>CUMULATIVE FUTURE RISK</span>
-                <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>CUMULATIVE FUTURE RISK</span>
+                <div style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '2px' }}>
                   {activePoint.cumulativeRisk !== null ? (activePoint.cumulativeRisk * 100).toFixed(1) + '%' : 'N/A'}
                 </div>
                 <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>1 - Π(1 - p_h) across rollout</span>
               </div>
 
               <div>
-                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>PREDICTED BEHAVIORAL STAGE</span>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>PREDICTED BEHAVIORAL STAGE</span>
                 <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
                   {formatDisplayLabel(activePoint.predictedStage || 'RECONNAISSANCE')}
                 </div>
@@ -482,8 +482,8 @@ export function Evidence() {
               </div>
 
               <div>
-                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>CONFIDENCE BOUNDS</span>
-                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>CONFIDENCE BOUNDS</span>
+                <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)', marginTop: '4px' }}>
                   {activePoint.confidence ? (activePoint.confidence * 100).toFixed(0) + '%' : '82%'}
                 </div>
                 <span style={{ fontSize: '10.5px', color: 'var(--text-muted)' }}>Calibrated horizon decay</span>
@@ -492,7 +492,7 @@ export function Evidence() {
 
             {/* Supporting Corroborating Signals */}
             <div>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, letterSpacing: '0.04em', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
                 SUPPORTING SIGNALS AT T+{activePoint.horizon}
               </span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -553,17 +553,17 @@ export function Evidence() {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
                     STAGE {st.step} (+{st.leadTimeSeconds}s)
                   </span>
-                  <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', padding: '1px 5px', border: '1px solid var(--border)', borderRadius: '2px' }}>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', padding: '1px 5px', border: '1px solid var(--border)', borderRadius: '2px' }}>
                     {st.predictionType}
                   </span>
                 </div>
                 <div style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text-primary)' }}>
                   {formatDisplayLabel(st.predictedState)}
                 </div>
-                <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-muted)' }}>
                   Transition Prob: {st.transitionProbability !== null ? Math.round(st.transitionProbability * 100) + '%' : 'Withheld'}
                 </div>
               </div>
@@ -580,14 +580,14 @@ export function Evidence() {
       <Panel>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
           <div>
-            <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               COUNTERFACTUAL ATTRIBUTION
             </span>
             <h3 style={{ margin: '2px 0 0 0', fontSize: '16px', color: 'var(--text-primary)' }}>
               7. Why This Forecast? &middot; Ranked Feature Influence
             </h3>
           </div>
-          <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
             Method: Feature Perturbation Sensitivity
           </span>
         </div>
@@ -622,13 +622,13 @@ export function Evidence() {
                 <span
                   style={{
                     fontSize: '9px',
-                    fontFamily: 'var(--mono)',
+                    fontFamily: 'var(--font-sans)',
                     padding: '1px 5px',
                     borderRadius: '2px',
                     border: '1px solid var(--border)',
                     background: driver.importance === 'HIGH' ? 'var(--text-primary)' : 'var(--bg-surface)',
                     color: driver.importance === 'HIGH' ? 'var(--bg-primary)' : 'var(--text-primary)',
-                    fontWeight: 700,
+                    fontWeight: 600,
                   }}
                 >
                   {driver.importance}
@@ -644,7 +644,7 @@ export function Evidence() {
         {/* Evidence Chain Separation: Supporting vs Contradictory */}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '14px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
               EVIDENCE NODES: SUPPORTING VS CONTRADICTORY
             </span>
 
@@ -661,7 +661,7 @@ export function Evidence() {
                   border: '1px solid var(--border)',
                   background: 'var(--bg-primary)',
                   color: 'var(--text-primary)',
-                  fontFamily: 'var(--mono)',
+                  fontFamily: 'var(--font-sans)',
                   height: '24px',
                   width: '130px',
                 }}
@@ -710,7 +710,7 @@ export function Evidence() {
                   <span
                     style={{
                       fontSize: '9px',
-                      fontFamily: 'var(--mono)',
+                      fontFamily: 'var(--font-sans)',
                       padding: '1px 5px',
                       borderRadius: '2px',
                       border: '1px solid var(--border)',
@@ -746,13 +746,15 @@ export function Evidence() {
 
           <span
             style={{
-              fontSize: '10px',
-              fontFamily: 'var(--mono)',
-              fontWeight: 700,
+              fontSize: '11px',
+              fontFamily: 'var(--font-sans)',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
               padding: '2px 8px',
               borderRadius: '3px',
               border: '1px solid var(--border)',
               background: 'var(--bg-secondary)',
+              color: 'var(--text-secondary)',
             }}
           >
             CONTEXTUAL INTERPRETATION
@@ -782,11 +784,11 @@ export function Evidence() {
                 <span style={{ fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)' }}>
                   {m.techniqueId}: {m.techniqueName}
                 </span>
-                <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
                   {m.forecastStep}
                 </span>
               </div>
-              <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)' }}>
                 TACTIC: {m.tactic}
               </div>
               <div style={{ color: 'var(--text-secondary)', fontSize: '11.5px', lineHeight: 1.4 }}>

@@ -80,11 +80,11 @@ export function Overview() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
             <span
               style={{
-                fontSize: '10px',
-                fontFamily: 'var(--mono)',
-                fontWeight: 700,
+                fontSize: '11px',
+                fontFamily: 'var(--font-sans)',
+                fontWeight: 600,
                 color: 'var(--text-muted)',
-                letterSpacing: '0.1em',
+                letterSpacing: '0.08em',
                 textTransform: 'uppercase',
               }}
             >
@@ -92,8 +92,9 @@ export function Overview() {
             </span>
             <span
               style={{
-                fontSize: '10px',
-                fontFamily: 'var(--mono)',
+                fontSize: '10.5px',
+                fontFamily: 'var(--font-sans)',
+                fontWeight: 600,
                 padding: '2px 8px',
                 borderRadius: '4px',
                 background: 'var(--bg-secondary)',
@@ -110,7 +111,7 @@ export function Overview() {
               fontWeight: 700,
               color: 'var(--text-primary)',
               margin: 0,
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.025em',
             }}
           >
             Analysis Console
@@ -127,7 +128,7 @@ export function Overview() {
               padding: '4px 10px',
               borderRadius: '999px',
               fontSize: '11px',
-              fontFamily: 'var(--mono)',
+              fontFamily: 'var(--font-sans)',
               fontWeight: 600,
               background: 'var(--bg-secondary)',
               border: '1px solid var(--border)',
@@ -189,20 +190,20 @@ export function Overview() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+                <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-sans)', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
                   NO ACTIVE ANALYSIS
                 </span>
-                <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
                   AWAITING WIRE TELEMETRY
                 </span>
               </div>
-              <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
                 Ready to analyze network traffic captures
               </h2>
-              <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '640px', lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 12px 0', fontSize: '13.5px', color: 'var(--text-secondary)', maxWidth: '640px', lineHeight: 1.6 }}>
                 Ready to analyze a network capture. Run <code style={{ fontFamily: 'var(--mono)', background: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>nexsolve analyze</code> in your terminal or start an analysis in this console.
               </p>
-              <div style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
+              <div style={{ fontSize: '11.5px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
                 PCAP / PCAPNG &middot; 45 FEATURES &middot; TEMPORAL FORECAST
               </div>
             </div>
@@ -238,21 +239,21 @@ export function Overview() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <span
                       style={{
-                        fontSize: '10px',
-                        fontFamily: 'var(--mono)',
-                        fontWeight: 700,
+                        fontSize: '10.5px',
+                        fontFamily: 'var(--font-sans)',
+                        fontWeight: 600,
                         color: 'var(--warning)',
-                        letterSpacing: '0.08em',
+                        letterSpacing: '0.04em',
                         textTransform: 'uppercase',
-                        background: 'rgba(251, 191, 36, 0.10)',
-                        border: '1px solid rgba(251, 191, 36, 0.25)',
-                        padding: '1px 6px',
-                        borderRadius: '3px',
+                        background: 'rgba(251, 191, 36, 0.08)',
+                        border: '1px solid rgba(251, 191, 36, 0.20)',
+                        padding: '2px 7px',
+                        borderRadius: '4px',
                       }}
                     >
                       CALIBRATED ABSTENTION
                     </span>
-                    <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
                       EPISTEMIC HONESTY CONTRACT
                     </span>
                   </div>
@@ -263,14 +264,14 @@ export function Overview() {
                     Insufficient temporal history. Forecasting requires at least 8 continuous 60-second windows without synthetic imputation.
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                    <div style={{ display: 'flex', gap: '16px', fontSize: '12px', fontFamily: 'var(--mono)' }}>
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '12px', fontFamily: 'var(--font-sans)' }}>
                       <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '6px 12px' }}>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '10.5px', display: 'block' }}>Observed</span>
-                        <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>{results.traffic?.windows ?? 0} windows</strong>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block' }}>Observed</span>
+                        <strong style={{ color: 'var(--text-primary)', fontSize: '13px', fontVariantNumeric: 'tabular-nums' }}>{results.traffic?.windows ?? 0} windows</strong>
                       </div>
                       <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '6px 12px' }}>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '10.5px', display: 'block' }}>Required</span>
-                        <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>8 windows (480s)</strong>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block' }}>Required</span>
+                        <strong style={{ color: 'var(--text-primary)', fontSize: '13px', fontVariantNumeric: 'tabular-nums' }}>8 windows (480s)</strong>
                       </div>
                     </div>
                     <Link to="/workflow" style={{ fontSize: '12px', color: 'var(--text-secondary)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
@@ -285,7 +286,7 @@ export function Overview() {
           {/* ACTIVE ANALYSIS BANNER */}
           <Panel
             style={{
-              padding: '18px 22px',
+              padding: '20px 24px',
               marginBottom: '20px',
               background: 'var(--bg-surface)',
               border: '1px solid var(--border)',
@@ -294,34 +295,34 @@ export function Overview() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                   <span
                     style={{
-                      fontSize: '9.5px',
-                      fontFamily: 'var(--mono)',
-                      padding: '1px 6px',
-                      borderRadius: '3px',
-                      background: 'rgba(52, 211, 153, 0.10)',
-                      border: '1px solid rgba(52, 211, 153, 0.25)',
+                      fontSize: '10px',
+                      fontFamily: 'var(--font-sans)',
+                      padding: '2px 7px',
+                      borderRadius: '4px',
+                      background: 'rgba(52, 211, 153, 0.08)',
+                      border: '1px solid rgba(52, 211, 153, 0.20)',
                       color: 'var(--success)',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
-                      fontWeight: 700,
+                      letterSpacing: '0.04em',
+                      fontWeight: 600,
                     }}
                   >
                     ACTIVE ANALYSIS SESSION
                   </span>
-                  <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
                     ACTIVE WIRE INGESTION
                   </span>
                 </div>
 
-                <h3 style={{ margin: '2px 0 4px 0', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>
+                <h3 style={{ margin: '2px 0 6px 0', fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.015em' }}>
                   {results.source?.filename || results.source?.name || 'Active Capture'}
                 </h3>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
-                  <span>ID: {results.analysis_id?.slice(0, 16)}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
+                  <span>ID: <code style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>{results.analysis_id?.slice(0, 16)}</code></span>
                   <span>&middot;</span>
                   <span>{results.traffic?.windows ?? 0} windows</span>
                   <span>&middot;</span>
@@ -450,7 +451,7 @@ export function Overview() {
       <Panel>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
           <div>
-            <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               RECENT SESSIONS
             </span>
             <h3 style={{ margin: '2px 0 0 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -492,30 +493,32 @@ export function Overview() {
               >
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
-                    <strong style={{ fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>
+                    <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)', fontFamily: 'var(--font-sans)', fontWeight: 600 }}>
                       {item.filename}
                     </strong>
                     <AnalysisStatusBadge status={item.status} />
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
-                    {new Date(item.timestamp).toLocaleString()} &middot; ID: {item.id.slice(0, 10)}
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
+                    {new Date(item.timestamp).toLocaleString()} &middot; ID: <code style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>{item.id.slice(0, 10)}</code>
                     {item.predictedStage && ` &middot; Stage: ${item.predictedStage}`}
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ textAlign: 'right', minWidth: '60px' }}>
-                    <span style={{ fontSize: '9.5px', color: 'var(--text-muted)', fontFamily: 'var(--mono)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block' }}>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>
                       PEAK RISK
                     </span>
                     <strong
                       style={{
-                        fontSize: '12.5px',
+                        fontSize: '13px',
                         color: (() => {
                           const norm = normalizeRiskPercentage(item.peakRiskPct)
                           return norm !== null && norm > 60 ? 'var(--danger)' : 'var(--text-primary)'
                         })(),
-                        fontFamily: 'var(--mono)',
+                        fontFamily: 'var(--font-sans)',
+                        fontWeight: 700,
+                        fontVariantNumeric: 'tabular-nums',
                       }}
                     >
                       {formatRiskPercentage(item.peakRiskPct)}

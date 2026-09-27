@@ -285,4 +285,112 @@ describe('Canonical Adapter & ForecastConsole Integration', () => {
     expect(screen.getByText(/What if suspicious connection terminates immediately\?/i)).toBeInTheDocument()
     expect(screen.getByText(/Immediate risk attenuation to nominal baseline equilibrium/i)).toBeInTheDocument()
   })
+
+  it('correctly handles NON_CONTIGUOUS_TIMESTAMPS abstention without contradiction', () => {
+    const nonContiguousPayload = {
+      ...mockUploadedPayload,
+      analysis_id: 'job-non-contiguous-test',
+      validation: {
+        status: 'VALID',
+        is_valid: true,
+        packet_count: 500,
+        window_count: 10,
+        model_compatibility: {
+          compatible: true,
+          feature_count: 45,
+          missing_features: [],
+        },
+      },
+      traffic: {
+        total_packets: 500,
+        windows: 10,
+      },
+      network_state: {
+        history: {
+          status: 'GAPPED_HISTORY',
+          reason: 'One or more canonical windows are missing or non-contiguous.',
+        },
+      },
+      abstention: {
+        abstained: true,
+        abstention_reason: 'NON_CONTIGUOUS_TIMESTAMPS',
+        abstention_explanation: 'Forecast withheld: Input sequence contains non-contiguous temporal windows or excessive time gaps.',
+      },
+      final_world_model: {
+        forecast_status: 'FORECAST_ABSTAINED',
+        is_abstained: true,
+        abstention_reason: 'NON_CONTIGUOUS_TIMESTAMPS',
+        abstention_explanation: 'Forecast withheld: Input sequence contains non-contiguous temporal windows or excessive time gaps.',
+        forecast: {},
+        forecasts: [],
+      },
+      forecast_summary: {
+        available: false,
+        status: 'NON_CONTIGUOUS_TIMESTAMPS',
+        required_windows: 8,
+        available_windows: 10,
+        required_window_seconds: 60,
+        message: 'Forecast withheld: Input sequence contains non-contiguous temporal windows or excessive time gaps.',
+      },
+      forecasts: [],
+    }
+
+    const canonical = adaptToCanonical(nonContiguousPayload, 'job-non-contiguous-test')
+    expect(canonical.forecast.isAvailable).toBe(false)
+    expect(canonical.forecast.status).toBe('NON_CONTIGUOUS_TIMESTAMPS')
+    expect(canonical.forecast.message).toContain('non-contiguous temporal windows')
+    expect(canonical.forecast.message).not.toContain('contains 10 continuous windows')
+
+    render(<ForecastConsole analysis={canonical} />)
+    expect(screen.getByText('Non-contiguous timestamps detected.')).toBeInTheDocument()
+    expect(screen.queryByText('Insufficient temporal history.')).not.toBeInTheDocument()
+    expect(screen.getByText('10 windows (non-contiguous)')).toBeInTheDocument()
+    expect(screen.getByText('8 continuous windows')).toBeInTheDocument()
+  })
+
+  it('correctly handles genuine INSUFFICIENT_HISTORY abstention (<8 windows)', () => {
+    const insufficientPayload = {
+      ...mockUploadedPayload,
+      analysis_id: 'job-insufficient-test',
+      validation: {
+        status: 'VALID',
+        is_valid: true,
+        packet_count: 200,
+        window_count: 4,
+        model_compatibility: {
+          compatible: true,
+          feature_count: 45,
+          missing_features: [],
+        },
+      },
+      traffic: {
+        total_packets: 200,
+        windows: 4,
+      },
+      abstention: {
+        abstained: true,
+        abstention_reason: 'INSUFFICIENT_HISTORY',
+        abstention_explanation: 'Forecasting requires at least 8 continuous 60-second windows. Static traffic analysis completed successfully.',
+      },
+      forecast_summary: {
+        available: false,
+        status: 'INSUFFICIENT_HISTORY',
+        required_windows: 8,
+        available_windows: 4,
+        required_window_seconds: 60,
+        message: 'Forecasting requires at least 8 continuous 60-second windows. Static traffic analysis completed successfully.',
+      },
+      forecasts: [],
+    }
+
+    const canonical = adaptToCanonical(insufficientPayload, 'job-insufficient-test')
+    expect(canonical.forecast.isAvailable).toBe(false)
+    expect(canonical.forecast.status).toBe('INSUFFICIENT_HISTORY')
+    expect(canonical.forecast.message).toContain('at least 8 continuous 60-second windows')
+
+    render(<ForecastConsole analysis={canonical} />)
+    expect(screen.getByText('Insufficient temporal history.')).toBeInTheDocument()
+    expect(screen.getByText('4 windows')).toBeInTheDocument()
+    expect(screen.getByText('8 continuous windows')).toBeInTheDocument()
+  })
 })

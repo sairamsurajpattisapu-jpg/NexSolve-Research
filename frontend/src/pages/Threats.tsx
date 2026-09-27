@@ -84,13 +84,13 @@ export function Threats() {
           <span
             style={{
               fontSize: '11px',
-              fontFamily: 'var(--mono)',
-              fontWeight: 700,
+              fontFamily: 'var(--font-sans)',
+              fontWeight: 600,
               padding: '3px 8px',
               borderRadius: '4px',
               background: 'var(--bg-secondary)',
               border: '1px solid var(--border)',
-              color: 'var(--text-primary)',
+              color: 'var(--text-secondary)',
             }}
           >
             {findings.length} THREAT SIGNALS
@@ -126,7 +126,7 @@ export function Threats() {
               borderRadius: '4px',
               padding: '4px 8px',
               fontSize: '12px',
-              fontFamily: 'var(--mono)',
+              fontFamily: 'var(--font-sans)',
             }}
           >
             <option value="all">All severity</option>
@@ -135,7 +135,7 @@ export function Threats() {
             <option value="low">Low</option>
           </select>
         </div>
-        <span className="filter-count" style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+        <span className="filter-count" style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
           {findings.length} shown
         </span>
       </Panel>
@@ -204,13 +204,14 @@ export function Threats() {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                     <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block' }}>
+                      <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', display: 'block' }}>
                         RISK SCORE
                       </span>
                       <strong
                         style={{
                           fontSize: '13px',
-                          fontFamily: 'var(--mono)',
+                          fontFamily: 'var(--font-sans)',
+                          fontVariantNumeric: 'tabular-nums',
                           color: Number.isFinite(finding.risk_score) && finding.risk_score > 0.6 ? 'var(--danger)' : 'var(--text-primary)',
                         }}
                       >
@@ -219,10 +220,10 @@ export function Threats() {
                     </div>
 
                     <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block' }}>
+                      <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', letterSpacing: '0.04em', color: 'var(--text-muted)', display: 'block' }}>
                         TIMESTAMP
                       </span>
-                      <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+                      <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-secondary)' }}>
                         {formatTimestamp(finding.timestamp)}
                       </span>
                     </div>
@@ -241,7 +242,7 @@ export function Threats() {
                       gap: '8px',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
                       <span>Detection Method: <strong style={{ color: 'var(--text-primary)' }}>{finding.detection_method ?? data.results.detection.detection_method ?? data.results.detection.detection_mode}</strong></span>
                       {finding.prediction && (
                         <>
@@ -252,7 +253,7 @@ export function Threats() {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-                      <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 600, letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                         Supporting Telemetry Evidence
                       </span>
                       {finding.evidence.map((item, idx) => (
