@@ -33,7 +33,7 @@ export function Network() {
   if (error) return <ErrorState message={error} onRetry={() => void reload()} />
   if (!data) {
     return (
-      <div className="page-stack page-enter" style={{ maxWidth: '640px', margin: '60px auto', textAlign: 'center' }}>
+      <div className="page-stack page-enter compact-container" style={{ margin: '60px auto', textAlign: 'center' }}>
         <Panel>
           <div style={{ padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -131,7 +131,7 @@ export function Network() {
     : filteredNodes[0] ?? null
 
   return (
-    <div className="page-stack page-enter" style={{ width: '100%', padding: '24px 0' }}>
+    <div className="page-stack page-enter">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
         <div>

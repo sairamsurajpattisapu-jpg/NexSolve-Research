@@ -59,12 +59,8 @@ function ScrollToTop() {
 }
 
 function App() {
-  const { loading, error, analysisSource, provenance, apiConnected } = useProductionData()
-  const status = loading
-    ? 'Syncing data'
-    : apiConnected === false || error
-    ? 'TEMPORARILY UNAVAILABLE'
-    : 'READY'
+  const { loading, analysisSource, provenance } = useProductionData()
+  const status = loading ? 'Syncing data' : 'READY'
 
   return (
     <AnalysisProvider>

@@ -62,7 +62,7 @@ export function Overview() {
   }
 
   return (
-    <div className="page-stack page-enter" style={{ width: '100%', padding: '20px 0 40px 0' }}>
+    <div className="page-stack page-enter">
       {/* 1. CONSOLE COMPACT HEADER */}
       <div
         style={{
@@ -257,11 +257,29 @@ export function Overview() {
                       EPISTEMIC HONESTY CONTRACT
                     </span>
                   </div>
-                  <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '2px 0 4px 0', color: 'var(--text-primary)' }}>
-                    FORECAST UNAVAILABLE &middot; Forecast unavailable
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span
+                      style={{
+                        fontFamily: 'var(--mono)',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        letterSpacing: '0.08em',
+                        color: 'var(--text-primary)',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      ANALYSIS COMPLETE
+                    </span>
+                    <span style={{ color: 'var(--border)' }}>&middot;</span>
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)' }}>
+                      Static traffic analysis completed.
+                    </span>
+                  </div>
+                  <h3 style={{ fontSize: '14.5px', fontWeight: 600, margin: '2px 0 4px 0', color: 'var(--text-primary)' }}>
+                    Forecast unavailable &middot; Insufficient temporal history.
                   </h3>
                   <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 12px 0', lineHeight: 1.5 }}>
-                    Insufficient temporal history. Forecasting requires at least 8 continuous 60-second windows without synthetic imputation.
+                    This capture contains only {results.traffic?.windows ?? 0} usable temporal {(results.traffic?.windows ?? 0) === 1 ? 'window' : 'windows'}. Forecasting requires at least 8 continuous 60-second windows without synthetic imputation.
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                     <div style={{ display: 'flex', gap: '16px', fontSize: '12px', fontFamily: 'var(--font-sans)' }}>
@@ -383,7 +401,7 @@ export function Overview() {
           </div>
 
           {/* 5. CORE WORKSPACE ROUTING CARDS */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginBottom: '28px' }}>
+          <div className="card-grid" style={{ marginBottom: '28px' }}>
             <Link to="/console/traffic" style={{ textDecoration: 'none' }}>
               <Panel style={{ height: '100%', transition: 'border-color 0.15s ease', cursor: 'pointer' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>

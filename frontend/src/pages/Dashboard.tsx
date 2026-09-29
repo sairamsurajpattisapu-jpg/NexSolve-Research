@@ -4,7 +4,7 @@ import {
   ArrowLeft,
   CheckCircle2,
   FileUp,
-  Sparkles,
+  Play,
   TimerReset,
   X,
 } from 'lucide-react'
@@ -45,6 +45,7 @@ export function Dashboard() {
   const [history, setHistory] = useState<AnalysisHistoryEntry[]>(() => getAnalysisHistory())
 
   const [clearedManually, setClearedManually] = useState<boolean>(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const effectiveResult = clearedManually ? null : (jobResult ?? (analysisSource === 'uploaded' ? (data?.results as unknown as UploadedAnalysisResponse) : null))
 
@@ -77,9 +78,6 @@ export function Dashboard() {
       setHistory(getAnalysisHistory())
     }
   }, [effectiveResult])
-
-  if (loading && !data && analysisSource === 'production') return <LoadingState message="Preparing analysis..." />
-  if (error) return <ErrorState message={error} onRetry={() => void reload()} />
 
   const handleFileSelect = (selected: File | null) => {
     setClearedManually(false)
@@ -211,8 +209,6 @@ export function Dashboard() {
     resetJobView()
   }
 
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
   const handleUploadAnother = () => {
     // 1. Immediately reset current analysis view state without full reload
     setClearedManually(true)
@@ -261,10 +257,13 @@ export function Dashboard() {
     }
   }
 
+  if (loading && !data && analysisSource === 'production') return <LoadingState message="Preparing analysis..." />
+  if (error) return <ErrorState message={error} onRetry={() => void reload()} />
+
   const isCsv = file?.name.toLowerCase().endsWith('.csv')
 
   return (
-    <div className="page-stack page-enter">
+    <div className="page-stack page-enter document-container">
       {/* Permanent, accessible hidden file input for reliable re-opening & re-selection */}
       <input
         ref={fileInputRef}
@@ -463,7 +462,7 @@ export function Dashboard() {
                   onClick={() => void submitCapture()}
                   style={{ gap: '6px' }}
                 >
-                  <Sparkles size={14} /> {uploading ? 'Processing...' : 'Start Analysis'}
+                  <Play size={14} /> {uploading ? 'Processing...' : 'Start Analysis'}
                 </button>
                 <button
                   type="button"

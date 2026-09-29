@@ -17,13 +17,13 @@ export function Threats() {
 
   if (!data || !data.results?.detection) {
     return (
-      <div className="page-stack page-enter" style={{ width: '100%', padding: '20px 0 40px 0' }}>
+      <div className="page-stack page-enter">
         <SectionHeading
           eyebrow="Threat Assessment"
           title="Detection Findings & Evidence Trail"
           description="Traffic-derived adversary indicators, confidence levels, and grounded MITRE techniques."
         />
-        <Panel style={{ padding: '48px 32px', textAlign: 'center', margin: '24px 0' }}>
+        <Panel className="compact-container" style={{ padding: '48px 32px', textAlign: 'center', margin: '24px auto' }}>
           <div style={{ maxWidth: '440px', margin: '0 auto' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
               No threat observations
@@ -75,7 +75,7 @@ export function Threats() {
       : undefined
 
   return (
-    <div className="page-stack page-enter" style={{ width: '100%', padding: '20px 0 40px 0' }}>
+    <div className="page-stack page-enter">
       <SectionHeading
         eyebrow="Threat Assessment"
         title="Detection Findings & Evidence Trail"

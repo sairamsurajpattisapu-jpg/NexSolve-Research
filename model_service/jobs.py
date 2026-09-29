@@ -129,6 +129,9 @@ class JobRecord:
             "completed_at": self.completed_at,
             "error": self.error,
             "processing_statistics": self.processing_statistics,
+            "is_forecast_available": self.result.get("is_forecast_available") if self.result else None,
+            "forecast_status": self.result.get("forecast_status") if self.result else None,
+            "analysis_state": self.result.get("analysis_state") if self.result else None,
         }
 
 

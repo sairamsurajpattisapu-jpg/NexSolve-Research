@@ -1,13 +1,15 @@
 import { useState } from 'react'
-import { Key, Monitor, Server, Shield, User } from 'lucide-react'
+import { Brain, Database, Info, Monitor, Server, Shield } from 'lucide-react'
 import { Panel, SectionHeading, StatusPill } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
+
+type SettingsTab = 'display' | 'model' | 'analysis' | 'system' | 'data' | 'about'
 
 export function Settings() {
   const { data } = useProductionData()
   const analysisId = data?.results?.analysis_id ?? 'active-session'
 
-  const [activeTab, setActiveTab] = useState<'appearance' | 'analysis' | 'system' | 'account'>('appearance')
+  const [activeTab, setActiveTab] = useState<SettingsTab>('display')
 
   const [reducedMotion, setReducedMotion] = useState<boolean>(() => {
     try {
@@ -33,11 +35,11 @@ export function Settings() {
   }
 
   return (
-    <div className="page-stack page-enter" style={{ width: '100%', padding: '20px 0 40px 0' }}>
+    <div className="page-stack page-enter settings-container">
       <SectionHeading
         eyebrow="System Configuration"
         title="Settings"
-        description="Display preferences, analysis schema specifications, system status, and session identity."
+        description="Display preferences, model specifications, analysis schema contracts, and system topology."
       />
 
       {/* Group Navigation Tabs */}
@@ -56,12 +58,22 @@ export function Settings() {
         <button
           type="button"
           role="tab"
-          aria-selected={activeTab === 'appearance'}
-          className={`button ${activeTab === 'appearance' ? 'button-primary' : 'button-quiet'}`}
-          onClick={() => setActiveTab('appearance')}
+          aria-selected={activeTab === 'display'}
+          className={`button ${activeTab === 'display' ? 'button-primary' : 'button-quiet'}`}
+          onClick={() => setActiveTab('display')}
           style={{ fontSize: '12px', height: '32px', gap: '6px' }}
         >
-          <Monitor size={14} /> Appearance
+          <Monitor size={14} /> Display
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'model'}
+          className={`button ${activeTab === 'model' ? 'button-primary' : 'button-quiet'}`}
+          onClick={() => setActiveTab('model')}
+          style={{ fontSize: '12px', height: '32px', gap: '6px' }}
+        >
+          <Brain size={14} /> Model
         </button>
         <button
           type="button"
@@ -86,17 +98,27 @@ export function Settings() {
         <button
           type="button"
           role="tab"
-          aria-selected={activeTab === 'account'}
-          className={`button ${activeTab === 'account' ? 'button-primary' : 'button-quiet'}`}
-          onClick={() => setActiveTab('account')}
+          aria-selected={activeTab === 'data'}
+          className={`button ${activeTab === 'data' ? 'button-primary' : 'button-quiet'}`}
+          onClick={() => setActiveTab('data')}
           style={{ fontSize: '12px', height: '32px', gap: '6px' }}
         >
-          <User size={14} /> Account
+          <Database size={14} /> Data
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'about'}
+          className={`button ${activeTab === 'about' ? 'button-primary' : 'button-quiet'}`}
+          onClick={() => setActiveTab('about')}
+          style={{ fontSize: '12px', height: '32px', gap: '6px' }}
+        >
+          <Info size={14} /> About
         </button>
       </div>
 
-      {/* 1. APPEARANCE GROUP */}
-      {activeTab === 'appearance' && (
+      {/* 1. DISPLAY GROUP */}
+      {activeTab === 'display' && (
         <Panel style={{ padding: '24px 28px' }}>
           <SectionHeading
             eyebrow="Theme & Display"
@@ -149,7 +171,45 @@ export function Settings() {
         </Panel>
       )}
 
-      {/* 2. ANALYSIS GROUP */}
+      {/* 2. MODEL GROUP */}
+      {activeTab === 'model' && (
+        <Panel style={{ padding: '24px 28px' }}>
+          <SectionHeading
+            eyebrow="Model Architecture & Verification"
+            title="World Model Specification"
+            description="Operational parameters and verification status of the production forecasting engine."
+          />
+
+          <div className="detail-list" style={{ marginTop: '16px' }}>
+            <div>
+              <span>Model identifier</span>
+              <strong style={{ fontFamily: 'var(--mono)' }}>final_world_model v3.0.0</strong>
+            </div>
+            <div>
+              <span>Model architecture</span>
+              <strong style={{ fontFamily: 'var(--font-sans)' }}>Continuous Latent Dynamics (Auto-regressive State Predictor)</strong>
+            </div>
+            <div>
+              <span>Forward projection lookahead</span>
+              <strong style={{ fontFamily: 'var(--font-sans)' }}>Multi-Horizon (T+1..T+5) Sequential Step Progression</strong>
+            </div>
+            <div>
+              <span>Checkpoint provenance</span>
+              <strong style={{ fontFamily: 'var(--mono)' }}>epoch_40_checkpoint.pt (Audited Checksum)</strong>
+            </div>
+            <div>
+              <span>Epistemic uncertainty boundaries</span>
+              <strong style={{ fontFamily: 'var(--font-sans)' }}>Calibrated Decision Threshold with Active Abstention</strong>
+            </div>
+            <div>
+              <span>Safety policy</span>
+              <StatusPill tone="success">Active (Suppresses OOD Hallucinations)</StatusPill>
+            </div>
+          </div>
+        </Panel>
+      )}
+
+      {/* 3. ANALYSIS GROUP */}
       {activeTab === 'analysis' && (
         <Panel style={{ padding: '24px 28px' }}>
           <SectionHeading
@@ -183,7 +243,7 @@ export function Settings() {
         </Panel>
       )}
 
-      {/* 3. SYSTEM GROUP */}
+      {/* 4. SYSTEM GROUP */}
       {activeTab === 'system' && (
         <Panel style={{ padding: '24px 28px' }}>
           <SectionHeading
@@ -217,31 +277,69 @@ export function Settings() {
         </Panel>
       )}
 
-      {/* 4. ACCOUNT GROUP */}
-      {activeTab === 'account' && (
+      {/* 5. DATA GROUP */}
+      {activeTab === 'data' && (
         <Panel style={{ padding: '24px 28px' }}>
           <SectionHeading
-            eyebrow="Analyst Identity"
-            title="Account & Cryptographic Profile"
-            description="Local workspace profile and session signing verification."
+            eyebrow="Data Ingestion & Integrity"
+            title="Telemetry Protocol & Boundaries"
+            description="Supported capture formats, passive wire processing, and privacy preservation."
           />
 
           <div className="detail-list" style={{ marginTop: '16px' }}>
             <div>
-              <span>Local analyst profile</span>
-              <strong>SOC Security Analyst (Local Enclave)</strong>
+              <span>Supported wire formats</span>
+              <strong style={{ fontFamily: 'var(--font-sans)' }}>Standard PCAP (libpcap), PCAPNG (NextGen), CSV</strong>
             </div>
             <div>
-              <span>Authentication model</span>
-              <strong>Sovereign Zero-Trust Local Execution</strong>
+              <span>Flow tracking engine</span>
+              <strong>Passive Wire Reconstruction (5-Tuple State Tracking)</strong>
             </div>
             <div>
-              <span><Key size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Cryptographic provenance key</span>
+              <span>Cryptographic provenance verification</span>
               <strong style={{ fontFamily: 'var(--font-sans)' }}>SHA-256 Digest Enforced</strong>
             </div>
             <div>
               <span>Outbound telemetry transmission</span>
-              <strong style={{ color: 'var(--success)' }}>Disabled (Air-Gapped Privacy)</strong>
+              <strong style={{ color: 'var(--text-primary)' }}>Disabled (Air-Gapped Sovereign Privacy)</strong>
+            </div>
+            <div>
+              <span>Synthetic data policy</span>
+              <strong>Zero Synthetic Imputation</strong>
+            </div>
+          </div>
+        </Panel>
+      )}
+
+      {/* 6. ABOUT GROUP */}
+      {activeTab === 'about' && (
+        <Panel style={{ padding: '24px 28px' }}>
+          <SectionHeading
+            eyebrow="Platform Identity"
+            title="About NexSolve"
+            description="Production-grade AI platform for network attack forecasting and cybersecurity analysis."
+          />
+
+          <div className="detail-list" style={{ marginTop: '16px' }}>
+            <div>
+              <span>Product name</span>
+              <strong>NexSolve</strong>
+            </div>
+            <div>
+              <span>Subsystem role</span>
+              <strong>Network Attack Forecasting &amp; Cybersecurity Analytics</strong>
+            </div>
+            <div>
+              <span>Core engine</span>
+              <strong style={{ fontFamily: 'var(--mono)' }}>final_world_model v3.0.0</strong>
+            </div>
+            <div>
+              <span>Environment</span>
+              <strong>Production Enterprise Console</strong>
+            </div>
+            <div>
+              <span>Design system</span>
+              <strong>High-Contrast Monochrome SOC Specification</strong>
             </div>
           </div>
         </Panel>

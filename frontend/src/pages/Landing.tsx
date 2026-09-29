@@ -225,6 +225,13 @@ export function Landing() {
             {/* SECONDARY: View CLI Commands */}
             <a
               href="#cli-quickstart"
+              onClick={(e) => {
+                e.preventDefault()
+                const el = document.getElementById('cli-quickstart')
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth' })
+                }
+              }}
               className="hero-btn-secondary"
               aria-label="Use NexSolve CLI — View CLI Commands"
             >

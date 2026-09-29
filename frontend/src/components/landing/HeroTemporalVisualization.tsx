@@ -81,28 +81,28 @@ export function HeroTemporalVisualization() {
   const activeDetail = NODES[selectedNode] || NODES['state0']
 
   return (
-    <div className="hero-visual-card">
-      <div className="visual-top-bar">
+    <div className="hero-visual-card" style={{ background: '#0A0A0A', border: '1px solid #222222', borderRadius: '6px' }}>
+      <div className="visual-top-bar" style={{ borderBottom: '1px solid #222222', paddingBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div className="visual-title-badge">
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#38bdf8', display: 'inline-block' }} />
-            TEMPORAL NETWORK GRAPH & ATTACK HORIZON
+          <div className="visual-title-badge" style={{ color: '#FFFFFF', fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FFFFFF', display: 'inline-block' }} />
+            TEMPORAL NETWORK GRAPH &amp; ATTACK HORIZON
           </div>
-          <span style={{ fontSize: 10, fontFamily: 'monospace', color: '#71717a' }}>
-            [Illustrative example · Demonstrates temporal state graph]
+          <span style={{ fontSize: 10, fontFamily: 'monospace', color: '#666666' }}>
+            [Passive wire telemetry &middot; Temporal state graph]
           </span>
         </div>
-        <div className="visual-legend">
-          <span className="legend-tag">
-            <span className="tag-badge observed">OBSERVED</span>
+        <div className="visual-legend" style={{ display: 'flex', gap: '12px', fontSize: '11px', color: '#999999' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ padding: '1px 6px', border: '1px solid #FFFFFF', color: '#FFFFFF', fontSize: '9.5px', fontFamily: 'monospace', borderRadius: '3px' }}>OBSERVED</span>
             Past Telemetry
           </span>
-          <span className="legend-tag">
-            <span className="tag-badge inferred">INFERRED</span>
-            Current State (T_0)
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ padding: '1px 6px', background: '#FFFFFF', color: '#000000', fontSize: '9.5px', fontFamily: 'monospace', fontWeight: 700, borderRadius: '3px' }}>CURRENT</span>
+            State (T_0)
           </span>
-          <span className="legend-tag">
-            <span className="tag-badge forecast">FORECAST</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ padding: '1px 6px', border: '1px dashed #999999', color: '#CCCCCC', fontSize: '9.5px', fontFamily: 'monospace', borderRadius: '3px' }}>FORECAST</span>
             Prospective Rollout
           </span>
         </div>
@@ -115,68 +115,51 @@ export function HeroTemporalVisualization() {
         xmlns="http://www.w3.org/2000/svg"
         role="img"
         aria-label="NexSolve Temporal State and Attack Forecasting Graph"
+        style={{ width: '100%', height: 'auto', display: 'block', margin: '14px 0' }}
       >
-        <defs>
-          <linearGradient id="observedGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#10b981" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#10b981" stopOpacity="0.8" />
-          </linearGradient>
-          <linearGradient id="forecastGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.9" />
-          </linearGradient>
-          <linearGradient id="uncertaintyEnvelope" x1="420" y1="50" x2="880" y2="50" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.04" />
-            <stop offset="60%" stopColor="#f59e0b" stopOpacity="0.07" />
-            <stop offset="100%" stopColor="#ef4444" stopOpacity="0.10" />
-          </linearGradient>
-        </defs>
-
         {/* Background Grid Lines */}
-        <line x1="40" y1="70" x2="880" y2="70" stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" />
-        <line x1="40" y1="150" x2="880" y2="150" stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" />
-        <line x1="40" y1="230" x2="880" y2="230" stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" />
+        <line x1="40" y1="70" x2="880" y2="70" stroke="#1A1A1A" strokeDasharray="3 3" />
+        <line x1="40" y1="150" x2="880" y2="150" stroke="#222222" strokeDasharray="3 3" />
+        <line x1="40" y1="230" x2="880" y2="230" stroke="#1A1A1A" strokeDasharray="3 3" />
 
         {/* Uncertainty Cone / Envelope behind Forecast Horizons */}
         <polygon
           points="410,150 880,45 880,255"
-          fill="url(#uncertaintyEnvelope)"
+          fill="rgba(255, 255, 255, 0.03)"
+          stroke="#2A2A2A"
+          strokeWidth="1"
+          strokeDasharray="4 4"
         />
 
-        {/* Temporal Boundary (T_0) Divider Line with subtle glow */}
+        {/* Temporal Boundary (T_0) Divider Line */}
         <line
           x1="410"
           y1="20"
           x2="410"
           y2="280"
-          stroke="#ffffff"
-          strokeWidth="1.5"
+          stroke="#FFFFFF"
+          strokeWidth="1"
           strokeDasharray="4 4"
           strokeOpacity="0.4"
-          className="temporal-boundary-line"
         />
-        <text x="410" y="295" fill="#a1a1aa" fontSize="10.5" fontFamily="monospace" textAnchor="middle" fontWeight="bold">
+        <text x="410" y="295" fill="#888888" fontSize="10.5" fontFamily="monospace" textAnchor="middle" fontWeight="bold">
           TEMPORAL BOUNDARY T_0 (NOW)
         </text>
 
         {/* ---------------- ZONE A: OBSERVED TELEMETRY ---------------- */}
-        {/* Animated Wire Ingress to Flow Reconstructor Paths */}
-        <path d="M 80 150 L 220 150" stroke="#10b981" strokeWidth="2" strokeOpacity="0.7" className="observed-flow-path" />
-        <path d="M 80 150 C 140 100, 160 100, 220 150" stroke="#10b981" strokeWidth="1.2" strokeOpacity="0.35" className="observed-flow-path-subtle" />
-        <path d="M 80 150 C 140 200, 160 200, 220 150" stroke="#10b981" strokeWidth="1.2" strokeOpacity="0.35" className="observed-flow-path-subtle" />
+        {/* Solid paths for observed telemetry */}
+        <path d="M 80 150 L 220 150" stroke="#FFFFFF" strokeWidth="2" strokeOpacity="0.8" />
+        <path d="M 80 150 C 140 100, 160 100, 220 150" stroke="#666666" strokeWidth="1" strokeDasharray="2 2" />
+        <path d="M 80 150 C 140 200, 160 200, 220 150" stroke="#666666" strokeWidth="1" strokeDasharray="2 2" />
 
         {/* Flow to Current State S_0 */}
-        <path d="M 220 150 L 410 150" stroke="#10b981" strokeWidth="2.5" strokeOpacity="0.9" className="observed-flow-path" />
-
-        {/* Dynamic Telemetry Packet Gliders moving along observed paths */}
-        <circle cx="150" cy="150" r="3" fill="#10b981" className="telemetry-packet-glider" />
-        <circle cx="315" cy="150" r="3" fill="#38bdf8" className="telemetry-packet-glider g2" />
+        <path d="M 220 150 L 410 150" stroke="#FFFFFF" strokeWidth="2" strokeOpacity="0.9" />
 
         {/* Sub-telemetry endpoints */}
-        <circle cx="140" cy="90" r="3.5" fill="#34d399" />
-        <text x="140" y="78" fill="#71717a" fontSize="9" fontFamily="monospace" textAnchor="middle">10.0.0.1</text>
-        <circle cx="150" cy="210" r="3.5" fill="#34d399" />
-        <text x="150" y="226" fill="#71717a" fontSize="9" fontFamily="monospace" textAnchor="middle">192.168.1.105</text>
+        <circle cx="140" cy="90" r="3" fill="#666666" />
+        <text x="140" y="78" fill="#666666" fontSize="9" fontFamily="monospace" textAnchor="middle">10.0.0.1</text>
+        <circle cx="150" cy="210" r="3" fill="#666666" />
+        <text x="150" y="226" fill="#666666" fontSize="9" fontFamily="monospace" textAnchor="middle">192.168.1.105</text>
 
         {/* Node: Wire Ingress */}
         <g
@@ -186,10 +169,10 @@ export function HeroTemporalVisualization() {
           role="button"
           aria-label="View Ingress Telemetry"
         >
-          <circle cx="80" cy="150" r="18" fill="#0d1117" stroke={selectedNode === 'ingress' ? '#ffffff' : '#10b981'} strokeWidth="2" />
-          <circle cx="80" cy="150" r="6" fill="#10b981" />
-          <text x="80" y="185" fill="#ffffff" fontSize="11" fontFamily="sans-serif" fontWeight="700" textAnchor="middle">PCAP</text>
-          <text x="80" y="198" fill="#10b981" fontSize="9" fontFamily="monospace" textAnchor="middle">INGRESS</text>
+          <circle cx="80" cy="150" r="18" fill="#0A0A0A" stroke={selectedNode === 'ingress' ? '#FFFFFF' : '#888888'} strokeWidth="1.5" />
+          <circle cx="80" cy="150" r="5" fill="#FFFFFF" />
+          <text x="80" y="185" fill="#FFFFFF" fontSize="11" fontFamily="sans-serif" fontWeight="700" textAnchor="middle">PCAP</text>
+          <text x="80" y="198" fill="#888888" fontSize="9" fontFamily="monospace" textAnchor="middle">INGRESS</text>
         </g>
 
         {/* Node: Bidirectional Flows */}
@@ -200,10 +183,10 @@ export function HeroTemporalVisualization() {
           role="button"
           aria-label="View Flow Tracking"
         >
-          <circle cx="220" cy="150" r="22" fill="#0d1117" stroke={selectedNode === 'flows' ? '#ffffff' : '#10b981'} strokeWidth="2" />
-          <circle cx="220" cy="150" r="8" fill="#34d399" />
-          <text x="220" y="190" fill="#ffffff" fontSize="11" fontFamily="sans-serif" fontWeight="700" textAnchor="middle">FLOWS</text>
-          <text x="220" y="203" fill="#10b981" fontSize="9" fontFamily="monospace" textAnchor="middle">5-TUPLE</text>
+          <circle cx="220" cy="150" r="22" fill="#0A0A0A" stroke={selectedNode === 'flows' ? '#FFFFFF' : '#888888'} strokeWidth="1.5" />
+          <circle cx="220" cy="150" r="6" fill="#CCCCCC" />
+          <text x="220" y="190" fill="#FFFFFF" fontSize="11" fontFamily="sans-serif" fontWeight="700" textAnchor="middle">FLOWS</text>
+          <text x="220" y="203" fill="#888888" fontSize="9" fontFamily="monospace" textAnchor="middle">5-TUPLE</text>
         </g>
 
         {/* ---------------- ZONE B: CURRENT STATE S_0 ---------------- */}
@@ -214,77 +197,75 @@ export function HeroTemporalVisualization() {
           role="button"
           aria-label="View Current State S_0"
         >
-          {/* Pulsing ring around current state */}
-          <circle cx="410" cy="150" r="36" fill="none" stroke="#38bdf8" strokeWidth="1" strokeOpacity="0.4" className="current-state-pulse" />
-          <circle cx="410" cy="150" r="28" fill="#09090b" stroke={selectedNode === 'state0' ? '#ffffff' : '#38bdf8'} strokeWidth="2.5" />
-          <circle cx="410" cy="150" r="12" fill="#38bdf8" fillOpacity="0.25" />
-          <circle cx="410" cy="150" r="6" fill="#ffffff" />
-          <text x="410" y="132" fill="#38bdf8" fontSize="10" fontFamily="monospace" fontWeight="700" textAnchor="middle">S_0 ∈ ℝ^45</text>
-          <text x="410" y="196" fill="#ffffff" fontSize="11.5" fontFamily="sans-serif" fontWeight="800" textAnchor="middle">CURRENT</text>
-          <text x="410" y="210" fill="#38bdf8" fontSize="9" fontFamily="monospace" textAnchor="middle">STATE (T_0)</text>
+          <circle cx="410" cy="150" r="30" fill="none" stroke="#444444" strokeWidth="1" strokeDasharray="2 2" />
+          <circle cx="410" cy="150" r="24" fill="#111111" stroke="#FFFFFF" strokeWidth="2" />
+          <circle cx="410" cy="150" r="6" fill="#FFFFFF" />
+          <text x="410" y="132" fill="#CCCCCC" fontSize="10" fontFamily="monospace" fontWeight="700" textAnchor="middle">S_0 ∈ ℝ^45</text>
+          <text x="410" y="196" fill="#FFFFFF" fontSize="11.5" fontFamily="sans-serif" fontWeight="800" textAnchor="middle">CURRENT</text>
+          <text x="410" y="210" fill="#888888" fontSize="9" fontFamily="monospace" textAnchor="middle">STATE (T_0)</text>
         </g>
 
         {/* ---------------- ZONE C: FORECAST TRAJECTORIES ---------------- */}
-        {/* Forward Branching Paths (Dashed, Prospective with subtle animated sweep) */}
-        <path d="M 410 150 C 470 150, 480 120, 520 120" stroke="#38bdf8" strokeWidth="2" strokeDasharray="4 3" className="forecast-flow-path" />
-        <path d="M 520 120 C 570 120, 580 100, 620 100" stroke="#f59e0b" strokeWidth="2" strokeDasharray="4 3" className="forecast-flow-path" />
-        <path d="M 620 100 C 670 100, 680 90, 710 90" stroke="#f59e0b" strokeWidth="2" strokeDasharray="4 3" className="forecast-flow-path" />
-        <path d="M 710 90 C 760 90, 770 80, 800 80" stroke="#f59e0b" strokeWidth="2" strokeDasharray="4 3" className="forecast-flow-path" />
-        <path d="M 800 80 C 830 80, 840 75, 870 75" stroke="#ef4444" strokeWidth="2" strokeDasharray="4 3" className="forecast-flow-path" />
+        {/* Forward Branching Paths (Dashed, Prospective) */}
+        <path d="M 410 150 C 470 150, 480 120, 520 120" stroke="#CCCCCC" strokeWidth="1.5" strokeDasharray="4 3" />
+        <path d="M 520 120 C 570 120, 580 100, 620 100" stroke="#AAAAAA" strokeWidth="1.5" strokeDasharray="4 3" />
+        <path d="M 620 100 C 670 100, 680 90, 710 90" stroke="#888888" strokeWidth="1.5" strokeDasharray="4 3" />
+        <path d="M 710 90 C 760 90, 770 80, 800 80" stroke="#888888" strokeWidth="1.5" strokeDasharray="4 3" />
+        <path d="M 800 80 C 830 80, 840 75, 870 75" stroke="#FFFFFF" strokeWidth="1.5" strokeDasharray="4 3" />
 
         {/* Alternative lower branch (benign decay / abstention trajectory) */}
-        <path d="M 410 150 C 470 150, 490 200, 550 210" stroke="rgba(255,255,255,0.18)" strokeWidth="1.2" strokeDasharray="3 3" />
-        <path d="M 550 210 C 620 220, 700 230, 850 240" stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="3 3" />
-        <text x="850" y="255" fill="#71717a" fontSize="8.5" fontFamily="monospace" textAnchor="end">Alternative Baseline (Abstention)</text>
+        <path d="M 410 150 C 470 150, 490 200, 550 210" stroke="#333333" strokeWidth="1" strokeDasharray="3 3" />
+        <path d="M 550 210 C 620 220, 700 230, 850 240" stroke="#222222" strokeWidth="1" strokeDasharray="3 3" />
+        <text x="850" y="255" fill="#555555" fontSize="8.5" fontFamily="monospace" textAnchor="end">Alternative Baseline (Abstention)</text>
 
-        {/* Horizon Node: T+1 (Progressive appearance toward T+5) */}
-        <g style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('t1')} tabIndex={0} role="button" aria-label="Horizon T+1" className="forecast-node-group fn-1">
-          <circle cx="520" cy="120" r="16" fill="#0d1117" stroke={selectedNode === 't1' ? '#ffffff' : '#38bdf8'} strokeWidth="1.8" />
-          <circle cx="520" cy="120" r="5" fill="#38bdf8" />
-          <text x="520" y="150" fill="#ffffff" fontSize="10.5" fontFamily="monospace" fontWeight="700" textAnchor="middle">T+1</text>
-          <text x="520" y="162" fill="#38bdf8" fontSize="8.5" fontFamily="monospace" textAnchor="middle">+60s</text>
+        {/* Horizon Node: T+1 */}
+        <g style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('t1')} tabIndex={0} role="button" aria-label="Horizon T+1">
+          <circle cx="520" cy="120" r="16" fill="#0A0A0A" stroke={selectedNode === 't1' ? '#FFFFFF' : '#888888'} strokeWidth="1.5" strokeDasharray="3 2" />
+          <circle cx="520" cy="120" r="4" fill="#AAAAAA" />
+          <text x="520" y="150" fill="#FFFFFF" fontSize="10.5" fontFamily="monospace" fontWeight="700" textAnchor="middle">T+1</text>
+          <text x="520" y="162" fill="#888888" fontSize="8.5" fontFamily="monospace" textAnchor="middle">+60s</text>
         </g>
 
         {/* Horizon Node: T+2 */}
-        <g style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('t2')} tabIndex={0} role="button" aria-label="Horizon T+2" className="forecast-node-group fn-2">
-          <circle cx="620" cy="100" r="16" fill="#0d1117" stroke={selectedNode === 't2' ? '#ffffff' : '#f59e0b'} strokeWidth="1.8" />
-          <circle cx="620" cy="100" r="5" fill="#f59e0b" />
-          <text x="620" y="130" fill="#ffffff" fontSize="10.5" fontFamily="monospace" fontWeight="700" textAnchor="middle">T+2</text>
-          <text x="620" y="142" fill="#f59e0b" fontSize="8.5" fontFamily="monospace" textAnchor="middle">+120s</text>
+        <g style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('t2')} tabIndex={0} role="button" aria-label="Horizon T+2">
+          <circle cx="620" cy="100" r="16" fill="#0A0A0A" stroke={selectedNode === 't2' ? '#FFFFFF' : '#888888'} strokeWidth="1.5" strokeDasharray="3 2" />
+          <circle cx="620" cy="100" r="4" fill="#AAAAAA" />
+          <text x="620" y="130" fill="#FFFFFF" fontSize="10.5" fontFamily="monospace" fontWeight="700" textAnchor="middle">T+2</text>
+          <text x="620" y="142" fill="#888888" fontSize="8.5" fontFamily="monospace" textAnchor="middle">+120s</text>
         </g>
 
         {/* Horizon Node: T+3 */}
-        <g style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('t3')} tabIndex={0} role="button" aria-label="Horizon T+3" className="forecast-node-group fn-3">
-          <circle cx="710" cy="90" r="16" fill="#0d1117" stroke={selectedNode === 't3' ? '#ffffff' : '#f59e0b'} strokeWidth="1.8" />
-          <circle cx="710" cy="90" r="5" fill="#f59e0b" />
-          <text x="710" y="120" fill="#ffffff" fontSize="10.5" fontFamily="monospace" fontWeight="700" textAnchor="middle">T+3</text>
-          <text x="710" y="132" fill="#f59e0b" fontSize="8.5" fontFamily="monospace" textAnchor="middle">+180s</text>
+        <g style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('t3')} tabIndex={0} role="button" aria-label="Horizon T+3">
+          <circle cx="710" cy="90" r="16" fill="#0A0A0A" stroke={selectedNode === 't3' ? '#FFFFFF' : '#888888'} strokeWidth="1.5" strokeDasharray="3 2" />
+          <circle cx="710" cy="90" r="4" fill="#AAAAAA" />
+          <text x="710" y="120" fill="#FFFFFF" fontSize="10.5" fontFamily="monospace" fontWeight="700" textAnchor="middle">T+3</text>
+          <text x="710" y="132" fill="#888888" fontSize="8.5" fontFamily="monospace" textAnchor="middle">+180s</text>
         </g>
 
         {/* Horizon Node: T+4 */}
-        <g style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('t4')} tabIndex={0} role="button" aria-label="Horizon T+4" className="forecast-node-group fn-4">
-          <circle cx="800" cy="80" r="16" fill="#0d1117" stroke={selectedNode === 't4' ? '#ffffff' : '#f59e0b'} strokeWidth="1.8" />
-          <circle cx="800" cy="80" r="5" fill="#f59e0b" />
-          <text x="800" y="110" fill="#ffffff" fontSize="10.5" fontFamily="monospace" fontWeight="700" textAnchor="middle">T+4</text>
-          <text x="800" y="122" fill="#f59e0b" fontSize="8.5" fontFamily="monospace" textAnchor="middle">+240s</text>
+        <g style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('t4')} tabIndex={0} role="button" aria-label="Horizon T+4">
+          <circle cx="800" cy="80" r="16" fill="#0A0A0A" stroke={selectedNode === 't4' ? '#FFFFFF' : '#888888'} strokeWidth="1.5" strokeDasharray="3 2" />
+          <circle cx="800" cy="80" r="4" fill="#AAAAAA" />
+          <text x="800" y="110" fill="#FFFFFF" fontSize="10.5" fontFamily="monospace" fontWeight="700" textAnchor="middle">T+4</text>
+          <text x="800" y="122" fill="#888888" fontSize="8.5" fontFamily="monospace" textAnchor="middle">+240s</text>
         </g>
 
         {/* Horizon Node: T+5 */}
-        <g style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('t5')} tabIndex={0} role="button" aria-label="Horizon T+5" className="forecast-node-group fn-5">
-          <circle cx="870" cy="75" r="18" fill="#0d1117" stroke={selectedNode === 't5' ? '#ffffff' : '#ef4444'} strokeWidth="2" />
-          <circle cx="870" cy="75" r="6" fill="#ef4444" />
-          <text x="870" y="105" fill="#ffffff" fontSize="10.5" fontFamily="monospace" fontWeight="800" textAnchor="middle">T+5</text>
-          <text x="870" y="117" fill="#ef4444" fontSize="8.5" fontFamily="monospace" textAnchor="middle">+300s</text>
+        <g style={{ cursor: 'pointer' }} onClick={() => setSelectedNode('t5')} tabIndex={0} role="button" aria-label="Horizon T+5">
+          <circle cx="870" cy="75" r="18" fill="#0A0A0A" stroke={selectedNode === 't5' ? '#FFFFFF' : '#CCCCCC'} strokeWidth="1.8" strokeDasharray="3 2" />
+          <circle cx="870" cy="75" r="5" fill="#FFFFFF" />
+          <text x="870" y="105" fill="#FFFFFF" fontSize="10.5" fontFamily="monospace" fontWeight="800" textAnchor="middle">T+5</text>
+          <text x="870" y="117" fill="#888888" fontSize="8.5" fontFamily="monospace" textAnchor="middle">+300s</text>
         </g>
       </svg>
 
       {/* Interactive Telemetry Drawer below SVG */}
       <div style={{
-        marginTop: 16,
+        marginTop: 14,
         padding: '12px 18px',
-        background: 'rgba(255, 255, 255, 0.02)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: 8,
+        background: '#111111',
+        border: '1px solid #222222',
+        borderRadius: 4,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -292,19 +273,28 @@ export function HeroTemporalVisualization() {
         gap: 12,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span className={`tag-badge ${activeDetail.classification.toLowerCase()}`}>
+          <span style={{
+            fontSize: '10px',
+            fontFamily: 'monospace',
+            fontWeight: 700,
+            padding: '2px 8px',
+            borderRadius: '3px',
+            background: activeDetail.classification === 'FORECAST' ? 'transparent' : '#FFFFFF',
+            color: activeDetail.classification === 'FORECAST' ? '#FFFFFF' : '#000000',
+            border: activeDetail.classification === 'FORECAST' ? '1px dashed #FFFFFF' : '1px solid #FFFFFF',
+          }}>
             {activeDetail.classification}
           </span>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#ffffff' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#FFFFFF' }}>
               {activeDetail.label}
             </div>
-            <div style={{ fontSize: 11.5, color: '#a1a1aa', fontFamily: 'monospace' }}>
+            <div style={{ fontSize: 11.5, color: '#999999', fontFamily: 'monospace' }}>
               {activeDetail.metrics}
             </div>
           </div>
         </div>
-        <div style={{ fontSize: 12, color: '#71717a', maxWidth: 440, textAlign: 'right' }}>
+        <div style={{ fontSize: 12, color: '#888888', maxWidth: 440, textAlign: 'right' }}>
           {activeDetail.details}
         </div>
       </div>

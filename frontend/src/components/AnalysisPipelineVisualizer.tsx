@@ -19,6 +19,7 @@ export interface AnalysisPipelineVisualizerProps {
   isReconnecting?: boolean
   reconnectAttempt?: number
   isComplete?: boolean
+  isForecastAvailable?: boolean
   error?: string | null
   errorCode?: string | null
   onCancel?: () => void
@@ -202,6 +203,7 @@ export function AnalysisPipelineVisualizer({
   isReconnecting = false,
   reconnectAttempt = 0,
   isComplete = false,
+  isForecastAvailable,
   error = null,
   errorCode = null,
   onCancel,
@@ -210,6 +212,11 @@ export function AnalysisPipelineVisualizer({
 }: AnalysisPipelineVisualizerProps) {
   const [mountTime] = useState(() => Date.now())
   const [now, setNow] = useState(mountTime)
+
+  const isForecastTrajectoryAvailable =
+    isForecastAvailable !== undefined
+      ? isForecastAvailable
+      : (job as any)?.is_forecast_available !== false && (job as any)?.analysis_state !== 'ANALYSIS_COMPLETE_FORECAST_UNAVAILABLE'
 
   const jobStatus = job?.status
   const isTerminalFailed = jobStatus === 'FAILED' || jobStatus === 'ABORTED'
@@ -764,10 +771,16 @@ export function AnalysisPipelineVisualizer({
               <CheckCircle size={18} color="var(--text-primary)" />
               <div>
                 <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>
-                  ANALYSIS COMPLETE &rarr; FORECAST READY
+                  {isForecastTrajectoryAvailable ? (
+                    <>ANALYSIS COMPLETE &rarr; FORECAST READY</>
+                  ) : (
+                    <>ANALYSIS COMPLETE</>
+                  )}
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '1px' }}>
-                  Forensic temporal record and multi-horizon attack trajectory compiled.
+                  {isForecastTrajectoryAvailable
+                    ? 'Forensic temporal record and multi-horizon attack trajectory compiled.'
+                    : 'Static traffic analysis completed. Forecast withheld due to insufficient history.'}
                 </div>
               </div>
             </div>
@@ -778,7 +791,7 @@ export function AnalysisPipelineVisualizer({
                 onClick={onReady}
                 style={{ fontSize: '11.5px', height: '32px', padding: '0 16px', gap: '6px' }}
               >
-                Open Forecast <ArrowRight size={13} />
+                {isForecastTrajectoryAvailable ? 'Open Forecast' : 'View Analysis'} <ArrowRight size={13} />
               </button>
             )}
           </div>

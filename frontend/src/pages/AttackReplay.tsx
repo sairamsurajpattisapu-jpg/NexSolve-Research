@@ -122,7 +122,7 @@ export function AttackReplay() {
   }
 
   return (
-    <div className="page-stack page-enter" style={{ width: '100%', padding: '24px 0' }}>
+    <div className="page-stack page-enter">
       {/* Header */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

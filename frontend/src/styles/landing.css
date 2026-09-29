@@ -27,17 +27,7 @@
 }
 
 .hero-veil-backdrop {
-  position: absolute;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(900px, 94vw);
-  height: 380px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(5, 5, 5, 0.85) 0%, rgba(5, 5, 5, 0.50) 60%, transparent 85%);
-  pointer-events: none;
-  z-index: 0;
-  filter: blur(28px);
+  display: none;
 }
 
 .hero-text-block {
@@ -58,14 +48,14 @@
   align-items: center;
   gap: 8px;
   padding: 4px 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
+  background: var(--bg-secondary, #0A0A0A);
+  border: 1px solid var(--border, #222222);
+  border-radius: 4px;
   font-family: var(--mono, monospace);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.1em;
-  color: var(--text-secondary, #b8b8b8);
+  color: var(--text-secondary, #999999);
   text-transform: uppercase;
   margin-bottom: 24px;
 }
@@ -74,8 +64,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  background: #FFFFFF;
 }
 
 .hero-headline {
@@ -103,9 +92,7 @@
 }
 
 .hero-headline .headline-accent {
-  background: linear-gradient(180deg, #ffffff 30%, #a3a3a3 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #ffffff;
 }
 
 .hero-subheadline {
@@ -114,7 +101,7 @@
   font-family: var(--font-sans, sans-serif);
   font-size: clamp(15.5px, 1.6vw, 18px);
   line-height: 1.6;
-  color: #b5b5b5;
+  color: #999999;
   max-width: 680px;
   margin: 0 auto 32px auto;
 }
@@ -135,26 +122,25 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  height: 46px;
-  padding: 0 28px;
+  height: 44px;
+  padding: 0 24px;
   background: #ffffff;
   color: #000000;
   font-family: var(--font-sans, sans-serif);
   font-size: 13.5px;
   font-weight: 700;
   letter-spacing: 0.03em;
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1px solid #ffffff;
   text-decoration: none;
-  transition: transform 180ms ease, opacity 180ms ease, background 180ms ease;
-  box-shadow: 0 0 24px rgba(255, 255, 255, 0.15);
+  transition: opacity 150ms ease, background 150ms ease;
+  box-shadow: none;
 }
 
 .hero-btn-primary:hover {
   background: #f0f0f0;
   border-color: #f0f0f0;
-  transform: translateY(-1px);
-  box-shadow: 0 0 32px rgba(255, 255, 255, 0.25);
+  box-shadow: none;
 }
 
 .hero-btn-secondary {
@@ -386,8 +372,8 @@
 }
 
 .problem-card.proactive {
-  border-top: 2px solid rgba(255, 255, 255, 0.75);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(10, 10, 12, 0.85) 100%);
+  border-top: 2px solid #FFFFFF;
+  background: var(--bg-surface, #0A0A0A);
 }
 
 .problem-card-header {
@@ -1643,12 +1629,12 @@
    ----------------------------------------------------------------------------- */
 .landing-final-cta {
   margin: 72px 0 80px 0;
-  background: linear-gradient(180deg, #111116 0%, #09090b 100%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 12px;
+  background: var(--bg-surface, #0A0A0A);
+  border: 1px solid var(--border, #222222);
+  border-radius: 6px;
   padding: clamp(40px, 6vw, 64px) 24px;
   text-align: center;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  box-shadow: none;
 }
 
 .cta-title {
@@ -1678,129 +1664,25 @@
 }
 
 .marketing-navbar.is-scrolled {
-  background: rgba(0, 0, 0, 0.88) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16) !important;
+  background: var(--navbar-bg, #000000) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom: 1px solid var(--border, #222222) !important;
 }
 
 .landing-section {
   scroll-margin-top: 76px;
-  opacity: 0.82;
-  transform: translateY(10px);
-  transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+  opacity: 1;
 }
 
 .landing-section.in-view {
   opacity: 1;
-  transform: translateY(0);
 }
 
 .landing-anchor-pill.active {
-  background: rgba(255, 255, 255, 0.14) !important;
+  background: #FFFFFF !important;
   border-color: #ffffff !important;
-  color: #ffffff !important;
-}
-
-/* -----------------------------------------------------------------------------
-   HERO TEMPORAL SVG MOTION & FLOW
-   ----------------------------------------------------------------------------- */
-@keyframes telemetryFlow {
-  from {
-    stroke-dashoffset: 24;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes forecastSweep {
-  from {
-    stroke-dashoffset: 20;
-  }
-  to {
-    stroke-dashoffset: -20;
-  }
-}
-
-@keyframes statePulseRing {
-  0%, 100% {
-    transform-origin: 410px 150px;
-    transform: scale(1);
-    opacity: 0.35;
-  }
-  50% {
-    transform-origin: 410px 150px;
-    transform: scale(1.15);
-    opacity: 0.7;
-  }
-}
-
-@keyframes boundaryGlow {
-  0%, 100% {
-    stroke-opacity: 0.3;
-  }
-  50% {
-    stroke-opacity: 0.65;
-  }
-}
-
-@keyframes gliderMove {
-  0% { transform: translateX(0); opacity: 0; }
-  20% { opacity: 0.9; }
-  80% { opacity: 0.9; }
-  100% { transform: translateX(50px); opacity: 0; }
-}
-
-@keyframes horizonShimmer {
-  0%, 100% {
-    opacity: 0.75;
-  }
-  50% {
-    opacity: 1;
-    filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.35));
-  }
-}
-
-.observed-flow-path {
-  stroke-dasharray: 6 3;
-  animation: telemetryFlow 3.5s linear infinite;
-}
-
-.observed-flow-path-subtle {
-  stroke-dasharray: 4 4;
-  animation: telemetryFlow 5s linear infinite;
-}
-
-.telemetry-packet-glider {
-  animation: gliderMove 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-.telemetry-packet-glider.g2 {
-  animation: gliderMove 3.8s cubic-bezier(0.4, 0, 0.2, 1) infinite 1.4s;
-}
-
-.forecast-flow-path {
-  stroke-dasharray: 5 4;
-  animation: forecastSweep 7s linear infinite;
-}
-
-.forecast-node-group {
-  animation: horizonShimmer 4s ease-in-out infinite;
-}
-.forecast-node-group.fn-1 { animation-delay: 0s; }
-.forecast-node-group.fn-2 { animation-delay: 0.7s; }
-.forecast-node-group.fn-3 { animation-delay: 1.4s; }
-.forecast-node-group.fn-4 { animation-delay: 2.1s; }
-.forecast-node-group.fn-5 { animation-delay: 2.8s; }
-
-.current-state-pulse {
-  animation: statePulseRing 3.2s ease-in-out infinite;
-}
-
-.temporal-boundary-line {
-  animation: boundaryGlow 4s ease-in-out infinite;
+  color: #000000 !important;
 }
 
 /* -----------------------------------------------------------------------------

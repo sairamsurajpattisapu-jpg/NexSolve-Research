@@ -27,7 +27,8 @@ import pytest
 from model_service.pcap_upload import analyze_uploaded_capture
 
 
-REAL_PCAP_PATH = Path(r"C:\Users\saira\Downloads\friday_10windows_slice.pcap")
+LOCAL_SLICE = Path("data/test_slices/friday_10windows_slice.pcap")
+REAL_PCAP_PATH = LOCAL_SLICE if LOCAL_SLICE.exists() else Path(r"C:\Users\saira\Downloads\friday_10windows_slice.pcap")
 
 
 @pytest.mark.skipif(not REAL_PCAP_PATH.exists(), reason="Real test PCAP slice not found")

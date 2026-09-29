@@ -978,6 +978,9 @@ export interface JobStatusResponse {
     windows_processed?: number
     processing_seconds?: number
   }
+  is_forecast_available?: boolean | null
+  forecast_status?: string | null
+  analysis_state?: AnalysisStateType | null
 }
 
 // Security Analyst Decision Engine Types

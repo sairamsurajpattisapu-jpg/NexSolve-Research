@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, Plus, TrendingUp, X } from 'lucide-react'
-import { ClosingPlasmaBackground } from './ClosingPlasmaBackground'
 
 import { clearUploadedAnalysis } from '../stores/productionStore'
 import { useProductionData } from '../hooks/useProductionData'
@@ -39,6 +38,83 @@ function isRouteActive(pathname: string, matchPaths: string[]): boolean {
 
 import { getServiceStateInfo } from '../utils/serviceState'
 
+/**
+ * Evaluates whether an authoritative, valid forecast trajectory actually exists.
+ * A forecast trajectory exists ONLY when:
+ * 1. Forecasting is NOT explicitly abstained or withheld (due to lookback constraint, gaps, etc.)
+ * 2. T+1..T+5 forecast results exist with non-null, valid numeric probability predictions.
+ */
+export function checkForecastTrajectoryExists(res: any): boolean {
+  if (!res) return false
+  if (res.is_forecast_available === false) return false
+  if (res.forecast_summary && res.forecast_summary.available === false) return false
+  if (res.forecast_status === 'FORECAST_ABSTAINED') return false
+  if (res.analysis_state === 'ANALYSIS_COMPLETE_FORECAST_UNAVAILABLE') return false
+  if (res.abstention && (res.abstention.abstained || res.abstention.is_abstained)) return false
+  if (res.attack_horizon && (res.attack_horizon.state === 'ABSTAINED' || (res.attack_horizon as any) === 'ABSTAINED')) return false
+  if (res.forecast && res.forecast.isAvailable === false) return false
+
+  const pts = Array.isArray(res.forecasts)
+    ? res.forecasts
+    : Array.isArray(res.forecast?.points)
+    ? res.forecast.points
+    : []
+
+  if (pts.length < 5) return false
+
+  return pts.slice(0, 5).every((pt: any) => {
+    const prob = pt.attack_probability ?? pt.attackProbability ?? pt.stepAttackProbability
+    return typeof prob === 'number' && !Number.isNaN(prob) && !pt.abstained
+  })
+}
+
+/**
+ * Derives the truthful contextual status text for the top status bar.
+ * Epistemic truth: A withheld or abstained forecast MUST NEVER say "Forecast Ready".
+ */
+export function computeContextStatusText(
+  statusLabel: string,
+  isLiveCapture: boolean,
+  results: any
+): string {
+  if (statusLabel === 'ANALYZING') {
+    return 'Analyzing Telemetry'
+  }
+
+  if (!isLiveCapture || !results) {
+    return 'Ready'
+  }
+
+  // 1. Check for failed or rejected captures
+  const isFailedOrRejected =
+    results.status === 'failed' ||
+    results.status === 'rejected' ||
+    results.status === 'FAILED' ||
+    results.status === 'REJECTED' ||
+    results.validation?.status === 'INVALID' ||
+    results.analysis_state === 'ANALYSIS_REJECTED_INVALID_INPUT'
+
+  if (isFailedOrRejected) {
+    if (
+      results.status === 'rejected' ||
+      results.status === 'REJECTED' ||
+      results.analysis_state === 'ANALYSIS_REJECTED_INVALID_INPUT'
+    ) {
+      return 'Analysis Rejected'
+    }
+    return 'Analysis Failed'
+  }
+
+  // 2. Only assign "Forecast Ready" when an actual forecast trajectory exists
+  if (checkForecastTrajectoryExists(results)) {
+    return 'Forecast Ready'
+  }
+
+  // 3. For captures where static analysis succeeded but forecast was abstained/withheld
+  // (insufficient history, non-contiguous timestamps, incompatible features)
+  return 'Analysis Complete'
+}
+
 export function Layout({
   status,
 }: {
@@ -74,14 +150,7 @@ export function Layout({
   const contextFilename = isLiveCapture
     ? (data?.results?.source?.filename || data?.results?.source?.name || 'Uploaded Capture')
     : 'No Active Capture'
-  const contextStatusText =
-    statusLabel === 'ANALYZING'
-      ? 'Analyzing Telemetry'
-      : isLiveCapture
-      ? ((data?.results?.forecasts && data.results.forecasts.length > 0) || Boolean((data?.results as any)?.attack_horizon)
-        ? 'Forecast Ready'
-        : 'Analysis Complete')
-      : 'Ready'
+  const contextStatusText = computeContextStatusText(statusLabel, isLiveCapture, data?.results)
 
   const handleNewAnalysis = async () => {
     setOpen(false)
@@ -129,13 +198,15 @@ export function Layout({
 
   return (
     <div className="app-shell">
-      <ClosingPlasmaBackground variant="console" />
       <header className="navbar-shell" ref={navRef}>
         <div className="navbar-inner">
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <NavLink className="brand-block" to="/console" aria-label="NexSolve">
               <span className="brand-label">NexSolve</span>
             </NavLink>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', borderLeft: '1px solid var(--border)', paddingLeft: '14px' }}>
+              Network Attack Forecasting
+            </span>
           </div>
 
           <nav className="desktop-nav" aria-label="Primary navigation">
@@ -333,22 +404,7 @@ export function Layout({
             width: '100%',
           }}
         >
-          <div
-            className="context-strip-inner"
-            style={{
-              width: '100%',
-              maxWidth: 'var(--site-max-width, 1240px)',
-              marginInline: 'auto',
-              paddingInline: 'var(--site-gutter-desktop, 32px)',
-              paddingBlock: '7px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-              flexWrap: 'wrap',
-              boxSizing: 'border-box',
-            }}
-          >
+          <div className="context-strip-inner">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               {isLiveCapture && (
                 <span
@@ -357,7 +413,7 @@ export function Layout({
                     fontFamily: 'var(--font-sans)',
                     padding: '2px 7px',
                     borderRadius: '4px',
-                    background: 'rgba(255, 255, 255, 0.05)',
+                    background: 'var(--button-secondary-bg)',
                     border: '1px solid var(--border)',
                     color: 'var(--text-primary)',
                     textTransform: 'uppercase',
@@ -378,12 +434,23 @@ export function Layout({
                     width: '6px',
                     height: '6px',
                     borderRadius: '50%',
-                    background: isLiveCapture ? 'var(--success)' : 'var(--text-muted)',
+                    background:
+                      contextStatusText === 'Analysis Failed' || contextStatusText === 'Analysis Rejected'
+                        ? 'var(--danger)'
+                        : isLiveCapture
+                        ? 'var(--success)'
+                        : 'var(--text-muted)',
                     display: 'inline-block',
                   }}
                 />
                 {contextStatusText}
               </span>
+              <span style={{ color: 'var(--border)' }}>&middot;</span>
+              <span style={{ color: 'var(--text-muted)' }}>Model:</span>
+              <span style={{ color: 'var(--text-secondary)', fontFamily: 'var(--mono)', fontSize: '11px' }}>final_world_model v3.0.0</span>
+              <span style={{ color: 'var(--border)' }}>&middot;</span>
+              <span style={{ color: 'var(--text-muted)' }}>Mode:</span>
+              <span style={{ color: 'var(--text-secondary)' }}>Analysis</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11px', color: 'var(--text-muted)' }}>
               <span>ID: <code style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>{isLiveCapture && analysisId ? analysisId.slice(0, 16) : '—'}</code></span>

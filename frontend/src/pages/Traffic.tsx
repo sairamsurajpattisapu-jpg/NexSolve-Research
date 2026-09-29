@@ -13,13 +13,13 @@ export function Traffic() {
 
   if (!data || !data.results?.traffic) {
     return (
-      <div className="page-stack page-enter" style={{ width: '100%', padding: '20px 0 40px 0' }}>
+      <div className="page-stack page-enter">
         <SectionHeading
           eyebrow="Network Telemetry"
           title="Traffic Analytics & Temporal Dynamics"
           description="Passive wire telemetry reconstructed across discrete 60-second tumbling observation windows."
         />
-        <Panel style={{ padding: '48px 32px', textAlign: 'center', margin: '24px 0' }}>
+        <Panel className="compact-container" style={{ padding: '48px 32px', textAlign: 'center', margin: '24px auto' }}>
           <div style={{ maxWidth: '440px', margin: '0 auto' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>
               No telemetry available
@@ -41,7 +41,7 @@ export function Traffic() {
   const retransmissionRate = traffic.packets ? traffic.retransmissions / traffic.packets : 0
 
   return (
-    <div className="page-stack page-enter" style={{ width: '100%', padding: '20px 0 40px 0' }}>
+    <div className="page-stack page-enter">
       <SectionHeading
         eyebrow="Network Telemetry"
         title="Traffic Analytics & Temporal Dynamics"
@@ -95,7 +95,7 @@ export function Traffic() {
       </Panel>
 
       {/* 3. FLOWS & PROTOCOLS: Grouped Technical Distribution */}
-      <div className="content-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+      <div className="content-grid">
         {/* Protocol Distribution */}
         <Panel style={{ padding: '20px 24px' }}>
           <SectionHeading

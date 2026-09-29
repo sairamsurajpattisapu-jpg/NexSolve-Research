@@ -72,6 +72,11 @@ export function Forecast() {
         isReconnecting={isReconnecting}
         reconnectAttempt={reconnectAttempt}
         isComplete={isComplete || jobStatus === 'COMPLETED'}
+        isForecastAvailable={
+          activeAnalysis
+            ? activeAnalysis.forecast.isAvailable
+            : (job as any)?.is_forecast_available !== false && (job as any)?.analysis_state !== 'ANALYSIS_COMPLETE_FORECAST_UNAVAILABLE'
+        }
         onReady={() => setUserOpenedForecast(true)}
         onCancel={() => navigate('/console/analyze')}
       />
@@ -81,7 +86,7 @@ export function Forecast() {
   // CASE 2: Error in Job Polling or Failed Job
   if (jobId && jobError) {
     return (
-      <div className="page-stack page-enter" style={{ maxWidth: '640px', margin: '60px auto', textAlign: 'center' }}>
+      <div className="page-stack page-enter compact-container" style={{ margin: '60px auto', textAlign: 'center' }}>
         <Panel>
           <div style={{ padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -151,7 +156,7 @@ export function Forecast() {
   // CASE 3: Loading Active Analysis from store
   if (!jobId && storeLoading && !activeAnalysis) {
     return (
-      <div className="page-stack page-enter" style={{ width: '100%', padding: '24px 0' }}>
+      <div className="page-stack page-enter document-container">
         <div style={{ marginBottom: '24px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 10px', borderRadius: '4px', background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--border)', fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', marginBottom: '12px' }}>
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--text-primary)', display: 'inline-block' }} />
@@ -173,7 +178,7 @@ export function Forecast() {
   // CASE 4: Store Error
   if (!jobId && storeError && !activeAnalysis) {
     return (
-      <div className="page-stack page-enter" style={{ maxWidth: '640px', margin: '60px auto', textAlign: 'center' }}>
+      <div className="page-stack page-enter compact-container" style={{ margin: '60px auto', textAlign: 'center' }}>
         <Panel>
           <div style={{ padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -220,7 +225,7 @@ export function Forecast() {
   }
 
   return (
-    <div className="page-stack page-enter" style={{ maxWidth: '640px', margin: '60px auto', textAlign: 'center' }}>
+    <div className="page-stack page-enter compact-container" style={{ margin: '60px auto', textAlign: 'center' }}>
       <Panel>
         <div style={{ padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

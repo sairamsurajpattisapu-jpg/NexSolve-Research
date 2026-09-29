@@ -42,5 +42,5 @@ STAGE_DESCRIPTIONS: dict[str, str] = {
     "FORECAST": "Simulating future network states",
     "EVIDENCE": "Evaluating forecast drivers and supporting evidence",
     "REPORT": "Compiling analysis record",
-    "COMPLETE": "Analysis complete. Forecast ready",
+    "COMPLETE": "Analysis complete",
 }

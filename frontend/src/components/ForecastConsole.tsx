@@ -364,47 +364,89 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
       {/* Safety Guardrail Notice if Abstained (Section 12) */}
       {isAbstained && (
         <div
+          data-testid="forecast-abstention-banner"
           style={{
             background: 'rgba(255, 255, 255, 0.015)',
             border: '1px solid var(--border)',
             borderLeft: '2px solid rgba(245, 158, 11, 0.6)',
-            borderRadius: '10px',
-            padding: '18px 22px',
+            borderRadius: '8px',
+            padding: '20px 24px',
             display: 'flex',
             gap: '14px',
             alignItems: 'flex-start',
           }}
         >
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f59e0b', flexShrink: 0, marginTop: '5px' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                Forecast unavailable
-              </span>
-              <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>&middot;</span>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
+          {/* Small semantic amber indicator dot */}
+          <div
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#f59e0b',
+              flexShrink: 0,
+              marginTop: '5px',
+            }}
+          />
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+            {/* 1. Header: Truthful Neutral Completion Status & Calibrated Abstention pill */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontFamily: 'var(--mono)',
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    color: 'var(--text-primary)',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  ANALYSIS COMPLETE
+                </span>
+                <span style={{ color: 'var(--border)' }}>&middot;</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)' }}>
+                  Static traffic analysis completed.
+                </span>
+              </div>
+              <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
                 {forecast.status === 'NON_CONTIGUOUS_TIMESTAMPS' || forecast.status === 'GAPPED_HISTORY'
                   ? `Calibrated abstention (${forecast.availableWindows ?? 0} windows gapped)`
                   : `Calibrated abstention (${forecast.availableWindows ?? 0} / 8 windows)`}
               </span>
             </div>
+
+            {/* 2. Core Guardrail Status & Narrative */}
             <div>
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-sans)' }}>
-                {forecast.status === 'NON_CONTIGUOUS_TIMESTAMPS' || forecast.status === 'GAPPED_HISTORY'
-                  ? 'Non-contiguous timestamps detected.'
-                  : forecast.status === 'INSUFFICIENT_HISTORY'
-                  ? 'Insufficient temporal history.'
-                  : forecast.status === 'INCOMPATIBLE_FEATURES'
-                  ? 'Incompatible feature schema.'
-                  : forecast.status === 'DATA_QUALITY_INSUFFICIENT'
-                  ? 'Insufficient data quality.'
-                  : 'Forecasting safety boundary enforced.'}
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Forecast unavailable
+                </span>
+                <span style={{ color: 'var(--border)' }}>&middot;</span>
+                <h3 style={{ margin: 0, fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-sans)' }}>
+                  {forecast.status === 'NON_CONTIGUOUS_TIMESTAMPS' || forecast.status === 'GAPPED_HISTORY'
+                    ? 'Non-contiguous timestamps detected.'
+                    : forecast.status === 'INSUFFICIENT_HISTORY'
+                    ? 'Insufficient temporal history.'
+                    : forecast.status === 'INCOMPATIBLE_FEATURES'
+                    ? 'Incompatible feature schema.'
+                    : forecast.status === 'DATA_QUALITY_INSUFFICIENT'
+                    ? 'Insufficient data quality.'
+                    : 'Forecasting safety boundary enforced.'}
+                </h3>
+              </div>
+
               <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, fontFamily: 'var(--font-sans)' }}>
-                {forecast.message || 'Forecasting requires at least 8 continuous 60-second windows without synthetic imputation.'}
+                {forecast.status === 'INSUFFICIENT_HISTORY'
+                  ? `This capture contains only ${forecast.availableWindows ?? 0} usable temporal ${(forecast.availableWindows ?? 0) === 1 ? 'window' : 'windows'}. Forecasting requires at least 8 continuous 60-second windows.`
+                  : forecast.status === 'NON_CONTIGUOUS_TIMESTAMPS' || forecast.status === 'GAPPED_HISTORY'
+                  ? 'Input sequence contains non-contiguous temporal windows or excessive time gaps. Forecasting requires continuous temporal history.'
+                  : (forecast.message || 'Forecasting requires at least 8 continuous 60-second windows without synthetic imputation.')}
               </p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '4px' }}>
+
+            {/* 3. Observed vs Required Lookback Windows */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginTop: '2px' }}>
               <div style={{ display: 'flex', gap: '12px', fontSize: '12px', fontFamily: 'var(--font-sans)' }}>
                 <div style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border)', borderRadius: '6px', padding: '6px 12px' }}>
                   <span style={{ color: 'var(--text-muted)', fontSize: '10px', display: 'block' }}>Observed</span>

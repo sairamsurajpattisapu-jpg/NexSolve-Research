@@ -62,7 +62,7 @@ export function Evidence() {
   if (storeError && !analysis) return <ErrorState message={storeError} onRetry={() => void reload()} />
   if (!analysis) {
     return (
-      <div className="page-stack page-enter" style={{ maxWidth: '640px', margin: '60px auto', textAlign: 'center' }}>
+      <div className="page-stack page-enter compact-container" style={{ margin: '60px auto', textAlign: 'center' }}>
         <Panel>
           <div style={{ padding: '36px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -108,7 +108,7 @@ export function Evidence() {
   const activePoint = forecastPoints.find((p) => p.horizon === selectedHorizonTab) ?? forecastPoints[forecastPoints.length - 1]
 
   return (
-    <div className="page-stack page-enter" style={{ width: '100%' }}>
+    <div className="page-stack page-enter document-container">
       {/* Page Header */}
       <SectionHeading
         eyebrow="SCIENTIFIC AUDIT & TECHNICAL PROVENANCE"

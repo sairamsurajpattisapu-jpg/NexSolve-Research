@@ -195,7 +195,7 @@ def fuse_threat_assessment(
         for pt in forecast_points:
             prob = pt.get("attackProbability") or pt.get("attack_probability")
             if prob is not None and prob >= 0.5:
-                forecast_techniques.add("T1071 - Potential Progression")
+                forecast_techniques.add("T1071 - Application Layer Protocol")
 
     for pt in forecast_points:
         h = pt.get("horizon", 1)

@@ -14,7 +14,7 @@ export const STAGE_DESCRIPTIONS: Record<string, string> = {
   FORECAST: 'Simulating future network states.',
   EVIDENCE: 'Evaluating forecast drivers and supporting evidence.',
   REPORT: 'Compiling the analysis record.',
-  COMPLETE: 'Analysis complete. Forecast ready.',
+  COMPLETE: 'Analysis complete.',
 }
 
 export interface UseJobPollingReturn {
@@ -260,7 +260,11 @@ export function useJobPolling(jobId: string | undefined): UseJobPollingReturn {
   }, [jobId])
 
   const stage = job?.stage || (isComplete ? 'COMPLETE' : 'INGESTION')
-  const stageDescription = STAGE_DESCRIPTIONS[stage] || 'Processing network telemetry...'
+  const defaultStageDesc = STAGE_DESCRIPTIONS[stage] || 'Processing network telemetry...'
+  const stageDescription =
+    stage === 'COMPLETE'
+      ? (result?.forecast?.isAvailable ? 'Analysis complete. Forecast ready.' : 'Analysis complete.')
+      : defaultStageDesc
   const progress = job ? Math.round(job.progress * 100) : isComplete ? 100 : 10
   const status: JobStatusType | 'IDLE' = isComplete
     ? 'COMPLETED'

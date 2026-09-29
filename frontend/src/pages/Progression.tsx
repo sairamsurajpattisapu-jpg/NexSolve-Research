@@ -66,7 +66,7 @@ export function Progression() {
 
   if (loading) {
     return (
-      <div className="page-stack page-enter" style={{ maxWidth: '1240px', margin: '40px auto', textAlign: 'center' }}>
+      <div className="page-stack page-enter compact-container" style={{ margin: '40px auto', textAlign: 'center' }}>
         <Panel>
           <div style={{ padding: '36px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
             <Radar size={28} className="status-pulse" color="var(--text-primary)" />
@@ -89,7 +89,7 @@ export function Progression() {
   // Empty State
   if (!analysis) {
     return (
-      <div className="page-stack page-enter" style={{ maxWidth: '640px', margin: '60px auto', textAlign: 'center' }}>
+      <div className="page-stack page-enter compact-container" style={{ margin: '60px auto', textAlign: 'center' }}>
         <Panel>
           <div style={{ padding: '36px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -143,7 +143,7 @@ export function Progression() {
   const cumulativeRiskProb = activePoint.cumulativeRisk
 
   return (
-    <div className="page-stack page-enter" style={{ width: '100%', padding: '24px 0' }}>
+    <div className="page-stack page-enter document-container">
       {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
         <div>
@@ -292,24 +292,29 @@ export function Progression() {
             const isPast = idx < currentStageIdx
             const info = STAGE_LABELS[stage]
 
+            let borderStyle = 'solid'
             let borderColor = 'var(--border)'
             let bg = 'var(--bg-secondary)'
             let badgeText = 'INACTIVE'
             let badgeTone: 'neutral' | 'warning' | 'danger' | 'success' = 'neutral'
 
             if (isCurrent && isPredicted) {
-              borderColor = 'var(--amber)'
+              borderStyle = 'solid'
+              borderColor = 'var(--border-strong)'
               badgeText = 'CURRENT & SUSTAINED'
               badgeTone = 'warning'
             } else if (isCurrent) {
+              borderStyle = 'solid'
               borderColor = 'var(--accent)'
               badgeText = 'CURRENT STAGE (T0)'
               badgeTone = 'warning'
             } else if (isPredicted) {
-              borderColor = 'var(--danger)'
+              borderStyle = 'dashed'
+              borderColor = 'var(--border-strong)'
               badgeText = `PROJECTED ADVANCEMENT (T+${selectedHorizon})`
               badgeTone = 'danger'
             } else if (isPast) {
+              borderStyle = 'solid'
               borderColor = 'var(--border)'
               badgeText = 'PRECEDING'
               badgeTone = 'neutral'
@@ -324,7 +329,7 @@ export function Progression() {
                   justifyContent: 'space-between',
                   padding: '16px 20px',
                   background: bg,
-                  border: `1px solid ${borderColor}`,
+                  border: `1px ${borderStyle} ${borderColor}`,
                   borderRadius: '6px',
                   flexWrap: 'wrap',
                   gap: '12px',

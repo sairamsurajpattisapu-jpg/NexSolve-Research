@@ -63,7 +63,7 @@ export function Reports() {
   if (storeError && !analysis) return <ErrorState message={storeError} onRetry={() => void reload()} />
   if (!analysis) {
     return (
-      <div className="page-stack page-enter" style={{ maxWidth: '640px', margin: '60px auto', textAlign: 'center' }}>
+      <div className="page-stack page-enter compact-container" style={{ margin: '60px auto', textAlign: 'center' }}>
         <Panel>
           <div style={{ padding: '36px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -163,7 +163,7 @@ export function Reports() {
   }
 
   return (
-    <div className="report-page-container" style={{ maxWidth: '1080px', margin: '0 auto', width: '100%' }}>
+    <div className="report-page-container document-container">
       {/* Top Action Bar (Hidden during Print) */}
       <div className="no-print" style={{ marginBottom: '16px' }}>
         <SectionHeading

@@ -6,14 +6,12 @@ export interface CircuitStageNode {
 }
 
 export const COMPACT_CIRCUIT_STAGES: CircuitStageNode[] = [
-  { id: 'UPLOAD', num: '01', label: 'UPLOAD', sublabel: 'Wire stream' },
-  { id: 'VALIDATE', num: '02', label: 'VALIDATE', sublabel: 'Format check' },
-  { id: 'PARSE', num: '03', label: 'PARSE', sublabel: 'Header decode' },
-  { id: 'FLOWS', num: '04', label: 'FLOWS', sublabel: 'Conversations' },
-  { id: 'FEATURES', num: '05', label: 'FEATURES', sublabel: '45-dim schema' },
-  { id: 'DETECT', num: '06', label: 'DETECT', sublabel: 'Threat vectors' },
-  { id: 'FORECAST', num: '07', label: 'FORECAST', sublabel: 'T+1..T+5 horizons' },
-  { id: 'REPORT', num: '08', label: 'REPORT', sublabel: 'Evidence chain' },
+  { id: 'UPLOAD', num: '01', label: 'PACKET PARSING', sublabel: 'Wire stream ingest' },
+  { id: 'FLOWS', num: '02', label: 'FLOW RECONSTRUCTION', sublabel: 'Bidirectional sessions' },
+  { id: 'FEATURES', num: '03', label: 'FEATURE EXTRACTION', sublabel: '45-dim state schema' },
+  { id: 'DETECT', num: '04', label: 'DETECTION', sublabel: 'Behavior analysis' },
+  { id: 'FORECAST', num: '05', label: 'FORECASTING', sublabel: 'T+1..T+5 horizons' },
+  { id: 'REPORT', num: '06', label: 'EVIDENCE GENERATION', sublabel: 'Attribution chain' },
 ]
 
 export interface CircuitBoardProps {
@@ -45,19 +43,19 @@ export function CircuitBoard({
 
   return (
     <div
-      className={`nexsolve-circuit-execution-path ${compact ? 'circuit-compact' : 'circuit-full'} ${className}`}
+      className={`nexsolve-pipeline-flow ${compact ? 'pipeline-compact' : 'pipeline-full'} ${className}`}
       role="region"
-      aria-label="Circuit Board Execution Flow"
+      aria-label="Processing Pipeline Stages"
       style={{
         width: '100%',
-        background: 'transparent',
-        border: 'none',
-        padding: compact ? '4px 0 14px 0' : '12px 0 20px 0',
-        position: 'relative',
+        background: 'var(--bg-secondary)',
+        border: '1px solid var(--border)',
+        borderRadius: '4px',
+        padding: compact ? '12px 14px' : '16px 18px',
         boxSizing: 'border-box',
       }}
     >
-      {/* Subtle Technical Meta Bar (Frameless, integrated into background) */}
+      {/* Header Info */}
       <div
         style={{
           display: 'flex',
@@ -65,9 +63,9 @@ export function CircuitBoard({
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: '10px',
-          marginBottom: '12px',
+          marginBottom: '14px',
           paddingBottom: '8px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          borderBottom: '1px solid var(--border)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -76,31 +74,26 @@ export function CircuitBoard({
               width: '6px',
               height: '6px',
               borderRadius: '50%',
-              background: isFailed
-                ? 'var(--danger)'
-                : isComplete
-                ? 'var(--text-primary)'
-                : 'var(--text-primary)',
-              boxShadow: isComplete || isFailed ? 'none' : '0 0 8px rgba(255,255,255,0.7)',
+              background: isFailed ? 'var(--danger)' : 'var(--text-primary)',
             }}
           />
           <div>
             <div
               style={{
-                fontFamily: 'var(--mono)',
-                fontSize: '10px',
-                fontWeight: 700,
-                letterSpacing: '0.12em',
+                fontFamily: 'var(--font-sans)',
+                fontSize: '10.5px',
+                fontWeight: 600,
+                letterSpacing: '0.06em',
                 color: 'var(--text-muted)',
                 textTransform: 'uppercase',
               }}
             >
-              NETWORK CAPTURE &middot; {isComplete ? 'SYNCHRONIZED' : isFailed ? 'CIRCUIT FAULT' : activeStageIndex > 0 ? 'PROCESSING' : 'READY FOR INGESTION'}
+              PIPELINE EXECUTION &middot; {isComplete ? 'COMPLETE' : isFailed ? 'REJECTED / FAILED' : activeStageIndex > 0 ? 'PROCESSING' : 'READY'}
             </div>
             {filename && (
               <div
                 style={{
-                  fontSize: '12.5px',
+                  fontSize: '12px',
                   fontWeight: 600,
                   color: 'var(--text-primary)',
                   fontFamily: 'var(--mono)',
@@ -114,12 +107,12 @@ export function CircuitBoard({
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11px', fontFamily: 'var(--mono)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11px', fontFamily: 'var(--font-sans)' }}>
           {statusText && (
             <span
               style={{
                 fontWeight: 600,
-                color: isFailed ? 'var(--danger)' : isComplete ? 'var(--text-primary)' : 'var(--text-secondary)',
+                color: isFailed ? 'var(--danger)' : 'var(--text-secondary)',
               }}
             >
               {statusText}
@@ -128,11 +121,12 @@ export function CircuitBoard({
           {progressPercent !== undefined && (
             <span
               style={{
-                padding: '1px 6px',
+                padding: '2px 6px',
                 borderRadius: '3px',
-                background: 'rgba(255, 255, 255, 0.06)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                fontWeight: 700,
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border)',
+                fontWeight: 600,
+                fontFamily: 'var(--mono)',
                 fontSize: '10.5px',
                 color: 'var(--text-primary)',
               }}
@@ -143,175 +137,127 @@ export function CircuitBoard({
         </div>
       </div>
 
-      {/* Execution Path Track Running Directly On Top Of Circuit Environment */}
-      <div className="circuit-board-track" style={{ position: 'relative', width: '100%' }}>
-        {/* Underlying Continuous Circuit Bus Trace Connecting Nodes */}
-        <svg
-          style={{
-            position: 'absolute',
-            top: '38px',
-            left: 0,
-            width: '100%',
-            height: '14px',
-            zIndex: 1,
-            pointerEvents: 'none',
-          }}
-          preserveAspectRatio="none"
-        >
-          {/* Subtle background circuit bus line */}
-          <line x1="3%" y1="7" x2="97%" y2="7" stroke="rgba(255, 255, 255, 0.12)" strokeWidth="1" strokeDasharray="3 3" />
-        </svg>
+      {/* Pipeline Stage Nodes */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${stages.length}, minmax(0, 1fr))`,
+          gap: '8px',
+        }}
+      >
+        {stages.map((st, idx) => {
+          const isPassed = isComplete || idx < effectiveIndex
+          const isCurrent = !isComplete && idx === effectiveIndex
+          const isCurrentFailed = isCurrent && isFailed
+          const isCurrentActive = isCurrent && !isFailed
+          const isPending = !isComplete && idx > effectiveIndex
 
-        {/* Real Stages Execution Path */}
-        <div
-          className="circuit-nodes-flow"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${stages.length}, minmax(0, 1fr))`,
-            gap: compact ? '6px' : '8px',
-            position: 'relative',
-            zIndex: 2,
-          }}
-        >
-          {stages.map((st, idx) => {
-            const isPassed = isComplete || idx < effectiveIndex
-            const isCurrent = !isComplete && idx === effectiveIndex
-            const isCurrentFailed = isCurrent && isFailed
-            const isCurrentActive = isCurrent && !isFailed
-            const isPending = !isComplete && idx > effectiveIndex
-
-            return (
+          return (
+            <div
+              key={st.id}
+              style={{
+                background: isCurrentActive
+                  ? 'var(--button-secondary-bg)'
+                  : isPassed
+                  ? 'var(--bg-primary)'
+                  : 'transparent',
+                border: isCurrentFailed
+                  ? '1px solid var(--danger)'
+                  : isCurrentActive
+                  ? '1px solid var(--text-primary)'
+                  : isPassed
+                  ? '1px solid var(--border-strong)'
+                  : '1px dashed var(--border)',
+                borderRadius: '4px',
+                padding: compact ? '8px 6px' : '10px 8px',
+                opacity: isPending ? 0.4 : 1,
+                textAlign: 'left',
+              }}
+            >
               <div
-                key={st.id}
-                className={`circuit-node ${isCurrentActive ? 'node-active' : ''} ${isPassed ? 'node-completed' : ''} ${isPending ? 'node-waiting' : ''}`}
                 style={{
                   display: 'flex',
-                  flexDirection: 'column',
-                  position: 'relative',
-                  opacity: isPending ? 0.32 : 1,
-                  transition: 'opacity 0.25s ease',
-                  textAlign: 'center',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '4px',
                 }}
               >
-                {/* Circuit Node Capsule */}
-                <div
+                <span
                   style={{
-                    background: isCurrentActive
-                      ? 'rgba(255, 255, 255, 0.08)'
-                      : isPassed
-                      ? 'rgba(255, 255, 255, 0.03)'
-                      : 'rgba(0, 0, 0, 0.3)',
-                    border: isCurrentFailed
-                      ? '1px solid var(--danger)'
-                      : isCurrentActive
-                      ? '1.5px solid rgba(255, 255, 255, 0.9)'
-                      : isPassed
-                      ? '1px solid rgba(255, 255, 255, 0.2)'
-                      : '1px solid rgba(255, 255, 255, 0.08)',
-                    borderRadius: '4px',
-                    padding: compact ? '6px 4px' : '8px 6px',
-                    position: 'relative',
-                    boxShadow: isCurrentActive
-                      ? '0 0 12px rgba(255, 255, 255, 0.2), inset 0 0 6px rgba(255, 255, 255, 0.05)'
-                      : 'none',
-                    transition: 'all 0.2s ease',
+                    fontSize: '9px',
+                    fontFamily: 'var(--mono)',
+                    color: isCurrentActive ? 'var(--text-primary)' : 'var(--text-muted)',
                   }}
                 >
-                  {/* Step Number */}
-                  <div
-                    style={{
-                      fontSize: '8.5px',
-                      fontFamily: 'var(--mono)',
-                      color: isCurrentActive ? 'var(--text-primary)' : 'var(--text-muted)',
-                      marginBottom: '1px',
-                    }}
-                  >
-                    {st.num}
-                  </div>
-
-                  {/* Stage Label */}
-                  <div
-                    style={{
-                      fontSize: compact ? '9.5px' : '10.5px',
-                      fontFamily: 'var(--mono)',
-                      fontWeight: isCurrent ? 700 : 500,
-                      color: isCurrentFailed
-                        ? 'var(--danger)'
-                        : isCurrentActive
-                        ? 'var(--text-primary)'
-                        : isPassed
-                        ? 'var(--text-secondary)'
-                        : 'var(--text-muted)',
-                      letterSpacing: '0.04em',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                    title={st.label}
-                  >
-                    {st.label}
-                  </div>
-
-                  {/* Solder Via Terminal Pad */}
-                  <div
-                    style={{
-                      marginTop: '3px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '14px',
-                      height: '14px',
-                      borderRadius: '50%',
-                      background: isPassed
-                        ? 'var(--text-primary)'
-                        : isCurrentFailed
-                        ? 'var(--danger)'
-                        : isCurrentActive
-                        ? 'transparent'
-                        : 'rgba(255, 255, 255, 0.04)',
-                      border: isCurrentActive
-                        ? '1.5px solid var(--text-primary)'
-                        : '1px solid rgba(255, 255, 255, 0.18)',
-                      color: isPassed ? 'var(--bg-primary)' : 'var(--text-primary)',
-                      fontSize: '8.5px',
-                      fontFamily: 'var(--mono)',
-                      fontWeight: 700,
-                      marginInline: 'auto',
-                    }}
-                  >
-                    {isPassed ? '✓' : isCurrentFailed ? '×' : isCurrentActive ? '●' : '○'}
-                  </div>
-                </div>
-
-                {/* Subtitle if available and not compact */}
-                {!compact && st.sublabel && (
-                  <div
-                    style={{
-                      fontSize: '8.5px',
-                      fontFamily: 'var(--mono)',
-                      color: 'var(--text-muted)',
-                      marginTop: '4px',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {st.sublabel}
-                  </div>
-                )}
+                  {st.num}
+                </span>
+                <span
+                  style={{
+                    fontSize: '9px',
+                    fontFamily: 'var(--mono)',
+                    fontWeight: 700,
+                    color: isPassed
+                      ? 'var(--text-primary)'
+                      : isCurrentFailed
+                      ? 'var(--danger)'
+                      : isCurrentActive
+                      ? 'var(--text-primary)'
+                      : 'var(--text-muted)',
+                  }}
+                >
+                  {isPassed ? '✓' : isCurrentFailed ? '×' : isCurrentActive ? '●' : '○'}
+                </span>
               </div>
-            )
-          })}
-        </div>
+
+              <div
+                style={{
+                  fontSize: compact ? '10px' : '11px',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: isCurrent ? 700 : 500,
+                  color: isCurrentFailed
+                    ? 'var(--danger)'
+                    : isCurrentActive
+                    ? 'var(--text-primary)'
+                    : isPassed
+                    ? 'var(--text-primary)'
+                    : 'var(--text-muted)',
+                  letterSpacing: '0.02em',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+                title={st.label}
+              >
+                {st.label}
+              </div>
+
+              {!compact && st.sublabel && (
+                <div
+                  style={{
+                    fontSize: '9px',
+                    fontFamily: 'var(--font-sans)',
+                    color: 'var(--text-muted)',
+                    marginTop: '2px',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {st.sublabel}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
-      {/* Error banner if failed */}
+      {/* Error Message */}
       {isFailed && error && (
         <div
           style={{
-            marginTop: '10px',
-            padding: '6px 10px',
-            background: 'rgba(255, 0, 0, 0.06)',
+            marginTop: '12px',
+            padding: '8px 12px',
+            background: 'var(--danger-muted)',
             border: '1px solid var(--danger)',
             borderRadius: '4px',
             fontSize: '11px',
@@ -319,9 +265,11 @@ export function CircuitBoard({
             color: 'var(--danger)',
           }}
         >
-          CIRCUIT FAULT: {error}
+          ANALYSIS REJECTED: {error}
         </div>
       )}
     </div>
   )
 }
+
+export default CircuitBoard

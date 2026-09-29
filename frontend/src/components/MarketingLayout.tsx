@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Link, Outlet } from 'react-router-dom'
 import { ArrowRight, ChevronDown, X } from 'lucide-react'
-import { LiquidChromeBackground } from './LiquidChromeBackground'
 import { SiteFooter } from './SiteFooter'
 
 export function MarketingLayout() {
@@ -85,7 +84,6 @@ export function MarketingLayout() {
 
   return (
     <div className="app-shell marketing-shell">
-      <LiquidChromeBackground />
       <header
         className={`navbar-shell marketing-navbar ${scrolled ? 'is-scrolled' : ''}`}
         ref={navRef}
