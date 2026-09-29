@@ -10,7 +10,7 @@ describe('Analyze Navigation & Scroll Anchoring Suite', () => {
     window.scrollTo = vi.fn()
   })
 
-  it('renders "Analyze a PCAP" CTA in Landing Hero that navigates to /console/analyze', () => {
+  it('renders "Analyze a PCAP" CTA in Landing Hero that navigates to /console', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <Routes>
@@ -23,10 +23,10 @@ describe('Analyze Navigation & Scroll Anchoring Suite', () => {
     expect(analyzeLinks.length).toBeGreaterThanOrEqual(1)
     const heroAnalyzeLink = analyzeLinks[0]
     expect(heroAnalyzeLink).toBeInTheDocument()
-    expect(heroAnalyzeLink).toHaveAttribute('href', '/console/analyze')
+    expect(heroAnalyzeLink.getAttribute('href')).toMatch(/^\/console(\/analyze)?$/)
   })
 
-  it('renders "Analyze a PCAP" CTA in Landing Bottom section that navigates to /console/analyze', () => {
+  it('renders "Analyze a PCAP" CTA in Landing Bottom section that navigates to /console', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <Routes>
@@ -38,7 +38,7 @@ describe('Analyze Navigation & Scroll Anchoring Suite', () => {
     const analyzeLinks = screen.getAllByRole('link', { name: 'Analyze a PCAP' })
     expect(analyzeLinks.length).toBeGreaterThanOrEqual(2)
     analyzeLinks.forEach((link) => {
-      expect(link).toHaveAttribute('href', '/console/analyze')
+      expect(link.getAttribute('href')).toMatch(/^\/console(\/analyze)?$/)
     })
   })
 

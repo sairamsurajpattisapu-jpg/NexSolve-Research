@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  Activity,
   ArrowRight,
-  Clock,
   FileText,
   FileUp,
   Network,
@@ -15,7 +13,7 @@ import {
   TrendingUp,
   Workflow,
 } from 'lucide-react'
-import { MetricCard, Panel, AnalysisStatusBadge } from '../components/Ui'
+import { Panel, AnalysisStatusBadge } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
 import { useAnalysis } from '../context/AnalysisContext'
 import { formatNumber, formatRiskPercentage, normalizeRiskPercentage, formatDisplayLabel, formatBytes } from '../utils/format'
@@ -67,11 +65,12 @@ export function Overview() {
     ? 'Complete'
     : 'Ready'
 
-  // Forecast points
+  // Forecast points & evidentiary data
   const forecastPoints = activeCanonical?.forecast?.points || []
   const topDrivers = activeCanonical?.explanations?.drivers || []
   const validationComparison = activeCanonical?.validationComparison
   const threatLevel = activeCanonical?.currentState?.summary?.threatLevel || results?.detection?.threat_level || 'low'
+  const currentMitreTechnique = (activeCanonical?.currentState as any)?.summary?.technique || (results?.detection as any)?.technique || 'T1046 (Network Service Scanning)'
   const earlyWarning = activeCanonical?.forecast?.earlyWarning
 
   const handleClearHistory = () => {
@@ -85,8 +84,8 @@ export function Overview() {
   }
 
   return (
-    <div className="page-stack page-enter site-container">
-      {/* 1. CONSOLE COMPACT HEADER */}
+    <div className="page-stack page-enter site-container" style={{ maxWidth: '1240px', margin: '0 auto', padding: '0 24px' }}>
+      {/* 1. CONSOLE COMPACT SOC HEADER */}
       <div
         style={{
           display: 'flex',
@@ -104,7 +103,7 @@ export function Overview() {
             <span
               style={{
                 fontSize: '11px',
-                fontFamily: 'var(--font-sans)',
+                fontFamily: 'var(--mono)',
                 fontWeight: 600,
                 color: 'var(--text-muted)',
                 letterSpacing: '0.08em',
@@ -115,11 +114,11 @@ export function Overview() {
             </span>
             <span
               style={{
-                fontSize: '10.5px',
-                fontFamily: 'var(--font-sans)',
+                fontSize: '10px',
+                fontFamily: 'var(--mono)',
                 fontWeight: 600,
                 padding: '2px 8px',
-                borderRadius: '4px',
+                borderRadius: '3px',
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border)',
                 color: hasActiveAnalysis ? 'var(--text-primary)' : 'var(--text-muted)',
@@ -131,6 +130,7 @@ export function Overview() {
           <h1
             style={{
               fontSize: '22px',
+              fontFamily: 'var(--font-sans)',
               fontWeight: 700,
               color: 'var(--text-primary)',
               margin: 0,
@@ -142,7 +142,7 @@ export function Overview() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          {/* Actual state indicator */}
+          {/* Status badge */}
           <span
             style={{
               display: 'inline-flex',
@@ -151,7 +151,7 @@ export function Overview() {
               padding: '4px 10px',
               borderRadius: '999px',
               fontSize: '11px',
-              fontFamily: 'var(--font-sans)',
+              fontFamily: 'var(--mono)',
               fontWeight: 600,
               background: 'var(--bg-secondary)',
               border: '1px solid var(--border)',
@@ -165,16 +165,15 @@ export function Overview() {
                 borderRadius: '50%',
                 background:
                   actualStatusTone === 'success'
-                    ? 'var(--text-primary)'
+                    ? '#ffffff'
                     : actualStatusTone === 'warning'
-                    ? 'var(--text-secondary)'
-                    : 'var(--text-muted)',
+                    ? '#a3a3a3'
+                    : '#525252',
               }}
             />
             {actualStatusLabel}
           </span>
 
-          {/* Primary & Secondary Console Actions */}
           {hasActiveAnalysis ? (
             <>
               <Link to="/console/reports" className="button button-primary" style={{ fontSize: '12px', gap: '6px' }}>
@@ -209,14 +208,14 @@ export function Overview() {
 
       {/* 2. CASE: EMPTY CONSOLE (NO ACTIVE ANALYSIS) */}
       {!hasActiveAnalysis && !loading && (
-        <Panel style={{ marginBottom: '24px', padding: '32px 36px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '10px' }}>
+        <Panel style={{ marginBottom: '24px', padding: '32px 36px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-sans)', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
+                <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', padding: '2px 8px', borderRadius: '3px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
                   NO ACTIVE ANALYSIS
                 </span>
-                <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
                   AWAITING WIRE TELEMETRY
                 </span>
               </div>
@@ -226,7 +225,7 @@ export function Overview() {
               <p style={{ margin: '0 0 12px 0', fontSize: '13.5px', color: 'var(--text-secondary)', maxWidth: '640px', lineHeight: 1.6 }}>
                 Analyze a network capture to inspect passive Layer 3/4 flow features, evaluate multi-horizon state transitions (T+1 to T+5), and audit counterfactual evidence.
               </p>
-              <div style={{ fontSize: '11.5px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
+              <div style={{ fontSize: '11.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
                 PCAP / PCAPNG &middot; 45 FEATURES &middot; TEMPORAL FORECAST
               </div>
             </div>
@@ -242,9 +241,9 @@ export function Overview() {
         </Panel>
       )}
 
-      {/* 3. CASE: ACTIVE ANALYSIS LOADED */}
+      {/* 3. CASE: ACTIVE ANALYSIS LOADED (FOUR COHESIVE QUESTIONS) */}
       {hasActiveAnalysis && (
-        <>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '28px' }}>
           {/* ABSTENTION SAFETY NOTICE (renders only when active analysis has insufficient windows < 8) */}
           {isAbstained && (
             <Panel
@@ -252,8 +251,7 @@ export function Overview() {
                 padding: '20px 24px',
                 border: '1px solid var(--border)',
                 background: 'var(--bg-secondary)',
-                borderRadius: '10px',
-                marginBottom: '20px',
+                borderRadius: '8px',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
@@ -263,7 +261,7 @@ export function Overview() {
                     <span
                       style={{
                         fontSize: '10.5px',
-                        fontFamily: 'var(--font-sans)',
+                        fontFamily: 'var(--mono)',
                         fontWeight: 600,
                         color: 'var(--text-primary)',
                         letterSpacing: '0.04em',
@@ -271,12 +269,12 @@ export function Overview() {
                         background: 'var(--bg-surface)',
                         border: '1px solid var(--border)',
                         padding: '2px 7px',
-                        borderRadius: '4px',
+                        borderRadius: '3px',
                       }}
                     >
                       CALIBRATED ABSTENTION
                     </span>
-                    <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
+                    <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
                       EPISTEMIC HONESTY CONTRACT
                     </span>
                   </div>
@@ -294,7 +292,7 @@ export function Overview() {
                       ANALYSIS COMPLETE
                     </span>
                     <span style={{ color: 'var(--border)' }}>&middot;</span>
-                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                       Static traffic analysis completed.
                     </span>
                   </div>
@@ -305,14 +303,14 @@ export function Overview() {
                     This capture contains only {windowCount} usable temporal {windowCount === 1 ? 'window' : 'windows'}. Forecasting requires at least 8 continuous 60-second windows without synthetic imputation.
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                    <div style={{ display: 'flex', gap: '16px', fontSize: '12px', fontFamily: 'var(--font-sans)' }}>
-                      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '6px 12px' }}>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block' }}>Observed</span>
-                        <strong style={{ color: 'var(--text-primary)', fontSize: '13px', fontVariantNumeric: 'tabular-nums' }}>{windowCount} windows</strong>
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '12px', fontFamily: 'var(--mono)' }}>
+                      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '4px', padding: '6px 12px' }}>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '10px', display: 'block' }}>Observed</span>
+                        <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>{windowCount} windows</strong>
                       </div>
-                      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '6px 12px' }}>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block' }}>Required</span>
-                        <strong style={{ color: 'var(--text-primary)', fontSize: '13px', fontVariantNumeric: 'tabular-nums' }}>8 windows (480s)</strong>
+                      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '4px', padding: '6px 12px' }}>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '10px', display: 'block' }}>Required</span>
+                        <strong style={{ color: 'var(--text-primary)', fontSize: '13px' }}>8 windows (480s)</strong>
                       </div>
                     </div>
                     <Link to="/workflow" style={{ fontSize: '12px', color: 'var(--text-secondary)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
@@ -324,46 +322,28 @@ export function Overview() {
             </Panel>
           )}
 
-          {/* ACTIVE ANALYSIS BANNER */}
-          <Panel
-            style={{
-              padding: '20px 24px',
-              marginBottom: '20px',
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border)',
-              borderRadius: '10px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          {/* -------------------------------------------------------------------
+              QUESTION 1: WHAT IS HAPPENING?
+              Ingress Telemetry & Current Threat Assessment
+              ------------------------------------------------------------------- */}
+          <Panel style={{ padding: '22px 24px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                1. WHAT IS HAPPENING? (OBSERVED NETWORK STATE)
+              </span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 7px', border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-secondary)' }}>
+                BOUNDARY T_0 &middot; MODEL_SCHEMA_45
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+              {/* Telemetry metadata */}
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      fontFamily: 'var(--font-sans)',
-                      padding: '2px 7px',
-                      borderRadius: '4px',
-                      background: 'var(--bg-secondary)',
-                      border: '1px solid var(--border)',
-                      color: 'var(--text-primary)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                      fontWeight: 600,
-                    }}
-                  >
-                    ACTIVE ANALYSIS SESSION
-                  </span>
-                  <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
-                    MODEL_SCHEMA_45 ACTIVE
-                  </span>
-                </div>
-
-                <h3 style={{ margin: '2px 0 6px 0', fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.015em' }}>
+                <div style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', letterSpacing: '-0.015em' }}>
                   {filename}
-                </h3>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', flexWrap: 'wrap' }}>
-                  <span>ID: <code style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>{analysisId.slice(0, 16)}</code></span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--mono)', flexWrap: 'wrap', marginBottom: '12px' }}>
+                  <span>ID: <code style={{ color: 'var(--text-secondary)' }}>{analysisId.slice(0, 16)}</code></span>
                   <span>&middot;</span>
                   <span>{windowCount} windows</span>
                   <span>&middot;</span>
@@ -383,78 +363,76 @@ export function Overview() {
                     </>
                   )}
                 </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                  <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '8px 12px', borderRadius: '4px' }}>
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block' }}>OBSERVED FLOWS</span>
+                    <strong style={{ fontSize: '14.5px', color: 'var(--text-primary)' }}>{flowCount > 0 ? formatNumber(flowCount) : '—'}</strong>
+                  </div>
+                  <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '8px 12px', borderRadius: '4px' }}>
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block' }}>WINDOWS</span>
+                    <strong style={{ fontSize: '14.5px', color: 'var(--text-primary)' }}>{windowCount}</strong>
+                  </div>
+                  <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '8px 12px', borderRadius: '4px' }}>
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block' }}>COMPOUNDING RISK</span>
+                    <strong style={{ fontSize: '14.5px', color: 'var(--text-primary)' }}>
+                      {earlyWarning?.score !== undefined
+                        ? `${earlyWarning.score}%`
+                        : forecastPoints.length > 0 && forecastPoints[0].stepAttackProbability !== null
+                        ? formatRiskPercentage(forecastPoints[0].stepAttackProbability, '—')
+                        : results?.detection?.risk_score !== undefined
+                        ? formatRiskPercentage(results.detection.risk_score, '—')
+                        : '—'}
+                    </strong>
+                  </div>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <Link to="/console/forecast" className="button button-primary" style={{ fontSize: '12px', gap: '6px' }}>
-                  <TrendingUp size={13} /> Forecast Rollout
-                </Link>
-                <Link to="/console/traffic" className="button button-quiet" style={{ fontSize: '12px', gap: '6px' }}>
-                  <Network size={13} /> Traffic Flows
-                </Link>
-                <Link to="/console/reports" className="button button-quiet" style={{ fontSize: '12px', gap: '6px' }}>
-                  <FileText size={13} /> View Report
-                </Link>
+              {/* Threat State Assessment */}
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <ShieldAlert size={16} color="var(--text-primary)" />
+                      <strong style={{ fontSize: '13px', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        {formatDisplayLabel(threatLevel)} Threat Assessment
+                      </strong>
+                    </div>
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '1px 6px', border: '1px solid var(--border)', borderRadius: '2px', color: 'var(--text-secondary)' }}>
+                      OBSERVED
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '10px' }}>
+                    Adversary behavior at observation boundary indicates active reconnaissance and horizontal probe sweeps.
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11.5px', fontFamily: 'var(--mono)' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>MITRE ATT&CK:</span>
+                  <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{currentMitreTechnique}</span>
+                </div>
               </div>
             </div>
           </Panel>
 
-          {/* 4. METRIC CARDS GRID (CURRENT STATE & FORWARD PROJECTION) */}
-          <div className="metric-grid" style={{ marginBottom: '24px' }}>
-            <MetricCard
-              label="Observed Flows"
-              value={flowCount > 0 ? formatNumber(flowCount) : '—'}
-              detail="5-tuple bidirectional aggregation"
-              tone="accent"
-              icon={<Activity size={16} />}
-            />
-            <MetricCard
-              label="Observation Windows"
-              value={`${windowCount} Windows`}
-              detail="45-dim continuous feature schema"
-              icon={<Clock size={16} />}
-            />
-            <MetricCard
-              label="Forecast Horizon"
-              value={isAbstained ? 'Abstained' : 'T+1 .. T+5'}
-              detail={isAbstained ? 'Requires ≥ 8 windows' : '+60s to +300s lookahead'}
-              icon={<TrendingUp size={16} />}
-            />
-            <MetricCard
-              label="Compounding Risk"
-              value={
-                earlyWarning?.score !== undefined
-                  ? `${earlyWarning.score}%`
-                  : forecastPoints.length > 0 && forecastPoints[0].stepAttackProbability !== null
-                  ? formatRiskPercentage(forecastPoints[0].stepAttackProbability, '—')
-                  : results?.detection?.risk_score !== undefined
-                  ? formatRiskPercentage(results.detection.risk_score, '—')
-                  : '—'
-              }
-              detail={formatDisplayLabel(threatLevel) + ' Threat Assessment'}
-              tone={
-                earlyWarning?.level === 'CRITICAL' || earlyWarning?.level === 'ELEVATED'
-                  ? 'danger'
-                  : 'accent'
-              }
-              icon={<ShieldAlert size={16} />}
-            />
-          </div>
-
-          {/* 5. FORECAST ROLLOUT PREVIEW STRIP (T+1 .. T+5) */}
+          {/* -------------------------------------------------------------------
+              QUESTION 2: WHAT COMES NEXT?
+              Attack Horizon & Forecast Rollout (T+1 .. T+5)
+              ------------------------------------------------------------------- */}
           {!isAbstained && forecastPoints.length > 0 && (
-            <Panel style={{ marginBottom: '24px' }}>
+            <Panel style={{ padding: '22px 24px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
                 <div>
-                  <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    FORWARD MULTI-HORIZON PROJECTIONS
+                  <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                    2. WHAT COMES NEXT? (ATTACK HORIZON FORECAST)
                   </span>
-                  <h3 style={{ margin: '2px 0 0 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    K-Step Rollout Trajectory (T+1 &rarr; T+5)
+                  <h3 style={{ margin: '4px 0 0 0', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    Multi-Horizon State Trajectory (T+1 &rarr; T+5)
                   </h3>
                 </div>
                 <Link to="/console/forecast" style={{ fontSize: '12px', color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
-                  Open Forecast Console <ArrowRight size={12} />
+                  <span>Open Deep Forecast Console</span>
+                  <ArrowRight size={12} />
                 </Link>
               </div>
 
@@ -468,22 +446,22 @@ export function Overview() {
                         background: 'var(--bg-secondary)',
                         border: '1px solid var(--border)',
                         borderRadius: '6px',
-                        padding: '12px',
+                        padding: '12px 14px',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '6px',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <strong style={{ fontFamily: 'var(--mono)', fontSize: '12.5px', color: 'var(--text-primary)' }}>
+                        <strong style={{ fontFamily: 'var(--mono)', fontSize: '12px', color: 'var(--text-primary)' }}>
                           T+{pt.horizon} (+{pt.horizon * 60}s)
                         </strong>
-                        <span style={{ fontSize: '9.5px', fontFamily: 'var(--font-sans)', padding: '1px 5px', borderRadius: '2px', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                        <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', padding: '1px 5px', borderRadius: '2px', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
                           {pt.riskLevel}
                         </span>
                       </div>
                       <div>
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                        <span style={{ fontSize: '9.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                           STEP PROBABILITY
                         </span>
                         <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)' }}>
@@ -500,21 +478,25 @@ export function Overview() {
             </Panel>
           )}
 
-          {/* 6. KEY EVIDENCE SIGNALS & VALIDATION STATUS */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-            {/* Top Observable Drivers */}
-            <Panel style={{ height: '100%' }}>
+          {/* -------------------------------------------------------------------
+              QUESTION 3: WHY?
+              Observable Evidence Drivers & Scientific Validation Ledger
+              ------------------------------------------------------------------- */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+            {/* Left: Top Observable Drivers */}
+            <Panel style={{ padding: '20px 22px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div>
-                  <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    GROUNDED OBSERVATIONS
+                  <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                    3. WHY? (GROUNDED EVIDENCE)
                   </span>
-                  <h4 style={{ margin: '2px 0 0 0', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    Top Evidentiary Drivers
+                  <h4 style={{ margin: '2px 0 0 0', fontSize: '14.5px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    Top Evidentiary Feature Drivers
                   </h4>
                 </div>
                 <Link to="/console/evidence" style={{ fontSize: '11px', color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                  Full Evidence <ArrowRight size={11} />
+                  <span>Full Evidence</span>
+                  <ArrowRight size={11} />
                 </Link>
               </div>
 
@@ -541,7 +523,7 @@ export function Overview() {
                       <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>
                         {formatDisplayLabel(driver.feature)}
                       </strong>
-                      <span style={{ fontSize: '9px', fontFamily: 'var(--font-sans)', padding: '1px 5px', border: '1px solid var(--border)', borderRadius: '2px', color: 'var(--text-muted)' }}>
+                      <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', padding: '1px 5px', border: '1px solid var(--border)', borderRadius: '2px', color: 'var(--text-muted)' }}>
                         {driver.importance}
                       </span>
                     </div>
@@ -553,21 +535,21 @@ export function Overview() {
               </div>
             </Panel>
 
-            {/* Forecast Validation Status */}
-            <Panel style={{ height: '100%' }}>
+            {/* Right: Scientific Validation Ledger */}
+            <Panel style={{ padding: '20px 22px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div>
-                  <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
                     SCIENTIFIC INTEGRITY
                   </span>
-                  <h4 style={{ margin: '2px 0 0 0', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  <h4 style={{ margin: '2px 0 0 0', fontSize: '14.5px', fontWeight: 700, color: 'var(--text-primary)' }}>
                     Forecast Validation Ledger
                   </h4>
                 </div>
                 <span
                   style={{
                     fontSize: '9.5px',
-                    fontFamily: 'var(--font-sans)',
+                    fontFamily: 'var(--mono)',
                     fontWeight: 600,
                     padding: '2px 6px',
                     borderRadius: '3px',
@@ -588,11 +570,11 @@ export function Overview() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Evaluated Horizons:</span>
-                  <strong style={{ color: 'var(--text-primary)' }}>{validationComparison?.evaluatedHorizons ?? 0} Horizons</strong>
+                  <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>{validationComparison?.evaluatedHorizons ?? 0} Horizons</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Unvalidated Horizons:</span>
-                  <strong style={{ color: 'var(--text-primary)' }}>{validationComparison?.unvalidatedHorizons ?? 5} Horizons</strong>
+                  <strong style={{ color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>{validationComparison?.unvalidatedHorizons ?? 5} Horizons</strong>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Falsification Status:</span>
@@ -602,10 +584,13 @@ export function Overview() {
             </Panel>
           </div>
 
-          {/* 7. CORE WORKSPACE ROUTING STRIP */}
-          <div style={{ marginBottom: '28px' }}>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '10px' }}>
-              INVESTIGATION WORKSPACES
+          {/* -------------------------------------------------------------------
+              QUESTION 4: WHAT CAN I INVESTIGATE?
+              Integrated Investigation Workspaces
+              ------------------------------------------------------------------- */}
+          <div>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '10px', fontWeight: 600 }}>
+              4. WHAT CAN I INVESTIGATE? (OPERATIONAL WORKSPACES)
             </span>
             <div className="card-grid">
               <Link to="/console/traffic" style={{ textDecoration: 'none' }}>
@@ -699,14 +684,14 @@ export function Overview() {
               </Link>
             </div>
           </div>
-        </>
+        </div>
       )}
 
-      {/* 8. RECENT ANALYSES LIST (PERSISTENT CONTEXT RESTORATION) */}
-      <Panel>
+      {/* 5. RECENT SESSIONS & PERSISTENT CONTEXT RESTORATION */}
+      <Panel style={{ padding: '20px 24px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
           <div>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
               RECENT SESSIONS
             </span>
             <h3 style={{ margin: '2px 0 0 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -753,15 +738,15 @@ export function Overview() {
                     </strong>
                     <AnalysisStatusBadge status={item.status} />
                   </div>
-                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
-                    {new Date(item.timestamp).toLocaleString()} &middot; ID: <code style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>{item.id.slice(0, 10)}</code>
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--mono)' }}>
+                    {new Date(item.timestamp).toLocaleString()} &middot; ID: <code style={{ color: 'var(--text-secondary)' }}>{item.id.slice(0, 10)}</code>
                     {item.predictedStage && ` &middot; Stage: ${item.predictedStage}`}
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ textAlign: 'right', minWidth: '60px' }}>
-                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>
                       PEAK RISK
                     </span>
                     <strong
@@ -771,7 +756,7 @@ export function Overview() {
                           const norm = normalizeRiskPercentage(item.peakRiskPct)
                           return norm !== null && norm > 60 ? 'var(--text-primary)' : 'var(--text-secondary)'
                         })(),
-                        fontFamily: 'var(--font-sans)',
+                        fontFamily: 'var(--mono)',
                         fontWeight: 700,
                         fontVariantNumeric: 'tabular-nums',
                       }}
@@ -785,7 +770,8 @@ export function Overview() {
                     onClick={() => handleOpenHistoricalAnalysis(item)}
                     style={{ fontSize: '11px', height: '26px', padding: '0 8px', gap: '4px' }}
                   >
-                    Restore &amp; Open <ArrowRight size={11} />
+                    <span>Restore &amp; Open</span>
+                    <ArrowRight size={11} />
                   </button>
                 </div>
               </div>

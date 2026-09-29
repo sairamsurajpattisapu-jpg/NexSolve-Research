@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, Link, Outlet } from 'react-router-dom'
-import { ArrowRight, ChevronDown, X } from 'lucide-react'
+import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
+import { ArrowRight, X } from 'lucide-react'
 import { SiteFooter } from './SiteFooter'
 
 export function MarketingLayout() {
   const [open, setOpen] = useState(false)
-  const [moreOpen, setMoreOpen] = useState(false)
   const navRef = useRef<HTMLElement>(null)
   const drawerRef = useRef<HTMLElement>(null)
-  const moreDropdownRef = useRef<HTMLDivElement>(null)
+  const location = useLocation()
 
   // Body scroll lock management when mobile drawer is open
   useEffect(() => {
@@ -21,7 +20,7 @@ export function MarketingLayout() {
     }
   }, [open])
 
-  // Accessible click-outside and Escape key listener for mobile menu and more dropdown
+  // Accessible click-outside and Escape key listener for mobile menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node
@@ -34,19 +33,11 @@ export function MarketingLayout() {
       ) {
         setOpen(false)
       }
-      if (
-        moreOpen &&
-        moreDropdownRef.current &&
-        !moreDropdownRef.current.contains(target)
-      ) {
-        setMoreOpen(false)
-      }
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setOpen(false)
-        setMoreOpen(false)
       }
     }
 
@@ -57,7 +48,7 @@ export function MarketingLayout() {
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [open, moreOpen])
+  }, [open])
 
   // Track window scroll position to compact navbar
   const [scrolled, setScrolled] = useState(false)
@@ -70,14 +61,14 @@ export function MarketingLayout() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const handleCliClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleAnchorClick = (id: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
     setOpen(false)
-    if (window.location.pathname === '/') {
+    if (location.pathname === '/') {
       event.preventDefault()
-      const element = document.getElementById('cli-quickstart')
+      const element = document.getElementById(id)
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' })
-        window.history.pushState(null, '', '#cli-quickstart')
+        window.history.pushState(null, '', `#${id}`)
       }
     }
   }
@@ -93,25 +84,29 @@ export function MarketingLayout() {
             <span className="brand-label">NEXSOLVE</span>
           </Link>
 
+          {/* Minimal Restrained Navigation matching Section 11 */}
           <nav className="desktop-nav" aria-label="Product navigation">
-            <NavLink
-              to="/"
-              end
-              onClick={() => setOpen(false)}
-              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
-            >
-              Product
-            </NavLink>
-            <a href="/#cli-quickstart" onClick={handleCliClick} className="nav-link">
-              CLI
-            </a>
-            <NavLink
-              to="/workflow"
-              onClick={() => setOpen(false)}
-              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            <a
+              href="/#how-it-works"
+              onClick={handleAnchorClick('how-it-works')}
+              className="nav-link"
             >
               How It Works
-            </NavLink>
+            </a>
+            <a
+              href="/#forecasting"
+              onClick={handleAnchorClick('forecasting')}
+              className="nav-link"
+            >
+              Forecasting
+            </a>
+            <a
+              href="/#evidence"
+              onClick={handleAnchorClick('evidence')}
+              className="nav-link"
+            >
+              Evidence
+            </a>
             <NavLink
               to="/research"
               onClick={() => setOpen(false)}
@@ -119,56 +114,6 @@ export function MarketingLayout() {
             >
               Research
             </NavLink>
-
-            {/* Compact secondary items dropdown */}
-            <div className="nav-dropdown-wrapper" ref={moreDropdownRef}>
-              <button
-                type="button"
-                className={`nav-link nav-dropdown-btn ${moreOpen ? 'is-active' : ''}`}
-                onClick={() => setMoreOpen(!moreOpen)}
-                aria-expanded={moreOpen}
-                aria-haspopup="true"
-                aria-label="More navigation items"
-              >
-                <span>More</span>
-                <ChevronDown
-                  size={13}
-                  style={{
-                    transform: moreOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 180ms ease',
-                  }}
-                />
-              </button>
-
-              {moreOpen && (
-                <div className="nav-dropdown-menu" role="menu">
-                  <NavLink
-                    to="/security"
-                    role="menuitem"
-                    onClick={() => setMoreOpen(false)}
-                    className="nav-dropdown-item"
-                  >
-                    Security
-                  </NavLink>
-                  <NavLink
-                    to="/faq"
-                    role="menuitem"
-                    onClick={() => setMoreOpen(false)}
-                    className="nav-dropdown-item"
-                  >
-                    FAQ
-                  </NavLink>
-                  <NavLink
-                    to="/about"
-                    role="menuitem"
-                    onClick={() => setMoreOpen(false)}
-                    className="nav-dropdown-item"
-                  >
-                    About
-                  </NavLink>
-                </div>
-              )}
-            </div>
           </nav>
 
           <div className="navbar-right">
@@ -232,28 +177,27 @@ export function MarketingLayout() {
         </div>
 
         <nav className="mobile-panel-links" aria-label="Mobile navigation links">
-          <NavLink
-            to="/"
-            end
-            onClick={() => setOpen(false)}
-            className={({ isActive }) =>
-              isActive ? 'mobile-panel-link active' : 'mobile-panel-link'
-            }
-          >
-            Product
-          </NavLink>
-          <a href="/#cli-quickstart" onClick={handleCliClick} className="mobile-panel-link">
-            CLI
-          </a>
-          <NavLink
-            to="/workflow"
-            onClick={() => setOpen(false)}
-            className={({ isActive }) =>
-              isActive ? 'mobile-panel-link active' : 'mobile-panel-link'
-            }
+          <a
+            href="/#how-it-works"
+            onClick={handleAnchorClick('how-it-works')}
+            className="mobile-panel-link"
           >
             How It Works
-          </NavLink>
+          </a>
+          <a
+            href="/#forecasting"
+            onClick={handleAnchorClick('forecasting')}
+            className="mobile-panel-link"
+          >
+            Forecasting
+          </a>
+          <a
+            href="/#evidence"
+            onClick={handleAnchorClick('evidence')}
+            className="mobile-panel-link"
+          >
+            Evidence
+          </a>
           <NavLink
             to="/research"
             onClick={() => setOpen(false)}
@@ -262,33 +206,6 @@ export function MarketingLayout() {
             }
           >
             Research
-          </NavLink>
-          <NavLink
-            to="/security"
-            onClick={() => setOpen(false)}
-            className={({ isActive }) =>
-              isActive ? 'mobile-panel-link active' : 'mobile-panel-link'
-            }
-          >
-            Security
-          </NavLink>
-          <NavLink
-            to="/faq"
-            onClick={() => setOpen(false)}
-            className={({ isActive }) =>
-              isActive ? 'mobile-panel-link active' : 'mobile-panel-link'
-            }
-          >
-            FAQ
-          </NavLink>
-          <NavLink
-            to="/about"
-            onClick={() => setOpen(false)}
-            className={({ isActive }) =>
-              isActive ? 'mobile-panel-link active' : 'mobile-panel-link'
-            }
-          >
-            About
           </NavLink>
         </nav>
 
@@ -313,3 +230,5 @@ export function MarketingLayout() {
     </div>
   )
 }
+
+export default MarketingLayout
