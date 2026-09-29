@@ -237,6 +237,7 @@ export const api = {
   },
   getJobStatus: (jobId: string) => request<JobStatusResponse>(`/jobs/${jobId}`),
   getJobResult: (jobId: string) => request<UploadedAnalysisResponse>(`/jobs/${jobId}/result`),
+  listJobs: (limit = 50) => request<JobStatusResponse[]>(`/api/jobs?limit=${limit}`),
   getReportJsonUrl: (jobId: string) => `${API_BASE}/jobs/${jobId}/report.json`,
   getReportHtmlUrl: (jobId: string) => `${API_BASE}/jobs/${jobId}/report.html`,
   getCurrentAnalysis: () =>

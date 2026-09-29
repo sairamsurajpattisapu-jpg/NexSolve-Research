@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import {
   CheckCircle2,
   Download,
+  FileCode,
   FileText,
   Printer,
   Share2,
@@ -10,6 +11,7 @@ import {
 import { ErrorState, LoadingState, Panel, SectionHeading } from '../components/Ui'
 import { ForecastValidationCard } from '../components/ForecastValidationCard'
 import { useProductionData } from '../hooks/useProductionData'
+import { useAnalysis } from '../context/AnalysisContext'
 import { api } from '../services/api'
 import type { CanonicalAnalysis } from '../types/canonical'
 import { adaptToCanonical } from '../utils/canonicalAdapter'
@@ -18,9 +20,11 @@ import { formatNumber, formatDisplayLabel } from '../utils/format'
 export function Reports() {
   const navigate = useNavigate()
   const { jobId } = useParams<{ jobId?: string }>()
+  const { canonical: activeCanonical } = useAnalysis()
   const { data, loading: storeLoading, error: storeError, reload } = useProductionData()
 
   const [analysis, setAnalysis] = useState<CanonicalAnalysis | null>(() => {
+    if (activeCanonical) return activeCanonical
     try {
       const cached =
         sessionStorage.getItem('nexsolve-cached-canonical') ||
@@ -45,6 +49,10 @@ export function Reports() {
 
   useEffect(() => {
     if (jobId) {
+      if (activeCanonical && (activeCanonical.id === jobId || activeCanonical.input.filename === jobId)) {
+        setAnalysis(activeCanonical)
+        return
+      }
       void api
         .getJobResult(jobId)
         .then((res) => {
@@ -55,10 +63,12 @@ export function Reports() {
             setAnalysis(adaptToCanonical(data.results, data.results.analysis_id))
           }
         })
+    } else if (activeCanonical) {
+      setAnalysis(activeCanonical)
     } else if (data?.results) {
       setAnalysis(adaptToCanonical(data.results, data.results.analysis_id))
     }
-  }, [jobId, data])
+  }, [jobId, data, activeCanonical])
 
   if (storeLoading && !analysis) return <LoadingState message="Loading report data..." />
   if (storeError && !analysis) return <ErrorState message={storeError} onRetry={() => void reload()} />
@@ -121,6 +131,117 @@ export function Reports() {
     ? formatDisplayLabel(explanations.drivers[0].feature)
     : 'SYN Ratio'
 
+  function escapeHtml(str: string | number | null | undefined): string {
+    if (str === null || str === undefined) return ''
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+  }
+
+  // HTML Export Handler
+  const handleDownloadHtml = () => {
+    if (jobId) {
+      window.open(api.getReportHtmlUrl(jobId), '_blank')
+      return
+    }
+    const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NexSolve Threat & Predictive Intelligence Report - ${escapeHtml(reportId)}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #000; color: #fff; margin: 40px auto; max-width: 960px; line-height: 1.5; padding: 0 20px; }
+    h1, h2, h3, h4 { color: #fff; letter-spacing: -0.02em; }
+    .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border: 1px solid #333; border-radius: 4px; background: #111; color: #888; text-transform: uppercase; font-weight: 600; }
+    .panel { background: #050505; border: 1px solid #222; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #222; }
+    th { color: #888; text-transform: uppercase; font-size: 10px; letter-spacing: 0.04em; }
+    .footer { font-size: 11px; color: #555; text-align: center; margin-top: 40px; border-top: 1px solid #222; padding-top: 20px; }
+  </style>
+</head>
+<body>
+  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 16px; margin-bottom: 24px;">
+    <div>
+      <span class="badge">NEXSOLVE CYBERSECURITY ASSESSMENT</span>
+      <h1 style="margin: 8px 0 4px 0; font-size: 22px;">Executive Report: ${escapeHtml(reportId)}</h1>
+      <div style="font-size: 12px; color: #888;">Capture: ${escapeHtml(input.filename)} &middot; Format: ${escapeHtml(input.format.toUpperCase())} &middot; Schema: MODEL_SCHEMA_45</div>
+    </div>
+    <div style="text-align: right; font-size: 12px; color: #888;">
+      <div>Generated: ${new Date().toISOString()}</div>
+      <div>Provenance: ${escapeHtml(analysis.provenanceLabel || analysis.provenance)}</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin-top: 0;">1. Executive Assessment</h3>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; font-size: 12px;">
+      <div><span style="color: #888;">STATUS</span><div style="font-weight: 700; margin-top: 4px;">${escapeHtml(analysis.status.toUpperCase())}</div></div>
+      <div><span style="color: #888;">PACKETS</span><div style="font-weight: 700; margin-top: 4px;">${input.packetCount.toLocaleString()}</div></div>
+      <div><span style="color: #888;">FLOWS</span><div style="font-weight: 700; margin-top: 4px;">${input.flowCount.toLocaleString()}</div></div>
+      <div><span style="color: #888;">WINDOWS</span><div style="font-weight: 700; margin-top: 4px;">${input.windowCount} (60s discrete)</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin-top: 0;">2. Multi-Horizon Forecast Projections</h3>
+    <table>
+      <thead>
+        <tr><th>Horizon</th><th>Lookahead</th><th>Step Attack Prob</th><th>Cumulative Risk</th><th>Projected Stage</th></tr>
+      </thead>
+      <tbody>
+        ${points.map(p => `<tr>
+          <td><strong>T+${p.horizon}</strong></td>
+          <td>+${p.lookaheadSeconds}s</td>
+          <td>${p.stepAttackProbability !== null ? (p.stepAttackProbability * 100).toFixed(1) + '%' : 'Withheld'}</td>
+          <td>${p.cumulativeRisk !== null ? (p.cumulativeRisk * 100).toFixed(1) + '%' : 'N/A'}</td>
+          <td>${escapeHtml(formatDisplayLabel(p.predictedStage || 'RECONNAISSANCE'))}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin-top: 0;">3. Forecast Validation Ledger</h3>
+    <p style="font-size: 12px; color: #aaa;">Status: <strong>${escapeHtml(analysis.validationComparison?.status || 'VALIDATION NOT AVAILABLE')}</strong> &middot; ${escapeHtml(analysis.validationComparison?.summary || 'Single capture validation pending future ground-truth.')}</p>
+  </div>
+
+  <div class="panel">
+    <h3 style="margin-top: 0;">4. MITRE ATT&amp;CK Contextual Alignments</h3>
+    <table>
+      <thead>
+        <tr><th>Technique</th><th>Tactic</th><th>Horizon</th><th>Contextual Interpretation</th></tr>
+      </thead>
+      <tbody>
+        ${(mitre?.mappings || []).map(m => `<tr>
+          <td><strong>${escapeHtml(m.techniqueId)}: ${escapeHtml(m.techniqueName)}</strong></td>
+          <td>${escapeHtml(m.tactic)}</td>
+          <td>${escapeHtml(m.forecastStep)}</td>
+          <td style="color: #aaa;">${escapeHtml(m.interpretation)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    NexSolve Research &middot; Network Attack Forecasting Engine &middot; Model final_world_model v3.0.0
+  </div>
+</body>
+</html>`
+    const blob = new Blob([htmlContent], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `nexsolve-report-${reportId}.html`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   // JSON Export Handler
   const handleDownloadJson = () => {
     const exportData = {
@@ -135,6 +256,7 @@ export function Reports() {
       mitre_interpretation: analysis.mitre,
       feature_attributions: analysis.explanations,
       evidence_chain: analysis.evidence,
+      forecast_validation: analysis.validationComparison,
       scientific_limitations: [
         'Model forecast scores represent forward-model state transition signals, not empirical or actuarial event probabilities.',
         'MITRE ATT&CK mappings are contextual behavioral interpretations, not direct signature matches.',
@@ -172,7 +294,7 @@ export function Reports() {
           title="Analysis report"
           description="Executive security assessment, multi-horizon attack projections, evidentiary attributions, and governance boundaries."
           action={
-            <div className="heading-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div className="heading-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <button
                 type="button"
                 className="button button-primary"
@@ -186,11 +308,21 @@ export function Reports() {
               <button
                 type="button"
                 className="button button-quiet"
+                onClick={handleDownloadHtml}
+                style={{ fontSize: '12px', height: '32px', gap: '6px' }}
+                title="Download self-contained HTML report"
+              >
+                <FileCode size={13} /> Export HTML
+              </button>
+
+              <button
+                type="button"
+                className="button button-quiet"
                 onClick={handleDownloadJson}
                 style={{ fontSize: '12px', height: '32px', gap: '6px' }}
                 title="Export report JSON"
               >
-                <Download size={13} /> Export
+                <Download size={13} /> Export JSON
               </button>
 
               <button

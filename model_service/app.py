@@ -528,7 +528,17 @@ async def cancel_processing_job(job_id: str):
     else:
         raise HTTPException(status_code=404, detail="Job not found or not cancellable.")
 
+
+@app.get("/jobs")
+@app.get("/api/jobs")
+async def list_jobs(limit: int = 50) -> list[dict[str, Any]]:
+    """List recent analysis jobs."""
+    jobs = JOB_MANAGER.list_jobs(limit=limit)
+    return [job.to_status_dict() for job in jobs]
+
+
 @app.get("/jobs/{job_id}")
+@app.get("/api/jobs/{job_id}")
 async def get_job_status(job_id: str) -> dict[str, Any]:
     """Poll job status, progress, stage, and processing statistics."""
     job = JOB_MANAGER.get_job(job_id)
@@ -560,6 +570,7 @@ async def get_job_status(job_id: str) -> dict[str, Any]:
 
 
 @app.get("/jobs/{job_id}/result")
+@app.get("/api/jobs/{job_id}/result")
 async def get_job_result(job_id: str) -> dict[str, Any]:
     """Retrieve full completed analysis result for a completed job."""
     job = JOB_MANAGER.get_job(job_id)
@@ -582,6 +593,7 @@ async def get_job_result(job_id: str) -> dict[str, Any]:
 
 
 @app.get("/jobs/{job_id}/report.json")
+@app.get("/api/jobs/{job_id}/report.json")
 async def get_job_report_json(job_id: str) -> Response:
     """Download structured JSON predictive intelligence report."""
     job = JOB_MANAGER.get_job(job_id)
@@ -610,6 +622,7 @@ async def get_job_report_json(job_id: str) -> Response:
 
 
 @app.get("/jobs/{job_id}/report.html")
+@app.get("/api/jobs/{job_id}/report.html")
 async def get_job_report_html(job_id: str) -> Response:
     """View or download standalone printable HTML predictive intelligence report."""
     job = JOB_MANAGER.get_job(job_id)

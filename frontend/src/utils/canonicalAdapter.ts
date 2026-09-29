@@ -819,5 +819,17 @@ export function adaptToCanonical(
       }
     })(),
     validationComparison,
+    sessions: Array.isArray(raw.investigation_sessions) ? raw.investigation_sessions : [],
+    trafficSummary: raw.traffic ? {
+      packets: Number((raw.traffic as any).packets || raw.packet_count || 0),
+      flows: Number((raw.traffic as any).flows || 0),
+      windows: Number((raw.traffic as any).windows || raw.window_count || 0),
+      tcp: Number((raw.traffic as any).tcp || 0),
+      udp: Number((raw.traffic as any).udp || 0),
+      retransmissions: Number((raw.traffic as any).retransmissions || 0),
+      protocol_counts: (raw.traffic as any).protocol_counts || raw.protocol_summary || {},
+      windows_data: Array.isArray((raw.traffic as any).windows_data) ? (raw.traffic as any).windows_data : [],
+    } : undefined,
+    attackHorizon: raw.attack_horizon || (raw as any).attackHorizon || undefined,
   }
 }

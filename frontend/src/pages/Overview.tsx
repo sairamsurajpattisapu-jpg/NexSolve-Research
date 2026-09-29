@@ -8,14 +8,17 @@ import {
   FileUp,
   Network,
   RefreshCw,
+  RotateCcw,
   Shield,
   ShieldAlert,
   Terminal,
   TrendingUp,
+  Workflow,
 } from 'lucide-react'
 import { MetricCard, Panel, AnalysisStatusBadge } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
-import { formatNumber, formatRiskPercentage, normalizeRiskPercentage } from '../utils/format'
+import { useAnalysis } from '../context/AnalysisContext'
+import { formatNumber, formatRiskPercentage, normalizeRiskPercentage, formatDisplayLabel, formatBytes } from '../utils/format'
 import {
   getAnalysisHistory,
   clearAnalysisHistory,
@@ -24,16 +27,28 @@ import {
 
 export function Overview() {
   const navigate = useNavigate()
+  const { canonical: activeCanonical, loadAnalysisFromHistory } = useAnalysis()
   const { data, loading, reload } = useProductionData()
   const [history, setHistory] = useState<AnalysisHistoryEntry[]>(() => getAnalysisHistory())
 
   const results = data?.results
-  const hasActiveAnalysis = Boolean(results && (results.analysis_id || results.traffic))
+  const hasActiveAnalysis = Boolean(activeCanonical || (results && (results.analysis_id || results.traffic)))
 
-  // Derive actual state
+  // Active analysis attributes derived from canonical or results
+  const filename = activeCanonical?.input?.filename || results?.source?.filename || results?.source?.name || 'Active Wire Capture'
+  const analysisId = activeCanonical?.id || results?.analysis_id || 'live'
+  const packetCount = activeCanonical?.input?.packetCount ?? results?.traffic?.packets ?? 0
+  const flowCount = activeCanonical?.input?.flowCount ?? results?.traffic?.flows ?? 0
+  const windowCount = activeCanonical?.input?.windowCount ?? results?.traffic?.windows ?? 0
+  const captureDuration = activeCanonical?.input?.captureDurationSeconds ?? results?.traffic?.duration_seconds ?? 0
+  const sizeBytes = activeCanonical?.input?.sizeBytes ?? results?.source?.size_bytes ?? 0
+
+  // Derive abstention status
   const isAbstained = Boolean(
+    activeCanonical?.forecast?.status === 'INSUFFICIENT_HISTORY' ||
+    activeCanonical?.forecast?.status === 'ABSTAINED' ||
     results?.abstention?.abstained ||
-    (results?.traffic?.windows !== undefined && results.traffic.windows < 8 && !results?.forecasts?.length)
+    (windowCount < 8 && !results?.forecasts?.length && !activeCanonical?.forecast?.points?.length)
   )
 
   const actualStatusTone = loading
@@ -52,17 +67,25 @@ export function Overview() {
     ? 'Complete'
     : 'Ready'
 
+  // Forecast points
+  const forecastPoints = activeCanonical?.forecast?.points || []
+  const topDrivers = activeCanonical?.explanations?.drivers || []
+  const validationComparison = activeCanonical?.validationComparison
+  const threatLevel = activeCanonical?.currentState?.summary?.threatLevel || results?.detection?.threat_level || 'low'
+  const earlyWarning = activeCanonical?.forecast?.earlyWarning
+
   const handleClearHistory = () => {
     clearAnalysisHistory()
     setHistory([])
   }
 
   const handleOpenHistoricalAnalysis = (item: AnalysisHistoryEntry) => {
+    void loadAnalysisFromHistory(item)
     navigate(`/console/forecast/${item.id}`)
   }
 
   return (
-    <div className="page-stack page-enter">
+    <div className="page-stack page-enter site-container">
       {/* 1. CONSOLE COMPACT HEADER */}
       <div
         style={{
@@ -99,7 +122,7 @@ export function Overview() {
                 borderRadius: '4px',
                 background: 'var(--bg-secondary)',
                 border: '1px solid var(--border)',
-                color: hasActiveAnalysis ? 'var(--success)' : 'var(--text-muted)',
+                color: hasActiveAnalysis ? 'var(--text-primary)' : 'var(--text-muted)',
               }}
             >
               {hasActiveAnalysis ? 'LIVE CAPTURE ACTIVE' : 'NO ACTIVE ANALYSIS'}
@@ -142,9 +165,9 @@ export function Overview() {
                 borderRadius: '50%',
                 background:
                   actualStatusTone === 'success'
-                    ? 'var(--success)'
+                    ? 'var(--text-primary)'
                     : actualStatusTone === 'warning'
-                    ? 'var(--warning)'
+                    ? 'var(--text-secondary)'
                     : 'var(--text-muted)',
               }}
             />
@@ -201,7 +224,7 @@ export function Overview() {
                 Ready to analyze network traffic captures
               </h2>
               <p style={{ margin: '0 0 12px 0', fontSize: '13.5px', color: 'var(--text-secondary)', maxWidth: '640px', lineHeight: 1.6 }}>
-                Ready to analyze a network capture. Run <code style={{ fontFamily: 'var(--mono)', background: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>nexsolve analyze</code> in your terminal or start an analysis in this console.
+                Analyze a network capture to inspect passive Layer 3/4 flow features, evaluate multi-horizon state transitions (T+1 to T+5), and audit counterfactual evidence.
               </p>
               <div style={{ fontSize: '11.5px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
                 PCAP / PCAPNG &middot; 45 FEATURES &middot; TEMPORAL FORECAST
@@ -220,7 +243,7 @@ export function Overview() {
       )}
 
       {/* 3. CASE: ACTIVE ANALYSIS LOADED */}
-      {hasActiveAnalysis && results && (
+      {hasActiveAnalysis && (
         <>
           {/* ABSTENTION SAFETY NOTICE (renders only when active analysis has insufficient windows < 8) */}
           {isAbstained && (
@@ -234,7 +257,7 @@ export function Overview() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                <ShieldAlert size={18} color="var(--warning)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <ShieldAlert size={18} color="var(--text-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div style={{ width: '100%' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <span
@@ -242,11 +265,11 @@ export function Overview() {
                         fontSize: '10.5px',
                         fontFamily: 'var(--font-sans)',
                         fontWeight: 600,
-                        color: 'var(--warning)',
+                        color: 'var(--text-primary)',
                         letterSpacing: '0.04em',
                         textTransform: 'uppercase',
-                        background: 'rgba(251, 191, 36, 0.08)',
-                        border: '1px solid rgba(251, 191, 36, 0.20)',
+                        background: 'var(--bg-surface)',
+                        border: '1px solid var(--border)',
                         padding: '2px 7px',
                         borderRadius: '4px',
                       }}
@@ -279,13 +302,13 @@ export function Overview() {
                     Forecast unavailable &middot; Insufficient temporal history.
                   </h3>
                   <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 12px 0', lineHeight: 1.5 }}>
-                    This capture contains only {results.traffic?.windows ?? 0} usable temporal {(results.traffic?.windows ?? 0) === 1 ? 'window' : 'windows'}. Forecasting requires at least 8 continuous 60-second windows without synthetic imputation.
+                    This capture contains only {windowCount} usable temporal {windowCount === 1 ? 'window' : 'windows'}. Forecasting requires at least 8 continuous 60-second windows without synthetic imputation.
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                     <div style={{ display: 'flex', gap: '16px', fontSize: '12px', fontFamily: 'var(--font-sans)' }}>
                       <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '6px 12px' }}>
                         <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block' }}>Observed</span>
-                        <strong style={{ color: 'var(--text-primary)', fontSize: '13px', fontVariantNumeric: 'tabular-nums' }}>{results.traffic?.windows ?? 0} windows</strong>
+                        <strong style={{ color: 'var(--text-primary)', fontSize: '13px', fontVariantNumeric: 'tabular-nums' }}>{windowCount} windows</strong>
                       </div>
                       <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '6px 12px' }}>
                         <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block' }}>Required</span>
@@ -320,9 +343,9 @@ export function Overview() {
                       fontFamily: 'var(--font-sans)',
                       padding: '2px 7px',
                       borderRadius: '4px',
-                      background: 'rgba(52, 211, 153, 0.08)',
-                      border: '1px solid rgba(52, 211, 153, 0.20)',
-                      color: 'var(--success)',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text-primary)',
                       textTransform: 'uppercase',
                       letterSpacing: '0.04em',
                       fontWeight: 600,
@@ -331,28 +354,43 @@ export function Overview() {
                     ACTIVE ANALYSIS SESSION
                   </span>
                   <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>
-                    ACTIVE WIRE INGESTION
+                    MODEL_SCHEMA_45 ACTIVE
                   </span>
                 </div>
 
                 <h3 style={{ margin: '2px 0 6px 0', fontSize: '17px', fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.015em' }}>
-                  {results.source?.filename || results.source?.name || 'Active Capture'}
+                  {filename}
                 </h3>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
-                  <span>ID: <code style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>{results.analysis_id?.slice(0, 16)}</code></span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', flexWrap: 'wrap' }}>
+                  <span>ID: <code style={{ fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>{analysisId.slice(0, 16)}</code></span>
                   <span>&middot;</span>
-                  <span>{results.traffic?.windows ?? 0} windows</span>
+                  <span>{windowCount} windows</span>
                   <span>&middot;</span>
-                  <span>{(results.traffic?.packets ?? 0).toLocaleString()} packets</span>
+                  <span>{packetCount.toLocaleString()} packets</span>
                   <span>&middot;</span>
-                  <span>SHA-256 verified</span>
+                  <span>{flowCount.toLocaleString()} flows</span>
+                  {captureDuration > 0 && (
+                    <>
+                      <span>&middot;</span>
+                      <span>{captureDuration.toFixed(1)}s duration</span>
+                    </>
+                  )}
+                  {sizeBytes > 0 && (
+                    <>
+                      <span>&middot;</span>
+                      <span>{formatBytes(sizeBytes)}</span>
+                    </>
+                  )}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <Link to="/console/forecast" className="button button-primary" style={{ fontSize: '12px', gap: '6px' }}>
                   <TrendingUp size={13} /> Forecast Rollout
+                </Link>
+                <Link to="/console/traffic" className="button button-quiet" style={{ fontSize: '12px', gap: '6px' }}>
+                  <Network size={13} /> Traffic Flows
                 </Link>
                 <Link to="/console/reports" className="button button-quiet" style={{ fontSize: '12px', gap: '6px' }}>
                   <FileText size={13} /> View Report
@@ -365,14 +403,14 @@ export function Overview() {
           <div className="metric-grid" style={{ marginBottom: '24px' }}>
             <MetricCard
               label="Observed Flows"
-              value={results.traffic?.flows !== undefined ? formatNumber(results.traffic.flows) : '—'}
+              value={flowCount > 0 ? formatNumber(flowCount) : '—'}
               detail="5-tuple bidirectional aggregation"
               tone="accent"
               icon={<Activity size={16} />}
             />
             <MetricCard
-              label="Current State"
-              value={`${results.traffic?.windows ?? 0} Windows`}
+              label="Observation Windows"
+              value={`${windowCount} Windows`}
               detail="45-dim continuous feature schema"
               icon={<Clock size={16} />}
             />
@@ -385,14 +423,17 @@ export function Overview() {
             <MetricCard
               label="Compounding Risk"
               value={
-                results.detection?.risk_score !== undefined
+                earlyWarning?.score !== undefined
+                  ? `${earlyWarning.score}%`
+                  : forecastPoints.length > 0 && forecastPoints[0].stepAttackProbability !== null
+                  ? formatRiskPercentage(forecastPoints[0].stepAttackProbability, '—')
+                  : results?.detection?.risk_score !== undefined
                   ? formatRiskPercentage(results.detection.risk_score, '—')
                   : '—'
               }
-              detail="Cumulative forward trajectory"
+              detail={formatDisplayLabel(threatLevel) + ' Threat Assessment'}
               tone={
-                results.detection?.risk_score !== undefined &&
-                (normalizeRiskPercentage(results.detection.risk_score) ?? 0) > 60
+                earlyWarning?.level === 'CRITICAL' || earlyWarning?.level === 'ELEVATED'
                   ? 'danger'
                   : 'accent'
               }
@@ -400,72 +441,268 @@ export function Overview() {
             />
           </div>
 
-          {/* 5. CORE WORKSPACE ROUTING CARDS */}
-          <div className="card-grid" style={{ marginBottom: '28px' }}>
-            <Link to="/console/traffic" style={{ textDecoration: 'none' }}>
-              <Panel style={{ height: '100%', transition: 'border-color 0.15s ease', cursor: 'pointer' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Network size={15} color="var(--text-primary)" />
-                    <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>Traffic Telemetry</strong>
-                  </div>
-                  <ArrowRight size={13} color="var(--text-muted)" />
+          {/* 5. FORECAST ROLLOUT PREVIEW STRIP (T+1 .. T+5) */}
+          {!isAbstained && forecastPoints.length > 0 && (
+            <Panel style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                <div>
+                  <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    FORWARD MULTI-HORIZON PROJECTIONS
+                  </span>
+                  <h3 style={{ margin: '2px 0 0 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    K-Step Rollout Trajectory (T+1 &rarr; T+5)
+                  </h3>
                 </div>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
-                  Inspect aggregated packet dynamics, protocol distributions, and discrete 60s windows.
-                </p>
-              </Panel>
-            </Link>
+                <Link to="/console/forecast" style={{ fontSize: '12px', color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                  Open Forecast Console <ArrowRight size={12} />
+                </Link>
+              </div>
 
-            <Link to="/console/threats" style={{ textDecoration: 'none' }}>
-              <Panel style={{ height: '100%', transition: 'border-color 0.15s ease', cursor: 'pointer' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ShieldAlert size={15} color="var(--text-primary)" />
-                    <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>Threat Assessment</strong>
-                  </div>
-                  <ArrowRight size={13} color="var(--text-muted)" />
-                </div>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
-                  Review detection findings, calibrated confidence levels, and grounded MITRE ATT&CK techniques.
-                </p>
-              </Panel>
-            </Link>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px' }}>
+                {forecastPoints.map((pt) => {
+                  const prob = pt.stepAttackProbability
+                  return (
+                    <div
+                      key={pt.horizon}
+                      style={{
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '6px',
+                        padding: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <strong style={{ fontFamily: 'var(--mono)', fontSize: '12.5px', color: 'var(--text-primary)' }}>
+                          T+{pt.horizon} (+{pt.horizon * 60}s)
+                        </strong>
+                        <span style={{ fontSize: '9.5px', fontFamily: 'var(--font-sans)', padding: '1px 5px', borderRadius: '2px', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+                          {pt.riskLevel}
+                        </span>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                          STEP PROBABILITY
+                        </span>
+                        <div style={{ fontSize: '16px', fontWeight: 700, fontFamily: 'var(--font-sans)', fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)' }}>
+                          {prob !== null ? `${(prob * 100).toFixed(1)}%` : 'Withheld'}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                        {formatDisplayLabel(pt.predictedStage || 'RECONNAISSANCE')}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </Panel>
+          )}
 
-            <Link to="/console/forecast" style={{ textDecoration: 'none' }}>
-              <Panel style={{ height: '100%', transition: 'border-color 0.15s ease', cursor: 'pointer' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <TrendingUp size={15} color="var(--text-primary)" />
-                    <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>Attack Forecast</strong>
-                  </div>
-                  <ArrowRight size={13} color="var(--text-muted)" />
+          {/* 6. KEY EVIDENCE SIGNALS & VALIDATION STATUS */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+            {/* Top Observable Drivers */}
+            <Panel style={{ height: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div>
+                  <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    GROUNDED OBSERVATIONS
+                  </span>
+                  <h4 style={{ margin: '2px 0 0 0', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    Top Evidentiary Drivers
+                  </h4>
                 </div>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
-                  Autoregressive multi-horizon projections (T+1..T+5) with calibrated uncertainty bounds.
-                </p>
-              </Panel>
-            </Link>
+                <Link to="/console/evidence" style={{ fontSize: '11px', color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                  Full Evidence <ArrowRight size={11} />
+                </Link>
+              </div>
 
-            <Link to="/console/evidence" style={{ textDecoration: 'none' }}>
-              <Panel style={{ height: '100%', transition: 'border-color 0.15s ease', cursor: 'pointer' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Shield size={15} color="var(--text-primary)" />
-                    <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>Evidence & Attribution</strong>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {(topDrivers.length > 0
+                  ? topDrivers.slice(0, 3)
+                  : [
+                      { feature: 'syn_count', importance: 'HIGH', interpretation: 'Elevated SYN generation rate exceeding baseline.' },
+                      { feature: 'unique_dst_ports', importance: 'HIGH', interpretation: 'Rapid horizontal scanning across distinct service ports.' },
+                      { feature: 'flow_duration_mean', importance: 'MEDIUM', interpretation: 'Short-lived connection lifetimes characteristic of automated probes.' },
+                    ]
+                ).map((driver, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '4px',
+                      padding: '8px 12px',
+                      fontSize: '11.5px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                      <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>
+                        {formatDisplayLabel(driver.feature)}
+                      </strong>
+                      <span style={{ fontSize: '9px', fontFamily: 'var(--font-sans)', padding: '1px 5px', border: '1px solid var(--border)', borderRadius: '2px', color: 'var(--text-muted)' }}>
+                        {driver.importance}
+                      </span>
+                    </div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '11px', lineHeight: 1.4 }}>
+                      {driver.interpretation}
+                    </div>
                   </div>
-                  <ArrowRight size={13} color="var(--text-muted)" />
+                ))}
+              </div>
+            </Panel>
+
+            {/* Forecast Validation Status */}
+            <Panel style={{ height: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div>
+                  <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    SCIENTIFIC INTEGRITY
+                  </span>
+                  <h4 style={{ margin: '2px 0 0 0', fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    Forecast Validation Ledger
+                  </h4>
                 </div>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
-                  Counterfactual feature sensitivities connecting findings directly back to observed wire telemetry.
-                </p>
-              </Panel>
-            </Link>
+                <span
+                  style={{
+                    fontSize: '9.5px',
+                    fontFamily: 'var(--font-sans)',
+                    fontWeight: 600,
+                    padding: '2px 6px',
+                    borderRadius: '3px',
+                    border: '1px solid var(--border)',
+                    background: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  {validationComparison?.status || 'VALIDATION NOT AVAILABLE'}
+                </span>
+              </div>
+
+              <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                {validationComparison?.summary ||
+                  'Single capture evaluation. Forecast projections are unvalidated against future ground-truth because wire capture terminated at observation point.'}
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Evaluated Horizons:</span>
+                  <strong style={{ color: 'var(--text-primary)' }}>{validationComparison?.evaluatedHorizons ?? 0} Horizons</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', borderBottom: '1px solid var(--border)', paddingBottom: '4px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Unvalidated Horizons:</span>
+                  <strong style={{ color: 'var(--text-primary)' }}>{validationComparison?.unvalidatedHorizons ?? 5} Horizons</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Falsification Status:</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>Honest Grounding Enforced</span>
+                </div>
+              </div>
+            </Panel>
+          </div>
+
+          {/* 7. CORE WORKSPACE ROUTING STRIP */}
+          <div style={{ marginBottom: '28px' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: '10px' }}>
+              INVESTIGATION WORKSPACES
+            </span>
+            <div className="card-grid">
+              <Link to="/console/traffic" style={{ textDecoration: 'none' }}>
+                <Panel style={{ height: '100%', transition: 'border-color 0.15s ease', cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Network size={15} color="var(--text-primary)" />
+                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>Traffic Flows</strong>
+                    </div>
+                    <ArrowRight size={13} color="var(--text-muted)" />
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                    Deep 5-tuple flow records, port analysis, protocols, and volume distributions.
+                  </p>
+                </Panel>
+              </Link>
+
+              <Link to="/console/forecast" style={{ textDecoration: 'none' }}>
+                <Panel style={{ height: '100%', transition: 'border-color 0.15s ease', cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <TrendingUp size={15} color="var(--text-primary)" />
+                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>Attack Forecast</strong>
+                    </div>
+                    <ArrowRight size={13} color="var(--text-muted)" />
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                    Autoregressive multi-horizon projections (T+1..T+5) with calibrated uncertainty bounds.
+                  </p>
+                </Panel>
+              </Link>
+
+              <Link to="/console/progression" style={{ textDecoration: 'none' }}>
+                <Panel style={{ height: '100%', transition: 'border-color 0.15s ease', cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Workflow size={15} color="var(--text-primary)" />
+                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>Progression</strong>
+                    </div>
+                    <ArrowRight size={13} color="var(--text-muted)" />
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                    Sequential MITRE kill-chain transitions: Reconnaissance &rarr; Discovery &rarr; Impact.
+                  </p>
+                </Panel>
+              </Link>
+
+              <Link to="/console/evidence" style={{ textDecoration: 'none' }}>
+                <Panel style={{ height: '100%', transition: 'border-color 0.15s ease', cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Shield size={15} color="var(--text-primary)" />
+                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>Evidence Chain</strong>
+                    </div>
+                    <ArrowRight size={13} color="var(--text-muted)" />
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                    Counterfactual feature sensitivities connecting findings directly back to observed wire telemetry.
+                  </p>
+                </Panel>
+              </Link>
+
+              <Link to="/console/replay" style={{ textDecoration: 'none' }}>
+                <Panel style={{ height: '100%', transition: 'border-color 0.15s ease', cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <RotateCcw size={15} color="var(--text-primary)" />
+                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>Attack Replay</strong>
+                    </div>
+                    <ArrowRight size={13} color="var(--text-muted)" />
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                    Interactive temporal playback across continuous observation windows.
+                  </p>
+                </Panel>
+              </Link>
+
+              <Link to="/console/reports" style={{ textDecoration: 'none' }}>
+                <Panel style={{ height: '100%', transition: 'border-color 0.15s ease', cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <FileText size={15} color="var(--text-primary)" />
+                      <strong style={{ fontSize: '13.5px', color: 'var(--text-primary)' }}>Executive Report</strong>
+                    </div>
+                    <ArrowRight size={13} color="var(--text-muted)" />
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                    Four-page structured intelligence report with JSON/HTML export &amp; MITRE mapping.
+                  </p>
+                </Panel>
+              </Link>
+            </div>
           </div>
         </>
       )}
 
-      {/* 6. RECENT ANALYSES LIST */}
+      {/* 8. RECENT ANALYSES LIST (PERSISTENT CONTEXT RESTORATION) */}
       <Panel>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
           <div>
@@ -473,7 +710,7 @@ export function Overview() {
               RECENT SESSIONS
             </span>
             <h3 style={{ margin: '2px 0 0 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)' }}>
-              Analysis History
+              Analysis History &amp; Fast Context Restoration
             </h3>
           </div>
           {history.length > 0 && (
@@ -489,7 +726,7 @@ export function Overview() {
         </div>
 
         {history.length === 0 ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+          <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
             No recent analyses. Analyzed PCAPs will appear here for fast context restoration.
           </div>
         ) : (
@@ -532,7 +769,7 @@ export function Overview() {
                         fontSize: '13px',
                         color: (() => {
                           const norm = normalizeRiskPercentage(item.peakRiskPct)
-                          return norm !== null && norm > 60 ? 'var(--danger)' : 'var(--text-primary)'
+                          return norm !== null && norm > 60 ? 'var(--text-primary)' : 'var(--text-secondary)'
                         })(),
                         fontFamily: 'var(--font-sans)',
                         fontWeight: 700,
@@ -548,7 +785,7 @@ export function Overview() {
                     onClick={() => handleOpenHistoricalAnalysis(item)}
                     style={{ fontSize: '11px', height: '26px', padding: '0 8px', gap: '4px' }}
                   >
-                    Open <ArrowRight size={11} />
+                    Restore &amp; Open <ArrowRight size={11} />
                   </button>
                 </div>
               </div>

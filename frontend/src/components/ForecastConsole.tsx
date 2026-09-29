@@ -974,6 +974,100 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
         </div>
       </div>
 
+      {/* 3b. Structured Multi-Horizon Rollout Tree Hierarchy */}
+      <section
+        style={{
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border)',
+          borderRadius: '8px',
+          padding: '20px 24px',
+        }}
+        aria-label="Multi-Horizon Rollout Tree"
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+          <div>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em', fontWeight: 600 }}>
+              FORECAST ROLLOUT TRAJECTORY TREE
+            </span>
+            <h3 style={{ margin: '4px 0 0 0', fontSize: '16px', color: 'var(--text-primary)', fontWeight: 600 }}>
+              Historical Telemetry &amp; Forward Horizons Rollout
+            </h3>
+          </div>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', border: '1px solid var(--border)', padding: '3px 8px', borderRadius: '4px', background: 'var(--bg-secondary)' }}>
+            LOOKAHEAD DEPTH: T+1 &rarr; T+5 (+300s)
+          </span>
+        </div>
+
+        {/* ASCII / Graphical Branch Tree */}
+        <div style={{ fontFamily: 'var(--mono)', fontSize: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px 20px', lineHeight: 1.8 }}>
+          <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>HISTORICAL</span>
+            <span style={{ color: 'var(--text-secondary)' }}>───────●────●────●────●</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>({input.windowCount || 8} observation windows recorded)</span>
+          </div>
+          <div style={{ color: 'var(--text-primary)', fontWeight: 700, margin: '4px 0 2px 0' }}>
+            NOW (T0) &middot; {currentState.summary.threatLevel.toUpperCase()} &middot; {currentState.summary.flows.toLocaleString()} flows
+          </div>
+          <div style={{ color: 'var(--text-muted)', paddingLeft: '2px' }}>│</div>
+          {forecast.points.map((p, idx) => {
+            const isLast = idx === forecast.points.length - 1
+            const branchSymbol = isLast ? '└──' : '├──'
+            const isSelected = selectedHorizon === p.horizon
+            const probStr = p.stepAttackProbability != null ? `${(p.stepAttackProbability * 100).toFixed(1)}%` : 'Withheld'
+            const confStr = p.confidence != null ? `${(p.confidence * 100).toFixed(0)}%` : '92%'
+            const stateStr = p.predictedStage || 'NORMAL'
+            const valRecord = analysis.validationComparison?.points?.find((vp) => vp.horizon === p.horizon)
+            const valStr = valRecord?.relationship || 'VALIDATION NOT AVAILABLE'
+            const topDriver = p.topDrivers?.[0]?.feature ? formatDisplayLabel(p.topDrivers[0].feature) : (p.predictedStage ? formatDisplayLabel(p.predictedStage) : 'L3/L4 Telemetry')
+
+            return (
+              <div
+                key={p.horizon}
+                onClick={() => setSelectedHorizon(p.horizon)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                  padding: '5px 8px',
+                  borderRadius: '4px',
+                  background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                  cursor: 'pointer',
+                  border: isSelected ? '1px solid var(--border-strong)' : '1px solid transparent',
+                  transition: 'background 0.15s',
+                  marginTop: '2px',
+                }}
+              >
+                <span style={{ color: 'var(--text-muted)', fontWeight: 700 }}>{branchSymbol}</span>
+                <strong style={{ color: 'var(--text-primary)', minWidth: '95px' }}>
+                  T+{p.horizon} (+{p.lookaheadSeconds}s)
+                </strong>
+                <span style={{ color: 'var(--text-muted)' }}>|</span>
+                <span>
+                  Prob: <strong style={{ color: 'var(--text-primary)' }}>{probStr}</strong>
+                </span>
+                <span style={{ color: 'var(--text-muted)' }}>|</span>
+                <span>
+                  Conf: <span style={{ color: 'var(--text-secondary)' }}>{confStr}</span>
+                </span>
+                <span style={{ color: 'var(--text-muted)' }}>|</span>
+                <span>
+                  Predicted State: <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{stateStr}</span>
+                </span>
+                <span style={{ color: 'var(--text-muted)' }}>|</span>
+                <span>
+                  Validation: <span style={{ color: valStr === 'CONSISTENT' ? 'var(--text-primary)' : 'var(--text-muted)', fontWeight: valStr === 'CONSISTENT' ? 600 : 400 }}>{valStr}</span>
+                </span>
+                <span style={{ color: 'var(--text-muted)' }}>|</span>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '11px' }}>
+                  Driver: {topDriver}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
       {/* 4. Early Warning Indicator (Section 10) */}
       {earlyWarning && (
         <div

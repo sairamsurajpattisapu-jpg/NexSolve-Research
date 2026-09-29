@@ -8,14 +8,16 @@ import {
 import { ForecastConsole } from '../components/ForecastConsole'
 import { AnalysisPipelineVisualizer } from '../components/AnalysisPipelineVisualizer'
 import { Panel } from '../components/Ui'
-import { useJobPolling } from '../hooks/useJobPolling'
 import { useProductionData } from '../hooks/useProductionData'
+import { useJobPolling } from '../hooks/useJobPolling'
+import { useAnalysis } from '../context/AnalysisContext'
 import type { CanonicalAnalysis } from '../types/canonical'
 import { adaptToCanonical } from '../utils/canonicalAdapter'
 
 export function Forecast() {
   const { jobId } = useParams<{ jobId?: string }>()
   const navigate = useNavigate()
+  const { canonical: contextCanonical } = useAnalysis()
   const { data, loading: storeLoading, error: storeError, reload: reloadStore } = useProductionData()
 
   // If a jobId is in the URL, use the polling hook
@@ -33,8 +35,11 @@ export function Forecast() {
     reload: reloadJob,
   } = useJobPolling(jobId)
 
-  // Local canonical analysis state initialized synchronously if store data is present
+  // Local canonical analysis state initialized synchronously if context or store data is present
   const [activeAnalysis, setActiveAnalysis] = useState<CanonicalAnalysis | null>(() => {
+    if (contextCanonical && (!jobId || contextCanonical.id === jobId)) {
+      return contextCanonical
+    }
     if (!jobId && data?.results) {
       return adaptToCanonical(data.results, data.results.analysis_id)
     }
@@ -43,7 +48,9 @@ export function Forecast() {
   const [userOpenedForecast, setUserOpenedForecast] = useState<boolean>(false)
 
   useEffect(() => {
-    if (jobId) {
+    if (contextCanonical && (!jobId || contextCanonical.id === jobId)) {
+      setActiveAnalysis(contextCanonical)
+    } else if (jobId) {
       if (polledResult) {
         setActiveAnalysis(polledResult)
       } else if (data?.results && data.results.analysis_id === jobId) {
@@ -54,7 +61,7 @@ export function Forecast() {
       const canonical = adaptToCanonical(data.results, data.results.analysis_id)
       setActiveAnalysis(canonical)
     }
-  }, [jobId, polledResult, data])
+  }, [jobId, polledResult, data, contextCanonical])
 
   // Ensure scroll is pinned at top when opening forecast view
   useEffect(() => {

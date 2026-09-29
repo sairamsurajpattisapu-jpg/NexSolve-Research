@@ -9,6 +9,9 @@ export interface AnalysisHistoryEntry {
   provenance: 'uploaded' | 'reference'
   peakRiskPct?: number
   predictedStage?: string
+  threatState?: string
+  attackHorizon?: string
+  result?: any
 }
 
 const STORAGE_KEY = 'nexsolve-analysis-history'

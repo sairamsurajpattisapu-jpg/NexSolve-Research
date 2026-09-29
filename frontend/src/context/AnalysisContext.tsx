@@ -26,6 +26,8 @@ import type {
 } from '../types/api'
 import type { CanonicalAnalysis } from '../types/canonical'
 import { adaptToCanonical } from '../utils/canonicalAdapter'
+import { recordAnalysisHistory, type AnalysisHistoryEntry } from '../utils/analysisHistory'
+import { normalizeRiskPercentage } from '../utils/format'
 
 const STORAGE_ACTIVE_ID = 'nexsolve-current-analysis-id'
 const STORAGE_CANONICAL_CACHE = 'nexsolve-cached-canonical'
@@ -64,6 +66,7 @@ export interface AnalysisContextValue {
   // Workflow Actions
   startAnalysisJob: (file: File) => Promise<string>
   loadJob: (jobId: string) => Promise<CanonicalAnalysis | null>
+  loadAnalysisFromHistory: (entry: import('../utils/analysisHistory').AnalysisHistoryEntry) => Promise<void>
   resetWorkflow: () => Promise<void>
   setDirectAnalysis: (payload: UploadedAnalysisResponse) => Promise<void>
 }
@@ -166,6 +169,18 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
       updateCanonical(adapted)
       await setUploadedAnalysis(res)
       setAnalysisStatus('COMPLETED')
+      recordAnalysisHistory({
+        id: jobId,
+        filename: res.source?.name || res.source?.filename || 'capture.pcap',
+        timestamp: (res as any).timestamp || new Date().toISOString(),
+        status: 'COMPLETED',
+        provenance: 'uploaded',
+        peakRiskPct: normalizeRiskPercentage(res.detection?.risk_score) ?? undefined,
+        predictedStage: (res as any).attack_progression?.current_stage,
+        threatState: res.detection?.threat_level?.toUpperCase(),
+        attackHorizon: (res as any).attack_horizon?.lookahead_windows ? `${(res as any).attack_horizon.lookahead_windows} Windows` : '5 Horizons',
+        result: res,
+      })
       return adapted
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Unable to retrieve completed analysis result.'
@@ -359,7 +374,32 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     const adapted = adaptToCanonical(payload, payload.analysis_id)
     updateCanonical(adapted)
     setAnalysisStatus('COMPLETED')
+    recordAnalysisHistory({
+      id: payload.analysis_id,
+      filename: payload.source?.name || payload.source?.filename || 'capture.pcap',
+      timestamp: (payload as any).timestamp || new Date().toISOString(),
+      status: 'COMPLETED',
+      provenance: 'uploaded',
+      peakRiskPct: normalizeRiskPercentage(payload.detection?.risk_score) ?? undefined,
+      predictedStage: (payload as any).attack_progression?.current_stage,
+      threatState: payload.detection?.threat_level?.toUpperCase(),
+      attackHorizon: (payload as any).attack_horizon?.lookahead_windows ? `${(payload as any).attack_horizon.lookahead_windows} Windows` : '5 Horizons',
+      result: payload,
+    })
   }, [updateCanonical])
+
+  // Load an analysis directly from local history
+  const loadAnalysisFromHistory = useCallback(async (entry: AnalysisHistoryEntry) => {
+    if (entry.result) {
+      await setUploadedAnalysis(entry.result)
+      const adapted = adaptToCanonical(entry.result, entry.id)
+      updateCanonical(adapted)
+      setActiveJobId(entry.id)
+      setAnalysisStatus('COMPLETED')
+      return
+    }
+    await loadJob(entry.id)
+  }, [loadJob, updateCanonical])
 
   // Cleanup on provider unmount
   useEffect(() => {
@@ -410,6 +450,7 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
     globalStatus,
     startAnalysisJob,
     loadJob,
+    loadAnalysisFromHistory,
     resetWorkflow,
     setDirectAnalysis,
   }
@@ -417,10 +458,37 @@ export function AnalysisProvider({ children }: { children: ReactNode }) {
   return <AnalysisContext.Provider value={value}>{children}</AnalysisContext.Provider>
 }
 
+const defaultAnalysisContextValue: AnalysisContextValue = {
+  jobId: null,
+  filename: '',
+  analysisStatus: 'IDLE',
+  analysisTimestamp: null,
+  resultAvailability: false,
+  forecastAvailability: false,
+  evidenceAvailability: false,
+  reportAvailability: false,
+  provenance: 'uploaded',
+  canonical: null,
+  rawResults: null,
+  report: null,
+  apiConnected: true,
+  activeJob: null,
+  jobStage: 'COMPLETE',
+  jobProgress: 0,
+  jobError: null,
+  isSubmitting: false,
+  globalStatus: 'READY',
+  startAnalysisJob: async () => '',
+  loadJob: async () => null,
+  loadAnalysisFromHistory: async () => {},
+  resetWorkflow: async () => {},
+  setDirectAnalysis: async () => {},
+}
+
 export function useAnalysis(): AnalysisContextValue {
   const context = useContext(AnalysisContext)
   if (!context) {
-    throw new Error('useAnalysis must be used within an AnalysisProvider')
+    return defaultAnalysisContextValue
   }
   return context
 }

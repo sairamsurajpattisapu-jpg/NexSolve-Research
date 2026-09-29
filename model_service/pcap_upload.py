@@ -790,7 +790,7 @@ def analyze_uploaded_capture(
         "threat_views": [t.to_dict() for t in threat_views],
         "change_signals": [c.to_dict() for c in change_signals],
         "behavioral_intelligence": behavioral_report.to_dict(),
-        "investigation_sessions": [s.to_dict() for s in investigation_records[:100]],
+        "investigation_sessions": [s.to_dict() for s in investigation_records[:500]],
         "tcp_session_metrics": tcp_session_metrics.to_dict(),
         "flow_statistics": flow_statistics.to_dict(),
         "signature_evidence": suricata_report.to_dict(),

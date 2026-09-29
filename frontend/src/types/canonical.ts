@@ -283,5 +283,44 @@ export interface CanonicalAnalysis {
     description?: string
   }
   validationComparison?: ForecastValidation
+  sessions?: Array<{
+    session_id: string
+    src_ip: string
+    src_port: number
+    dst_ip: string
+    dst_port: number
+    protocol: string
+    first_seen?: number
+    last_seen?: number
+    duration_seconds: number
+    forward_packets: number
+    reverse_packets: number
+    total_packets: number
+    forward_bytes?: number
+    reverse_bytes?: number
+    total_bytes: number
+    behavioral_tags?: string[]
+    mitre_techniques?: string[]
+    risk_assessment?: string
+    temporal_window_id?: string
+  }>
+  trafficSummary?: {
+    packets: number
+    flows: number
+    windows: number
+    tcp: number
+    udp: number
+    retransmissions: number
+    protocol_counts?: Record<string, number>
+    windows_data?: any[]
+  }
+  attackHorizon?: {
+    lookahead_windows?: number
+    lookahead_seconds?: number
+    earliest_warning_horizon?: string
+    risk_trajectory?: string
+    state_transitions?: any[]
+    evidence_signals?: string[]
+  }
 }
 

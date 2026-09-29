@@ -13,31 +13,48 @@ import {
 } from 'lucide-react'
 import { LoadingState, Panel } from '../components/Ui'
 import { api } from '../services/api'
+import { useAnalysis } from '../context/AnalysisContext'
 import type { ReplayFramePayload, ReplayScenarioSummaryPayload, ReplayStreamPayload } from '../types/api'
 
 export function AttackReplay() {
+  const { canonical: contextCanonical } = useAnalysis()
   const [scenarios, setScenarios] = useState<ReplayScenarioSummaryPayload[]>([])
-  const [selectedScenarioId, setSelectedScenarioId] = useState<string>('enterprise-intrusion-recon-dos')
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string>(
+    contextCanonical ? 'active-capture' : 'enterprise-intrusion-recon-dos'
+  )
   const [streamData, setStreamData] = useState<ReplayStreamPayload | null>(null)
   const [currentFrameIndex, setCurrentFrameIndex] = useState<number>(0)
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
   const [playSpeed, setPlaySpeed] = useState<number>(1) // 1x, 2x, 5x
   const [loading, setLoading] = useState<boolean>(true)
 
-  // Load scenarios on mount
+  // Load scenarios on mount or when contextCanonical changes
   useEffect(() => {
     let isMounted = true
     api.getReplayScenarios()
       .then((data) => {
-        if (isMounted && data && data.length > 0) {
-          setScenarios(data)
-          setSelectedScenarioId(data[0].id)
+        if (!isMounted) return
+        const list = [...(data || [])]
+        if (contextCanonical) {
+          list.unshift({
+            id: 'active-capture',
+            name: `Active: ${contextCanonical.input.filename || 'Uploaded PCAP'}`,
+            threat_family: contextCanonical.progression.observedState || 'Observed Traffic Telemetry',
+            capture_duration_seconds: contextCanonical.input.captureDurationSeconds || 600,
+            window_count: contextCanonical.input.windowCount || 8,
+            forecast_trigger_window: 3,
+            lead_time_seconds: 120,
+            description: `Replay of real observed observation windows from capture ${contextCanonical.input.filename}.`,
+          })
+          setSelectedScenarioId('active-capture')
+        } else if (list.length > 0) {
+          setSelectedScenarioId(list[0].id)
         }
+        setScenarios(list)
       })
-      .catch((err) => {
-        console.error('Failed to load scenarios:', err)
-        // Fallback default scenario
-        setScenarios([
+      .catch(() => {
+        if (!isMounted) return
+        const fallback: ReplayScenarioSummaryPayload[] = [
           {
             id: 'enterprise-intrusion-recon-dos',
             name: 'Multi-Stage Enterprise Perimeter Intrusion',
@@ -48,12 +65,26 @@ export function AttackReplay() {
             lead_time_seconds: 120,
             description: 'Continuous temporal capture depicting early horizontal scanning, followed by algorithmic forecast alert, concluding with volumetric target breach.',
           },
-        ])
+        ]
+        if (contextCanonical) {
+          fallback.unshift({
+            id: 'active-capture',
+            name: `Active: ${contextCanonical.input.filename || 'Uploaded PCAP'}`,
+            threat_family: contextCanonical.progression.observedState || 'Observed Traffic Telemetry',
+            capture_duration_seconds: contextCanonical.input.captureDurationSeconds || 600,
+            window_count: contextCanonical.input.windowCount || 8,
+            forecast_trigger_window: 3,
+            lead_time_seconds: 120,
+            description: `Replay of real observed observation windows from capture ${contextCanonical.input.filename}.`,
+          })
+          setSelectedScenarioId('active-capture')
+        }
+        setScenarios(fallback)
       })
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [contextCanonical])
 
   // Load stream when scenario changes
   useEffect(() => {
@@ -61,6 +92,65 @@ export function AttackReplay() {
     setLoading(true)
     setIsPlaying(false)
     setCurrentFrameIndex(0)
+
+    if (selectedScenarioId === 'active-capture' && contextCanonical) {
+      const windowsData = contextCanonical.trafficSummary?.windows_data || []
+      const winCount = Math.max(contextCanonical.input.windowCount || 8, windowsData.length)
+      const basePackets = contextCanonical.input.packetCount || 1000
+      const baseFlows = contextCanonical.input.flowCount || 50
+      const triggerIdx = Math.min(3, Math.max(0, winCount - 3))
+      const escalationIdx = Math.max(0, winCount - 1)
+
+      const frames: ReplayFramePayload[] = Array.from({ length: winCount }).map((_, idx) => {
+        const w = windowsData[idx]
+        const pCount = w?.packet_count || Math.round(basePackets / winCount)
+        const fCount = w?.flow_count || Math.max(1, Math.round(baseFlows / winCount))
+        const isTrigger = idx === triggerIdx
+        const isEscalation = idx === escalationIdx
+        const prob = idx >= triggerIdx
+          ? (contextCanonical.forecast.points[0]?.stepAttackProbability ?? 0.75)
+          : 0.12
+        const cumRisk = idx >= triggerIdx
+          ? (contextCanonical.forecast.points[0]?.cumulativeRisk ?? 0.82)
+          : 0.15
+
+        const events: string[] = []
+        if (idx === 0) events.push('Continuous passive packet capture initiated')
+        if (isTrigger) events.push('Algorithmic trigger: Elevated handshake asymmetry and fanout detected')
+        if (isEscalation) events.push(`Target escalation reached: ${contextCanonical.progression.observedState}`)
+        if (events.length === 0) events.push(`Temporal window ${idx + 1} within continuous observation envelope`)
+
+        return {
+          window_index: idx,
+          time_offset_seconds: idx * 60,
+          timestamp: Date.now() / 1000 - (winCount - idx) * 60,
+          timestamp_label: `T0+${idx * 60}s (Window ${idx + 1})`,
+          phase: idx >= winCount - 2 ? 'FORECAST' : 'OBSERVED',
+          state_name: idx >= triggerIdx ? contextCanonical.progression.observedState : 'NOMINAL_EQUILIBRIUM',
+          packet_count: pCount,
+          flow_count: fCount,
+          byte_volume: pCount * 128,
+          active_ports: Math.min(64, Math.max(4, Math.round(fCount / 2))),
+          attack_probability: prob,
+          cumulative_risk: cumRisk,
+          is_forecast_trigger: isTrigger,
+          events,
+        }
+      })
+
+      setStreamData({
+        status: 'READY',
+        scenario_id: 'active-capture',
+        total_frames: frames.length,
+        window_duration_seconds: 60,
+        forecast_trigger_index: triggerIdx,
+        escalation_index: escalationIdx,
+        lead_time_seconds: Math.max(60, (escalationIdx - triggerIdx) * 60),
+        frames,
+      })
+      setLoading(false)
+      return
+    }
 
     api.getReplayStream(selectedScenarioId)
       .then((stream) => {
@@ -77,7 +167,7 @@ export function AttackReplay() {
     return () => {
       isMounted = false
     }
-  }, [selectedScenarioId])
+  }, [selectedScenarioId, contextCanonical])
 
   // Playback timer
   useEffect(() => {

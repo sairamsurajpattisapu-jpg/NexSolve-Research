@@ -21,29 +21,35 @@ const STAGE_LABELS: Record<JobStageType, string> = {
   COMPLETE: 'Processing Complete',
 }
 
-export const CIRCUIT_8_STAGES = [
-  { id: 'UPLOAD', num: '01', label: 'UPLOAD', sublabel: 'Wire stream' },
+export const PIPELINE_10_STAGES = [
+  { id: 'INGEST', num: '01', label: 'INGEST', sublabel: 'Wire stream' },
   { id: 'VALIDATE', num: '02', label: 'VALIDATE', sublabel: 'Format check' },
-  { id: 'PARSE', num: '03', label: 'PARSE', sublabel: 'Header decode' },
+  { id: 'PARSE', num: '03', label: 'PARSE', sublabel: 'Frame decode' },
   { id: 'FLOWS', num: '04', label: 'FLOWS', sublabel: 'Conversations' },
-  { id: 'FEATURES', num: '05', label: 'FEATURES', sublabel: '45-dim schema' },
-  { id: 'DETECT', num: '06', label: 'DETECT', sublabel: 'Threat vectors' },
-  { id: 'FORECAST', num: '07', label: 'FORECAST', sublabel: 'T+1..T+5 horizons' },
-  { id: 'REPORT', num: '08', label: 'REPORT', sublabel: 'Evidence chain' },
+  { id: 'WINDOWS', num: '05', label: 'WINDOWS', sublabel: '60s intervals' },
+  { id: 'FEATURES', num: '06', label: 'FEATURES', sublabel: '45-dim state' },
+  { id: 'DETECTION', num: '07', label: 'DETECTION', sublabel: 'Threat signals' },
+  { id: 'FORECAST', num: '08', label: 'FORECAST', sublabel: 'T+1..T+5 head' },
+  { id: 'EVIDENCE', num: '09', label: 'EVIDENCE', sublabel: 'Attribution' },
+  { id: 'COMPLETE', num: '10', label: 'COMPLETE', sublabel: 'Ready' },
 ]
 
+export const CIRCUIT_8_STAGES = PIPELINE_10_STAGES
+
 function getCircuit8Index(stage: JobStageType | string, isComplete: boolean): number {
-  if (isComplete) return 7
+  if (isComplete) return 9
   const s = String(stage || '').toUpperCase()
-  if (s === 'UPLOAD' || s === 'UPLOADING') return 0
+  if (s === 'INGEST' || s === 'INGESTION' || s === 'UPLOAD' || s === 'UPLOADING') return 0
   if (s === 'VALIDATE' || s === 'VALIDATING') return 1
-  if (s === 'INGESTION' || s === 'INGEST' || s === 'PARSING' || s === 'NORMALIZE') return 2
-  if (s === 'FLOW_RECONSTRUCTION' || s === 'FLOWS' || s === 'WINDOWING' || s === 'WINDOWS') return 3
-  if (s === 'NETWORK_STATE' || s === 'FEATURES') return 4
-  if (s === 'THREAT_ANALYSIS' || s === 'THREATS' || s === 'DETECT' || s === 'BEHAVIOR') return 5
-  if (s === 'FORECAST' || s === 'FORECASTING') return 6
-  if (s === 'EVIDENCE' || s === 'REPORT' || s === 'COMPLETE' || s === 'COMPLETED') return 7
-  return 2
+  if (s === 'PARSE' || s === 'PARSING') return 2
+  if (s === 'FLOWS' || s === 'FLOW_RECONSTRUCTION') return 3
+  if (s === 'WINDOWS' || s === 'WINDOWING') return 4
+  if (s === 'FEATURES' || s === 'NETWORK_STATE') return 5
+  if (s === 'DETECTION' || s === 'DETECT' || s === 'THREATS' || s === 'THREAT_ANALYSIS') return 6
+  if (s === 'FORECAST' || s === 'FORECASTING') return 7
+  if (s === 'EVIDENCE' || s === 'REPORT') return 8
+  if (s === 'COMPLETE' || s === 'COMPLETED') return 9
+  return 0
 }
 
 export function JobProgress({ job, onCancel }: JobProgressProps) {

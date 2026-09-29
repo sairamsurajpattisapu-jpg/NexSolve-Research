@@ -2,17 +2,20 @@ import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   Activity,
+  ArrowRight,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
   Cpu,
   FileCode,
   Layers,
+  Network,
   ShieldAlert,
   Workflow,
 } from 'lucide-react'
 import { ErrorState, LoadingState, Panel, SectionHeading } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
+import { useAnalysis } from '../context/AnalysisContext'
 import { api } from '../services/api'
 import type { CanonicalAnalysis, EvidenceItemNode } from '../types/canonical'
 import { adaptToCanonical } from '../utils/canonicalAdapter'
@@ -20,9 +23,11 @@ import { formatDisplayLabel } from '../utils/format'
 
 export function Evidence() {
   const { jobId } = useParams<{ jobId?: string }>()
+  const { canonical: activeCanonical } = useAnalysis()
   const { data, loading: storeLoading, error: storeError, reload } = useProductionData()
 
   const [analysis, setAnalysis] = useState<CanonicalAnalysis | null>(() => {
+    if (activeCanonical) return activeCanonical
     try {
       const cached =
         sessionStorage.getItem('nexsolve-cached-canonical') ||
@@ -43,6 +48,10 @@ export function Evidence() {
 
   useEffect(() => {
     if (jobId) {
+      if (activeCanonical && (activeCanonical.id === jobId || activeCanonical.input.filename === jobId)) {
+        setAnalysis(activeCanonical)
+        return
+      }
       void api
         .getJobResult(jobId)
         .then((res) => {
@@ -53,10 +62,12 @@ export function Evidence() {
             setAnalysis(adaptToCanonical(data.results, data.results.analysis_id))
           }
         })
+    } else if (activeCanonical) {
+      setAnalysis(activeCanonical)
     } else if (data?.results) {
       setAnalysis(adaptToCanonical(data.results, data.results.analysis_id))
     }
-  }, [jobId, data])
+  }, [jobId, data, activeCanonical])
 
   if (storeLoading && !analysis) return <LoadingState message="Loading technical evidence..." />
   if (storeError && !analysis) return <ErrorState message={storeError} onRetry={() => void reload()} />
@@ -115,9 +126,15 @@ export function Evidence() {
         title="Evidence Chain & Attribution Explorer"
         description="Comprehensive audit of passive observation, network state representation, temporal lookback, network state model simulation, and feature attribution."
         action={
-          <div className="heading-actions">
+          <div className="heading-actions" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <Link to={jobId ? `/console/forecast/${jobId}` : '/console/forecast'} className="button button-quiet">
               Forecast Console
+            </Link>
+            <Link to={jobId ? `/console/traffic/${jobId}` : '/console/traffic'} className="button button-quiet">
+              Investigate Traffic
+            </Link>
+            <Link to={jobId ? `/console/reports/${jobId}` : '/console/reports'} className="button button-quiet">
+              View Report
             </Link>
           </div>
         }
@@ -277,31 +294,34 @@ export function Evidence() {
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
                 gap: '8px',
-                maxHeight: '260px',
+                maxHeight: '280px',
                 overflowY: 'auto',
                 paddingRight: '4px',
                 fontSize: '11px',
                 fontFamily: 'var(--mono)',
               }}
             >
-              {[
-                { name: 'syn_count', val: '1,420', cat: 'packet' },
-                { name: 'fin_count', val: '89', cat: 'packet' },
-                { name: 'rst_count', val: '34', cat: 'packet' },
-                { name: 'psh_count', val: '640', cat: 'packet' },
-                { name: 'ack_count', val: '2,110', cat: 'packet' },
-                { name: 'syn_ratio', val: '0.412', cat: 'packet' },
-                { name: 'packet_length_mean', val: '432.5 B', cat: 'packet' },
-                { name: 'packet_length_std', val: '210.8 B', cat: 'packet' },
-                { name: 'flow_duration_mean', val: '4.82s', cat: 'flow' },
-                { name: 'flow_bytes_per_sec', val: '42,190 B/s', cat: 'flow' },
-                { name: 'flow_packets_per_sec', val: '118.4 p/s', cat: 'flow' },
-                { name: 'flow_concurrency', val: '38 active', cat: 'flow' },
-                { name: 'fwd_packet_ratio', val: '0.68', cat: 'flow' },
-                { name: 'temporal_delta_packets', val: '+24.1%', cat: 'temporal' },
-                { name: 'temporal_delta_bytes', val: '+18.4%', cat: 'temporal' },
-                { name: 'temporal_variance', val: '0.042', cat: 'temporal' },
-              ].map((f) => (
+              {(currentState?.features && currentState.features.length > 0
+                ? currentState.features
+                : [
+                    { name: 'syn_count', value: '1,420', category: 'packet', unit: '' },
+                    { name: 'fin_count', value: '89', category: 'packet', unit: '' },
+                    { name: 'rst_count', value: '34', category: 'packet', unit: '' },
+                    { name: 'psh_count', value: '640', category: 'packet', unit: '' },
+                    { name: 'ack_count', value: '2,110', category: 'packet', unit: '' },
+                    { name: 'syn_ratio', value: '0.412', category: 'packet', unit: '' },
+                    { name: 'packet_length_mean', value: '432.5', category: 'packet', unit: 'B' },
+                    { name: 'packet_length_std', value: '210.8', category: 'packet', unit: 'B' },
+                    { name: 'flow_duration_mean', value: '4.82', category: 'flow', unit: 's' },
+                    { name: 'flow_bytes_per_sec', value: '42,190', category: 'flow', unit: 'B/s' },
+                    { name: 'flow_packets_per_sec', value: '118.4', category: 'flow', unit: 'p/s' },
+                    { name: 'flow_concurrency', value: '38', category: 'flow', unit: 'active' },
+                    { name: 'fwd_packet_ratio', value: '0.68', category: 'flow', unit: '' },
+                    { name: 'temporal_delta_packets', value: '+24.1%', category: 'temporal', unit: '' },
+                    { name: 'temporal_delta_bytes', value: '+18.4%', category: 'temporal', unit: '' },
+                    { name: 'temporal_variance', value: '0.042', category: 'temporal', unit: '' },
+                  ]
+              ).map((f) => (
                 <div
                   key={f.name}
                   style={{
@@ -314,7 +334,10 @@ export function Evidence() {
                   }}
                 >
                   <span style={{ color: 'var(--text-secondary)' }}>{formatDisplayLabel(f.name)}</span>
-                  <strong style={{ color: 'var(--text-primary)' }}>{f.val}</strong>
+                  <strong style={{ color: 'var(--text-primary)' }}>
+                    {typeof f.value === 'number' ? (Number.isInteger(f.value) ? f.value.toLocaleString() : f.value.toFixed(3)) : f.value}
+                    {f.unit ? ` ${f.unit}` : ''}
+                  </strong>
                 </div>
               ))}
             </div>
@@ -634,9 +657,18 @@ export function Evidence() {
                   {driver.importance}
                 </span>
               </div>
-              <span style={{ color: 'var(--text-secondary)', maxWidth: '540px' }}>
-                {driver.interpretation}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <span style={{ color: 'var(--text-secondary)', maxWidth: '440px' }}>
+                  {driver.interpretation}
+                </span>
+                <Link
+                  to={jobId ? `/console/traffic/${jobId}` : '/console/traffic'}
+                  className="button button-quiet"
+                  style={{ fontSize: '10px', height: '24px', padding: '0 8px', gap: '4px', textDecoration: 'none' }}
+                >
+                  <Network size={11} /> Investigate Flows
+                </Link>
+              </div>
             </div>
           ))}
         </div>
@@ -703,25 +735,41 @@ export function Evidence() {
                   padding: '10px 12px',
                   borderRadius: '4px',
                   fontSize: '11.5px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>{formatDisplayLabel(node.name)}</strong>
-                  <span
-                    style={{
-                      fontSize: '9px',
-                      fontFamily: 'var(--font-sans)',
-                      padding: '1px 5px',
-                      borderRadius: '2px',
-                      border: '1px solid var(--border)',
-                      color: node.isSupporting ? 'var(--text-primary)' : 'var(--text-muted)',
-                    }}
-                  >
-                    {node.isSupporting ? 'SUPPORTING' : 'CONTRADICTORY'}
-                  </span>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <strong style={{ fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>{formatDisplayLabel(node.name)}</strong>
+                    <span
+                      style={{
+                        fontSize: '9px',
+                        fontFamily: 'var(--font-sans)',
+                        padding: '1px 5px',
+                        borderRadius: '2px',
+                        border: '1px solid var(--border)',
+                        color: node.isSupporting ? 'var(--text-primary)' : 'var(--text-muted)',
+                      }}
+                    >
+                      {node.isSupporting ? 'SUPPORTING' : 'CONTRADICTORY'}
+                    </span>
+                  </div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '11px', lineHeight: 1.4 }}>
+                    {node.explanation}
+                  </div>
                 </div>
-                <div style={{ color: 'var(--text-secondary)', fontSize: '11px', lineHeight: 1.4 }}>
-                  {node.explanation}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', paddingTop: '6px', borderTop: '1px solid var(--border)' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '10px' }}>
+                    Observed: {typeof node.observed === 'number' ? (Number.isInteger(node.observed) ? node.observed.toLocaleString() : node.observed.toFixed(3)) : node.observed}
+                  </span>
+                  <Link
+                    to={jobId ? `/console/traffic/${jobId}` : '/console/traffic'}
+                    style={{ fontSize: '10px', color: 'var(--text-primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '2px', fontWeight: 600 }}
+                  >
+                    Flows <ArrowRight size={10} />
+                  </Link>
                 </div>
               </div>
             ))}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, FileText, ShieldAlert } from 'lucide-react'
+import { Activity, ChevronDown, ChevronUp, Compass, FileText, GitBranch, Network, PlayCircle, Server, Shield, ShieldAlert, TrendingUp } from 'lucide-react'
 import type { UploadedAnalysisResponse } from '../types/api'
+import { formatBytes } from '../utils/format'
 import { AttackHorizonCard } from './AttackHorizonCard'
 import { AttackProgressionCard } from './AttackProgressionCard'
 import { EvidenceChain } from './EvidenceChain'
@@ -103,7 +104,93 @@ export function JobResult({ result, onReset }: JobResultProps) {
         )}
       </Panel>
 
-      {/* 2. CORE FORECASTING COMMAND CENTER */}
+      {/* 1b. File Information & Capture Provenance Panel */}
+      <Panel style={{ padding: '18px 22px', background: 'var(--bg-surface)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Server size={14} color="var(--text-primary)" />
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em', fontWeight: 600 }}>
+              Capture Telemetry & Processing Details
+            </span>
+          </div>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-secondary)' }}>
+            SCHEMA: MODEL_SCHEMA_45 (45-DIM PASSIVE)
+          </span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px' }}>
+          <div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>Filename</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }} title={result.source?.name || 'capture.pcap'}>
+              File: {result.source?.name || result.source?.filename || 'capture.pcap'}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>File Size</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
+              {formatBytes(result.source?.size_bytes ?? (result as any).upload?.size_bytes)}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>Packet Count</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
+              {(result.packet_count ?? traffic?.packets ?? 0).toLocaleString()}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>Capture Duration</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
+              {(result.duration_seconds ?? (traffic?.windows ? traffic.windows * 60 : 0))}s
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>Flow Count</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
+              {(traffic?.flows ?? 0).toLocaleString()}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>Observation Windows</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
+              {result.window_count ?? traffic?.windows ?? 1} (60s tumbling)
+            </div>
+          </div>
+        </div>
+      </Panel>
+
+      {/* 1c. Seamless Investigation Workflow Hub */}
+      <Panel style={{ padding: '14px 20px', background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Compass size={14} color="var(--text-primary)" />
+            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.06em', fontWeight: 600 }}>
+              Investigation Workspace
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            <a href={`/console/forecast/${jobId}`} className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+              <TrendingUp size={12} /> Forecast
+            </a>
+            <a href="/console/progression" className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+              <GitBranch size={12} /> Progression
+            </a>
+            <a href={`/console/evidence/${jobId}`} className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+              <Shield size={12} /> Evidence
+            </a>
+            <a href="/console/traffic" className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+              <Activity size={12} /> Traffic
+            </a>
+            <a href="/console/network" className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+              <Network size={12} /> Network
+            </a>
+            <a href="/console/replay" className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+              <PlayCircle size={12} /> Replay
+            </a>
+            <a href={`/console/reports/${jobId}`} className="button button-primary" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+              <FileText size={12} /> Report
+            </a>
+          </div>
+        </div>
+      </Panel>
       {(() => {
         const rawForecasts = (result.forecasts ?? []) as any[]
         const earlyWarning = (result as any).early_warning ?? (result as any).earlyWarning

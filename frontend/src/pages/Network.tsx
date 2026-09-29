@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
@@ -14,6 +14,8 @@ import {
 import { ActivityChart } from '../components/Charts'
 import { ErrorState, LoadingState, MetricCard, Panel, SectionHeading } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
+import { useAnalysis } from '../context/AnalysisContext'
+import { formatBytes } from '../utils/format'
 import type {
   TemporalGraphSequencePayload,
   TemporalGraphSnapshotPayload,
@@ -23,6 +25,7 @@ import type {
 
 export function Network() {
   const navigate = useNavigate()
+  const { canonical: contextCanonical } = useAnalysis()
   const { data, loading, error, reload } = useProductionData()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSnapshotIndex, setSelectedSnapshotIndex] = useState<number>(0)
@@ -87,33 +90,42 @@ export function Network() {
   const snapshotNodes: TemporalGraphNodePayload[] = currentSnapshot?.nodes ?? []
   const snapshotEdges: TemporalGraphEdgePayload[] = currentSnapshot?.edges ?? []
 
-  // Fallback host pairs if graph is not present
-  const defaultHostPairs = [
-    { src: '10.0.1.5', dst: '10.0.1.100', proto: 'TCP', port: 80, flows: 142, bytes: '184 KB', status: 'ACTIVE_PROBE', risk: 'HIGH' },
-    { src: '10.0.1.5', dst: '10.0.1.101', proto: 'TCP', port: 443, flows: 89, bytes: '112 KB', status: 'SYN_BURST', risk: 'HIGH' },
-    { src: '10.0.1.12', dst: '10.0.1.1', proto: 'UDP', port: 53, flows: 24, bytes: '18 KB', status: 'NOMINAL', risk: 'LOW' },
-    { src: '10.0.1.20', dst: '198.51.100.4', proto: 'TCP', port: 8080, flows: 65, bytes: '94 KB', status: 'SUSPICIOUS_BEACON', risk: 'MEDIUM' },
-    { src: '10.0.1.8', dst: '10.0.1.2', proto: 'TCP', port: 22, flows: 12, bytes: '14 KB', status: 'NOMINAL', risk: 'LOW' },
-  ]
-
-  // Derive display host pairs
-  const displayPairs = snapshotEdges.length > 0
-    ? snapshotEdges.map((e) => ({
+  // Derive real display host pairs from snapshot edges OR from actual sessions (Zero fake data)
+  const displayPairs = useMemo(() => {
+    if (snapshotEdges.length > 0) {
+      return snapshotEdges.map((e) => ({
         src: e.source_ip,
         dst: e.target_ip,
         proto: e.protocol,
         port: e.target_port,
         flows: e.flow_count,
-        bytes: e.byte_count >= 1048576
-          ? `${(e.byte_count / 1048576).toFixed(1)} MB`
-          : `${(e.byte_count / 1024).toFixed(1)} KB`,
+        bytes: formatBytes(e.byte_count),
+        rawBytes: e.byte_count,
+        packets: e.flow_count * 10,
         status: e.is_new_in_snapshot ? 'NEW_COMMUNICATION' : 'PERSISTED_FLOW',
         risk: e.is_new_in_snapshot ? 'HIGH' : 'LOW',
       }))
-    : defaultHostPairs
+    }
+    const sessions = contextCanonical?.sessions || (data?.results as any)?.investigation_sessions || []
+    if (sessions.length > 0) {
+      return sessions.map((s: any) => ({
+        src: s.src_ip,
+        dst: s.dst_ip,
+        proto: s.protocol,
+        port: s.dst_port,
+        flows: 1,
+        bytes: formatBytes(s.total_bytes),
+        rawBytes: s.total_bytes,
+        packets: s.total_packets,
+        status: s.behavioral_tags && s.behavioral_tags.length > 0 ? s.behavioral_tags.join(', ') : 'OBSERVED_COMMUNICATION',
+        risk: s.risk_assessment || 'LOW',
+      }))
+    }
+    return []
+  }, [snapshotEdges, contextCanonical?.sessions, data?.results])
 
   const filteredPairs = displayPairs.filter(
-    (p) =>
+    (p: any) =>
       p.src.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.dst.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -541,7 +553,7 @@ export function Network() {
                 </tr>
               </thead>
               <tbody>
-                {filteredPairs.map((pair, i) => (
+                {filteredPairs.map((pair: any, i: number) => (
                   <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
                     <td style={{ padding: '10px 8px', fontWeight: 600, color: 'var(--text-primary)' }}>{pair.src}</td>
                     <td style={{ padding: '10px 8px', color: 'var(--text-muted)' }}><ArrowRight size={12} /></td>

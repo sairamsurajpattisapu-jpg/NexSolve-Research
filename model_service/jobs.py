@@ -284,6 +284,11 @@ class JobManager:
         with self._lock:
             return self._jobs.get(job_id)
 
+    def list_jobs(self, limit: int = 50) -> list[JobRecord]:
+        with self._lock:
+            jobs = sorted(self._jobs.values(), key=lambda j: j.created_at, reverse=True)
+            return jobs[:limit]
+
     def _update_stage(self, job_id: str, stage: JobStage) -> None:
         with self._lock:
             job = self._jobs.get(job_id)
