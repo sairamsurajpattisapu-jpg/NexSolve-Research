@@ -335,8 +335,10 @@ class JobManager:
                 raise ValueError("No capture content provided.")
 
             try:
-                _pkts, canonical_windows, quality = extract_canonical_capture(capture_path)
+                _pkts, canonical_windows, quality = extract_canonical_capture(capture_path, include_raw_packets=False)
                 del _pkts
+                import gc
+                gc.collect()
             except Exception as error:
                 raise RuntimeError("The file could not be parsed as a supported PCAP/PCAPNG capture.") from error
             pcap_parsing_ms = round((time.perf_counter() - t_parse_start) * 1000, 2)
@@ -445,16 +447,36 @@ class JobManager:
             t_forecast_start = time.perf_counter()
             self._update_stage(job_id, "FORECAST")
 
-            import dataclasses
+            seen_flow_ids = set()
             all_flows_dict = []
             for cw in canonical_windows:
                 for f in cw.flows:
+                    fid = f.get("flow_id") if isinstance(f, dict) else getattr(f, "flow_id", None)
+                    if fid and fid in seen_flow_ids:
+                        continue
+                    if fid:
+                        seen_flow_ids.add(fid)
                     if isinstance(f, dict):
                         all_flows_dict.append(f)
-                    elif dataclasses.is_dataclass(f):
-                        all_flows_dict.append(dataclasses.asdict(f))
-                    elif hasattr(f, "__dict__"):
-                        all_flows_dict.append(f.__dict__)
+                    else:
+                        all_flows_dict.append({
+                            "flow_id": fid,
+                            "src_ip": getattr(f, "src_ip", None),
+                            "dst_ip": getattr(f, "dst_ip", None),
+                            "src_port": getattr(f, "src_port", None),
+                            "dst_port": getattr(f, "dst_port", None),
+                            "protocol": getattr(f, "protocol", None),
+                            "proto": getattr(f, "protocol", None),
+                            "src_bytes": getattr(f, "src_bytes", 0),
+                            "dst_bytes": getattr(f, "dst_bytes", 0),
+                            "packets": getattr(f, "packets", 0),
+                            "total_packets": getattr(f, "packets", 0),
+                            "duration": getattr(f, "duration", 0.0),
+                            "start_timestamp": getattr(f, "start_timestamp", None),
+                            "end_timestamp": getattr(f, "end_timestamp", None),
+                            "state": getattr(f, "state", "CLOSED"),
+                            "completeness": getattr(f, "completeness", "COMPLETE"),
+                        })
 
             from ml.forecasting.central_gate import execute_central_forecast_gate
 
@@ -546,6 +568,9 @@ class JobManager:
             # Clear flows and packets from canonical_windows immediately after flow analytics extraction
             import dataclasses
             canonical_windows = [dataclasses.replace(cw, flows=(), packets=()) for cw in canonical_windows]
+            del all_flows_dict
+            import gc
+            gc.collect()
 
             from ml.forecasting.attack_progression import forecast_attack_progression
             from nexsolve_core.graph import build_evidence_intelligence_graph

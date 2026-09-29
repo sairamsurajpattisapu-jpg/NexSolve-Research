@@ -587,11 +587,25 @@ class _WindowAccumulator:
         return result
 
 
+class PacketSequence(tuple):
+    """Memory-efficient tuple subclass representing a sequence of packets."""
+    def __new__(cls, items: Iterable[Any] = (), total_count: int | None = None) -> PacketSequence:
+        instance = super().__new__(cls, items)
+        instance._total_count = len(items) if total_count is None else int(total_count)
+        return instance
+
+    def __len__(self) -> int:
+        return self._total_count
+
+
 def extract_canonical_capture(
     pcap_path: str | Path,
     window_seconds: int = 60,
     max_packets: int | None = None,
-) -> tuple[tuple[PacketRecord, ...], tuple[TemporalWindow, ...], dict[str, Any]]:
+    include_raw_packets: bool = True,
+    max_stored_packets: int = 25_000,
+) -> tuple[Sequence[PacketRecord], tuple[TemporalWindow, ...], dict[str, Any]]:
+    from collections import deque
     capture_path = Path(pcap_path)
     capture_id = capture_path.name
     packets: list[PacketRecord] = []
@@ -603,7 +617,16 @@ def extract_canonical_capture(
     timestamp_equal = 0
     invalid_timestamp = 0
     duplicate_count = 0
+    ipv4_count = 0
+    ipv6_count = 0
+    tcp_count = 0
+    udp_count = 0
+    icmp_count = 0
+    arp_count = 0
+    vlan_count = 0
+    fragmented_count = 0
     fingerprints: set[tuple[Any, ...]] = set()
+    fingerprint_queue: deque[tuple[Any, ...]] = deque(maxlen=20000)
     first_fingerprint_index: dict[tuple[Any, ...], int] = {}
     previous_timestamp: float | None = None
     fast_decoder_succeeded = False
@@ -630,16 +653,40 @@ def extract_canonical_capture(
                             fingerprint = (record.timestamp, record.src_ip, record.dst_ip, record.protocol, record.src_port, record.dst_port, record.packet_length, record.tcp_seq)
                             if fingerprint in fingerprints:
                                 duplicate_count += 1
-                                record = replace(record, duplicate_of_index=first_fingerprint_index[fingerprint], parsing_status="duplicate")
+                                record = replace(record, duplicate_of_index=first_fingerprint_index.get(fingerprint), parsing_status="duplicate")
                             else:
+                                if len(fingerprint_queue) == fingerprint_queue.maxlen:
+                                    oldest = fingerprint_queue.popleft()
+                                    fingerprints.discard(oldest)
+                                    first_fingerprint_index.pop(oldest, None)
+                                fingerprints.add(fingerprint)
+                                fingerprint_queue.append(fingerprint)
                                 first_fingerprint_index[fingerprint] = packet_index
-                            fingerprints.add(fingerprint)
                             if record.parsing_status == "unsupported" or record.unsupported_reason is not None:
                                 unsupported += 1
                             if record.truncation_status == "TRUE":
                                 truncated += 1
                             elif record.truncation_status == "UNKNOWN":
                                 truncation_unknown += 1
+
+                            if record.ip_version == 4:
+                                ipv4_count += 1
+                            elif record.ip_version == 6:
+                                ipv6_count += 1
+                            proto = record.protocol
+                            if proto == "TCP":
+                                tcp_count += 1
+                            elif proto == "UDP":
+                                udp_count += 1
+                            elif proto in ("ICMP", "ICMPv6"):
+                                icmp_count += 1
+                            elif proto == "ARP":
+                                arp_count += 1
+                            if record.vlan_id is not None:
+                                vlan_count += 1
+                            if (record.fragment_offset is not None and record.fragment_offset > 0) or record.more_fragments:
+                                fragmented_count += 1
+
                             packets.append(record)
                             packet_index += 1
                         fast_decoder_succeeded = True
@@ -647,8 +694,10 @@ def extract_canonical_capture(
         fast_decoder_succeeded = False
         packets.clear()
         fingerprints.clear()
+        fingerprint_queue.clear()
         first_fingerprint_index.clear()
         malformed = unsupported = truncated = truncation_unknown = timestamp_anomalies = timestamp_equal = invalid_timestamp = duplicate_count = 0
+        ipv4_count = ipv6_count = tcp_count = udp_count = icmp_count = arp_count = vlan_count = fragmented_count = 0
         previous_timestamp = None
 
     if not fast_decoder_succeeded:
@@ -678,16 +727,40 @@ def extract_canonical_capture(
                     fingerprint = (record.timestamp, record.src_ip, record.dst_ip, record.protocol, record.src_port, record.dst_port, record.packet_length, record.tcp_seq)
                     if fingerprint in fingerprints:
                         duplicate_count += 1
-                        record = replace(record, duplicate_of_index=first_fingerprint_index[fingerprint], parsing_status="duplicate")
+                        record = replace(record, duplicate_of_index=first_fingerprint_index.get(fingerprint), parsing_status="duplicate")
                     else:
+                        if len(fingerprint_queue) == fingerprint_queue.maxlen:
+                            oldest = fingerprint_queue.popleft()
+                            fingerprints.discard(oldest)
+                            first_fingerprint_index.pop(oldest, None)
+                        fingerprints.add(fingerprint)
+                        fingerprint_queue.append(fingerprint)
                         first_fingerprint_index[fingerprint] = packet_index
-                    fingerprints.add(fingerprint)
                     if record.parsing_status == "unsupported" or record.unsupported_reason is not None:
                         unsupported += 1
                     if record.truncation_status == "TRUE":
                         truncated += 1
                     elif record.truncation_status == "UNKNOWN":
                         truncation_unknown += 1
+
+                    if record.ip_version == 4:
+                        ipv4_count += 1
+                    elif record.ip_version == 6:
+                        ipv6_count += 1
+                    proto = record.protocol
+                    if proto == "TCP":
+                        tcp_count += 1
+                    elif proto == "UDP":
+                        udp_count += 1
+                    elif proto in ("ICMP", "ICMPv6"):
+                        icmp_count += 1
+                    elif proto == "ARP":
+                        arp_count += 1
+                    if record.vlan_id is not None:
+                        vlan_count += 1
+                    if (record.fragment_offset is not None and record.fragment_offset > 0) or record.more_fragments:
+                        fragmented_count += 1
+
                     packets.append(record)
             except Exception:
                 malformed += 1
@@ -740,14 +813,40 @@ def extract_canonical_capture(
         original_order_preserved=not timestamps_reordered,
         incomplete_flow_count=incomplete_flow_count,
         capture_id=capture_id,
+        parsed_packets_count=len(packets),
+        ipv4_count=ipv4_count,
+        ipv6_count=ipv6_count,
+        tcp_count=tcp_count,
+        udp_count=udp_count,
+        icmp_count=icmp_count,
+        arp_count=arp_count,
+        vlan_count=vlan_count,
+        fragmented_packet_count=fragmented_count,
     )
     windows = list(build_temporal_windows(packets, flows, quality, window_seconds=window_seconds))
+
+    from nexsolve_core.state import _FlowAccumulator, _aggregate_flow_features
+    all_flows = {flow.flow_id: flow for window in windows for flow in window.flows}
+    accumulators = {flow_id: _FlowAccumulator(flow) for flow_id, flow in all_flows.items()}
+    pkt_to_flow = {idx: flow.flow_id for flow in all_flows.values() for idx in flow.provenance.packet_indexes}
+
     enriched: list[TemporalWindow] = []
     for window in windows:
         bucket = window.start_timestamp // window_seconds
         retrans_count = retransmissions_by_window[bucket]
         features = compute_packet_window_stats(window.packets, retrans_count, calculate_port_scan=True)
-        enriched.append(replace(window, aggregate_features=features, detection_features={"retransmission_count": retrans_count}))
+        for packet in window.packets:
+            if packet.packet_index is not None:
+                fid = pkt_to_flow.get(packet.packet_index)
+                if fid is not None:
+                    accumulators[fid].add_packet(packet)
+        flow_features, lifecycle = _aggregate_flow_features(window, accumulators=accumulators)
+        features.update(flow_features)
+        features["lifecycle"] = lifecycle
+
+        stored_window_packets = () if (not include_raw_packets or len(packets) > max_stored_packets) else window.packets
+        enriched.append(replace(window, aggregate_features=features, detection_features={"retransmission_count": retrans_count}, packets=stored_window_packets))
+
     legacy_quality = quality.to_dict()
     legacy_quality.update({
         "packets_read": quality.total_packets_observed,
@@ -776,7 +875,21 @@ def extract_canonical_capture(
         "vlan": quality.vlan_count,
         "status": quality.status.value,
     })
-    return tuple(packets), tuple(enriched), legacy_quality
+
+    stored_packets = tuple(packets) if (include_raw_packets and len(packets) <= max_stored_packets) else ()
+    if not include_raw_packets or len(packets) > max_stored_packets:
+        packets.clear()
+        fingerprints.clear()
+        fingerprint_queue.clear()
+        first_fingerprint_index.clear()
+        sequence_ends.clear()
+        all_flows.clear()
+        accumulators.clear()
+        pkt_to_flow.clear()
+        import gc
+        gc.collect()
+
+    return PacketSequence(stored_packets, total_count=quality.parsed_packets), tuple(enriched), legacy_quality
 
 
 def extract_packet_windows(pcap_path: str | Path, window_seconds: int = 60, max_packets: int | None = None, checkpoint_path: str | Path | None = None, progress_interval: int = 100_000) -> tuple[list[dict[str, Any]], dict[str, Any]]:

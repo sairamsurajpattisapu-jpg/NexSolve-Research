@@ -105,8 +105,10 @@ def analyze_uploaded_capture(
         else:
             capture_path.write_bytes(content)  # type: ignore[arg-type]
         try:
-            _packets, canonical_windows, quality = extract_canonical_capture(capture_path)
+            _packets, canonical_windows, quality = extract_canonical_capture(capture_path, include_raw_packets=False)
             del _packets
+            import gc
+            gc.collect()
         except Exception as error:
             raise RuntimeError("The file could not be parsed as a supported PCAP/PCAPNG capture.") from error
             
@@ -126,6 +128,8 @@ def analyze_uploaded_capture(
                     builder = sessions_builder.get(endpoint_pair)
                     is_orig = ((pkt.src_ip, pkt.src_port) == endpoint_pair[0])
                     if builder is None:
+                        if len(sessions_builder) >= 20000:
+                            continue
                         sess_id = f"tcp-{pkt.src_ip}:{pkt.src_port}-{pkt.dst_ip}:{pkt.dst_port}-{int(pkt.timestamp)}"
                         builder = _TCPSessionBuilder(
                             session_id=sess_id,
@@ -138,6 +142,8 @@ def analyze_uploaded_capture(
                         sessions_builder[endpoint_pair] = builder
                     builder.update(pkt, is_orig)
         tcp_sessions_tuple = tuple(b.finalize() for b in sessions_builder.values())
+        sessions_builder.clear()
+        gc.collect()
 
         from nexsolve_core.provenance import CaptureFingerprint
         from integrations.scapy_adapter import ScapyAdapter
@@ -213,16 +219,36 @@ def analyze_uploaded_capture(
     compatibility["active_schema"] = "MODEL_SCHEMA_45"
 
     # Trust Layer & Frozen World Model integration
-    import dataclasses
+    seen_flow_ids = set()
     all_flows_dict = []
     for cw in canonical_windows:
         for f in cw.flows:
+            fid = f.get("flow_id") if isinstance(f, dict) else getattr(f, "flow_id", None)
+            if fid and fid in seen_flow_ids:
+                continue
+            if fid:
+                seen_flow_ids.add(fid)
             if isinstance(f, dict):
                 all_flows_dict.append(f)
-            elif dataclasses.is_dataclass(f):
-                all_flows_dict.append(dataclasses.asdict(f))
-            elif hasattr(f, "__dict__"):
-                all_flows_dict.append(f.__dict__)
+            else:
+                all_flows_dict.append({
+                    "flow_id": fid,
+                    "src_ip": getattr(f, "src_ip", None),
+                    "dst_ip": getattr(f, "dst_ip", None),
+                    "src_port": getattr(f, "src_port", None),
+                    "dst_port": getattr(f, "dst_port", None),
+                    "protocol": getattr(f, "protocol", None),
+                    "proto": getattr(f, "protocol", None),
+                    "src_bytes": getattr(f, "src_bytes", 0),
+                    "dst_bytes": getattr(f, "dst_bytes", 0),
+                    "packets": getattr(f, "packets", 0),
+                    "total_packets": getattr(f, "packets", 0),
+                    "duration": getattr(f, "duration", 0.0),
+                    "start_timestamp": getattr(f, "start_timestamp", None),
+                    "end_timestamp": getattr(f, "end_timestamp", None),
+                    "state": getattr(f, "state", "CLOSED"),
+                    "completeness": getattr(f, "completeness", "COMPLETE"),
+                })
 
     from ml.forecasting.central_gate import execute_central_forecast_gate
 
@@ -321,6 +347,9 @@ def analyze_uploaded_capture(
     # Clear flows and packets from canonical_windows immediately after flow analytics extraction
     import dataclasses
     canonical_windows = [dataclasses.replace(cw, flows=(), packets=()) for cw in canonical_windows]
+    del all_flows_dict
+    import gc
+    gc.collect()
 
     graph_fusion = fuse_forecast_with_temporal_graph(
         baseline_forecast_points=forecast_points,

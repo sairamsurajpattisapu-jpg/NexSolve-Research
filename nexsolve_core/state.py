@@ -632,17 +632,28 @@ def build_network_state_candidates(windows: Iterable[TemporalWindow], feature_sc
     candidates: list[NetworkStateCandidate] = []
     registry = feature_registry(include_candidate_extended=True)
 
-    all_flows = {flow.flow_id: flow for window in ordered for flow in window.flows}
-    accumulators = {flow_id: _FlowAccumulator(flow) for flow_id, flow in all_flows.items()}
-    pkt_to_flow = {idx: flow.flow_id for flow in all_flows.values() for idx in flow.provenance.packet_indexes}
+    has_precomputed_flows = all(
+        bool(window.aggregate_features and "mean_duration" in window.aggregate_features)
+        for window in ordered
+    ) if ordered else False
+
+    if not has_precomputed_flows:
+        all_flows = {flow.flow_id: flow for window in ordered for flow in window.flows}
+        accumulators = {flow_id: _FlowAccumulator(flow) for flow_id, flow in all_flows.items()}
+        pkt_to_flow = {idx: flow.flow_id for flow in all_flows.values() for idx in flow.provenance.packet_indexes}
+    else:
+        accumulators = None
 
     for window in ordered:
-        for packet in window.packets:
-            if packet.packet_index is not None:
-                fid = pkt_to_flow.get(packet.packet_index)
-                if fid is not None:
-                    accumulators[fid].add_packet(packet)
-        flow_features, lifecycle = _aggregate_flow_features(window, accumulators=accumulators)
+        if accumulators is not None:
+            for packet in getattr(window, "packets", ()):
+                if packet.packet_index is not None:
+                    fid = pkt_to_flow.get(packet.packet_index)
+                    if fid is not None:
+                        accumulators[fid].add_packet(packet)
+            flow_features, lifecycle = _aggregate_flow_features(window, accumulators=accumulators)
+        else:
+            flow_features, lifecycle = _aggregate_flow_features(window)
         active_flow_ids = set(lifecycle["active_flow_ids"])
         previous_flow_ids = set(previous.flow_lifecycle.get("active_flow_ids", ()) if previous is not None and previous.flow_lifecycle else ())
         lifecycle = {

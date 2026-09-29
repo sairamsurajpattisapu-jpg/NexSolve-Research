@@ -32,6 +32,16 @@ BLOCK_SPB = 0x00000003  # Simple Packet Block
 PCAPNG_BYTE_ORDER_MAGIC_LE = 0x1A2B3C4D
 PCAPNG_BYTE_ORDER_MAGIC_BE = 0x4D3C2B1A
 
+# Link Layer Types (Data Link Types)
+LINKTYPE_NULL = 0
+LINKTYPE_ETHERNET = 1
+LINKTYPE_RAW = 12
+LINKTYPE_RAW_ALT = 101
+LINKTYPE_LOOP = 108
+LINKTYPE_LINUX_SLL = 113
+LINKTYPE_LINUX_SLL2 = 276
+SUPPORTED_LINK_TYPES = {0, 1, 12, 101, 108, 113, 276}
+
 # Protocol Numbers
 IP_PROTO_ICMP = 1
 IP_PROTO_TCP = 6
@@ -152,8 +162,8 @@ class FastPcapDecoder:
         else:
             self.fallback_needed = True
 
-        # If link type is not standard Ethernet (1), flag for Scapy fallback
-        if not self.is_pcapng and self.link_type != 1:
+        # If link type is not in supported set, flag for Scapy fallback
+        if not self.is_pcapng and self.link_type not in SUPPORTED_LINK_TYPES:
             self.fallback_needed = True
 
     def decode_packets(
@@ -205,6 +215,7 @@ class FastPcapDecoder:
                 timestamp=timestamp,
                 packet_index=packet_index,
                 capture_start=capture_start,
+                link_type=self.link_type,
             )
             self.current_offset = offset
             yield record
@@ -220,7 +231,7 @@ class FastPcapDecoder:
         buf = self.buf
         endian = self.endian
         packet_index = 0
-        interfaces: dict[int, float] = {}  # interface_id -> if_tsresol
+        interfaces: dict[int, tuple[float, int]] = {}  # interface_id -> (if_tsresol, link_type)
         current_interface_id = 0
         default_tsresol = 1e-6
 
@@ -240,7 +251,7 @@ class FastPcapDecoder:
                     pkt_offset = offset + 28
                     if pkt_offset + caplen <= file_size:
                         raw_ts = (ts_high << 32) | ts_low
-                        tsresol = interfaces.get(iface_id, default_tsresol)
+                        tsresol, pkt_link_type = interfaces.get(iface_id, (default_tsresol, self.link_type))
                         timestamp = raw_ts * tsresol
                         pkt_bytes = buf[pkt_offset : pkt_offset + caplen]
 
@@ -251,6 +262,7 @@ class FastPcapDecoder:
                             timestamp=timestamp,
                             packet_index=packet_index,
                             capture_start=capture_start,
+                            link_type=pkt_link_type,
                         )
                         self.current_offset = offset + block_len
                         yield record
@@ -273,6 +285,7 @@ class FastPcapDecoder:
                             timestamp=0.0,
                             packet_index=packet_index,
                             capture_start=capture_start,
+                            link_type=self.link_type,
                         )
                         yield record
                         packet_index += 1
@@ -295,7 +308,7 @@ class FastPcapDecoder:
                         else:
                             if_tsresol = 10.0 ** -tsresol_byte
                     opt_offset = opt_val_offset + ((opt_len + 3) & ~3)
-                interfaces[current_interface_id] = if_tsresol
+                interfaces[current_interface_id] = (if_tsresol, link_type)
                 current_interface_id += 1
 
             offset += block_len
@@ -308,8 +321,9 @@ class FastPcapDecoder:
         timestamp: float,
         packet_index: int,
         capture_start: float | None,
+        link_type: int = 1,
     ) -> PacketRecord:
-        """Parse Ethernet frame, IPv4/IPv6, and transport protocols into PacketRecord."""
+        """Parse Ethernet, Linux SLL, Raw IP, or BSD loopback frame, IPv4/IPv6, and transport protocols into PacketRecord."""
         parsing_status = "parsed"
         unsupported_reason: str | None = None
         src_ip: str | None = None
@@ -338,223 +352,245 @@ class FastPcapDecoder:
         vlan_ids: list[int] = []
         truncation_status = "UNKNOWN"
 
-        if incl_len >= 14:
-            eth_type = (pkt_bytes[12] << 8) | pkt_bytes[13]
-            ip_offset = 14
+        eth_type: int | None = None
+        ip_offset = 0
 
-            while eth_type in (0x8100, 0x88A8) and ip_offset + 4 <= incl_len:
-                tci = (pkt_bytes[ip_offset] << 8) | pkt_bytes[ip_offset + 1]
-                vid = tci & 0x0FFF
-                prio = (tci >> 13) & 0x07
-                vlan_ids.append(vid)
-                if vlan_id is None:
-                    vlan_id = vid
-                    vlan_priority = prio
-                eth_type = (pkt_bytes[ip_offset + 2] << 8) | pkt_bytes[ip_offset + 3]
-                ip_offset += 4
+        if link_type == 1:  # DLT_EN10MB / Standard Ethernet
+            if incl_len >= 14:
+                eth_type = (pkt_bytes[12] << 8) | pkt_bytes[13]
+                ip_offset = 14
 
-            if eth_type == 0x0800 and ip_offset + 20 <= incl_len:
-                ip_version = 4
-                ihl = (pkt_bytes[ip_offset] & 0x0F) * 4
-                tot_len = (pkt_bytes[ip_offset + 2] << 8) | pkt_bytes[ip_offset + 3]
-                identification = (pkt_bytes[ip_offset + 4] << 8) | pkt_bytes[ip_offset + 5]
-                flags_frag = (pkt_bytes[ip_offset + 6] << 8) | pkt_bytes[ip_offset + 7]
-                frag_offset = flags_frag & 0x1FFF
-                more_frag = bool(flags_frag & 0x2000)
-                fragment_offset = frag_offset
-                more_fragments = more_frag
-                ttl = pkt_bytes[ip_offset + 8]
-                proto = pkt_bytes[ip_offset + 9]
+                while eth_type in (0x8100, 0x88A8) and ip_offset + 4 <= incl_len:
+                    tci = (pkt_bytes[ip_offset] << 8) | pkt_bytes[ip_offset + 1]
+                    vid = tci & 0x0FFF
+                    prio = (tci >> 13) & 0x07
+                    vlan_ids.append(vid)
+                    if vlan_id is None:
+                        vlan_id = vid
+                        vlan_priority = prio
+                    eth_type = (pkt_bytes[ip_offset + 2] << 8) | pkt_bytes[ip_offset + 3]
+                    ip_offset += 4
+        elif link_type == 113:  # DLT_LINUX_SLL / Linux cooked capture
+            if incl_len >= 16:
+                eth_type = (pkt_bytes[14] << 8) | pkt_bytes[15]
+                ip_offset = 16
+        elif link_type == 276:  # DLT_LINUX_SLL2
+            if incl_len >= 20:
+                eth_type = (pkt_bytes[0] << 8) | pkt_bytes[1]
+                ip_offset = 20
+        elif link_type in (12, 101):  # DLT_RAW / Raw IP
+            if incl_len >= 1:
+                ip_v = (pkt_bytes[0] >> 4) & 0x0F
+                eth_type = 0x0800 if ip_v == 4 else 0x86DD if ip_v == 6 else None
+                ip_offset = 0
+        elif link_type in (0, 108):  # DLT_NULL / DLT_LOOP
+            if incl_len >= 4:
+                family = struct.unpack_from("<I", pkt_bytes, 0)[0]
+                if family in (2, 0x02000000):
+                    eth_type = 0x0800
+                elif family in (24, 28, 30, 0x18000000, 0x1C000000, 0x1E000000):
+                    eth_type = 0x86DD
+                ip_offset = 4
 
-                src_ip = _fast_ipv4_str(
-                    pkt_bytes[ip_offset + 12],
-                    pkt_bytes[ip_offset + 13],
-                    pkt_bytes[ip_offset + 14],
-                    pkt_bytes[ip_offset + 15],
-                )
-                dst_ip = _fast_ipv4_str(
-                    pkt_bytes[ip_offset + 16],
-                    pkt_bytes[ip_offset + 17],
-                    pkt_bytes[ip_offset + 18],
-                    pkt_bytes[ip_offset + 19],
-                )
+        if eth_type == 0x0800 and ip_offset + 20 <= incl_len:
+            ip_version = 4
+            ihl = (pkt_bytes[ip_offset] & 0x0F) * 4
+            tot_len = (pkt_bytes[ip_offset + 2] << 8) | pkt_bytes[ip_offset + 3]
+            identification = (pkt_bytes[ip_offset + 4] << 8) | pkt_bytes[ip_offset + 5]
+            flags_frag = (pkt_bytes[ip_offset + 6] << 8) | pkt_bytes[ip_offset + 7]
+            frag_offset = flags_frag & 0x1FFF
+            more_frag = bool(flags_frag & 0x2000)
+            fragment_offset = frag_offset
+            more_fragments = more_frag
+            ttl = pkt_bytes[ip_offset + 8]
+            proto = pkt_bytes[ip_offset + 9]
 
-                captured_ip_len = incl_len - ip_offset
-                truncation_status = "FALSE" if captured_ip_len >= tot_len else "TRUE"
+            src_ip = _fast_ipv4_str(
+                pkt_bytes[ip_offset + 12],
+                pkt_bytes[ip_offset + 13],
+                pkt_bytes[ip_offset + 14],
+                pkt_bytes[ip_offset + 15],
+            )
+            dst_ip = _fast_ipv4_str(
+                pkt_bytes[ip_offset + 16],
+                pkt_bytes[ip_offset + 17],
+                pkt_bytes[ip_offset + 18],
+                pkt_bytes[ip_offset + 19],
+            )
 
-                trans_offset = ip_offset + ihl
-                effective_ip_payload = min(captured_ip_len, tot_len) - ihl
+            captured_ip_len = incl_len - ip_offset
+            truncation_status = "FALSE" if captured_ip_len >= tot_len else "TRUE"
 
-                if proto == IP_PROTO_TCP:
-                    protocol = "TCP"
-                    if trans_offset + 20 <= incl_len:
-                        src_port = (pkt_bytes[trans_offset] << 8) | pkt_bytes[trans_offset + 1]
-                        dst_port = (pkt_bytes[trans_offset + 2] << 8) | pkt_bytes[trans_offset + 3]
-                        tcp_seq = (
-                            (pkt_bytes[trans_offset + 4] << 24)
-                            | (pkt_bytes[trans_offset + 5] << 16)
-                            | (pkt_bytes[trans_offset + 6] << 8)
-                            | pkt_bytes[trans_offset + 7]
+            trans_offset = ip_offset + ihl
+            effective_ip_payload = min(captured_ip_len, tot_len) - ihl
+
+            if proto == IP_PROTO_TCP:
+                protocol = "TCP"
+                if trans_offset + 20 <= incl_len:
+                    src_port = (pkt_bytes[trans_offset] << 8) | pkt_bytes[trans_offset + 1]
+                    dst_port = (pkt_bytes[trans_offset + 2] << 8) | pkt_bytes[trans_offset + 3]
+                    tcp_seq = (
+                        (pkt_bytes[trans_offset + 4] << 24)
+                        | (pkt_bytes[trans_offset + 5] << 16)
+                        | (pkt_bytes[trans_offset + 6] << 8)
+                        | pkt_bytes[trans_offset + 7]
+                    )
+                    tcp_ack = (
+                        (pkt_bytes[trans_offset + 8] << 24)
+                        | (pkt_bytes[trans_offset + 9] << 16)
+                        | (pkt_bytes[trans_offset + 10] << 8)
+                        | pkt_bytes[trans_offset + 11]
+                    )
+                    tcp_hdr_len = ((pkt_bytes[trans_offset + 12] >> 4) & 0x0F) * 4
+                    tcp_flags = pkt_bytes[trans_offset + 13]
+                    tcp_window = (pkt_bytes[trans_offset + 14] << 8) | pkt_bytes[trans_offset + 15]
+                    payload_length = max(0, incl_len - trans_offset - tcp_hdr_len)
+            elif proto == IP_PROTO_UDP:
+                protocol = "UDP"
+                if trans_offset + 8 <= incl_len:
+                    src_port = (pkt_bytes[trans_offset] << 8) | pkt_bytes[trans_offset + 1]
+                    dst_port = (pkt_bytes[trans_offset + 2] << 8) | pkt_bytes[trans_offset + 3]
+                    payload_length = max(0, incl_len - trans_offset - 8)
+            elif proto == IP_PROTO_ICMP:
+                protocol = "ICMP"
+                if trans_offset + 8 <= incl_len:
+                    icmp_type = pkt_bytes[trans_offset]
+                    icmp_code = pkt_bytes[trans_offset + 1]
+                    payload_length = max(0, incl_len - trans_offset - 8)
+            else:
+                protocol = f"IPv4_PROTO_{proto}"
+                parsing_status = "unsupported"
+                unsupported_reason = "Transport protocol is unavailable to the canonical extractor."
+
+        elif eth_type == 0x86DD and ip_offset + 40 <= incl_len:
+            ip_version = 6
+            plen = (pkt_bytes[ip_offset + 4] << 8) | pkt_bytes[ip_offset + 5]
+            next_header = pkt_bytes[ip_offset + 6]
+            ttl = pkt_bytes[ip_offset + 7]
+
+            src_ip = socket.inet_ntop(socket.AF_INET6, bytes(pkt_bytes[ip_offset + 8 : ip_offset + 24]))
+            dst_ip = socket.inet_ntop(socket.AF_INET6, bytes(pkt_bytes[ip_offset + 24 : ip_offset + 40]))
+
+            captured_ipv6_len = incl_len - ip_offset
+            truncation_status = "FALSE" if captured_ipv6_len >= (plen + 40) else "TRUE"
+
+            curr_offset = ip_offset + 40
+            ext_list: list[str] = []
+
+            while next_header in (
+                IPV6_EXT_HOP_BY_HOP,
+                IPV6_EXT_ROUTING,
+                IPV6_EXT_FRAGMENT,
+                IPV6_EXT_DEST_OPT,
+                IPV6_EXT_AH,
+                IPV6_EXT_ESP,
+            ):
+                ext_name = IPV6_EXT_NAMES.get(next_header, f"IPv6ExtHdr_{next_header}")
+                ext_list.append(ext_name)
+
+                if next_header == IPV6_EXT_FRAGMENT:
+                    if curr_offset + 8 <= incl_len:
+                        nxt = pkt_bytes[curr_offset]
+                        off_flg = (pkt_bytes[curr_offset + 2] << 8) | pkt_bytes[curr_offset + 3]
+                        frag_id = (
+                            (pkt_bytes[curr_offset + 4] << 24)
+                            | (pkt_bytes[curr_offset + 5] << 16)
+                            | (pkt_bytes[curr_offset + 6] << 8)
+                            | pkt_bytes[curr_offset + 7]
                         )
-                        tcp_ack = (
-                            (pkt_bytes[trans_offset + 8] << 24)
-                            | (pkt_bytes[trans_offset + 9] << 16)
-                            | (pkt_bytes[trans_offset + 10] << 8)
-                            | pkt_bytes[trans_offset + 11]
-                        )
-                        tcp_hdr_len = ((pkt_bytes[trans_offset + 12] >> 4) & 0x0F) * 4
-                        tcp_flags = pkt_bytes[trans_offset + 13]
-                        tcp_window = (pkt_bytes[trans_offset + 14] << 8) | pkt_bytes[trans_offset + 15]
-                        payload_length = max(0, incl_len - trans_offset - tcp_hdr_len)
-                elif proto == IP_PROTO_UDP:
-                    protocol = "UDP"
-                    if trans_offset + 8 <= incl_len:
-                        src_port = (pkt_bytes[trans_offset] << 8) | pkt_bytes[trans_offset + 1]
-                        dst_port = (pkt_bytes[trans_offset + 2] << 8) | pkt_bytes[trans_offset + 3]
-                        payload_length = max(0, incl_len - trans_offset - 8)
-                elif proto == IP_PROTO_ICMP:
-                    protocol = "ICMP"
-                    if trans_offset + 8 <= incl_len:
-                        icmp_type = pkt_bytes[trans_offset]
-                        icmp_code = pkt_bytes[trans_offset + 1]
-                        payload_length = max(0, incl_len - trans_offset - 8)
+                        ipv6_fragment_id = frag_id
+                        ipv6_fragment_offset = off_flg >> 3
+                        ipv6_more_fragments = bool(off_flg & 0x01)
+                        fragment_offset = ipv6_fragment_offset
+                        more_fragments = ipv6_more_fragments
+                        identification = ipv6_fragment_id
+                        next_header = nxt
+                        curr_offset += 8
+                    else:
+                        break
                 else:
-                    protocol = f"IPv4_PROTO_{proto}"
+                    if curr_offset + 2 <= incl_len:
+                        nxt = pkt_bytes[curr_offset]
+                        hdr_len = (pkt_bytes[curr_offset + 1] + 1) * 8
+                        next_header = nxt
+                        curr_offset += hdr_len
+                    else:
+                        break
+
+            ipv6_extension_headers = tuple(ext_list)
+            if ext_list and any(
+                name not in {"IPv6ExtHdrHopByHop", "IPv6ExtHdrRouting", "IPv6ExtHdrDestOpt", "IPv6ExtHdrFragment"}
+                for name in ext_list
+            ):
+                parsing_status = "unsupported"
+                unsupported_reason = "Unsupported IPv6 extension header chain."
+
+            trans_offset = curr_offset
+            effective_ipv6_payload = max(0, min(incl_len, ip_offset + 40 + plen) - trans_offset)
+
+            if next_header == IP_PROTO_TCP:
+                protocol = "TCP"
+                if trans_offset + 20 <= incl_len:
+                    src_port = (pkt_bytes[trans_offset] << 8) | pkt_bytes[trans_offset + 1]
+                    dst_port = (pkt_bytes[trans_offset + 2] << 8) | pkt_bytes[trans_offset + 3]
+                    tcp_seq = (
+                        (pkt_bytes[trans_offset + 4] << 24)
+                        | (pkt_bytes[trans_offset + 5] << 16)
+                        | (pkt_bytes[trans_offset + 6] << 8)
+                        | pkt_bytes[trans_offset + 7]
+                    )
+                    tcp_ack = (
+                        (pkt_bytes[trans_offset + 8] << 24)
+                        | (pkt_bytes[trans_offset + 9] << 16)
+                        | (pkt_bytes[trans_offset + 10] << 8)
+                        | pkt_bytes[trans_offset + 11]
+                    )
+                    tcp_hdr_len = ((pkt_bytes[trans_offset + 12] >> 4) & 0x0F) * 4
+                    tcp_flags = pkt_bytes[trans_offset + 13]
+                    tcp_window = (pkt_bytes[trans_offset + 14] << 8) | pkt_bytes[trans_offset + 15]
+                    payload_length = max(0, incl_len - trans_offset - tcp_hdr_len)
+            elif next_header == IP_PROTO_UDP:
+                protocol = "UDP"
+                if trans_offset + 8 <= incl_len:
+                    src_port = (pkt_bytes[trans_offset] << 8) | pkt_bytes[trans_offset + 1]
+                    dst_port = (pkt_bytes[trans_offset + 2] << 8) | pkt_bytes[trans_offset + 3]
+                    payload_length = max(0, incl_len - trans_offset - 8)
+            elif next_header == IP_PROTO_ICMPV6:
+                protocol = "ICMPv6"
+                if trans_offset + 4 <= incl_len:
+                    icmp_type = pkt_bytes[trans_offset]
+                    icmp_code = pkt_bytes[trans_offset + 1]
+                    if icmp_type in (128, 129, 133):
+                        payload_length = max(0, effective_ipv6_payload - 8)
+                    elif icmp_type in (135, 136):
+                        payload_length = max(0, effective_ipv6_payload - 24)
+                    elif icmp_type == 134:
+                        payload_length = max(0, effective_ipv6_payload - 16)
+                    elif icmp_type in (130, 131, 132, 143):
+                        payload_length = 0
+                    else:
+                        payload_length = max(0, effective_ipv6_payload - 8)
+            else:
+                protocol = f"IPv6_NEXT_HEADER_{next_header}"
+                if parsing_status == "parsed":
                     parsing_status = "unsupported"
                     unsupported_reason = "Transport protocol is unavailable to the canonical extractor."
 
-            elif eth_type == 0x86DD and ip_offset + 40 <= incl_len:
-                ip_version = 6
-                plen = (pkt_bytes[ip_offset + 4] << 8) | pkt_bytes[ip_offset + 5]
-                next_header = pkt_bytes[ip_offset + 6]
-                ttl = pkt_bytes[ip_offset + 7]
-
-                src_ip = socket.inet_ntop(socket.AF_INET6, bytes(pkt_bytes[ip_offset + 8 : ip_offset + 24]))
-                dst_ip = socket.inet_ntop(socket.AF_INET6, bytes(pkt_bytes[ip_offset + 24 : ip_offset + 40]))
-
-                captured_ipv6_len = incl_len - ip_offset
-                truncation_status = "FALSE" if captured_ipv6_len >= (plen + 40) else "TRUE"
-
-                curr_offset = ip_offset + 40
-                ext_list: list[str] = []
-
-                while next_header in (
-                    IPV6_EXT_HOP_BY_HOP,
-                    IPV6_EXT_ROUTING,
-                    IPV6_EXT_FRAGMENT,
-                    IPV6_EXT_DEST_OPT,
-                    IPV6_EXT_AH,
-                    IPV6_EXT_ESP,
-                ):
-                    ext_name = IPV6_EXT_NAMES.get(next_header, f"IPv6ExtHdr_{next_header}")
-                    ext_list.append(ext_name)
-
-                    if next_header == IPV6_EXT_FRAGMENT:
-                        if curr_offset + 8 <= incl_len:
-                            nxt = pkt_bytes[curr_offset]
-                            off_flg = (pkt_bytes[curr_offset + 2] << 8) | pkt_bytes[curr_offset + 3]
-                            frag_id = (
-                                (pkt_bytes[curr_offset + 4] << 24)
-                                | (pkt_bytes[curr_offset + 5] << 16)
-                                | (pkt_bytes[curr_offset + 6] << 8)
-                                | pkt_bytes[curr_offset + 7]
-                            )
-                            ipv6_fragment_id = frag_id
-                            ipv6_fragment_offset = off_flg >> 3
-                            ipv6_more_fragments = bool(off_flg & 0x01)
-                            fragment_offset = ipv6_fragment_offset
-                            more_fragments = ipv6_more_fragments
-                            identification = ipv6_fragment_id
-                            next_header = nxt
-                            curr_offset += 8
-                        else:
-                            break
-                    else:
-                        if curr_offset + 2 <= incl_len:
-                            nxt = pkt_bytes[curr_offset]
-                            hdr_len = (pkt_bytes[curr_offset + 1] + 1) * 8
-                            next_header = nxt
-                            curr_offset += hdr_len
-                        else:
-                            break
-
-                ipv6_extension_headers = tuple(ext_list)
-                if ext_list and any(
-                    name not in {"IPv6ExtHdrHopByHop", "IPv6ExtHdrRouting", "IPv6ExtHdrDestOpt", "IPv6ExtHdrFragment"}
-                    for name in ext_list
-                ):
-                    parsing_status = "unsupported"
-                    unsupported_reason = "Unsupported IPv6 extension header chain."
-
-                trans_offset = curr_offset
-                effective_ipv6_payload = max(0, min(incl_len, ip_offset + 40 + plen) - trans_offset)
-
-                if next_header == IP_PROTO_TCP:
-                    protocol = "TCP"
-                    if trans_offset + 20 <= incl_len:
-                        src_port = (pkt_bytes[trans_offset] << 8) | pkt_bytes[trans_offset + 1]
-                        dst_port = (pkt_bytes[trans_offset + 2] << 8) | pkt_bytes[trans_offset + 3]
-                        tcp_seq = (
-                            (pkt_bytes[trans_offset + 4] << 24)
-                            | (pkt_bytes[trans_offset + 5] << 16)
-                            | (pkt_bytes[trans_offset + 6] << 8)
-                            | pkt_bytes[trans_offset + 7]
-                        )
-                        tcp_ack = (
-                            (pkt_bytes[trans_offset + 8] << 24)
-                            | (pkt_bytes[trans_offset + 9] << 16)
-                            | (pkt_bytes[trans_offset + 10] << 8)
-                            | pkt_bytes[trans_offset + 11]
-                        )
-                        tcp_hdr_len = ((pkt_bytes[trans_offset + 12] >> 4) & 0x0F) * 4
-                        tcp_flags = pkt_bytes[trans_offset + 13]
-                        tcp_window = (pkt_bytes[trans_offset + 14] << 8) | pkt_bytes[trans_offset + 15]
-                        payload_length = max(0, incl_len - trans_offset - tcp_hdr_len)
-                elif next_header == IP_PROTO_UDP:
-                    protocol = "UDP"
-                    if trans_offset + 8 <= incl_len:
-                        src_port = (pkt_bytes[trans_offset] << 8) | pkt_bytes[trans_offset + 1]
-                        dst_port = (pkt_bytes[trans_offset + 2] << 8) | pkt_bytes[trans_offset + 3]
-                        payload_length = max(0, incl_len - trans_offset - 8)
-                elif next_header == IP_PROTO_ICMPV6:
-                    protocol = "ICMPv6"
-                    if trans_offset + 4 <= incl_len:
-                        icmp_type = pkt_bytes[trans_offset]
-                        icmp_code = pkt_bytes[trans_offset + 1]
-                        if icmp_type in (128, 129, 133):
-                            payload_length = max(0, effective_ipv6_payload - 8)
-                        elif icmp_type in (135, 136):
-                            payload_length = max(0, effective_ipv6_payload - 24)
-                        elif icmp_type == 134:
-                            payload_length = max(0, effective_ipv6_payload - 16)
-                        elif icmp_type in (130, 131, 132, 143):
-                            payload_length = 0
-                        else:
-                            payload_length = max(0, effective_ipv6_payload - 8)
-                else:
-                    protocol = f"IPv6_NEXT_HEADER_{next_header}"
-                    if parsing_status == "parsed":
-                        parsing_status = "unsupported"
-                        unsupported_reason = "Transport protocol is unavailable to the canonical extractor."
-
-            elif eth_type == 0x0806:
-                protocol = "ARP"
-                if ip_offset + 28 <= incl_len:
-                    src_ip = _fast_ipv4_str(
-                        pkt_bytes[ip_offset + 14],
-                        pkt_bytes[ip_offset + 15],
-                        pkt_bytes[ip_offset + 16],
-                        pkt_bytes[ip_offset + 17],
-                    )
-                    dst_ip = _fast_ipv4_str(
-                        pkt_bytes[ip_offset + 24],
-                        pkt_bytes[ip_offset + 25],
-                        pkt_bytes[ip_offset + 26],
-                        pkt_bytes[ip_offset + 27],
-                    )
-            else:
-                parsing_status = "unsupported"
-                unsupported_reason = "Link-layer or protocol semantics are unavailable."
+        elif eth_type == 0x0806:
+            protocol = "ARP"
+            if ip_offset + 28 <= incl_len:
+                src_ip = _fast_ipv4_str(
+                    pkt_bytes[ip_offset + 14],
+                    pkt_bytes[ip_offset + 15],
+                    pkt_bytes[ip_offset + 16],
+                    pkt_bytes[ip_offset + 17],
+                )
+                dst_ip = _fast_ipv4_str(
+                    pkt_bytes[ip_offset + 24],
+                    pkt_bytes[ip_offset + 25],
+                    pkt_bytes[ip_offset + 26],
+                    pkt_bytes[ip_offset + 27],
+                )
         else:
             parsing_status = "unsupported"
             unsupported_reason = "Link-layer or protocol semantics are unavailable."

@@ -60,6 +60,8 @@ def test_case_b_real_10windows_pcap_45_feature_pipeline():
     """Real Friday 10-window capture satisfies 45/45 features and executes 5-step rollouts."""
     pcap_path = Path(r"C:\Users\saira\Downloads\friday_10windows_slice.pcap")
     if not pcap_path.exists():
+        pcap_path = Path("data/test_slices/friday_10windows_slice.pcap")
+    if not pcap_path.exists():
         pytest.skip("friday_10windows_slice.pcap not present on host")
 
     content = pcap_path.read_bytes()

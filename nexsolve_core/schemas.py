@@ -290,9 +290,11 @@ class FlowBuilder:
         ts = packet.timestamp
         if ts < self.start: self.start = ts
         if ts > self.end: self.end = ts
-        self.timestamps.append(ts)
+        if len(self.timestamps) < 128:
+            self.timestamps.append(ts)
         if packet.packet_index is not None:
-            self.packet_indexes.append(packet.packet_index)
+            if len(self.packet_indexes) < 128:
+                self.packet_indexes.append(packet.packet_index)
             if is_retrans:
                 self.retrans_count += 1
                 
@@ -415,7 +417,7 @@ def _quality_status(total: int, parsed: int, malformed: int, unsupported: int, t
 
 
 def make_capture_quality(
-    packets: Iterable[PacketRecord],
+    packets: Iterable[PacketRecord] = (),
     *,
     total_packets_observed: int | None = None,
     malformed_packets: int = 0,
@@ -430,41 +432,53 @@ def make_capture_quality(
     original_order_preserved: bool = True,
     incomplete_flow_count: int = 0,
     capture_id: str = "unknown",
+    parsed_packets_count: int | None = None,
+    ipv4_count: int | None = None,
+    ipv6_count: int | None = None,
+    tcp_count: int | None = None,
+    udp_count: int | None = None,
+    icmp_count: int | None = None,
+    arp_count: int | None = None,
+    vlan_count: int | None = None,
+    fragmented_packet_count: int | None = None,
 ) -> CaptureQuality:
-    records = packets
-    records = tuple(packets)
     total = total_packets_observed if total_packets_observed is not None else 0
 
-    ipv4_count = 0
-    ipv6_count = 0
-    tcp_count = 0
-    udp_count = 0
-    icmp_count = 0
-    arp_count = 0
-    vlan_count = 0
-    fragmented_packets = 0
-    for packet in records:
-        v = packet.ip_version
-        if v == 4:
-            ipv4_count += 1
-        elif v == 6:
-            ipv6_count += 1
-        proto = packet.protocol
-        if proto == "TCP":
-            tcp_count += 1
-        elif proto == "UDP":
-            udp_count += 1
-        elif proto in {"ICMP", "ICMPv6"}:
-            icmp_count += 1
-        elif proto == "ARP":
-            arp_count += 1
-        if packet.vlan_id is not None:
-            vlan_count += 1
-        if packet.fragment_offset or packet.more_fragments:
-            fragmented_packets += 1
+    if parsed_packets_count is not None:
+        parsed = parsed_packets_count
+        c_ipv4 = ipv4_count or 0
+        c_ipv6 = ipv6_count or 0
+        c_tcp = tcp_count or 0
+        c_udp = udp_count or 0
+        c_icmp = icmp_count or 0
+        c_arp = arp_count or 0
+        c_vlan = vlan_count or 0
+        c_fragmented = fragmented_packet_count or 0
+    else:
+        records = tuple(packets) if not isinstance(packets, (list, tuple)) else packets
+        parsed = len(records)
+        c_ipv4 = c_ipv6 = c_tcp = c_udp = c_icmp = c_arp = c_vlan = c_fragmented = 0
+        for packet in records:
+            v = packet.ip_version
+            if v == 4:
+                c_ipv4 += 1
+            elif v == 6:
+                c_ipv6 += 1
+            proto = packet.protocol
+            if proto == "TCP":
+                c_tcp += 1
+            elif proto == "UDP":
+                c_udp += 1
+            elif proto in {"ICMP", "ICMPv6"}:
+                c_icmp += 1
+            elif proto == "ARP":
+                c_arp += 1
+            if packet.vlan_id is not None:
+                c_vlan += 1
+            if packet.fragment_offset or packet.more_fragments:
+                c_fragmented += 1
 
-    parsed = len(records)
-    status, reason = _quality_status(total, parsed, malformed_packets, unsupported_packets, truncated_packets, truncation_unknown_count, timestamp_anomalies, duplicate_packets, fragmented_packets, incomplete_flow_count)
+    status, reason = _quality_status(total, parsed, malformed_packets, unsupported_packets, truncated_packets, truncation_unknown_count, timestamp_anomalies, duplicate_packets, c_fragmented, incomplete_flow_count)
     return CaptureQuality(
         total_packets_observed=total,
         parsed_packets=parsed,
@@ -473,14 +487,14 @@ def make_capture_quality(
         truncated_packets=truncated_packets,
         timestamp_anomalies=timestamp_anomalies,
         duplicate_packets=duplicate_packets,
-        ipv4_count=ipv4_count,
-        ipv6_count=ipv6_count,
-        tcp_count=tcp_count,
-        udp_count=udp_count,
-        icmp_count=icmp_count,
-        arp_count=arp_count,
-        vlan_count=vlan_count,
-        fragmented_packet_count=fragmented_packets,
+        ipv4_count=c_ipv4,
+        ipv6_count=c_ipv6,
+        tcp_count=c_tcp,
+        udp_count=c_udp,
+        icmp_count=c_icmp,
+        arp_count=c_arp,
+        vlan_count=c_vlan,
+        fragmented_packet_count=c_fragmented,
         incomplete_flow_count=incomplete_flow_count,
         status=status,
         reason=reason,
@@ -529,8 +543,8 @@ def build_temporal_windows(
 
         start = bucket * window_seconds
         flow_members = tuple(sorted({flow.flow_id: flow for flow in flow_groups.get(bucket, ())}.values(), key=lambda item: item.flow_id))
-        packet_indexes = tuple(packet.packet_index for packet in members if packet.packet_index is not None)
-        timestamps = tuple(packet.timestamp for packet in members)
+        packet_indexes = tuple(packet.packet_index for packet in members if packet.packet_index is not None)[:128]
+        timestamps = tuple(packet.timestamp for packet in members)[:128]
         window_id = f"window-{bucket:012d}"
         provenance = Provenance(quality.capture_id, packet_indexes, tuple(flow.flow_id for flow in flow_members), (window_id,), timestamps, "temporal_windowing")
         
