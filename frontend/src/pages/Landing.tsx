@@ -227,23 +227,25 @@ export function Landing() {
           </div>
         </div>
 
-        {/* Conceptual Ribbon: OBSERVED NETWORK STATE ↓ NOW ↓ T+1..T+5 */}
-        <div className="hero-conceptual-flow">
+        {/* Conceptual Ribbon: PAST → NOW → T+1 → T+2 → T+3 → T+4 → T+5 */}
+        <div className="hero-conceptual-flow" aria-label="Temporal Flow Ribbon">
           <div className="hero-flow-pill">
-            <span>OBSERVED NETWORK STATE</span>
+            <span>PAST (OBSERVED)</span>
           </div>
-          <span style={{ color: '#555' }}>&rarr;</span>
+          <span className="flow-arrow">&rarr;</span>
           <div className="hero-flow-pill active">
             <span>NOW (T_0)</span>
           </div>
-          <span style={{ color: '#555' }}>&rarr;</span>
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            <span className="hero-flow-pill dashed">T+1</span>
-            <span className="hero-flow-pill dashed">T+2</span>
-            <span className="hero-flow-pill dashed">T+3</span>
-            <span className="hero-flow-pill dashed">T+4</span>
-            <span className="hero-flow-pill dashed" style={{ borderColor: '#ffffff', color: '#ffffff' }}>T+5</span>
-          </div>
+          <span className="flow-arrow">&rarr;</span>
+          <span className="hero-flow-pill dashed">T+1</span>
+          <span className="flow-arrow" style={{ opacity: 0.45 }}>&rarr;</span>
+          <span className="hero-flow-pill dashed">T+2</span>
+          <span className="flow-arrow" style={{ opacity: 0.45 }}>&rarr;</span>
+          <span className="hero-flow-pill dashed">T+3</span>
+          <span className="flow-arrow" style={{ opacity: 0.45 }}>&rarr;</span>
+          <span className="hero-flow-pill dashed">T+4</span>
+          <span className="flow-arrow" style={{ opacity: 0.45 }}>&rarr;</span>
+          <span className="hero-flow-pill dashed" style={{ borderColor: '#ffffff', color: '#ffffff' }}>T+5</span>
         </div>
 
         {/* Hero Temporal Visualization */}

@@ -208,37 +208,197 @@ export function Overview() {
 
       {/* 2. CASE: EMPTY CONSOLE (NO ACTIVE ANALYSIS) */}
       {!hasActiveAnalysis && !loading && (
-        <Panel style={{ marginBottom: '24px', padding: '32px 36px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', padding: '2px 8px', borderRadius: '3px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
-                  NO ACTIVE ANALYSIS
-                </span>
-                <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
-                  AWAITING WIRE TELEMETRY
-                </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '28px' }}>
+          <Panel style={{ padding: '32px 36px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', padding: '2px 8px', borderRadius: '3px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
+                    NO ACTIVE ANALYSIS
+                  </span>
+                  <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                    AWAITING WIRE TELEMETRY
+                  </span>
+                </div>
+                <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+                  Ready to analyze network traffic captures
+                </h2>
+                <p style={{ margin: '0 0 12px 0', fontSize: '13.5px', color: 'var(--text-secondary)', maxWidth: '640px', lineHeight: 1.6 }}>
+                  Analyze a network capture to inspect passive Layer 3/4 flow features, evaluate multi-horizon state transitions (T+1 to T+5), and audit counterfactual evidence.
+                </p>
+                <div style={{ fontSize: '11.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
+                  PCAP / PCAPNG &middot; 45 FEATURES &middot; TEMPORAL FORECAST
+                </div>
               </div>
-              <h2 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
-                Ready to analyze network traffic captures
-              </h2>
-              <p style={{ margin: '0 0 12px 0', fontSize: '13.5px', color: 'var(--text-secondary)', maxWidth: '640px', lineHeight: 1.6 }}>
-                Analyze a network capture to inspect passive Layer 3/4 flow features, evaluate multi-horizon state transitions (T+1 to T+5), and audit counterfactual evidence.
-              </p>
-              <div style={{ fontSize: '11.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
-                PCAP / PCAPNG &middot; 45 FEATURES &middot; TEMPORAL FORECAST
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <Link to="/console/analyze" className="button button-primary" style={{ fontSize: '12px', gap: '6px' }}>
+                  <FileUp size={14} /> Start New Analysis
+                </Link>
+                <a href="/#cli-quickstart" className="button button-quiet" style={{ fontSize: '12px', gap: '6px' }}>
+                  <Terminal size={14} /> View CLI Instructions
+                </a>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <Link to="/console/analyze" className="button button-primary" style={{ fontSize: '12px', gap: '6px' }}>
-                <FileUp size={14} /> Start New Analysis
+          </Panel>
+
+          {/* STANDBY SOC FRAMEWORK: 4 OPERATIONAL QUESTIONS */}
+          {/* Question 1: WHAT IS HAPPENING? */}
+          <Panel style={{ padding: '20px 24px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                1. WHAT IS HAPPENING? (OBSERVED NETWORK STATE)
+              </span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 7px', border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-muted)' }}>
+                STANDBY &middot; AWAITING INGRESS
+              </span>
+            </div>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 14px 0', lineHeight: 1.5, maxWidth: '680px' }}>
+              Upload a raw .pcap or .pcapng network capture to extract 45 continuous passive Layer 3/4 flow features, assess TCP handshake symmetry, and classify ingress threat posture.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '8px 12px', borderRadius: '4px' }}>
+                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block' }}>OBSERVED FLOWS</span>
+                <strong style={{ fontSize: '13px', color: 'var(--text-muted)' }}>—</strong>
+              </div>
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '8px 12px', borderRadius: '4px' }}>
+                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block' }}>TEMPORAL WINDOWS</span>
+                <strong style={{ fontSize: '13px', color: 'var(--text-muted)' }}>—</strong>
+              </div>
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '8px 12px', borderRadius: '4px' }}>
+                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block' }}>COMPOUNDING RISK</span>
+                <strong style={{ fontSize: '13px', color: 'var(--text-muted)' }}>IDLE</strong>
+              </div>
+            </div>
+          </Panel>
+
+          {/* Question 2: WHAT COMES NEXT? */}
+          <Panel style={{ padding: '20px 24px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                2. WHAT COMES NEXT? (ATTACK HORIZON ROLLOUT T+1 TO T+5)
+              </span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 7px', border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-muted)' }}>
+                STANDBY &middot; REQUIRES &ge; 8 WINDOWS
+              </span>
+            </div>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 14px 0', lineHeight: 1.5, maxWidth: '680px' }}>
+              Simulates autoregressive forward trajectory states across 5 discrete 60-second horizons (T+1 to T+5). Compounding risk envelope Risk(K) and trajectory state vectors are calculated when sequence history is verified.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px' }}>
+              {['T+1 (+60s)', 'T+2 (+120s)', 'T+3 (+180s)', 'T+4 (+240s)', 'T+5 (+300s)'].map((h) => (
+                <div key={h} style={{ background: 'var(--bg-secondary)', border: '1px dashed var(--border)', padding: '10px 12px', borderRadius: '4px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', display: 'block', fontWeight: 600 }}>{h}</span>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>Standby</span>
+                </div>
+              ))}
+            </div>
+          </Panel>
+
+          {/* Question 3: WHY? */}
+          <Panel style={{ padding: '20px 24px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                3. WHY? (EVIDENTIARY DRIVERS & ACCURACY LEDGER)
+              </span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 7px', border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-muted)' }}>
+                TRUST LAYER &middot; ZERO HALLUCINATION
+              </span>
+            </div>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 14px 0', lineHeight: 1.5, maxWidth: '680px' }}>
+              Counterfactual feature perturbations identify primary drivers behind state transitions (e.g. TCP SYN/FIN asymmetry, packet variance, byte velocity). All predictions are audited against the ground-truth validation ledger.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '10px 14px', borderRadius: '4px' }}>
+                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>FEATURE ATTRIBUTION</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Awaiting temporal feature extraction from active capture</span>
+              </div>
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '10px 14px', borderRadius: '4px' }}>
+                <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>CALIBRATION BENCHMARK</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>1,440 empirical windows &middot; 97.9% T+1 accuracy &middot; 92.5% T+5 accuracy</span>
+              </div>
+            </div>
+          </Panel>
+
+          {/* Question 4: WHAT CAN I INVESTIGATE? */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
+                4. WHAT CAN I INVESTIGATE? (DEEP FORENSIC DRILLDOWNS)
+              </span>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '2px 7px', border: '1px solid var(--border)', borderRadius: '3px', color: 'var(--text-muted)' }}>
+                6 WORKSPACES AVAILABLE
+              </span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+              <Link to="/console/traffic" style={{ textDecoration: 'none' }}>
+                <Panel style={{ padding: '14px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', height: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <Network size={14} color="var(--text-primary)" />
+                    <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Traffic Flows</strong>
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                    Inspect 5-tuple conversations, protocol breakdowns, and port distributions.
+                  </p>
+                </Panel>
               </Link>
-              <a href="/#cli-quickstart" className="button button-quiet" style={{ fontSize: '12px', gap: '6px' }}>
-                <Terminal size={14} /> View CLI Instructions
-              </a>
+              <Link to="/console/progression" style={{ textDecoration: 'none' }}>
+                <Panel style={{ padding: '14px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', height: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <Workflow size={14} color="var(--text-primary)" />
+                    <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Attack Progression</strong>
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                    Track lifecycle stage transitions mapped against grounded MITRE tactics.
+                  </p>
+                </Panel>
+              </Link>
+              <Link to="/console/forecast" style={{ textDecoration: 'none' }}>
+                <Panel style={{ padding: '14px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', height: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <TrendingUp size={14} color="var(--text-primary)" />
+                    <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Attack Horizon</strong>
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                    Multi-horizon trajectory simulation with point probability and cumulative risk.
+                  </p>
+                </Panel>
+              </Link>
+              <Link to="/console/threats" style={{ textDecoration: 'none' }}>
+                <Panel style={{ padding: '14px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', height: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <Shield size={14} color="var(--text-primary)" />
+                    <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Threat Signals</strong>
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                    Heuristic anomaly signals, port scan detections, and severity scoring.
+                  </p>
+                </Panel>
+              </Link>
+              <Link to="/console/replay" style={{ textDecoration: 'none' }}>
+                <Panel style={{ padding: '14px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', height: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <RotateCcw size={14} color="var(--text-primary)" />
+                    <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Packet Replay</strong>
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                    Scrub through packet events window by window with temporal diffing.
+                  </p>
+                </Panel>
+              </Link>
+              <Link to="/console/reports" style={{ textDecoration: 'none' }}>
+                <Panel style={{ padding: '14px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '6px', height: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <FileText size={14} color="var(--text-primary)" />
+                    <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>Forensic Reports</strong>
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+                    Four-page structured intelligence report with JSON/HTML export &amp; MITRE mapping.
+                  </p>
+                </Panel>
+              </Link>
             </div>
           </div>
-        </Panel>
+        </div>
       )}
 
       {/* 3. CASE: ACTIVE ANALYSIS LOADED (FOUR COHESIVE QUESTIONS) */}
