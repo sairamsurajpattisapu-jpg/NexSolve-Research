@@ -32,9 +32,9 @@ export function Network() {
   const [roleFilter, setRoleFilter] = useState<string>('ALL')
   const [selectedNodeIp, setSelectedNodeIp] = useState<string | null>(null)
 
-  if (loading) return <LoadingState message="Loading dynamic network graph & telemetry..." />
-  if (error) return <ErrorState message={error} onRetry={() => void reload()} />
-  if (!data) {
+  if (loading && !contextCanonical) return <LoadingState message="Loading dynamic network graph & telemetry..." />
+  if (error && !contextCanonical) return <ErrorState message={error} onRetry={() => void reload()} />
+  if (!data && !contextCanonical) {
     return (
       <div className="page-stack page-enter compact-container" style={{ margin: '60px auto', textAlign: 'center' }}>
         <Panel>
@@ -74,12 +74,12 @@ export function Network() {
     )
   }
 
-  const { traffic } = data.results
-  const windows = traffic.windows_data ?? []
+  const traffic = contextCanonical?.trafficSummary || data?.results?.traffic
+  const windows = traffic?.windows_data ?? []
 
   // Extract Temporal Graph Sequence if available from backend
   const temporalGraph: TemporalGraphSequencePayload | undefined =
-    (data.results as any).temporal_graph || (data.results as any).temporalGraph
+    (data?.results as any)?.temporal_graph || (data?.results as any)?.temporalGraph || (contextCanonical as any)?.temporal_graph
 
   const hasGraph = temporalGraph && temporalGraph.status === 'READY' && temporalGraph.observed_snapshots.length > 0
   const snapshots = hasGraph ? temporalGraph.observed_snapshots : []
@@ -152,7 +152,7 @@ export function Network() {
               DYNAMIC NETWORK GRAPH INTELLIGENCE
             </span>
             <span style={{ fontSize: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
-              {data.results.source?.name || 'Active Capture'}
+              {contextCanonical?.input?.filename || data?.results?.source?.name || 'Active Capture'}
             </span>
             <span style={{ fontSize: '10px', background: 'var(--bg-secondary)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'var(--mono)', color: 'var(--text-primary)' }}>
               {hasGraph ? `G_t MODEL: ${snapshots.length} SNAPSHOTS` : 'BASELINE GRAPH'}

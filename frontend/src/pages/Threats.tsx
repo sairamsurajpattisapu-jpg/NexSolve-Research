@@ -5,17 +5,21 @@ import { ForecastTrustPanel } from '../components/ForecastTrustPanel'
 import { EmptyState, ErrorState, LoadingState, Panel, SectionHeading, SeverityPill } from '../components/Ui'
 import { formatTimestamp } from '../utils/format'
 import { useProductionData } from '../hooks/useProductionData'
+import { useAnalysis } from '../context/AnalysisContext'
 
 export function Threats() {
   const { data, loading, error, reload } = useProductionData()
+  const { canonical: contextCanonical } = useAnalysis()
   const [query, setQuery] = useState('')
   const [severity, setSeverity] = useState('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  if (loading) return <LoadingState message="Loading detection findings" />
-  if (error) return <ErrorState message={error} onRetry={() => void reload()} />
+  if (loading && !contextCanonical) return <LoadingState message="Loading detection findings" />
+  if (error && !contextCanonical) return <ErrorState message={error} onRetry={() => void reload()} />
 
-  if (!data || !data.results?.detection) {
+  const detection = (contextCanonical as any)?.raw?.detection || data?.results?.detection
+
+  if (!detection) {
     return (
       <div className="page-stack page-enter">
         <SectionHeading
@@ -41,20 +45,22 @@ export function Threats() {
   }
 
   const normalizedQuery = query.trim().toLowerCase().replaceAll('_', ' ')
-  const findings = data.results.detection.findings.filter(
+  const rawFindings: any[] = detection?.findings || []
+  const findings = rawFindings.filter(
     (finding) =>
-      `${finding.attack_category.replaceAll('_', ' ')} ${finding.prediction.replaceAll('_', ' ')} ${finding.evidence.map((item) => `${item.rule_id ?? ''} ${item.type.replaceAll('_', ' ')} ${item.message}`).join(' ')}`
+      `${finding.attack_category?.replaceAll('_', ' ') || ''} ${finding.prediction?.replaceAll('_', ' ') || ''} ${(finding.evidence || []).map((item: any) => `${item.rule_id ?? ''} ${item.type?.replaceAll('_', ' ') || ''} ${item.message || ''}`).join(' ')}`
         .toLowerCase()
         .includes(normalizedQuery) && (severity === 'all' || finding.severity === severity)
   )
 
+  const rawResults = data?.results || (contextCanonical as any)?.raw
   const trustResponse =
-    data.results.attack_horizon ||
-    data.results.abstention ||
-    data.results.evidence_chain ||
-    data.results.forecasts ||
-    data.results.attack_progression ||
-    data.results.attackProgression
+    rawResults?.attack_horizon ||
+    rawResults?.abstention ||
+    rawResults?.evidence_chain ||
+    rawResults?.forecasts ||
+    rawResults?.attack_progression ||
+    rawResults?.attackProgression
       ? {
           currentState: {
             timestamp: new Date().toISOString(),
@@ -64,13 +70,13 @@ export function Threats() {
             uncertainty: null,
             explanation: [],
           },
-          forecasts: data.results.forecasts ?? [],
-          attack_horizon: data.results.attack_horizon ?? data.results.attackHorizon,
-          attack_progression: data.results.attack_progression ?? data.results.attackProgression,
-          evidence_chain: data.results.evidence_chain ?? data.results.evidenceChain,
-          confidence: data.results.confidence,
-          unknown_behavior: data.results.unknown_behavior ?? data.results.unknownBehavior,
-          abstention: data.results.abstention,
+          forecasts: rawResults?.forecasts ?? [],
+          attack_horizon: rawResults?.attack_horizon ?? rawResults?.attackHorizon,
+          attack_progression: rawResults?.attack_progression ?? rawResults?.attackProgression,
+          evidence_chain: rawResults?.evidence_chain ?? rawResults?.evidenceChain,
+          confidence: rawResults?.confidence,
+          unknown_behavior: rawResults?.unknown_behavior ?? rawResults?.unknownBehavior,
+          abstention: rawResults?.abstention,
         }
       : undefined
 
@@ -79,7 +85,7 @@ export function Threats() {
       <SectionHeading
         eyebrow="Threat Assessment"
         title="Detection Findings & Evidence Trail"
-        description={`Traffic-derived adversary indicators, confidence levels, and grounded MITRE techniques from ${data.results.source?.name ?? data.results.source?.filename ?? 'active telemetry'}.`}
+        description={`Traffic-derived adversary indicators, confidence levels, and grounded MITRE techniques from ${contextCanonical?.input?.filename ?? data?.results?.source?.name ?? data?.results?.source?.filename ?? 'active telemetry'}.`}
         action={
           <span
             style={{
@@ -144,9 +150,9 @@ export function Threats() {
       {findings.length === 0 ? (
         <Panel>
           <EmptyState
-            title={data.results.detection.findings.length === 0 ? 'No threats detected' : 'No matching findings'}
+            title={(detection?.findings?.length ?? 0) === 0 ? 'No threats detected' : 'No matching findings'}
             message={
-              data.results.detection.findings.length === 0
+              (detection?.findings?.length ?? 0) === 0
                 ? 'The completed analysis returned no evidence-based findings.'
                 : 'Try a different search or severity filter.'
             }
@@ -243,7 +249,7 @@ export function Threats() {
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
-                      <span>Detection Method: <strong style={{ color: 'var(--text-primary)' }}>{finding.detection_method ?? data.results.detection.detection_method ?? data.results.detection.detection_mode}</strong></span>
+                      <span>Detection Method: <strong style={{ color: 'var(--text-primary)' }}>{finding.detection_method ?? detection?.detection_method ?? detection?.detection_mode ?? 'Heuristic & Neural Vector'}</strong></span>
                       {finding.prediction && (
                         <>
                           <span>&middot;</span>
@@ -256,7 +262,7 @@ export function Threats() {
                       <span style={{ fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 600, letterSpacing: '0.04em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                         Supporting Telemetry Evidence
                       </span>
-                      {finding.evidence.map((item, idx) => (
+                      {finding.evidence.map((item: any, idx: number) => (
                         <div
                           key={item.rule_id ?? `${item.type}-${idx}`}
                           style={{
