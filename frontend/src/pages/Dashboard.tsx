@@ -508,7 +508,7 @@ export function Dashboard() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span className="pulse-dot" style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
                   <div>
-                    <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
                       {uploadProgress && uploadProgress.percentage >= 100 ? 'UPLOADED · INGESTING' : 'UPLOADING CAPTURE ·'}
                     </span>{' '}
                     <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -518,7 +518,7 @@ export function Dashboard() {
                     </span>
                   </div>
                 </div>
-                <span style={{ fontSize: '12px', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)' }}>
+                <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--accent)' }}>
                   {uploadProgress ? `${uploadProgress.percentage}%` : '0%'}
                 </span>
               </div>
@@ -535,7 +535,7 @@ export function Dashboard() {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
                 <span>
                   {uploadProgress
                     ? `${(uploadProgress.loaded / (1024 * 1024)).toFixed(2)} MB of ${(uploadProgress.total / (1024 * 1024)).toFixed(2)} MB`

@@ -68,12 +68,17 @@
   --navbar-bg: #000000;
   --body-radial: none;
 
-  /* Typography Families */
-  --font-serif: 'Instrument Serif', 'DM Serif Display', Georgia, serif;
-  --font-sans: 'Inter', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: var(--font-sans);
-  --mono: 'DM Mono', monospace;
-  --display: var(--font-sans);
+  /* Typography Families — NexSolve Editorial & UI Typography */
+  --font-display: 'Forum', Georgia, 'Times New Roman', serif;
+  --font-ui: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-editorial: 'Thasadith', sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Aliases & Fallbacks */
+  --font-sans: var(--font-ui);
+  --font-serif: var(--font-display);
+  --mono: var(--font-mono);
+  --display: var(--font-display);
 
   /* Spacing Scale (4, 8, 12, 16, 24, 32, 48, 64, 80, 96) */
   --space-1: 4px;
@@ -180,12 +185,17 @@
   --navbar-bg: #ffffff;
   --body-radial: none;
 
-  /* Typography Families */
-  --font-serif: 'Instrument Serif', 'DM Serif Display', Georgia, serif;
-  --font-sans: 'Inter', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: var(--font-sans);
-  --mono: 'DM Mono', monospace;
-  --display: var(--font-sans);
+  /* Typography Families — NexSolve Editorial & UI Typography */
+  --font-display: 'Forum', Georgia, 'Times New Roman', serif;
+  --font-ui: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-editorial: 'Thasadith', sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Aliases & Fallbacks */
+  --font-sans: var(--font-ui);
+  --font-serif: var(--font-display);
+  --mono: var(--font-mono);
+  --display: var(--font-display);
 
   /* Spacing Scale (4, 8, 12, 16, 24, 32, 48, 64, 80, 96) */
   --space-1: 4px;
@@ -241,7 +251,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-ui);
   color: var(--text-primary);
   background-color: var(--bg-primary);
   background-image: var(--body-radial);
@@ -251,8 +261,8 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-button, input, select {
-  font: inherit;
+button, input, select, textarea {
+  font-family: var(--font-ui);
 }
 
 button:focus-visible,
@@ -272,14 +282,30 @@ h1, h2, h3, h4, p {
   margin: 0;
 }
 
+h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+}
+
 h2 {
+  font-family: var(--font-display);
   font-size: 1.55rem;
+  font-weight: 400;
   letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 
 h3, h4 {
+  font-family: var(--font-ui);
   color: var(--text-primary);
+}
+
+.editorial-subtitle,
+.editorial-lead-text,
+.editorial-tagline {
+  font-family: var(--font-editorial);
 }
 
 /* =============================================================================
@@ -870,7 +896,7 @@ h3, h4 {
 }
 
 .mobile-panel-tag {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 9px;
   font-weight: 600;
   color: var(--text-muted);
@@ -1295,7 +1321,7 @@ h3, h4 {
 
 .drawer-section-title {
   font-size: 10px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -1334,7 +1360,7 @@ h3, h4 {
 
 .drawer-badge {
   font-size: 9px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   padding: 2px 6px;
   border-radius: 3px;
   background: var(--bg-secondary);
@@ -2592,7 +2618,7 @@ h3, h4 {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 999px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   font-weight: 500;
   letter-spacing: 0.12em;
@@ -2733,7 +2759,7 @@ h3, h4 {
 }
 
 .architecture-pipeline-eyebrow {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -2742,7 +2768,7 @@ h3, h4 {
 }
 
 .architecture-pipeline-meta {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 10px;
   font-weight: 500;
   color: var(--text-muted);
@@ -2794,7 +2820,7 @@ h3, h4 {
 }
 
 .architecture-node-step {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 9px;
   font-weight: 700;
   color: var(--text-muted);
@@ -2802,7 +2828,7 @@ h3, h4 {
 }
 
 .architecture-node-role {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 8.5px;
   font-weight: 600;
   color: var(--text-muted);
@@ -2824,7 +2850,7 @@ h3, h4 {
 }
 
 .architecture-node-detail {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 9.5px;
   color: var(--text-muted);
   letter-spacing: 0.01em;
@@ -2899,7 +2925,7 @@ h3, h4 {
   flex-wrap: wrap;
   gap: 16px;
   font-size: 11.5px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   color: var(--text-secondary);
 }
 
@@ -3020,7 +3046,7 @@ h3, h4 {
 }
 
 .engine-status-text {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -3028,7 +3054,7 @@ h3, h4 {
 }
 
 .engine-ver {
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-muted);
 }
@@ -3055,7 +3081,7 @@ h3, h4 {
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 11px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-weight: 600;
 }
 
@@ -3089,7 +3115,7 @@ h3, h4 {
 }
 
 .preview-eyebrow {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -3113,7 +3139,7 @@ h3, h4 {
 
 .preview-tech {
   font-size: 11.5px;
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   color: var(--text-muted);
 }
 
@@ -3137,7 +3163,7 @@ h3, h4 {
 
 .engine-stat-label {
   font-size: 10px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   color: var(--text-muted);
   text-transform: uppercase;
 }
@@ -3246,7 +3272,7 @@ h3, h4 {
 }
 
 .tour-step-num {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 700;
   color: var(--accent);
@@ -3264,7 +3290,7 @@ h3, h4 {
 
 .tour-nav-text small {
   font-size: 10.5px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   color: var(--text-muted);
   letter-spacing: 0.04em;
 }
@@ -3299,7 +3325,7 @@ h3, h4 {
 }
 
 .tour-tech-callout p {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 12.5px;
   color: var(--text-primary);
   margin: 6px 0 0 0;
@@ -3380,7 +3406,7 @@ h3, h4 {
 .capture-details-item span {
   font-size: 11px;
   color: var(--text-muted);
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   text-transform: uppercase;
 }
 
@@ -3429,7 +3455,7 @@ h3, h4 {
 
 .brand-badge-sub {
   font-size: 9px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--text-muted);
@@ -3539,7 +3565,7 @@ h3, h4 {
   text-transform: uppercase;
   color: var(--ns-text-primary);
   margin-bottom: 4px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
 }
 
 .footer-link {
@@ -3555,7 +3581,7 @@ h3, h4 {
 
 .footer-meta-item {
   font-size: 12.5px;
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   color: var(--ns-text-tertiary);
 }
 
@@ -3580,7 +3606,7 @@ h3, h4 {
 }
 
 .footer-status-tag {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -3738,7 +3764,7 @@ h3, h4 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -3794,7 +3820,7 @@ h3, h4 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -3837,7 +3863,7 @@ h3, h4 {
 }
 
 .about-row-label span {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--text-muted);
@@ -3885,7 +3911,7 @@ h3, h4 {
 }
 
 .research-sec-num {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -3894,6 +3920,7 @@ h3, h4 {
 }
 
 .research-section-header h2 {
+  font-family: var(--font-display);
   font-size: 1.55rem;
   font-weight: 700;
   letter-spacing: -0.015em;
@@ -3910,7 +3937,7 @@ h3, h4 {
 }
 
 .mono-inline {
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 0.88em;
   color: var(--ns-text-primary);
   background: var(--ns-surface);
@@ -3925,7 +3952,7 @@ h3, h4 {
   border-radius: 10px;
   padding: 18px 24px;
   margin: 20px 0;
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 0.88rem;
   color: var(--ns-text-primary);
   overflow-x: auto;
@@ -3972,7 +3999,7 @@ h3, h4 {
 }
 
 .feature-group-num {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--ns-text-secondary);
@@ -4010,7 +4037,7 @@ h3, h4 {
 
 .research-spec-table th {
   background: var(--bg-secondary);
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-muted);
@@ -4038,7 +4065,7 @@ h3, h4 {
 }
 
 .callout-val {
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -4048,7 +4075,7 @@ h3, h4 {
   font-size: 0.75rem;
   color: var(--text-muted);
   text-transform: uppercase;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
 }
 
 /* Security Page Specifics */
@@ -4084,7 +4111,7 @@ h3, h4 {
 }
 
 .integrity-row-title span {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--text-muted);
@@ -4197,7 +4224,7 @@ h3, h4 {
 }
 
 .stage-step-num {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-muted);
@@ -4276,7 +4303,7 @@ h3, h4 {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -4290,7 +4317,7 @@ h3, h4 {
 
 .editorial-eyebrow {
   display: block;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -4377,7 +4404,7 @@ h3, h4 {
 }
 
 .orchestrator-step-indicator {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 700;
   color: var(--text-muted);
@@ -4420,7 +4447,7 @@ h3, h4 {
 }
 
 .bubble-num {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 700;
 }
@@ -4449,7 +4476,7 @@ h3, h4 {
 }
 
 .stage-contract-tag {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   color: var(--text-muted);
 }
@@ -4494,7 +4521,7 @@ h3, h4 {
 
 .io-label {
   font-size: 10px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-weight: 700;
   color: var(--text-muted);
   letter-spacing: 0.05em;
@@ -4502,7 +4529,7 @@ h3, h4 {
 
 .io-val {
   font-size: 12.5px;
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   color: var(--text-primary);
 }
 
@@ -4515,7 +4542,7 @@ h3, h4 {
 
 .features-label {
   font-size: 11px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-weight: 700;
   color: var(--text-muted);
 }
@@ -4548,7 +4575,7 @@ h3, h4 {
 }
 
 .stage-counter {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -4590,7 +4617,7 @@ h3, h4 {
 }
 
 .step-badge {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 700;
   color: var(--accent);
@@ -4598,7 +4625,7 @@ h3, h4 {
 
 .step-phase-tag {
   font-size: 10px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 4px;
@@ -4628,7 +4655,7 @@ h3, h4 {
 
 .contract-chip {
   font-size: 11px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   color: var(--text-muted);
 }
 
@@ -4724,7 +4751,7 @@ h3, h4 {
 
 .guarantee-badge {
   font-size: 11px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   color: var(--accent);
   padding: 4px 8px;
   border-radius: 4px;
@@ -4754,7 +4781,7 @@ h3, h4 {
 .benchmark-table th {
   text-align: left;
   padding: 10px 14px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -4770,7 +4797,7 @@ h3, h4 {
 }
 
 .status-badge {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   padding: 3px 8px;
   border-radius: 4px;
@@ -4876,7 +4903,7 @@ h3, h4 {
 }
 
 .math-tag {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -4902,7 +4929,7 @@ h3, h4 {
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 12px 14px;
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 12px;
   color: var(--accent);
   overflow-x: auto;
@@ -4923,7 +4950,7 @@ h3, h4 {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   color: var(--success);
   font-weight: 600;
@@ -4955,7 +4982,7 @@ h3, h4 {
   display: block;
   font-size: 11px;
   color: var(--text-muted);
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   margin-top: 2px;
 }
 
@@ -4965,7 +4992,7 @@ h3, h4 {
   border: 1px solid rgba(16, 185, 129, 0.3);
   font-size: 10.5px;
   font-weight: 700;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   padding: 2px 7px;
   border-radius: 4px;
 }
@@ -4976,7 +5003,7 @@ h3, h4 {
   border: 1px solid rgba(242, 187, 113, 0.3);
   font-size: 10.5px;
   font-weight: 700;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   padding: 2px 7px;
   border-radius: 4px;
 }
@@ -4987,7 +5014,7 @@ h3, h4 {
   border: 1px solid var(--border);
   font-size: 10.5px;
   font-weight: 700;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   padding: 2px 7px;
   border-radius: 4px;
 }
@@ -5131,7 +5158,7 @@ h3, h4 {
 }
 
 .editorial-meta-tag {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.15em;
@@ -5151,7 +5178,7 @@ h3, h4 {
 }
 
 .editorial-lead-text {
-  font-family: var(--font-sans);
+  font-family: var(--font-editorial);
   font-size: clamp(1.05rem, 1.6vw, 1.25rem);
   font-weight: 300;
   line-height: 1.6;
@@ -5160,7 +5187,7 @@ h3, h4 {
 }
 
 .editorial-eyebrow {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -5190,7 +5217,7 @@ h3, h4 {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -5204,7 +5231,7 @@ h3, h4 {
 }
 
 .landing-editorial-title {
-  font-family: var(--font-sans);
+  font-family: var(--font-display);
   font-size: clamp(2.6rem, 5vw, 4.4rem);
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -5271,7 +5298,7 @@ h3, h4 {
 }
 
 .contract-label {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -5279,7 +5306,7 @@ h3, h4 {
 }
 
 .contract-val {
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
@@ -5327,7 +5354,7 @@ h3, h4 {
 }
 
 .col-index {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   color: var(--text-muted);
@@ -5391,7 +5418,7 @@ h3, h4 {
 }
 
 .pipeline-num {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   color: var(--text-muted);
@@ -5410,7 +5437,7 @@ h3, h4 {
 }
 
 .detail-meta {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -5497,7 +5524,7 @@ h3, h4 {
 }
 
 .faq-editorial-toggle {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 18px;
   color: var(--text-muted);
   line-height: 1;
@@ -5562,7 +5589,7 @@ h3, h4 {
 }
 
 .workflow-seq-num {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 20px;
   font-weight: 700;
   color: var(--text-muted);
@@ -5622,14 +5649,14 @@ h3, h4 {
 }
 
 .integrity-row-title span {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 700;
   color: var(--text-muted);
 }
 
 .integrity-row-title h2 {
-  font-family: var(--font-sans);
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -5676,14 +5703,14 @@ h3, h4 {
 }
 
 .about-row-label span {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 700;
   color: var(--text-muted);
 }
 
 .about-row-label h2 {
-  font-family: var(--font-sans);
+  font-family: var(--font-display);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -5712,14 +5739,14 @@ h3, h4 {
 }
 
 .research-sec-num {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 700;
   color: var(--text-muted);
 }
 
 .research-section-header h2 {
-  font-family: var(--font-sans);
+  font-family: var(--font-display);
   font-size: 17px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -5753,7 +5780,7 @@ h3, h4 {
 }
 
 .mono-inline {
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 12.5px;
   color: var(--text-primary);
 }
@@ -5763,7 +5790,7 @@ h3, h4 {
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: 14px 18px;
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   font-size: 13px;
   color: var(--text-primary);
   margin: 12px 0;
@@ -5786,7 +5813,7 @@ h3, h4 {
 
 .editorial-table th {
   padding: 10px 14px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   color: var(--text-muted);

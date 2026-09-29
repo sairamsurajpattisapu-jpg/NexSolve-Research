@@ -249,7 +249,7 @@ export function Traffic() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <SlidersHorizontal size={15} color="var(--text-primary)" />
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 DEEP FLOW INVESTIGATION TABLE
               </span>
             </div>
@@ -342,7 +342,7 @@ export function Traffic() {
           <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '6px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', fontFamily: 'var(--font-sans)' }}>
               <thead>
-                <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '10.5px' }}>
+                <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', fontSize: '10.5px' }}>
                   <th style={{ padding: '10px 12px' }}>SOURCE IP : PORT</th>
                   <th style={{ padding: '10px 12px' }}>&rarr;</th>
                   <th style={{ padding: '10px 12px' }}>DESTINATION IP : PORT</th>

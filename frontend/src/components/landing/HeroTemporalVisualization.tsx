@@ -90,7 +90,7 @@ export function HeroTemporalVisualization() {
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FFFFFF', display: 'inline-block' }} />
             TEMPORAL NETWORK BEHAVIOR &middot; OBSERVED &rarr; FORECAST
           </div>
-          <span style={{ fontSize: 10.5, fontFamily: 'var(--mono)', color: '#737373', borderLeft: '1px solid #222', paddingLeft: 10 }}>
+          <span style={{ fontSize: 10.5, fontFamily: 'var(--font-ui)', color: '#737373', borderLeft: '1px solid #222', paddingLeft: 10 }}>
             [Conceptual workflow model &middot; Not live analysis data]
           </span>
         </div>
@@ -108,7 +108,7 @@ export function HeroTemporalVisualization() {
                 padding: '3px 8px',
                 borderRadius: '3px',
                 fontSize: '10.5px',
-                fontFamily: 'var(--mono)',
+                fontFamily: 'var(--font-ui)',
                 cursor: 'pointer',
               }}
             >
@@ -124,7 +124,7 @@ export function HeroTemporalVisualization() {
                 padding: '3px 8px',
                 borderRadius: '3px',
                 fontSize: '10.5px',
-                fontFamily: 'var(--mono)',
+                fontFamily: 'var(--font-ui)',
                 cursor: 'pointer',
               }}
             >
@@ -134,15 +134,15 @@ export function HeroTemporalVisualization() {
 
           <div className="visual-legend" style={{ display: 'flex', gap: '12px', fontSize: '11px', color: '#999999' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ padding: '1px 6px', border: '1px solid #FFFFFF', color: '#FFFFFF', fontSize: '9.5px', fontFamily: 'var(--mono)', borderRadius: '3px' }}>OBSERVED</span>
+              <span style={{ padding: '1px 6px', border: '1px solid #FFFFFF', color: '#FFFFFF', fontSize: '9.5px', fontFamily: 'var(--font-ui)', borderRadius: '3px' }}>OBSERVED</span>
               Past
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ padding: '1px 6px', background: '#FFFFFF', color: '#000000', fontSize: '9.5px', fontFamily: 'var(--mono)', fontWeight: 700, borderRadius: '3px' }}>CURRENT</span>
+              <span style={{ padding: '1px 6px', background: '#FFFFFF', color: '#000000', fontSize: '9.5px', fontFamily: 'var(--font-ui)', fontWeight: 700, borderRadius: '3px' }}>CURRENT</span>
               Now (T_0)
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ padding: '1px 6px', border: '1px dashed #999999', color: '#CCCCCC', fontSize: '9.5px', fontFamily: 'var(--mono)', borderRadius: '3px' }}>FORECAST</span>
+              <span style={{ padding: '1px 6px', border: '1px dashed #999999', color: '#CCCCCC', fontSize: '9.5px', fontFamily: 'var(--font-ui)', borderRadius: '3px' }}>FORECAST</span>
               T+1..T+5
             </span>
           </div>
@@ -354,7 +354,7 @@ export function HeroTemporalVisualization() {
           <span
             style={{
               fontSize: '10px',
-              fontFamily: 'var(--mono)',
+              fontFamily: 'var(--font-ui)',
               fontWeight: 700,
               padding: '2px 8px',
               borderRadius: '3px',

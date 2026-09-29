@@ -352,7 +352,7 @@ export function AnalysisPipelineVisualizer({
             justifyContent: 'space-between',
             gap: '12px',
             fontSize: '12px',
-            fontFamily: 'var(--mono)',
+            fontFamily: 'var(--font-ui)',
             color: 'var(--text-primary)',
           }}
           role="status"
@@ -429,7 +429,7 @@ export function AnalysisPipelineVisualizer({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span
                   style={{
-                    fontFamily: 'var(--mono)',
+                    fontFamily: 'var(--font-ui)',
                     fontSize: '11px',
                     fontWeight: 700,
                     letterSpacing: '0.12em',
@@ -443,7 +443,7 @@ export function AnalysisPipelineVisualizer({
                 <span
                   style={{
                     fontSize: '10px',
-                    fontFamily: 'var(--mono)',
+                    fontFamily: 'var(--font-ui)',
                     color: 'var(--text-muted)',
                     padding: '1px 5px',
                     borderRadius: '3px',
@@ -454,12 +454,12 @@ export function AnalysisPipelineVisualizer({
                   {formatLabel}
                 </span>
 
-                <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
                   STAGE: <strong style={{ color: 'var(--text-primary)' }}>{active8Stage.label}</strong>
                 </span>
 
                 {activeStageDef && activeStageDef.activeTitle !== authoritativeStatus && (
-                  <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--font-ui)', color: 'var(--text-secondary)' }}>
                     &middot; <span>{activeStageDef.activeTitle}</span>
                   </span>
                 )}
@@ -482,7 +482,7 @@ export function AnalysisPipelineVisualizer({
           </div>
 
           {/* Telemetry Numbers & Timer */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '18px', fontSize: '11.5px', fontFamily: 'var(--mono)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px', fontSize: '11.5px', fontFamily: 'var(--font-ui)' }}>
             {/* Real Progress % or Processing indicator */}
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '9.5px', color: 'var(--text-muted)', letterSpacing: '0.08em' }}>PROGRESS</div>
@@ -615,7 +615,7 @@ export function AnalysisPipelineVisualizer({
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '10px',
-                      fontFamily: 'var(--mono)',
+                      fontFamily: 'var(--font-ui)',
                       fontWeight: 700,
                       color: isPassed ? 'var(--bg-primary)' : 'var(--text-primary)',
                       boxShadow: isCurrentActive
@@ -632,7 +632,7 @@ export function AnalysisPipelineVisualizer({
                   <div
                     style={{
                       fontSize: '10.5px',
-                      fontFamily: 'var(--mono)',
+                      fontFamily: 'var(--font-ui)',
                       fontWeight: isCurrent ? 700 : 500,
                       letterSpacing: '0.04em',
                       color: isCurrentFailed
@@ -656,7 +656,7 @@ export function AnalysisPipelineVisualizer({
                   <div
                     style={{
                       fontSize: '8.5px',
-                      fontFamily: 'var(--mono)',
+                      fontFamily: 'var(--font-ui)',
                       color: isCurrentActive ? 'var(--text-primary)' : 'var(--text-muted)',
                       marginTop: '2px',
                       whiteSpace: 'nowrap',
@@ -686,7 +686,7 @@ export function AnalysisPipelineVisualizer({
             border: '1px solid var(--border)',
             borderRadius: '6px',
             fontSize: '11px',
-            fontFamily: 'var(--mono)',
+            fontFamily: 'var(--font-ui)',
             marginTop: '8px',
           }}
         >
@@ -737,7 +737,7 @@ export function AnalysisPipelineVisualizer({
             flexWrap: 'wrap',
             gap: '6px',
             fontSize: '8.5px',
-            fontFamily: 'var(--mono)',
+            fontFamily: 'var(--font-ui)',
             color: 'var(--text-muted)',
             opacity: 0.65,
           }}
@@ -770,7 +770,7 @@ export function AnalysisPipelineVisualizer({
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <CheckCircle size={18} color="var(--text-primary)" />
               <div>
-                <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>
+                <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)', fontFamily: 'var(--font-ui)' }}>
                   {isForecastTrajectoryAvailable ? (
                     <>ANALYSIS COMPLETE &rarr; FORECAST READY</>
                   ) : (

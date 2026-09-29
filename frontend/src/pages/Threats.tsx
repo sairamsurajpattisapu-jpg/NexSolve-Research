@@ -128,7 +128,7 @@ export function Threats() {
               Current Threat Assessment (Observed T0)
             </h3>
           </div>
-          <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontWeight: 700 }}>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontWeight: 700 }}>
             {currentProb >= 0.7 ? 'CRITICAL / ELEVATED' : currentProb >= 0.4 ? 'SUSPICIOUS' : 'NOMINAL'}
           </span>
         </div>

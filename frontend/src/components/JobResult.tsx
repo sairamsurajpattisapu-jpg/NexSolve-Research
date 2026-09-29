@@ -126,47 +126,47 @@ export function JobResult({ result, onReset }: JobResultProps) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Server size={14} color="var(--text-primary)" />
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em', fontWeight: 600 }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em', fontWeight: 600 }}>
               Capture Telemetry & Processing Details
             </span>
           </div>
-          <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-secondary)' }}>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-secondary)' }}>
             SCHEMA: MODEL_SCHEMA_45 (45-DIM PASSIVE)
           </span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px' }}>
           <div>
-            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>Filename</div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-ui)' }}>Filename</div>
             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }} title={result.source?.name || 'capture.pcap'}>
               File: {result.source?.name || result.source?.filename || 'capture.pcap'}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>File Size</div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-ui)' }}>File Size</div>
             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
               {formatBytes(result.source?.size_bytes ?? (result as any).upload?.size_bytes)}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>Packet Count</div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-ui)' }}>Packet Count</div>
             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
               {(result.packet_count ?? traffic?.packets ?? 0).toLocaleString()}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>Capture Duration</div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-ui)' }}>Capture Duration</div>
             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
               {(result.duration_seconds ?? (traffic?.windows ? traffic.windows * 60 : 0))}s
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>Flow Count</div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-ui)' }}>Flow Count</div>
             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
               {(traffic?.flows ?? 0).toLocaleString()}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--mono)' }}>Observation Windows</div>
+            <div style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-ui)' }}>Observation Windows</div>
             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
               {result.window_count ?? traffic?.windows ?? 1} (60s tumbling)
             </div>
@@ -179,7 +179,7 @@ export function JobResult({ result, onReset }: JobResultProps) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Compass size={14} color="var(--text-primary)" />
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.06em', fontWeight: 600 }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', textTransform: 'uppercase', color: 'var(--text-secondary)', letterSpacing: '0.06em', fontWeight: 600 }}>
               Investigation Workspace
             </span>
           </div>

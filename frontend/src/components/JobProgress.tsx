@@ -130,11 +130,11 @@ export function JobProgress({ job, onCancel }: JobProgressProps) {
                 <span className="eyebrow" style={{ color: 'var(--accent)', margin: 0 }}>
                   {isLimitExceeded ? 'Safety Boundary' : isComplete ? 'ANALYSIS COMPLETE' : isFailed ? 'ANALYSIS FAILED' : 'ANALYZING CAPTURE'}
                 </span>
-                <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
                   STAGE: <strong style={{ color: 'var(--text-primary)' }}>{CIRCUIT_8_STAGES[activeIndex]?.label}</strong>
                 </span>
               </div>
-              <h4 style={{ margin: '2px 0 0 0', fontSize: '14px', color: 'var(--text-primary)', fontFamily: 'var(--mono)' }}>
+              <h4 style={{ margin: '2px 0 0 0', fontSize: '14px', color: 'var(--text-primary)', fontFamily: 'var(--font-ui)' }}>
                 {isLimitExceeded
                   ? 'Resource Limit Exceeded'
                   : isFailed
@@ -144,7 +144,7 @@ export function JobProgress({ job, onCancel }: JobProgressProps) {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontFamily: 'var(--mono)', fontSize: '11px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontFamily: 'var(--font-ui)', fontSize: '11px' }}>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '9.5px', color: 'var(--text-muted)', letterSpacing: '0.06em' }}>PROGRESS</div>
               <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{percent}%</div>
@@ -261,7 +261,7 @@ export function JobProgress({ job, onCancel }: JobProgressProps) {
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '9px',
-                      fontFamily: 'var(--mono)',
+                      fontFamily: 'var(--font-ui)',
                       fontWeight: 700,
                       color: isPassed ? 'var(--bg-primary)' : 'var(--text-primary)',
                       boxShadow: isCurrentActive
@@ -276,7 +276,7 @@ export function JobProgress({ job, onCancel }: JobProgressProps) {
                   <div
                     style={{
                       fontSize: '9.5px',
-                      fontFamily: 'var(--mono)',
+                      fontFamily: 'var(--font-ui)',
                       fontWeight: isCurrent ? 700 : 500,
                       color: isCurrentActive
                         ? 'var(--text-primary)'
@@ -315,7 +315,7 @@ export function JobProgress({ job, onCancel }: JobProgressProps) {
         </div>
 
         {/* 4. Compact Telemetry Info */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', fontSize: '11px', fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
           <div style={{ display: 'flex', gap: '16px' }}>
             <span>Stage: <strong style={{ color: 'var(--text-secondary)' }}>{job.stage}</strong></span>
             {job.bytes_total && job.bytes_processed != null && (

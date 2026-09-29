@@ -187,14 +187,14 @@ export function Progression() {
       <Panel style={{ marginBottom: '24px', padding: '24px', background: 'var(--bg-surface)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
           <div>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em', fontWeight: 600 }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em', fontWeight: 600 }}>
               VERIFIED ATTACK STAGE PROGRESSION
             </span>
             <h2 style={{ margin: '4px 0 0 0', fontSize: '18px', color: 'var(--text-primary)', fontWeight: 700 }}>
               Observed Baseline &rarr; Predicted Downstream Progression
             </h2>
           </div>
-          <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '3px 8px', borderRadius: '4px', background: 'var(--bg-secondary)' }}>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', color: 'var(--text-primary)', border: '1px solid var(--border)', padding: '3px 8px', borderRadius: '4px', background: 'var(--bg-secondary)' }}>
             VERDICT: {progression.verdict || 'ELEVATED_ATTACK_TRAJECTORY'}
           </span>
         </div>
@@ -203,23 +203,23 @@ export function Progression() {
           {/* Stage 1: OBSERVED (T0) */}
           <div style={{ padding: '16px 20px', borderRadius: '6px', background: 'var(--bg-secondary)', border: '1px solid var(--border-strong)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', background: 'var(--text-primary)', color: 'var(--bg-primary)' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', background: 'var(--text-primary)', color: 'var(--bg-primary)' }}>
                 OBSERVED
               </span>
               <div>
                 <strong style={{ fontSize: '15px', color: 'var(--text-primary)' }}>
                   {STAGE_LABELS[currentStage]?.title || currentStage}
                 </strong>
-                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--mono)', marginTop: '2px' }}>
+                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', marginTop: '2px' }}>
                   Window: T0 (Current Observation) &middot; Baseline State: {currentState.summary.threatLevel.toUpperCase()}
                 </div>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', color: 'var(--text-secondary)' }}>
                 MITRE: {mitre.mappings?.[0]?.techniqueId || 'T1046'} ({mitre.mappings?.[0]?.techniqueName || 'Network Service Scanning'})
               </span>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', borderLeft: '1px solid var(--border)', paddingLeft: '10px' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', color: 'var(--text-muted)', borderLeft: '1px solid var(--border)', paddingLeft: '10px' }}>
                 Evidence: {analysis.evidence.chain.supporting.length} Signals
               </span>
               <Link
@@ -233,30 +233,30 @@ export function Progression() {
           </div>
 
           {/* Downward Transition Arrow */}
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '4px 0', color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '4px 0', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', fontSize: '14px' }}>
             &darr; Projected Transition (empirical transition likelihood: {typeof activePoint.stepAttackProbability === 'number' ? `${(activePoint.stepAttackProbability * 100).toFixed(0)}%` : '85%'})
           </div>
 
           {/* Stage 2: FORECAST T+1..T+3 */}
           <div style={{ padding: '16px 20px', borderRadius: '6px', background: 'var(--bg-secondary)', border: '1px dashed var(--border-strong)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}>
                 FORECAST
               </span>
               <div>
                 <strong style={{ fontSize: '15px', color: 'var(--text-primary)' }}>
                   {isForecastAvailable ? (STAGE_LABELS[predictedStage]?.title || predictedStage) : 'Withheld (Insufficient History)'}
                 </strong>
-                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--mono)', marginTop: '2px' }}>
+                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', marginTop: '2px' }}>
                   Horizon: T+1 &rarr; T+3 (+60s to +180s) &middot; Forward Progression
                 </div>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', color: 'var(--text-secondary)' }}>
                 MITRE: {mitre.mappings?.[1]?.techniqueId || 'T1071'} ({mitre.mappings?.[1]?.techniqueName || 'Application Layer Protocol'})
               </span>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', borderLeft: '1px solid var(--border)', paddingLeft: '10px' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', color: 'var(--text-primary)', borderLeft: '1px solid var(--border)', paddingLeft: '10px' }}>
                 Confidence: {activePoint.confidence != null ? `${(activePoint.confidence * 100).toFixed(0)}%` : '92%'}
               </span>
               <Link
@@ -270,30 +270,30 @@ export function Progression() {
           </div>
 
           {/* Downward Transition Arrow */}
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '4px 0', color: 'var(--text-muted)', fontFamily: 'var(--mono)', fontSize: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '4px 0', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', fontSize: '14px' }}>
             &darr; Compound Horizon Rollout
           </div>
 
           {/* Stage 3: FORECAST T+4..T+5 */}
           <div style={{ padding: '16px 20px', borderRadius: '6px', background: 'var(--bg-secondary)', border: '1px dashed var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
                 FORECAST
               </span>
               <div>
                 <strong style={{ fontSize: '15px', color: 'var(--text-primary)' }}>
                   {isForecastAvailable ? 'Command & Control / Impact Staging' : 'Withheld (Abstained)'}
                 </strong>
-                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--mono)', marginTop: '2px' }}>
+                <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-ui)', marginTop: '2px' }}>
                   Horizon: T+4 &rarr; T+5 (+240s to +300s) &middot; Target Impact Envelope
                 </div>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', color: 'var(--text-secondary)' }}>
                 MITRE: {mitre.mappings?.[2]?.techniqueId || 'T1498'} ({mitre.mappings?.[2]?.techniqueName || 'Network Denial of Service'})
               </span>
-              <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', borderLeft: '1px solid var(--border)', paddingLeft: '10px' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', color: 'var(--text-primary)', borderLeft: '1px solid var(--border)', paddingLeft: '10px' }}>
                 Cumulative Risk: {activePoint.cumulativeRisk != null ? `${(activePoint.cumulativeRisk * 100).toFixed(0)}%` : '88%'}
               </span>
               <Link

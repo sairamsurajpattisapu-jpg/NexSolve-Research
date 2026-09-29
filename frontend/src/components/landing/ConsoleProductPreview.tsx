@@ -63,7 +63,7 @@ export function ConsoleProductPreview() {
           <span
             style={{
               fontSize: '10.5px',
-              fontFamily: 'var(--mono)',
+              fontFamily: 'var(--font-ui)',
               color: '#e5e5e5',
               display: 'inline-flex',
               alignItems: 'center',
@@ -76,7 +76,7 @@ export function ConsoleProductPreview() {
           <span
             style={{
               fontSize: '10px',
-              fontFamily: 'var(--mono)',
+              fontFamily: 'var(--font-ui)',
               padding: '2px 7px',
               border: '1px solid #333333',
               borderRadius: '3px',
@@ -107,7 +107,7 @@ export function ConsoleProductPreview() {
             <span
               style={{
                 fontSize: '10px',
-                fontFamily: 'var(--mono)',
+                fontFamily: 'var(--font-ui)',
                 fontWeight: 700,
                 color: '#ffffff',
                 background: '#141414',
@@ -128,7 +128,7 @@ export function ConsoleProductPreview() {
           <div
             style={{
               fontSize: '11.5px',
-              fontFamily: 'var(--mono)',
+              fontFamily: 'var(--font-ui)',
               color: '#8a8a8a',
               marginTop: '4px',
               display: 'flex',
@@ -172,10 +172,10 @@ export function ConsoleProductPreview() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: '#737373', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+              <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-ui)', color: '#737373', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
                 1. WHAT IS HAPPENING?
               </span>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '1px 6px', border: '1px solid #444', borderRadius: '3px', color: '#ffffff' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-ui)', padding: '1px 6px', border: '1px solid #444', borderRadius: '3px', color: '#ffffff' }}>
                 CURRENT STATE
               </span>
             </div>
@@ -196,14 +196,14 @@ export function ConsoleProductPreview() {
               High-rate SYN probes and sequential port sweeps observed against subnet internal gateway (10.0.4.15).
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', fontFamily: 'var(--mono)', fontSize: '11px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', fontFamily: 'var(--font-ui)', fontSize: '11px' }}>
               <div style={{ background: '#121212', border: '1px solid #222', padding: '6px 10px', borderRadius: '4px' }}>
                 <span style={{ color: '#737373', display: 'block', fontSize: '10px' }}>P(ATTACK NOW)</span>
-                <strong style={{ color: '#ffffff', fontSize: '13px' }}>74.2%</strong>
+                <strong style={{ color: '#ffffff', fontSize: '13px', fontFamily: 'var(--font-mono)' }}>74.2%</strong>
               </div>
               <div style={{ background: '#121212', border: '1px solid #222', padding: '6px 10px', borderRadius: '4px' }}>
                 <span style={{ color: '#737373', display: 'block', fontSize: '10px' }}>MITRE TECHNIQUE</span>
-                <strong style={{ color: '#ffffff', fontSize: '13px' }}>T1046 (Scan)</strong>
+                <strong style={{ color: '#ffffff', fontSize: '13px', fontFamily: 'var(--font-mono)' }}>T1046 (Scan)</strong>
               </div>
             </div>
           </div>
@@ -218,10 +218,10 @@ export function ConsoleProductPreview() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: '#737373', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+              <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-ui)', color: '#737373', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
                 2. WHAT COMES NEXT?
               </span>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '1px 6px', border: '1px solid #444', borderRadius: '3px', color: '#ffffff' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-ui)', padding: '1px 6px', border: '1px solid #444', borderRadius: '3px', color: '#ffffff' }}>
                 ATTACK HORIZON
               </span>
             </div>
@@ -251,7 +251,7 @@ export function ConsoleProductPreview() {
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: '#737373', fontWeight: 600 }}>{h.step}</div>
+                  <div style={{ fontSize: '10px', fontFamily: 'var(--font-ui)', color: '#737373', fontWeight: 600 }}>{h.step}</div>
                   <div style={{ fontSize: '13px', fontFamily: 'var(--font-sans)', fontWeight: 700, color: '#ffffff', margin: '2px 0' }}>{h.p}</div>
                   <div style={{ fontSize: '8.5px', color: '#a3a3a3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{h.stage}</div>
                 </div>
@@ -272,10 +272,10 @@ export function ConsoleProductPreview() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: '#737373', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+              <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-ui)', color: '#737373', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
                 3. WHY? (GROUNDED EVIDENCE)
               </span>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '1px 6px', border: '1px solid #444', borderRadius: '3px', color: '#ffffff' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-ui)', padding: '1px 6px', border: '1px solid #444', borderRadius: '3px', color: '#ffffff' }}>
                 DRIVERS
               </span>
             </div>
@@ -300,10 +300,10 @@ export function ConsoleProductPreview() {
                   }}
                 >
                   <div>
-                    <span style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: '#ffffff', fontWeight: 600 }}>{d.f}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#ffffff', fontWeight: 600 }}>{d.f}</span>
                     <p style={{ margin: 0, fontSize: '10.5px', color: '#8a8a8a', lineHeight: 1.3 }}>{d.desc}</p>
                   </div>
-                  <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', border: '1px solid #333', padding: '1px 5px', borderRadius: '2px', color: '#ffffff' }}>
+                  <span style={{ fontSize: '9px', fontFamily: 'var(--font-ui)', border: '1px solid #333', padding: '1px 5px', borderRadius: '2px', color: '#ffffff' }}>
                     {d.imp}
                   </span>
                 </div>
@@ -321,10 +321,10 @@ export function ConsoleProductPreview() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: '#737373', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+              <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-ui)', color: '#737373', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
                 4. WHAT CAN I INVESTIGATE?
               </span>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', padding: '1px 6px', border: '1px solid #444', borderRadius: '3px', color: '#ffffff' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-ui)', padding: '1px 6px', border: '1px solid #444', borderRadius: '3px', color: '#ffffff' }}>
                 WORKSPACES
               </span>
             </div>

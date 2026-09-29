@@ -51,7 +51,7 @@
   background: var(--bg-secondary, #0A0A0A);
   border: 1px solid var(--border, #222222);
   border-radius: 4px;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -70,7 +70,7 @@
 .hero-headline {
   position: relative;
   z-index: 1;
-  font-family: var(--font-serif, 'Instrument Serif', Georgia, serif);
+  font-family: var(--font-display);
   font-size: clamp(48px, 6.8vw, 92px);
   font-weight: 400;
   line-height: 1.03;
@@ -88,7 +88,7 @@
 
 .hero-brand-label {
   display: block;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -104,7 +104,7 @@
 .hero-subheadline {
   position: relative;
   z-index: 1;
-  font-family: var(--font-sans, sans-serif);
+  font-family: var(--font-editorial);
   font-size: clamp(16.5px, 1.6vw, 19.5px);
   line-height: 1.6;
   color: #a3a3a3;
@@ -205,7 +205,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11.5px;
   font-weight: 500;
   letter-spacing: 0.06em;
@@ -222,7 +222,7 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 4px;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11px;
   color: #a1a1aa;
   text-decoration: none;
@@ -264,7 +264,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 600;
   color: #a1a1aa;
@@ -276,7 +276,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10.5px;
 }
 
@@ -326,7 +326,7 @@
 }
 
 .section-eyebrow {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -337,7 +337,7 @@
 }
 
 .section-heading-large {
-  font-family: var(--font-sans, sans-serif);
+  font-family: var(--font-display);
   font-size: clamp(26px, 3.2vw, 40px);
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -387,7 +387,7 @@
 }
 
 .problem-tag {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -428,7 +428,7 @@
 }
 
 .chain-step .step-tag {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   color: #a1a1aa;
 }
@@ -459,7 +459,7 @@
 }
 
 .pipeline-step-num {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 700;
   color: #71717a;
@@ -482,7 +482,7 @@
 }
 
 .pipeline-step-meta {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   color: #52525b;
   padding-top: 10px;
@@ -537,7 +537,7 @@
 }
 
 .progression-step-num {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10px;
   font-weight: 700;
   color: #71717a;
@@ -590,14 +590,14 @@
 }
 
 .horizon-step {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 800;
   color: #ffffff;
 }
 
 .horizon-sec {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-mono);
   font-size: 11px;
   color: #71717a;
 }
@@ -615,13 +615,13 @@
 }
 
 .horizon-prob-val {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-mono);
   font-weight: 700;
   color: #ffffff;
 }
 
 .horizon-risk-val {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-mono);
   font-weight: 700;
   color: #f59e0b;
 }
@@ -682,13 +682,13 @@
 }
 
 .trace-item-tag {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10px;
   color: #71717a;
 }
 
 .trace-item-title {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 12.5px;
   font-weight: 700;
   color: #ffffff;
@@ -717,7 +717,7 @@
 }
 
 .cli-inline-code {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-mono);
   font-size: 12px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -789,7 +789,7 @@
   background: rgba(56, 189, 248, 0.08);
   border: 1px solid rgba(56, 189, 248, 0.25);
   border-radius: 4px;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   color: #38bdf8;
@@ -856,7 +856,7 @@
 }
 
 .dual-tag {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -948,14 +948,14 @@
 }
 
 .arch-step-num {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   color: #737373;
 }
 
 .arch-step-category {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 8.5px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1007,7 +1007,7 @@
 }
 
 .pipeline-header-label {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -1046,7 +1046,7 @@
 }
 
 .flow-step-tag {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 9.5px;
   font-weight: 700;
   color: #38bdf8;
@@ -1055,7 +1055,7 @@
 }
 
 .flow-node-title {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   color: #ffffff;
@@ -1084,7 +1084,7 @@
   transform: translateY(-50%);
   color: rgba(255, 255, 255, 0.25);
   font-size: 12px;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   z-index: 2;
   pointer-events: none;
 }
@@ -1104,7 +1104,7 @@
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
-  font-family: var(--mono, monospace);
+  font-family: var(--font-mono);
   font-size: 12px;
 }
 
@@ -1143,7 +1143,7 @@
 .term-badge {
   margin-left: auto;
   font-size: 10px;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   padding: 1px 6px;
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.06);
@@ -1241,14 +1241,14 @@
 }
 
 .command-code {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-mono);
   font-size: 12.5px;
   font-weight: 700;
   color: #ffffff;
 }
 
 .command-label-badge {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 9.5px;
   padding: 1px 6px;
   border-radius: 3px;
@@ -1311,7 +1311,7 @@
 }
 
 .install-pill {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1352,7 +1352,7 @@
 }
 
 .step-num-badge {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10px;
   font-weight: 700;
   color: #38bdf8;
@@ -1387,7 +1387,7 @@
 }
 
 .step-code {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-mono);
   font-size: 11.5px;
   color: #38bdf8;
   word-break: break-all;
@@ -1486,7 +1486,7 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 6px;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11px;
   display: flex;
   justify-content: space-between;
@@ -1549,7 +1549,7 @@
 }
 
 .sensor-name {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 16px;
   font-weight: 800;
   color: #ffffff;
@@ -1557,7 +1557,7 @@
 }
 
 .sensor-type {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   color: #71717a;
   text-transform: uppercase;
@@ -1598,7 +1598,7 @@
 }
 
 .tech-credibility-pill {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10px;
   font-weight: 700;
   color: #38bdf8;
@@ -1623,7 +1623,7 @@
 }
 
 .tech-credibility-badge {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   color: #71717a;
   padding-top: 8px;
@@ -1818,7 +1818,7 @@
 }
 
 .cli-step-num {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   color: var(--ns-text-tertiary);
@@ -1864,7 +1864,7 @@
 }
 
 .cli-step-code {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--ns-text-primary);
   overflow-x: auto;
@@ -1893,7 +1893,7 @@
 
 /* Command Reference Explorer */
 .command-filter-pill {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -1966,7 +1966,7 @@
 }
 
 .explorer-card-cat {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1975,7 +1975,7 @@
 }
 
 .explorer-card-label {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10px;
   color: var(--ns-text-secondary);
   background: rgba(255, 255, 255, 0.04);
@@ -1985,7 +1985,7 @@
 }
 
 .explorer-card-code {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-mono);
   font-size: 12.5px;
   font-weight: 700;
   color: var(--ns-text-primary);
@@ -2003,7 +2003,7 @@
 
 .explorer-card-flags {
   font-size: 10.5px;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-mono);
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 4px;
@@ -2034,11 +2034,11 @@
 
 /* =============================================================================
    REBUILT LANDING PAGE EDITORIAL DESIGN SYSTEM & SECTIONS
-   Strict monochrome #000000 / #050505, Instrument Serif headings, high density
+   Strict monochrome #000000 / #050505, Forum display headings, high density
    ============================================================================= */
 
 .section-heading-editorial {
-  font-family: var(--font-serif, 'Instrument Serif', Georgia, serif);
+  font-family: var(--font-display);
   font-size: clamp(36px, 4.4vw, 58px);
   font-weight: 400;
   line-height: 1.08;
@@ -2054,7 +2054,7 @@
 }
 
 .editorial-statement {
-  font-family: var(--font-serif, 'Instrument Serif', Georgia, serif);
+  font-family: var(--font-display);
   font-size: clamp(24px, 2.8vw, 38px);
   font-weight: 400;
   line-height: 1.25;
@@ -2128,7 +2128,7 @@
 }
 
 .pipeline-step-badge {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   color: #888888;
@@ -2236,7 +2236,7 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: 10px;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11.5px;
 }
 
@@ -2334,7 +2334,7 @@
 }
 
 .step-card-num {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 700;
   color: #737373;
@@ -2363,7 +2363,7 @@
   border: 1px solid #222222;
   border-radius: 4px;
   padding: 6px 10px;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   color: #888888;
 }
@@ -2386,7 +2386,7 @@
   border: 1px solid #1a1a1a;
   border-radius: 6px;
   padding: 10px 16px;
-  font-family: var(--mono, monospace);
+  font-family: var(--font-mono);
   font-size: 13px;
   color: #ffffff;
 }

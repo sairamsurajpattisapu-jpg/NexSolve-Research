@@ -407,7 +407,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
                 <span
                   style={{
                     fontSize: '11px',
-                    fontFamily: 'var(--mono)',
+                    fontFamily: 'var(--font-ui)',
                     fontWeight: 700,
                     letterSpacing: '0.08em',
                     color: 'var(--text-primary)',
@@ -421,7 +421,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
                   Static traffic analysis completed.
                 </span>
               </div>
-              <span style={{ fontSize: '10.5px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
                 {forecast.status === 'NON_CONTIGUOUS_TIMESTAMPS' || forecast.status === 'GAPPED_HISTORY'
                   ? `Calibrated abstention (${forecast.availableWindows ?? 0} windows gapped)`
                   : `Calibrated abstention (${forecast.availableWindows ?? 0} / 8 windows)`}
@@ -431,7 +431,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             {/* 2. Core Guardrail Status & Narrative */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Forecast unavailable
                 </span>
                 <span style={{ color: 'var(--border)' }}>&middot;</span>
@@ -997,14 +997,14 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
           <div>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em', fontWeight: 600 }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.08em', fontWeight: 600 }}>
               FORECAST ROLLOUT TRAJECTORY TREE
             </span>
             <h3 style={{ margin: '4px 0 0 0', fontSize: '16px', color: 'var(--text-primary)', fontWeight: 600 }}>
               Historical Telemetry &amp; Forward Horizons Rollout
             </h3>
           </div>
-          <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)', border: '1px solid var(--border)', padding: '3px 8px', borderRadius: '4px', background: 'var(--bg-secondary)' }}>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', color: 'var(--text-secondary)', border: '1px solid var(--border)', padding: '3px 8px', borderRadius: '4px', background: 'var(--bg-secondary)' }}>
             LOOKAHEAD DEPTH: T+1 &rarr; T+5 (+300s)
           </span>
         </div>
@@ -1107,7 +1107,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
 
             <div style={{ display: 'flex', gap: '16px', background: 'var(--bg-secondary)', padding: '10px 16px', borderRadius: '6px' }}>
               <div>
-                <span style={{ display: 'block', fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                <span style={{ display: 'block', fontSize: '10px', fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
                   TREND
                 </span>
                 <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
@@ -1115,7 +1115,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
                 </strong>
               </div>
               <div>
-                <span style={{ display: 'block', fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                <span style={{ display: 'block', fontSize: '10px', fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
                   ONSET LEAD TIME
                 </span>
                 <strong style={{ fontSize: '13px', color: 'var(--accent)' }}>
@@ -1139,7 +1139,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
           <Workflow size={16} color="var(--text-primary)" />
-          <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
             PROJECTED ATTACK STAGE PROGRESSION
           </span>
         </div>
@@ -1174,10 +1174,10 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
                 tabIndex={0}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: isStageSelected ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                  <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', fontWeight: 700, color: isStageSelected ? 'var(--text-primary)' : 'var(--text-muted)' }}>
                     HORIZON T+{st.step}
                   </span>
-                  <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: '10px', fontFamily: 'var(--font-ui)', color: 'var(--text-muted)' }}>
                     +{st.leadTimeSeconds}s
                   </span>
                 </div>
@@ -1196,7 +1196,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
                   {st.behavioralRationale || (Array.isArray(st.evidence) && st.evidence.length > 0 ? st.evidence.slice(0, 2).join(' · ') : '')}
                 </div>
 
-                <div style={{ marginTop: 'auto', paddingTop: '8px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--mono)' }}>
+                <div style={{ marginTop: 'auto', paddingTop: '8px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--font-ui)' }}>
                   <span style={{ color: 'var(--text-muted)' }}>TRANSITION:</span>
                   <strong style={{ color: 'var(--text-primary)' }}>
                     {st.transitionProbability !== null ? `${(st.transitionProbability * 100).toFixed(1)}%` : 'Withheld'}
@@ -1220,7 +1220,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
           <div>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase' }}>
               EXPLAINABILITY & SENSITIVITY ATTRIBUTION
             </span>
             <h3 style={{ margin: '2px 0', fontSize: '18px', color: 'var(--text-primary)' }}>

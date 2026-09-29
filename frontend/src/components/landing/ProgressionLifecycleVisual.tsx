@@ -205,14 +205,14 @@ export function ProgressionLifecycleVisual() {
     <div className="progression-browser">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
         <div>
-          <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#a1a1aa', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: 11, fontFamily: 'var(--font-ui)', color: '#a1a1aa', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             15-STAGE ATTACK LIFECYCLE MODEL
           </span>
           <h3 style={{ fontSize: 20, fontWeight: 700, margin: '4px 0 0 0', color: '#ffffff' }}>
             Dynamic Stage Progression & Kinematics
           </h3>
         </div>
-        <div style={{ fontSize: 11, fontFamily: 'monospace', color: '#71717a' }}>
+        <div style={{ fontSize: 11, fontFamily: 'var(--font-ui)', color: '#71717a' }}>
           * Illustrative telemetry shown for lifecycle demonstration
         </div>
       </div>
@@ -247,7 +247,7 @@ export function ProgressionLifecycleVisual() {
       <div className="progression-detail-grid">
         <div className="progression-detail-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#71717a', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: 11, fontFamily: 'var(--font-ui)', color: '#71717a', textTransform: 'uppercase' }}>
               STAGE {current.num} &middot; {current.phase}
             </span>
             <span className={`tag-badge ${current.classification.toLowerCase()}`}>
@@ -264,10 +264,10 @@ export function ProgressionLifecycleVisual() {
           </p>
 
           <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 6, padding: '12px 14px' }}>
-            <div style={{ fontSize: 11, fontFamily: 'monospace', color: '#71717a', marginBottom: 4 }}>
+            <div style={{ fontSize: 11, fontFamily: 'var(--font-ui)', color: '#71717a', marginBottom: 4 }}>
               GROUNDED MITRE ATT&CK MAPPING
             </div>
-            <div style={{ fontSize: 13, fontFamily: 'monospace', fontWeight: 700, color: '#ffffff' }}>
+            <div style={{ fontSize: 13, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#ffffff' }}>
               {current.mitre}
             </div>
           </div>
@@ -275,30 +275,30 @@ export function ProgressionLifecycleVisual() {
 
         <div className="progression-detail-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontSize: 11, fontFamily: 'monospace', color: '#71717a', textTransform: 'uppercase', marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontFamily: 'var(--font-ui)', color: '#71717a', textTransform: 'uppercase', marginBottom: 14 }}>
               SEPARATED CONFIDENCES & PHYSICAL TELEMETRY
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
               <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '10px 12px', borderRadius: 6, border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <div style={{ fontSize: 10.5, fontFamily: 'monospace', color: '#a1a1aa' }}>STAGE CONFIDENCE</div>
-                <div style={{ fontSize: 18, fontFamily: 'monospace', fontWeight: 800, color: '#ffffff' }}>
+                <div style={{ fontSize: 10.5, fontFamily: 'var(--font-ui)', color: '#a1a1aa' }}>STAGE CONFIDENCE</div>
+                <div style={{ fontSize: 18, fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#ffffff' }}>
                   {(current.stageConfidence * 100).toFixed(0)}%
                 </div>
               </div>
               <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '10px 12px', borderRadius: 6, border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <div style={{ fontSize: 10.5, fontFamily: 'monospace', color: '#a1a1aa' }}>TECHNIQUE CERTAINTY</div>
-                <div style={{ fontSize: 18, fontFamily: 'monospace', fontWeight: 800, color: '#38bdf8' }}>
+                <div style={{ fontSize: 10.5, fontFamily: 'var(--font-ui)', color: '#a1a1aa' }}>TECHNIQUE CERTAINTY</div>
+                <div style={{ fontSize: 18, fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#38bdf8' }}>
                   {(current.techniqueConfidence * 100).toFixed(0)}%
                 </div>
               </div>
             </div>
 
             <div style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 6, padding: '12px 14px' }}>
-              <div style={{ fontSize: 11, fontFamily: 'monospace', color: '#71717a', marginBottom: 4 }}>
+              <div style={{ fontSize: 11, fontFamily: 'var(--font-ui)', color: '#71717a', marginBottom: 4 }}>
                 CORROBORATING PASSIVE WIRE TELEMETRY
               </div>
-              <div style={{ fontSize: 12, fontFamily: 'monospace', color: '#34d399' }}>
+              <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: '#34d399' }}>
                 {current.telemetry}
               </div>
             </div>

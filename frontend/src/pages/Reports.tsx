@@ -83,7 +83,7 @@ export function Reports() {
               <FileText size={24} color="var(--text-primary)" />
             </div>
             <div>
-              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--font-ui)', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
                 REPORTS
               </span>
               <h2 style={{ margin: '4px 0 8px 0', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
