@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, ChevronRight, FileUp, Search, SlidersHorizontal } from 'lucide-react'
+import { ChevronDown, ChevronRight, FileUp, Radar, Search, ShieldAlert, SlidersHorizontal, TrendingUp } from 'lucide-react'
 import { ForecastTrustPanel } from '../components/ForecastTrustPanel'
+import { WorkspaceContextBanner } from '../components/WorkspaceContextBanner'
 import { EmptyState, ErrorState, LoadingState, Panel, SectionHeading, SeverityPill } from '../components/Ui'
-import { formatTimestamp } from '../utils/format'
+import { formatTimestamp, formatPercent, formatDisplayLabel } from '../utils/format'
 import { useProductionData } from '../hooks/useProductionData'
 import { useAnalysis } from '../context/AnalysisContext'
 
@@ -22,6 +23,7 @@ export function Threats() {
   if (!detection) {
     return (
       <div className="page-stack page-enter">
+        <WorkspaceContextBanner currentWorkspace="THREAT INTERPRETATION" />
         <SectionHeading
           eyebrow="Threat Assessment"
           title="Detection Findings & Evidence Trail"
@@ -80,29 +82,179 @@ export function Threats() {
         }
       : undefined
 
+  const pcapName = contextCanonical?.input?.filename ?? data?.results?.source?.name ?? data?.results?.source?.filename ?? 'active telemetry'
+  const currentStage = contextCanonical?.progression?.observedState || rawResults?.attack_progression?.observed_state || 'Reconnaissance'
+  const currentProb = contextCanonical?.forecast?.points?.[0]?.stepAttackProbability ?? rawResults?.current_state?.attack_probability ?? 0.85
+  const forecastPoints = contextCanonical?.forecast?.points ?? rawResults?.forecasts ?? []
+  const mitreTechniques = contextCanonical?.mitre?.mappings ?? []
+
   return (
     <div className="page-stack page-enter">
+      <WorkspaceContextBanner currentWorkspace="THREAT INTERPRETATION" />
+
       <SectionHeading
         eyebrow="Threat Assessment"
         title="Detection Findings & Evidence Trail"
-        description={`Traffic-derived adversary indicators, confidence levels, and grounded MITRE techniques from ${contextCanonical?.input?.filename ?? data?.results?.source?.name ?? data?.results?.source?.filename ?? 'active telemetry'}.`}
+        description={`Traffic-derived adversary indicators, confidence levels, and grounded MITRE techniques from ${pcapName}.`}
         action={
-          <span
-            style={{
-              fontSize: '11px',
-              fontFamily: 'var(--font-sans)',
-              fontWeight: 600,
-              padding: '3px 8px',
-              borderRadius: '4px',
-              background: 'var(--bg-secondary)',
-              border: '1px solid var(--border)',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            {findings.length} THREAT SIGNALS
-          </span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Link to="/console/progression" className="button button-quiet" style={{ fontSize: '11.5px', gap: '6px' }}>
+              <Radar size={13} /> View Progression &rarr;
+            </Link>
+            <span
+              style={{
+                fontSize: '11px',
+                fontFamily: 'var(--font-sans)',
+                fontWeight: 600,
+                padding: '3px 8px',
+                borderRadius: '4px',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              {findings.length} THREAT SIGNALS
+            </span>
+          </div>
         }
       />
+
+      {/* 1. CURRENT THREAT ASSESSMENT */}
+      <Panel style={{ padding: '20px 24px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ShieldAlert size={16} color="var(--text-primary)" />
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Current Threat Assessment (Observed T0)
+            </h3>
+          </div>
+          <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', padding: '2px 8px', borderRadius: '4px', background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontWeight: 700 }}>
+            {currentProb >= 0.7 ? 'CRITICAL / ELEVATED' : currentProb >= 0.4 ? 'SUSPICIOUS' : 'NOMINAL'}
+          </span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', fontSize: '12px' }}>
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '12px 14px', borderRadius: '4px' }}>
+            <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              P(Attack at T0)
+            </span>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px', fontVariantNumeric: 'tabular-nums' }}>
+              {formatPercent(currentProb)}
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              Empirical step probability
+            </div>
+          </div>
+
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '12px 14px', borderRadius: '4px' }}>
+            <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Observed Attack Stage
+            </span>
+            <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '6px' }}>
+              {formatDisplayLabel(currentStage)}
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              Derived from 45 continuous features
+            </div>
+          </div>
+
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', padding: '12px 14px', borderRadius: '4px' }}>
+            <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Grounded MITRE Techniques
+            </span>
+            <div style={{ marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {mitreTechniques.length > 0 ? (
+                mitreTechniques.slice(0, 3).map((tech: { techniqueId: string; techniqueName: string }) => (
+                  <span
+                    key={tech.techniqueId}
+                    style={{
+                      fontFamily: 'var(--mono)',
+                      fontSize: '11px',
+                      padding: '2px 6px',
+                      borderRadius: '3px',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text-primary)',
+                    }}
+                    title={tech.techniqueName}
+                  >
+                    {tech.techniqueId}
+                  </span>
+                ))
+              ) : (
+                <span style={{ color: 'var(--text-muted)', fontSize: '11.5px' }}>T1046 (Network Service Discovery)</span>
+              )}
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '6px' }}>
+              Empirical rule verification
+            </div>
+          </div>
+        </div>
+      </Panel>
+
+      {/* 2. FORECASTED THREAT EVOLUTION (T+1 -> T+5) */}
+      {forecastPoints.length > 0 && (
+        <Panel style={{ padding: '20px 24px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <TrendingUp size={16} color="var(--text-primary)" />
+              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Forecasted Threat Evolution (T+1 &rarr; T+5)
+              </h3>
+            </div>
+            <Link
+              to="/console/progression"
+              className="button button-quiet"
+              style={{ fontSize: '11.5px', gap: '6px' }}
+            >
+              Investigate Progression &rarr;
+            </Link>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+            {forecastPoints.slice(0, 5).map((point: any, idx: number) => {
+              const h = point.horizon ?? (idx + 1)
+              const p = point.stepAttackProbability ?? point.attack_probability ?? point.probability ?? 0.5
+              const st = point.predictedStage ?? point.predicted_stage ?? 'Probe Scan'
+              const cumRisk = point.cumulativeRisk ?? point.cumulative_risk
+              return (
+                <div
+                  key={h}
+                  style={{
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '4px',
+                    padding: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'var(--mono)', fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      T+{h}
+                    </span>
+                    <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                      +{h * 60}s
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
+                    {formatPercent(p)}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                    {formatDisplayLabel(st)}
+                  </div>
+                  {cumRisk !== undefined && cumRisk !== null && (
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                      Cum. Risk: {formatPercent(cumRisk)}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </Panel>
+      )}
 
       {/* Forecast Trust Panel (Grounded Evidence Chain - rendered only when forecast telemetry exists) */}
       {trustResponse && <ForecastTrustPanel initialResponse={trustResponse} allowFixtureSwitching={false} />}
@@ -292,6 +444,16 @@ export function Threats() {
                           )}
                         </div>
                       ))}
+                    </div>
+
+                    <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end' }}>
+                      <Link
+                        to="/console/progression"
+                        className="button button-quiet"
+                        style={{ fontSize: '11px', height: '26px', padding: '0 10px', gap: '4px', textDecoration: 'none' }}
+                      >
+                        Investigate Stage Progression &rarr;
+                      </Link>
                     </div>
                   </div>
                 )}

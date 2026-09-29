@@ -14,6 +14,7 @@ import {
   Workflow,
 } from 'lucide-react'
 import { ErrorState, LoadingState, Panel, SectionHeading } from '../components/Ui'
+import { WorkspaceContextBanner } from '../components/WorkspaceContextBanner'
 import { useProductionData } from '../hooks/useProductionData'
 import { useAnalysis } from '../context/AnalysisContext'
 import { api } from '../services/api'
@@ -73,7 +74,8 @@ export function Evidence() {
   if (storeError && !analysis) return <ErrorState message={storeError} onRetry={() => void reload()} />
   if (!analysis) {
     return (
-      <div className="page-stack page-enter compact-container" style={{ margin: '60px auto', textAlign: 'center' }}>
+      <div className="page-stack page-enter compact-container" style={{ margin: '40px auto', textAlign: 'center' }}>
+        <WorkspaceContextBanner currentWorkspace="EVIDENTIARY AUDIT" />
         <Panel>
           <div style={{ padding: '36px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -120,6 +122,7 @@ export function Evidence() {
 
   return (
     <div className="page-stack page-enter document-container">
+      <WorkspaceContextBanner currentWorkspace="EVIDENTIARY AUDIT" />
       {/* Page Header */}
       <SectionHeading
         eyebrow="SCIENTIFIC AUDIT & TECHNICAL PROVENANCE"
@@ -666,7 +669,7 @@ export function Evidence() {
                   className="button button-quiet"
                   style={{ fontSize: '10px', height: '24px', padding: '0 8px', gap: '4px', textDecoration: 'none' }}
                 >
-                  <Network size={11} /> Investigate Flows
+                  <Network size={11} /> Inspect in Traffic &rarr;
                 </Link>
               </div>
             </div>

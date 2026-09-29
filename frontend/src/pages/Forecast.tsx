@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { ForecastConsole } from '../components/ForecastConsole'
 import { AnalysisPipelineVisualizer } from '../components/AnalysisPipelineVisualizer'
+import { WorkspaceContextBanner } from '../components/WorkspaceContextBanner'
 import { Panel } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
 import { useJobPolling } from '../hooks/useJobPolling'
@@ -232,7 +233,8 @@ export function Forecast() {
   }
 
   return (
-    <div className="page-stack page-enter compact-container" style={{ margin: '60px auto', textAlign: 'center' }}>
+    <div className="page-stack page-enter compact-container" style={{ margin: '40px auto', textAlign: 'center' }}>
+      <WorkspaceContextBanner currentWorkspace="FORECAST ROLLOUT" />
       <Panel>
         <div style={{ padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

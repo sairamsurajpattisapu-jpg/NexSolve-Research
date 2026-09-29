@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   CheckCircle2,
   Download,
@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { ErrorState, LoadingState, Panel, SectionHeading } from '../components/Ui'
 import { ForecastValidationCard } from '../components/ForecastValidationCard'
+import { WorkspaceContextBanner } from '../components/WorkspaceContextBanner'
 import { useProductionData } from '../hooks/useProductionData'
 import { useAnalysis } from '../context/AnalysisContext'
 import { api } from '../services/api'
@@ -74,7 +75,8 @@ export function Reports() {
   if (storeError && !analysis) return <ErrorState message={storeError} onRetry={() => void reload()} />
   if (!analysis) {
     return (
-      <div className="page-stack page-enter compact-container" style={{ margin: '60px auto', textAlign: 'center' }}>
+      <div className="page-stack page-enter compact-container" style={{ margin: '40px auto', textAlign: 'center' }}>
+        <WorkspaceContextBanner currentWorkspace="FORENSIC REPORT" />
         <Panel>
           <div style={{ padding: '36px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -289,12 +291,23 @@ export function Reports() {
     <div className="report-page-container document-container">
       {/* Top Action Bar (Hidden during Print) */}
       <div className="no-print" style={{ marginBottom: '16px' }}>
+        <WorkspaceContextBanner currentWorkspace="FORENSIC REPORT" />
         <SectionHeading
           eyebrow="Reports / Evidence package"
           title="Analysis report"
           description="Executive security assessment, multi-horizon attack projections, evidentiary attributions, and governance boundaries."
           action={
             <div className="heading-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <Link to="/console/overview" className="button button-quiet" style={{ fontSize: '12px', height: '32px' }}>
+                Overview
+              </Link>
+              <Link to="/console/forecast" className="button button-quiet" style={{ fontSize: '12px', height: '32px' }}>
+                Forecast
+              </Link>
+              <Link to="/console/traffic" className="button button-quiet" style={{ fontSize: '12px', height: '32px' }}>
+                Traffic
+              </Link>
+
               <button
                 type="button"
                 className="button button-primary"

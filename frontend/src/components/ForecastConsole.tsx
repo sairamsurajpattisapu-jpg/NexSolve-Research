@@ -20,6 +20,7 @@ import { formatDisplayLabel } from '../utils/format'
 import { FeatureInfluenceModal } from './FeatureInfluenceModal'
 import { FeatureVectorModal } from './FeatureVectorModal'
 import { ForecastValidationCard } from './ForecastValidationCard'
+import { WorkspaceContextBanner } from './WorkspaceContextBanner'
 
 export interface ForecastConsoleProps {
   analysis: CanonicalAnalysis
@@ -143,6 +144,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
         width: '100%',
       }}
     >
+      <WorkspaceContextBanner currentWorkspace="FORECAST ROLLOUT" analysis={analysis} />
       {/* 1. HERO */}
       <header
         style={{
@@ -336,7 +338,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             style={{ fontSize: '12px', height: '34px', gap: '6px' }}
             title="Inspect supporting empirical evidence"
           >
-            <Shield size={13} /> Evidence
+            <Shield size={13} /> Inspect Evidentiary Drivers &rarr;
           </button>
 
           <button

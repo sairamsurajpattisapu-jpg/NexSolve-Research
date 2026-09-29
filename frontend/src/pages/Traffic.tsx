@@ -4,14 +4,18 @@ import {
   Activity,
   ArrowUpDown,
   Boxes,
+  ChevronDown,
+  ChevronRight,
   FileUp,
   Network,
   RefreshCw,
   Search,
+  Shield,
   SlidersHorizontal,
   Zap,
 } from 'lucide-react'
 import { ActivityChart, ProtocolBars } from '../components/Charts'
+import { WorkspaceContextBanner } from '../components/WorkspaceContextBanner'
 import { ErrorState, LoadingState, MetricCard, Panel, SectionHeading } from '../components/Ui'
 import { formatBytes, formatNumber, formatPercent } from '../utils/format'
 import { useProductionData } from '../hooks/useProductionData'
@@ -30,6 +34,7 @@ export function Traffic() {
   const [sortField, setSortField] = useState<SortField>('packets')
   const [sortAsc, setSortAsc] = useState<boolean>(false)
   const [page, setPage] = useState<number>(1)
+  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null)
   const pageSize = 25
 
   if (loading && !contextCanonical && !data) return <LoadingState message="Loading traffic telemetry" />
@@ -41,6 +46,7 @@ export function Traffic() {
   if (!traffic) {
     return (
       <div className="page-stack page-enter">
+        <WorkspaceContextBanner currentWorkspace="TRAFFIC FLOWS" />
         <SectionHeading
           eyebrow="Network Telemetry"
           title="Traffic Analytics & Temporal Dynamics"
@@ -131,6 +137,7 @@ export function Traffic() {
 
   return (
     <div className="page-stack page-enter">
+      <WorkspaceContextBanner currentWorkspace="TRAFFIC FLOWS" />
       <SectionHeading
         eyebrow="Network Telemetry"
         title="Traffic Analytics & Temporal Dynamics"
@@ -372,89 +379,126 @@ export function Traffic() {
               </thead>
               <tbody>
                 {paginatedSessions.map((session, idx) => {
+                  const sId = session.session_id || String(idx)
+                  const isExpanded = expandedSessionId === sId
                   const isSuspicious =
                     (session.behavioral_tags && session.behavioral_tags.length > 0) ||
                     session.risk_assessment === 'HIGH' ||
                     session.risk_assessment === 'CRITICAL'
 
                   return (
-                    <tr
-                      key={session.session_id || idx}
-                      style={{
-                        borderBottom: '1px solid var(--border)',
-                        background: isSuspicious ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
-                        transition: 'background 0.1s',
-                      }}
-                    >
-                      <td style={{ padding: '9px 12px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
-                        {session.src_ip}
-                        <span style={{ color: 'var(--text-muted)' }}>:{session.src_port}</span>
-                      </td>
-                      <td style={{ padding: '9px 4px', color: 'var(--text-muted)' }}>&rarr;</td>
-                      <td style={{ padding: '9px 12px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
-                        {session.dst_ip}
-                        <span style={{ color: 'var(--text-muted)' }}>:{session.dst_port}</span>
-                      </td>
-                      <td style={{ padding: '9px 12px' }}>
-                        <span
-                          style={{
-                            fontFamily: 'var(--mono)',
-                            fontSize: '10.5px',
-                            padding: '2px 6px',
-                            borderRadius: '3px',
-                            background: 'var(--bg-secondary)',
-                            border: '1px solid var(--border)',
-                            color: 'var(--text-primary)',
-                          }}
-                        >
-                          {session.protocol}
-                        </span>
-                      </td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontFamily: 'var(--mono)' }}>
-                        {(session.total_packets || 0).toLocaleString()}
-                      </td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontFamily: 'var(--mono)' }}>
-                        {formatBytes(session.total_bytes)}
-                      </td>
-                      <td style={{ padding: '9px 12px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontFamily: 'var(--mono)' }}>
-                        {(session.duration_seconds ?? 0).toFixed(2)}s
-                      </td>
-                      <td style={{ padding: '9px 12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <>
+                      <tr
+                        key={sId}
+                        onClick={() => setExpandedSessionId(isExpanded ? null : sId)}
+                        style={{
+                          borderBottom: isExpanded ? 'none' : '1px solid var(--border)',
+                          background: isExpanded ? 'var(--bg-elevated)' : isSuspicious ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
+                          transition: 'background 0.1s',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <td style={{ padding: '9px 12px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ color: 'var(--text-muted)' }}>
+                              {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                            </span>
+                            {session.src_ip}
+                            <span style={{ color: 'var(--text-muted)' }}>:{session.src_port}</span>
+                          </span>
+                        </td>
+                        <td style={{ padding: '9px 4px', color: 'var(--text-muted)' }}>&rarr;</td>
+                        <td style={{ padding: '9px 12px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                          {session.dst_ip}
+                          <span style={{ color: 'var(--text-muted)' }}>:{session.dst_port}</span>
+                        </td>
+                        <td style={{ padding: '9px 12px' }}>
                           <span
                             style={{
-                              fontSize: '10px',
                               fontFamily: 'var(--mono)',
-                              fontWeight: 700,
+                              fontSize: '10.5px',
                               padding: '2px 6px',
                               borderRadius: '3px',
-                              background: isSuspicious ? 'var(--text-primary)' : 'var(--bg-secondary)',
-                              color: isSuspicious ? 'var(--bg-primary)' : 'var(--text-muted)',
+                              background: 'var(--bg-secondary)',
                               border: '1px solid var(--border)',
+                              color: 'var(--text-primary)',
                             }}
                           >
-                            {session.risk_assessment || 'LOW'}
+                            {session.protocol}
                           </span>
-                          {session.behavioral_tags &&
-                            session.behavioral_tags.map((tag: string, tIdx: number) => (
-                              <span
-                                key={tIdx}
-                                style={{
-                                  fontSize: '10px',
-                                  fontFamily: 'var(--mono)',
-                                  padding: '1px 5px',
-                                  borderRadius: '3px',
-                                  border: '1px solid var(--border)',
-                                  color: 'var(--text-secondary)',
-                                  background: 'var(--bg-secondary)',
-                                }}
+                        </td>
+                        <td style={{ padding: '9px 12px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontFamily: 'var(--mono)' }}>
+                          {(session.total_packets || 0).toLocaleString()}
+                        </td>
+                        <td style={{ padding: '9px 12px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontFamily: 'var(--mono)' }}>
+                          {formatBytes(session.total_bytes)}
+                        </td>
+                        <td style={{ padding: '9px 12px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontFamily: 'var(--mono)' }}>
+                          {(session.duration_seconds ?? 0).toFixed(2)}s
+                        </td>
+                        <td style={{ padding: '9px 12px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                fontFamily: 'var(--mono)',
+                                fontWeight: 700,
+                                padding: '2px 6px',
+                                borderRadius: '3px',
+                                background: isSuspicious ? 'var(--text-primary)' : 'var(--bg-secondary)',
+                                color: isSuspicious ? 'var(--bg-primary)' : 'var(--text-muted)',
+                                border: '1px solid var(--border)',
+                              }}
+                            >
+                              {session.risk_assessment || 'LOW'}
+                            </span>
+                            {session.behavioral_tags &&
+                              session.behavioral_tags.map((tag: string, tIdx: number) => (
+                                <span
+                                  key={tIdx}
+                                  style={{
+                                    fontSize: '10px',
+                                    fontFamily: 'var(--mono)',
+                                    padding: '1px 5px',
+                                    borderRadius: '3px',
+                                    border: '1px solid var(--border)',
+                                    color: 'var(--text-secondary)',
+                                    background: 'var(--bg-secondary)',
+                                  }}
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                          </div>
+                        </td>
+                      </tr>
+                      {isExpanded && (
+                        <tr
+                          key={`${sId}-detail`}
+                          style={{ background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border)' }}
+                        >
+                          <td colSpan={8} style={{ padding: '10px 16px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '11.5px', color: 'var(--text-secondary)' }}>
+                                <span><strong>Window:</strong> {session.temporal_window_id ? `Window ${session.temporal_window_id}` : 'Observation Stride'}</span>
+                                <span>&middot;</span>
+                                <span><strong>5-Tuple:</strong> {session.src_ip}:{session.src_port} &rarr; {session.dst_ip}:{session.dst_port} ({session.protocol})</span>
+                                <span>&middot;</span>
+                                <span><strong>Duration:</strong> {(session.duration_seconds ?? 0).toFixed(2)}s</span>
+                              </div>
+                              <Link
+                                to={contextCanonical?.id ? `/console/evidence/${contextCanonical.id}` : '/console/evidence'}
+                                className="button button-quiet"
+                                style={{ fontSize: '11px', height: '26px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}
+                                onClick={(e) => e.stopPropagation()}
                               >
-                                {tag}
-                              </span>
-                            ))}
-                        </div>
-                      </td>
-                    </tr>
+                                <Shield size={12} /> Inspect Related Evidence &rarr;
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   )
                 })}
               </tbody>

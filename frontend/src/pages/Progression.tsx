@@ -11,6 +11,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { useAnalysis } from '../context/AnalysisContext'
+import { WorkspaceContextBanner } from '../components/WorkspaceContextBanner'
 import { Panel, SectionHeading, StatusPill } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
 import { adaptToCanonical } from '../utils/canonicalAdapter'
@@ -93,7 +94,8 @@ export function Progression() {
   // Empty State
   if (!analysis) {
     return (
-      <div className="page-stack page-enter compact-container" style={{ margin: '60px auto', textAlign: 'center' }}>
+      <div className="page-stack page-enter compact-container" style={{ margin: '40px auto', textAlign: 'center' }}>
+        <WorkspaceContextBanner currentWorkspace="ATTACK PROGRESSION" />
         <Panel>
           <div style={{ padding: '36px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -148,6 +150,7 @@ export function Progression() {
 
   return (
     <div className="page-stack page-enter document-container">
+      <WorkspaceContextBanner currentWorkspace="ATTACK PROGRESSION" />
       {/* Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
         <div>
@@ -212,13 +215,20 @@ export function Progression() {
                 </div>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
                 MITRE: {mitre.mappings?.[0]?.techniqueId || 'T1046'} ({mitre.mappings?.[0]?.techniqueName || 'Network Service Scanning'})
               </span>
               <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-muted)', borderLeft: '1px solid var(--border)', paddingLeft: '10px' }}>
                 Evidence: {analysis.evidence.chain.supporting.length} Signals
               </span>
+              <Link
+                to={jobId ? `/console/evidence/${jobId}` : '/console/evidence'}
+                className="button button-quiet"
+                style={{ fontSize: '11px', height: '26px', padding: '0 8px', gap: '4px', textDecoration: 'none' }}
+              >
+                <Shield size={12} /> Audit Stage Evidence &rarr;
+              </Link>
             </div>
           </div>
 
@@ -242,13 +252,20 @@ export function Progression() {
                 </div>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
                 MITRE: {mitre.mappings?.[1]?.techniqueId || 'T1071'} ({mitre.mappings?.[1]?.techniqueName || 'Application Layer Protocol'})
               </span>
               <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', borderLeft: '1px solid var(--border)', paddingLeft: '10px' }}>
                 Confidence: {activePoint.confidence != null ? `${(activePoint.confidence * 100).toFixed(0)}%` : '92%'}
               </span>
+              <Link
+                to={jobId ? `/console/evidence/${jobId}` : '/console/evidence'}
+                className="button button-quiet"
+                style={{ fontSize: '11px', height: '26px', padding: '0 8px', gap: '4px', textDecoration: 'none' }}
+              >
+                <Shield size={12} /> Audit Stage Evidence &rarr;
+              </Link>
             </div>
           </div>
 
@@ -272,13 +289,20 @@ export function Progression() {
                 </div>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-secondary)' }}>
                 MITRE: {mitre.mappings?.[2]?.techniqueId || 'T1498'} ({mitre.mappings?.[2]?.techniqueName || 'Network Denial of Service'})
               </span>
               <span style={{ fontSize: '11px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', borderLeft: '1px solid var(--border)', paddingLeft: '10px' }}>
                 Cumulative Risk: {activePoint.cumulativeRisk != null ? `${(activePoint.cumulativeRisk * 100).toFixed(0)}%` : '88%'}
               </span>
+              <Link
+                to={jobId ? `/console/evidence/${jobId}` : '/console/evidence'}
+                className="button button-quiet"
+                style={{ fontSize: '11px', height: '26px', padding: '0 8px', gap: '4px', textDecoration: 'none' }}
+              >
+                <Shield size={12} /> Audit Stage Evidence &rarr;
+              </Link>
             </div>
           </div>
         </div>

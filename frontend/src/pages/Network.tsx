@@ -12,6 +12,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { ActivityChart } from '../components/Charts'
+import { WorkspaceContextBanner } from '../components/WorkspaceContextBanner'
 import { ErrorState, LoadingState, MetricCard, Panel, SectionHeading } from '../components/Ui'
 import { useProductionData } from '../hooks/useProductionData'
 import { useAnalysis } from '../context/AnalysisContext'
@@ -36,7 +37,8 @@ export function Network() {
   if (error && !contextCanonical) return <ErrorState message={error} onRetry={() => void reload()} />
   if (!data && !contextCanonical) {
     return (
-      <div className="page-stack page-enter compact-container" style={{ margin: '60px auto', textAlign: 'center' }}>
+      <div className="page-stack page-enter compact-container" style={{ margin: '40px auto', textAlign: 'center' }}>
+        <WorkspaceContextBanner currentWorkspace="NETWORK TOPOLOGY" />
         <Panel>
           <div style={{ padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-secondary)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -144,6 +146,7 @@ export function Network() {
 
   return (
     <div className="page-stack page-enter">
+      <WorkspaceContextBanner currentWorkspace="NETWORK TOPOLOGY" />
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
         <div>

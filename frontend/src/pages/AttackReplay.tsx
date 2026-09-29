@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   ChevronLeft,
   ChevronRight,
   Clock,
   Info,
+  Network,
   Pause,
   Play,
   RotateCcw,
@@ -12,6 +14,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { LoadingState, Panel } from '../components/Ui'
+import { WorkspaceContextBanner } from '../components/WorkspaceContextBanner'
 import { api } from '../services/api'
 import { useAnalysis } from '../context/AnalysisContext'
 import type { ReplayFramePayload, ReplayScenarioSummaryPayload, ReplayStreamPayload } from '../types/api'
@@ -213,6 +216,7 @@ export function AttackReplay() {
 
   return (
     <div className="page-stack page-enter">
+      <WorkspaceContextBanner currentWorkspace="ATTACK REPLAY" />
       {/* Header */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -471,6 +475,16 @@ export function AttackReplay() {
                   <div style={{ fontSize: '12px', fontFamily: 'var(--mono)', color: 'var(--text-primary)', marginTop: '4px' }}>
                     {currentFrame.packet_count} pkts &middot; {currentFrame.flow_count} flows &middot; {currentFrame.active_ports} ports
                   </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <Link
+                    to="/console/traffic"
+                    className="button button-quiet"
+                    style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}
+                  >
+                    <Network size={12} /> Inspect Window Flows in Traffic &rarr;
+                  </Link>
                 </div>
               </div>
             )}
