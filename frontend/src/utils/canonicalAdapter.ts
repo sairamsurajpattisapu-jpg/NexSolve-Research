@@ -8,6 +8,7 @@ import type {
   EvidenceItemNode,
   FeatureDescriptor,
   FeatureExplanationItem,
+  ForecastValidation,
   MitreTechniqueMapping,
   ProgressionStage,
   RiskClassification,
@@ -375,33 +376,219 @@ export function adaptToCanonical(
     })
   }
 
-  // MITRE technique mappings
-  const mitreMappings: MitreTechniqueMapping[] = [
-    {
-      techniqueId: 'T1046',
-      techniqueName: 'Network Service Discovery',
+  // Canonical MITRE Metadata Registry (Aligned with ml/forecasting/attack_stages.py)
+  const CANONICAL_MITRE_META: Record<string, { name: string; tactic: string; interpretation: string; defaultEvidence: string }> = {
+    T1046: {
+      name: 'Network Service Discovery',
       tactic: 'Discovery',
-      forecastStep: 'T+1 (60s)',
       interpretation: 'Behavior consistent with automated port scan and network service enumeration.',
-      evidence: 'Rapid expansion in Unique Destination Ports and consistent SYN flag generation.',
+      defaultEvidence: 'High unique destination port cardinality and rapid SYN flag generation.',
     },
-    {
-      techniqueId: 'T1190',
-      techniqueName: 'Exploit Public-Facing Application',
+    T1190: {
+      name: 'Exploit Public-Facing Application',
       tactic: 'Initial Access',
-      forecastStep: 'T+3 (180s)',
-      interpretation: 'Downstream transition probability indicates heightened potential for service exploitation attempts.',
-      evidence: 'Observed protocol concentration and HTTP/HTTPS target port convergence.',
+      interpretation: 'Downstream transition probability indicates potential for service exploitation attempts.',
+      defaultEvidence: 'Protocol concentration and HTTP/HTTPS target port convergence.',
     },
-    {
-      techniqueId: 'T1498',
-      techniqueName: 'Network Denial of Service',
+    T1071: {
+      name: 'Application Layer Protocol',
+      tactic: 'Command and Control',
+      interpretation: 'Communicating using application-layer protocols to mimic normal traffic.',
+      defaultEvidence: 'Regular beaconing intervals or sustained connection patterns.',
+    },
+    T1498: {
+      name: 'Network Denial of Service',
       tactic: 'Impact',
-      forecastStep: 'T+5 (300s)',
       interpretation: 'Volumetric packet burst consistent with network flooding or resource exhaustion.',
-      evidence: 'Accelerated packet density and collapsed inter-arrival intervals.',
+      defaultEvidence: 'Accelerated packet density and collapsed inter-arrival intervals.',
     },
-  ]
+    T1021: {
+      name: 'Remote Services',
+      tactic: 'Lateral Movement',
+      interpretation: 'Remote service execution attempts via administrative protocols (SMB, RDP, SSH).',
+      defaultEvidence: 'East-west administrative port access and authenticated session initiation.',
+    },
+    T1041: {
+      name: 'Exfiltration Over C2 Channel',
+      tactic: 'Exfiltration',
+      interpretation: 'Transmission of sensitive collected data out of the network boundary.',
+      defaultEvidence: 'Asymmetric outbound byte flow volume significantly exceeding baseline.',
+    },
+    T1059: {
+      name: 'Command and Scripting Interpreter',
+      tactic: 'Execution',
+      interpretation: 'Execution of commands through scripting environments.',
+      defaultEvidence: 'Anomalous command patterns detected in payload or service telemetry.',
+    },
+    T1078: {
+      name: 'Valid Accounts',
+      tactic: 'Initial Access',
+      interpretation: 'Adversaries obtaining and abusing legitimate system or service credentials.',
+      defaultEvidence: 'Unusual authentication source or service access from non-standard internal subnet.',
+    },
+    T1110: {
+      name: 'Brute Force',
+      tactic: 'Credential Access',
+      interpretation: 'Repetitive authentication attempts against service endpoints.',
+      defaultEvidence: 'High rate of failed connection attempts and authentication resets.',
+    },
+    T1005: {
+      name: 'Data from Local System',
+      tactic: 'Collection',
+      interpretation: 'Local file aggregation and sensitive asset staging.',
+      defaultEvidence: 'Sustained file access bursts and internal endpoint read anomalies.',
+    },
+  }
+
+  // Derive MITRE mappings only when supported by actual observed or forecast evidence
+  const threatAssessment = (raw.threat_assessment as Record<string, any>) || (raw.threatAssessment as Record<string, any>) || null
+  const mitreMappings: MitreTechniqueMapping[] = []
+  const seenTechIds = new Set<string>()
+
+  // 1. Observed techniques
+  const observedTechs = new Set<string>()
+  if (threatAssessment?.observed_techniques && Array.isArray(threatAssessment.observed_techniques)) {
+    threatAssessment.observed_techniques.forEach((t: any) => {
+      const match = String(t).match(/T\d{4}/)
+      if (match) observedTechs.add(match[0])
+    })
+  }
+  if (progressionRaw?.observed_techniques && Array.isArray(progressionRaw.observed_techniques)) {
+    progressionRaw.observed_techniques.forEach((t: any) => {
+      const match = String(t).match(/T\d{4}/)
+      if (match) observedTechs.add(match[0])
+    })
+  }
+  if (raw.findings && Array.isArray(raw.findings)) {
+    raw.findings.forEach((f: any) => {
+      const tech = f.mitre_technique || f.technique_id
+      if (tech) {
+        const match = String(tech).match(/T\d{4}/)
+        if (match) observedTechs.add(match[0])
+      }
+    })
+  }
+  if (attackHorizon?.mitre_techniques && Array.isArray(attackHorizon.mitre_techniques)) {
+    attackHorizon.mitre_techniques.forEach((mt: any) => {
+      const match = String(mt.technique_id || mt.techniqueId || '').match(/T\d{4}/)
+      if (match) observedTechs.add(match[0])
+    })
+  }
+
+  observedTechs.forEach((tid) => {
+    if (!seenTechIds.has(tid)) {
+      seenTechIds.add(tid)
+      const meta = CANONICAL_MITRE_META[tid] || {
+        name: `Technique ${tid}`,
+        tactic: 'Discovery',
+        interpretation: 'Observed telemetry pattern correlated with adversary technique.',
+        defaultEvidence: 'Passive Layer 3/4 flow and packet signals.',
+      }
+      mitreMappings.push({
+        techniqueId: tid,
+        techniqueName: meta.name,
+        tactic: meta.tactic,
+        forecastStep: 'Observed (T0)',
+        interpretation: meta.interpretation,
+        evidence: meta.defaultEvidence,
+        scope: 'observed',
+      })
+    }
+  })
+
+  // 2. Forecast techniques
+  const forecastTechs = new Set<string>()
+  if (threatAssessment?.forecast_techniques && Array.isArray(threatAssessment.forecast_techniques)) {
+    threatAssessment.forecast_techniques.forEach((t: any) => {
+      const match = String(t).match(/T\d{4}/)
+      if (match) forecastTechs.add(match[0])
+    })
+  }
+  if (progressionRaw?.forecast_points && Array.isArray(progressionRaw.forecast_points)) {
+    progressionRaw.forecast_points.forEach((pt: any) => {
+      if (pt.prediction_type === 'DOWNSTREAM_PROGRESSION' && pt.predicted_technique) {
+        const match = String(pt.predicted_technique).match(/T\d{4}/)
+        if (match) forecastTechs.add(match[0])
+      }
+    })
+  }
+
+  forecastTechs.forEach((tid) => {
+    if (!seenTechIds.has(tid)) {
+      seenTechIds.add(tid)
+      const meta = CANONICAL_MITRE_META[tid] || {
+        name: `Technique ${tid}`,
+        tactic: 'Command and Control',
+        interpretation: 'Projected downstream technique advancement based on state transition.',
+        defaultEvidence: 'Autoregressive world model multi-horizon rollout.',
+      }
+      mitreMappings.push({
+        techniqueId: tid,
+        techniqueName: meta.name,
+        tactic: meta.tactic,
+        forecastStep: 'Forecast (T+1..T+5)',
+        interpretation: meta.interpretation,
+        evidence: meta.defaultEvidence,
+        scope: 'forecast',
+      })
+    }
+  })
+
+  // 3. Supporting evidence techniques
+  if (raw.evidence && Array.isArray(raw.evidence)) {
+    raw.evidence.forEach((ev: any) => {
+      const tech = ev.technique_id || ev.mitre_technique
+      if (tech) {
+        const match = String(tech).match(/T\d{4}/)
+        if (match && !seenTechIds.has(match[0])) {
+          const tid = match[0]
+          seenTechIds.add(tid)
+          const meta = CANONICAL_MITRE_META[tid] || {
+            name: `Technique ${tid}`,
+            tactic: 'Supporting',
+            interpretation: 'Corroborating sensor evidence indicates characteristic patterns.',
+            defaultEvidence: ev.description || 'Deep packet and flow inspection signal.',
+          }
+          mitreMappings.push({
+            techniqueId: tid,
+            techniqueName: meta.name,
+            tactic: meta.tactic,
+            forecastStep: 'Supporting Evidence',
+            interpretation: meta.interpretation,
+            evidence: ev.description || meta.defaultEvidence,
+            scope: 'supporting_evidence',
+          })
+        }
+      }
+    })
+  }
+
+  // Forecast validation (Observed -> Forecast -> Actual Subsequent Telemetry)
+  const rawValidation = (raw.forecast_validation as Record<string, unknown>) || (raw.forecastValidation as Record<string, unknown>) || null
+  let validationComparison: ForecastValidation | undefined = undefined
+  if (rawValidation) {
+    const rawPoints = Array.isArray(rawValidation.points) ? rawValidation.points : []
+    validationComparison = {
+      status: String(rawValidation.status || 'VALIDATION NOT AVAILABLE') as any,
+      summary: String(rawValidation.summary || 'Validation comparison unavailable.'),
+      evaluatedHorizons: Number(rawValidation.evaluated_horizons ?? rawValidation.evaluatedHorizons ?? 0),
+      unvalidatedHorizons: Number(rawValidation.unvalidated_horizons ?? rawValidation.unvalidatedHorizons ?? 5),
+      points: rawPoints.map((p: any) => ({
+        horizon: Number(p.horizon || 1),
+        lookaheadSeconds: Number(p.lookahead_seconds ?? p.lookaheadSeconds ?? (p.horizon || 1) * 60),
+        observedStateAtT0: String(p.observed_state_t0 ?? p.observedStateAtT0 ?? 'BENIGN'),
+        predictedProbability: p.predicted_probability !== undefined ? (p.predicted_probability !== null ? Number(p.predicted_probability) : null) : (p.predictedProbability !== undefined ? (p.predictedProbability !== null ? Number(p.predictedProbability) : null) : null),
+        predictedStage: p.predicted_stage ? String(p.predicted_stage) : (p.predictedStage ? String(p.predictedStage) : null),
+        actualSubsequentState: p.actual_subsequent_state ? String(p.actual_subsequent_state) : (p.actualSubsequentState ? String(p.actualSubsequentState) : null),
+        actualThreatScore: p.actual_threat_score !== undefined ? (p.actual_threat_score !== null ? Number(p.actual_threat_score) : null) : (p.actualThreatScore !== undefined ? (p.actualThreatScore !== null ? Number(p.actualThreatScore) : null) : null),
+        actualPacketCount: p.actual_packet_count !== undefined && p.actual_packet_count !== null ? Number(p.actual_packet_count) : (p.actualPacketCount !== undefined && p.actualPacketCount !== null ? Number(p.actualPacketCount) : null),
+        actualFlowCount: p.actual_flow_count !== undefined && p.actual_flow_count !== null ? Number(p.actual_flow_count) : (p.actualFlowCount !== undefined && p.actualFlowCount !== null ? Number(p.actualFlowCount) : null),
+        relationship: String(p.relationship || 'VALIDATION NOT AVAILABLE') as any,
+        validationStatus: String(p.validation_status ?? p.validationStatus ?? 'VALIDATION NOT AVAILABLE') as any,
+        explanation: String(p.explanation || ''),
+      })),
+    }
+  }
 
   // Explainability drivers
   const explanationDrivers: FeatureExplanationItem[] = []
@@ -631,5 +818,6 @@ export function adaptToCanonical(
         description: engineRaw.description ? String(engineRaw.description) : undefined,
       }
     })(),
+    validationComparison,
   }
 }

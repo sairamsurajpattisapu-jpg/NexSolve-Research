@@ -338,7 +338,20 @@ def analyze_uploaded_capture(
     )
     progression_dict = progression_forecast.to_dict()
     from ml.forecasting.attack_progression import build_continuous_progression_timeline
+    from ml.forecasting.forecast_validation import evaluate_forecast_validation
+
     progression_dict["continuous_timeline"] = build_continuous_progression_timeline(progression_forecast)
+
+    observed_stage_label = progression_dict.get("observed_state") or (progression_forecast.observed_state.value if hasattr(progression_forecast.observed_state, "value") else str(progression_forecast.observed_state))
+    forecast_validation_res = evaluate_forecast_validation(
+        candidates=candidates,
+        forecast_points=forecast_points,
+        is_forecast_available=is_forecast_available,
+        observed_stage=observed_stage_label,
+        abstention_reason=final_inference_result.get("abstention_explanation") or final_inference_result.get("abstention_reason"),
+        history_window_count=len(history.candidates) if history.candidates else 8,
+    )
+    forecast_validation_dict = forecast_validation_res.to_dict()
 
     # Re-assemble forecast intelligence with full multi-modal context (progression, findings, behavioral report)
     intelligence = assemble_forecast_intelligence(
@@ -836,7 +849,8 @@ def analyze_uploaded_capture(
         "network_risk_indicators": final_inference_result.get("network_risk_indicators", []),
         "host_risk": final_inference_result.get("host_risk", []),
         "communication_risk": final_inference_result.get("communication_risk", []),
-        "evidence": final_inference_result.get("evidence", []),
+        "forecast_validation": forecast_validation_dict,
+        "forecastValidation": forecast_validation_dict,
         "forecast_status": final_inference_result.get("forecast_status", "FORECAST_READY" if is_forecast_available else "FORECAST_ABSTAINED"),
         "is_forecast_available": is_forecast_available,
         "analysis_state": (

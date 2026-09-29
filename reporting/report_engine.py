@@ -17,6 +17,7 @@ from reporting.report_sections import (
     build_evidence_chain,
     build_executive_summary,
     build_forecast_section,
+    build_forecast_validation_section,
     build_limitations_section,
     build_network_activity,
     build_processing_metadata,
@@ -50,6 +51,7 @@ def assemble_report(
     forecasts = analysis_result.get("forecasts", [])
     progression = analysis_result.get("attack_progression") or analysis_result.get("attackProgression")
     sensor_agreement = analysis_result.get("sensor_agreement") or analysis_result.get("sensorAgreement")
+    validation_data = analysis_result.get("forecast_validation") or analysis_result.get("forecastValidation")
 
     forecast_engine = analysis_result.get("forecast_engine")
     report = NexSolveReport(
@@ -71,6 +73,7 @@ def assemble_report(
         provenance=build_provenance_section(source, traffic, validation, capture_hash, model_version),
         processing_metadata=build_processing_metadata(jid, processing_seconds, analysis_result.get("status", "COMPLETED")),
         attack_progression=build_attack_progression(progression, abstention),
+        forecast_validation=build_forecast_validation_section(validation_data, abstention),
     )
     validate_report_semantics(report)
     return report
@@ -335,6 +338,61 @@ def generate_html_report(report: NexSolveReport) -> str:
             </thead>
             <tbody>
               {tr_rows}
+            </tbody>
+          </table>
+        </div>
+        """
+
+    # Forecast Validation (Observed -> Forecast -> Actual Subsequent Telemetry)
+    val_sec = getattr(r, "forecast_validation", None)
+    forecast_val_html = ""
+    if val_sec:
+        val_status_badge = "tag-supp" if val_sec.status == "VALIDATED" else ("tag-obs" if val_sec.status == "PARTIALLY_VALIDATED" else "tag-contra")
+        v_rows = ""
+        for pt in val_sec.points:
+            rel_badge = "tag-supp" if pt.relationship == "CONSISTENT" else ("tag-contra" if pt.relationship == "DIVERGENT" else "tag-obs")
+            prob_str = f"{pt.predicted_probability:.1%}" if pt.predicted_probability is not None else "Withheld"
+            pred_stage_str = pt.predicted_stage or "N/A"
+            actual_state_str = pt.actual_subsequent_state or "NOT AVAILABLE"
+            score_str = f"{pt.actual_threat_score:.1f}" if pt.actual_threat_score is not None else "—"
+            v_rows += f"""
+            <tr>
+              <td><strong>T+{pt.horizon} (+{pt.lookahead_seconds}s)</strong></td>
+              <td><span class="tag-pill tag-obs">{html.escape(pt.observed_state_t0)}</span></td>
+              <td><strong>{html.escape(pred_stage_str)}</strong> ({prob_str})</td>
+              <td><strong class="mono">{html.escape(actual_state_str)}</strong> (Score: {score_str})</td>
+              <td><span class="tag-pill {rel_badge}">{html.escape(pt.relationship)}</span></td>
+              <td><span class="tag-pill {rel_badge}">{html.escape(pt.validation_status)}</span></td>
+              <td class="secondary">{html.escape(pt.explanation)}</td>
+            </tr>
+            """
+        if not v_rows:
+            v_rows = "<tr><td colspan='7' class='muted'>No validation points evaluated.</td></tr>"
+
+        forecast_val_html = f"""
+        <div style="margin-top: 20px; border-top: 1px dashed var(--border); padding-top: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+            <h3 style="font-size: 13px; font-weight: 700; color: var(--primary);">Forecast Validation Audit (Observed &rarr; Forecast &rarr; Actual Telemetry)</h3>
+            <div>
+              <span class="tag-pill {val_status_badge}">{html.escape(val_sec.status)}</span>
+              <span class="mono" style="font-size: 11px; margin-left: 8px;">{val_sec.evaluated_horizons}/5 Horizons Validated</span>
+            </div>
+          </div>
+          <p style="font-size: 12px; color: var(--text-sec); margin-bottom: 10px;">{html.escape(val_sec.summary)}</p>
+          <table class="data-table" style="margin-bottom: 12px;">
+            <thead>
+              <tr>
+                <th style="width: 90px;">Horizon</th>
+                <th style="width: 110px;">Observed (T0)</th>
+                <th style="width: 140px;">Forecast (T+k)</th>
+                <th style="width: 140px;">Actual Subsequent</th>
+                <th style="width: 110px;">Relationship</th>
+                <th style="width: 110px;">Status</th>
+                <th>Validation Telemetry</th>
+              </tr>
+            </thead>
+            <tbody>
+              {v_rows}
             </tbody>
           </table>
         </div>
@@ -874,6 +932,7 @@ def generate_html_report(report: NexSolveReport) -> str:
         <strong>Methodological Disclosure:</strong> Predicted scores represent latent state transition dynamics across sequential 60-second observation windows, not empirical or actuarial probabilities of compromise. Forward projections reflect statistical dynamics learned from reference traffic distributions.
       </div>
       {progression_html}
+      {forecast_val_html}
     </section>
 
     <!-- 06 — Evidence Chain -->

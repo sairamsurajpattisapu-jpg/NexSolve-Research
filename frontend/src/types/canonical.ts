@@ -81,6 +81,30 @@ export interface MitreTechniqueMapping {
   interpretation: string
   evidence: string
   confidence?: number
+  scope?: 'observed' | 'forecast' | 'supporting_evidence'
+}
+
+export interface ForecastValidationPoint {
+  horizon: number
+  lookaheadSeconds: number
+  observedStateAtT0: string
+  predictedProbability: number | null
+  predictedStage: string | null
+  actualSubsequentState: string | null
+  actualThreatScore: number | null
+  actualPacketCount?: number | null
+  actualFlowCount?: number | null
+  relationship: 'CONSISTENT' | 'DIVERGENT' | 'UNVALIDATED' | 'VALIDATION NOT AVAILABLE'
+  validationStatus: 'VALIDATED' | 'VALIDATION NOT AVAILABLE'
+  explanation: string
+}
+
+export interface ForecastValidation {
+  status: 'VALIDATED' | 'PARTIALLY_VALIDATED' | 'VALIDATION NOT AVAILABLE'
+  summary: string
+  evaluatedHorizons: number
+  unvalidatedHorizons: number
+  points: ForecastValidationPoint[]
 }
 
 export interface FeatureExplanationItem {
@@ -258,5 +282,6 @@ export interface CanonicalAnalysis {
     validationVerdict?: string
     description?: string
   }
+  validationComparison?: ForecastValidation
 }
 

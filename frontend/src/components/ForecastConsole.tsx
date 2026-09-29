@@ -19,6 +19,7 @@ import type { CanonicalAnalysis } from '../types/canonical'
 import { formatDisplayLabel } from '../utils/format'
 import { FeatureInfluenceModal } from './FeatureInfluenceModal'
 import { FeatureVectorModal } from './FeatureVectorModal'
+import { ForecastValidationCard } from './ForecastValidationCard'
 
 export interface ForecastConsoleProps {
   analysis: CanonicalAnalysis
@@ -1350,6 +1351,13 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
           </div>
         )}
       </section>
+
+      {/* FORECAST VALIDATION: OBSERVED -> FORECAST -> ACTUAL / VALIDATED */}
+      <ForecastValidationCard
+        validation={analysis.validationComparison}
+        isAbstained={isAbstained}
+        abstentionReason={forecast.message}
+      />
 
       {/* 6. NETWORK STATE / TECHNICAL EVIDENCE */}
       <section

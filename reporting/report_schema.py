@@ -222,6 +222,54 @@ class AttackProgressionSection:
 
 
 @dataclass
+class ForecastValidationPointReport:
+    horizon: int
+    lookahead_seconds: int
+    observed_state_t0: str
+    predicted_probability: float | None
+    predicted_stage: str | None
+    actual_subsequent_state: str | None
+    actual_threat_score: float | None
+    relationship: str
+    validation_status: str
+    explanation: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "horizon": self.horizon,
+            "lookahead_seconds": self.lookahead_seconds,
+            "observed_state_t0": self.observed_state_t0,
+            "predicted_probability": self.predicted_probability,
+            "predicted_stage": self.predicted_stage,
+            "actual_subsequent_state": self.actual_subsequent_state,
+            "actual_threat_score": self.actual_threat_score,
+            "relationship": self.relationship,
+            "validation_status": self.validation_status,
+            "explanation": self.explanation,
+        }
+
+
+@dataclass
+class ForecastValidationSection:
+    status: str
+    summary: str
+    evaluated_horizons: int
+    unvalidated_horizons: int
+    points: list[ForecastValidationPointReport] = field(default_factory=list)
+    category: EpistemicCategory = "OBSERVED"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "category": self.category,
+            "status": self.status,
+            "summary": self.summary,
+            "evaluated_horizons": self.evaluated_horizons,
+            "unvalidated_horizons": self.unvalidated_horizons,
+            "points": [p.to_dict() for p in self.points],
+        }
+
+
+@dataclass
 class EvidenceItemReport:
     evidence_id: str
     evidence_type: str
@@ -425,6 +473,7 @@ class NexSolveReport:
     provenance: ProvenanceSection
     processing_metadata: ProcessingMetadataSection
     attack_progression: AttackProgressionSection | None = None
+    forecast_validation: ForecastValidationSection | None = None
 
     def to_dict(self) -> dict[str, Any]:
         d = {
@@ -450,4 +499,6 @@ class NexSolveReport:
         }
         if self.attack_progression is not None:
             d["sections"]["attack_progression"] = self.attack_progression.to_dict()
+        if self.forecast_validation is not None:
+            d["sections"]["forecast_validation"] = self.forecast_validation.to_dict()
         return d

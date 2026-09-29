@@ -15,6 +15,8 @@ from reporting.report_schema import (
     ExecutiveSummarySection,
     ForecastPointReport,
     ForecastSection,
+    ForecastValidationPointReport,
+    ForecastValidationSection,
     LimitationsSection,
     NetworkActivitySummarySection,
     ProcessingMetadataSection,
@@ -566,4 +568,62 @@ def build_attack_progression(
         abstained=is_abstained,
         abstention_reason=ab_reason,
         category="INFERRED",
+    )
+
+
+def build_forecast_validation_section(
+    validation_data: dict[str, Any] | None,
+    abstention: dict[str, Any] | None = None,
+) -> ForecastValidationSection:
+    """Build the Forecast Validation section (Observed -> Forecast -> Actual / Validated)."""
+    if not validation_data:
+        is_abs = bool(abstention and abstention.get("abstained"))
+        reason = abstention.get("reason", "No forecast validation record available") if is_abs else "No validation record available"
+        return ForecastValidationSection(
+            status="VALIDATION NOT AVAILABLE",
+            summary=f"Validation not available: {reason}.",
+            evaluated_horizons=0,
+            unvalidated_horizons=5,
+            points=[
+                ForecastValidationPointReport(
+                    horizon=h,
+                    lookahead_seconds=h * 60,
+                    observed_state_t0="UNKNOWN",
+                    predicted_probability=None,
+                    predicted_stage=None,
+                    actual_subsequent_state=None,
+                    actual_threat_score=None,
+                    relationship="VALIDATION NOT AVAILABLE",
+                    validation_status="VALIDATION NOT AVAILABLE",
+                    explanation=f"Validation not available: {reason}.",
+                )
+                for h in range(1, 6)
+            ],
+            category="OBSERVED",
+        )
+
+    pts = []
+    for p in validation_data.get("points", []):
+        pts.append(
+            ForecastValidationPointReport(
+                horizon=int(p.get("horizon", 1)),
+                lookahead_seconds=int(p.get("lookahead_seconds", p.get("horizon", 1) * 60)),
+                observed_state_t0=str(p.get("observed_state_t0", "BENIGN")),
+                predicted_probability=p.get("predicted_probability"),
+                predicted_stage=p.get("predicted_stage"),
+                actual_subsequent_state=p.get("actual_subsequent_state"),
+                actual_threat_score=p.get("actual_threat_score"),
+                relationship=str(p.get("relationship", "VALIDATION NOT AVAILABLE")),
+                validation_status=str(p.get("validation_status", "VALIDATION NOT AVAILABLE")),
+                explanation=str(p.get("explanation", "")),
+            )
+        )
+
+    return ForecastValidationSection(
+        status=str(validation_data.get("status", "VALIDATION NOT AVAILABLE")),
+        summary=str(validation_data.get("summary", "Validation summary unavailable.")),
+        evaluated_horizons=int(validation_data.get("evaluated_horizons", 0)),
+        unvalidated_horizons=int(validation_data.get("unvalidated_horizons", 5)),
+        points=pts,
+        category="OBSERVED",
     )

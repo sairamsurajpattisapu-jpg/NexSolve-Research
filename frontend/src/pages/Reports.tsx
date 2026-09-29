@@ -8,6 +8,7 @@ import {
   Share2,
 } from 'lucide-react'
 import { ErrorState, LoadingState, Panel, SectionHeading } from '../components/Ui'
+import { ForecastValidationCard } from '../components/ForecastValidationCard'
 import { useProductionData } from '../hooks/useProductionData'
 import { api } from '../services/api'
 import type { CanonicalAnalysis } from '../types/canonical'
@@ -574,6 +575,12 @@ export function Reports() {
               </div>
             )}
           </div>
+
+          <ForecastValidationCard
+            validation={analysis.validationComparison}
+            isAbstained={!forecast.isAvailable}
+            abstentionReason={forecast.message}
+          />
         </Panel>
 
         {/* Page 2 Footer */}
