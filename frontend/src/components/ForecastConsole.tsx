@@ -56,24 +56,31 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
 
   const isAbstained = !forecast.isAvailable
 
+  const fallbackPoint = useMemo(() => ({
+    horizon: selectedHorizon,
+    lookaheadSeconds: selectedHorizon * 60,
+    stepAttackProbability: isAbstained ? null : 0.0,
+    cumulativeRisk: isAbstained ? null : 0.0,
+    riskLevel: isAbstained ? 'WITHHELD' : ('LOW' as const),
+    predictedStage: isAbstained ? 'UNKNOWN' : 'Baseline Equilibrium',
+    confidence: isAbstained ? null : 1.0,
+    uncertainty: isAbstained ? null : 0.0,
+    explanation: [isAbstained ? 'Forecast withheld due to safety boundary.' : 'Observed nominal state'],
+    topDrivers: [],
+    evidenceAttribution: null,
+  }), [selectedHorizon, isAbstained])
+
   // Active point for selected horizon
   const activePoint = useMemo(() => {
-    if (selectedHorizon === 0) {
-      return forecast.points[0] || {
-        horizon: 0,
-        lookaheadSeconds: 0,
-        stepAttackProbability: isAbstained ? null : 0.0,
-        cumulativeRisk: isAbstained ? null : 0.0,
-        riskLevel: isAbstained ? 'WITHHELD' : ('LOW' as const),
-        predictedStage: isAbstained ? 'UNKNOWN' : 'Baseline Equilibrium',
-        confidence: isAbstained ? null : 1.0,
-        uncertainty: isAbstained ? null : 0.0,
-        explanation: [isAbstained ? 'Forecast withheld due to safety boundary.' : 'Observed nominal state'],
-        topDrivers: [],
-      }
+    const pts = forecast?.points || []
+    if (pts.length === 0) {
+      return fallbackPoint
     }
-    return forecast.points.find((p) => p.horizon === selectedHorizon) ?? forecast.points[forecast.points.length - 1]
-  }, [forecast.points, selectedHorizon, isAbstained])
+    if (selectedHorizon === 0) {
+      return pts[0] || fallbackPoint
+    }
+    return pts.find((p) => p.horizon === selectedHorizon) ?? pts[pts.length - 1] ?? fallbackPoint
+  }, [forecast?.points, selectedHorizon, fallbackPoint])
 
   // Formatting helpers
   const formatPct = (val: number | null | undefined) =>
@@ -81,15 +88,16 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
 
   // Dynamic Primary Forecast Statement
   const primaryForecastStatement = useMemo(() => {
-    if (isAbstained) {
-      if (forecast.status === 'NON_CONTIGUOUS_TIMESTAMPS' || forecast.status === 'GAPPED_HISTORY') {
+    const pts = forecast?.points || []
+    if (isAbstained || pts.length === 0) {
+      if (forecast?.status === 'NON_CONTIGUOUS_TIMESTAMPS' || forecast?.status === 'GAPPED_HISTORY') {
         return 'Forecast withheld: observed telemetry contains non-contiguous temporal windows or excessive time gaps, preventing continuous rollout projection.'
       }
       return 'Forecast withheld: continuous telemetry history is insufficient to project forward horizons without synthetic imputation.'
     }
-    const peakPoint = forecast.points.reduce((max, p) =>
-      (p.stepAttackProbability ?? 0) > (max.stepAttackProbability ?? 0) ? p : max,
-      forecast.points[0]
+    const peakPoint = pts.reduce((max, p) =>
+      (p?.stepAttackProbability ?? 0) > (max?.stepAttackProbability ?? 0) ? p : max,
+      pts[0]
     )
     const prob = (peakPoint?.stepAttackProbability ?? 0) * 100
     const risk = peakPoint?.riskLevel || 'LOW'
@@ -101,27 +109,28 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
       return `Forecast suggests emerging reconnaissance patterns and anomalous port dispersion, indicating potential lateral transition within +${peakPoint?.lookaheadSeconds || 120}s if observed telemetry patterns persist.`
     }
     return 'Forecast indicates nominal network equilibrium across the projected forward horizons with stable baseline communication kinematics.'
-  }, [isAbstained, forecast.status, forecast.points])
+  }, [isAbstained, forecast?.status, forecast?.points])
 
   // Overall authoritative forecast state
   const overallForecastState = useMemo(() => {
-    if (isAbstained) {
-      if (forecast.status === 'NON_CONTIGUOUS_TIMESTAMPS' || forecast.status === 'GAPPED_HISTORY') {
+    const pts = forecast?.points || []
+    if (isAbstained || pts.length === 0) {
+      if (forecast?.status === 'NON_CONTIGUOUS_TIMESTAMPS' || forecast?.status === 'GAPPED_HISTORY') {
         return 'SAFETY GUARDRAIL ACTIVE · GAPPED TIMESTAMPS'
       }
       return 'SAFETY GUARDRAIL ACTIVE · INSUFFICIENT EVIDENCE'
     }
-    const maxProb = Math.max(...forecast.points.map((p) => p.stepAttackProbability ?? 0), 0)
-    const lastCumRisk = forecast.points[forecast.points.length - 1]?.cumulativeRisk ?? 0
+    const maxProb = Math.max(...pts.map((p) => p?.stepAttackProbability ?? 0), 0)
+    const lastCumRisk = pts[pts.length - 1]?.cumulativeRisk ?? 0
     if (maxProb >= 0.5 || lastCumRisk >= 0.5) {
       return 'ATTACK PROGRESSION PROJECTED'
     }
     return 'NOMINAL EQUILIBRIUM'
-  }, [isAbstained, forecast.status, forecast.points])
+  }, [isAbstained, forecast?.status, forecast?.points])
 
   // Counterfactual calculation
   const counterfactualResponse = useMemo(() => {
-    const baseProb = activePoint.stepAttackProbability ?? 0.5
+    const baseProb = activePoint?.stepAttackProbability ?? 0.5
     const shift = (perturbationRatio / 100) * 0.35
     const adjustedProb = Math.max(0.05, Math.min(0.99, baseProb + shift))
     return {
@@ -1184,7 +1193,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
                 )}
 
                 <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                  {st.behavioralRationale || st.evidence.slice(0, 2).join(' &middot; ')}
+                  {st.behavioralRationale || (Array.isArray(st.evidence) && st.evidence.length > 0 ? st.evidence.slice(0, 2).join(' · ') : '')}
                 </div>
 
                 <div style={{ marginTop: 'auto', paddingTop: '8px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'var(--mono)' }}>
@@ -1284,7 +1293,7 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
         )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-          {explanations.drivers.slice(0, 4).map((d) => {
+          {(explanations?.drivers || []).slice(0, 4).map((d) => {
             const isSelected = selectedFeatureDriver === d.feature
             return (
               <div
@@ -1505,14 +1514,14 @@ function ForecastConsoleContent({ analysis, onAnalyzeNew, navigate }: ForecastCo
             }}
           >
             {[
-              { label: 'Flow Count', val: currentState.summary.flows.toLocaleString() },
-              { label: 'Packet Count', val: currentState.summary.packets.toLocaleString() },
-              { label: 'Byte Volume', val: `${(currentState.summary.bytes / 1024 / 1024).toFixed(2)} MB` },
-              { label: 'Src Endpoints', val: currentState.summary.uniqueSrcIps },
-              { label: 'Dst Endpoints', val: currentState.summary.uniqueDstIps },
-              { label: 'Target Ports', val: currentState.summary.uniqueDstPorts },
-              { label: 'TCP Ratio', val: `${Math.round((currentState.summary.protocols.TCP / Math.max(1, currentState.summary.packets)) * 100)}%` },
-              { label: 'Threat Level', val: currentState.summary.threatLevel.toUpperCase() },
+              { label: 'Flow Count', val: (currentState?.summary?.flows ?? 0).toLocaleString() },
+              { label: 'Packet Count', val: (currentState?.summary?.packets ?? 0).toLocaleString() },
+              { label: 'Byte Volume', val: `${((currentState?.summary?.bytes ?? 0) / 1024 / 1024).toFixed(2)} MB` },
+              { label: 'Src Endpoints', val: currentState?.summary?.uniqueSrcIps ?? 0 },
+              { label: 'Dst Endpoints', val: currentState?.summary?.uniqueDstIps ?? 0 },
+              { label: 'Target Ports', val: currentState?.summary?.uniqueDstPorts ?? 0 },
+              { label: 'TCP Ratio', val: `${Math.round(((currentState?.summary?.protocols?.TCP ?? 0) / Math.max(1, currentState?.summary?.packets ?? 1)) * 100)}%` },
+              { label: 'Threat Level', val: (currentState?.summary?.threatLevel || 'low').toUpperCase() },
             ].map((item, idx) => (
               <div
                 key={item.label}

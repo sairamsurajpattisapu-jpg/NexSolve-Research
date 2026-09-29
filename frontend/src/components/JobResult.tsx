@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link, useInRouterContext } from 'react-router-dom'
 import { Activity, ChevronDown, ChevronUp, Compass, FileText, GitBranch, Network, PlayCircle, Server, Shield, ShieldAlert, TrendingUp } from 'lucide-react'
 import type { UploadedAnalysisResponse } from '../types/api'
 import { formatBytes } from '../utils/format'
@@ -30,6 +31,22 @@ import { IncidentStoryPanel } from './investigation/IncidentStoryPanel'
 import { CampaignCorrelationPanel } from './investigation/CampaignCorrelationPanel'
 import { ThreatHuntingWorkspace } from './investigation/ThreatHuntingWorkspace'
 import { TemporalWorldView } from './investigation/TemporalWorldView'
+
+function WorkspaceLink({ to, className, style, children }: { to: string; className?: string; style?: React.CSSProperties; children: React.ReactNode }) {
+  const inRouter = useInRouterContext()
+  if (inRouter) {
+    return (
+      <Link to={to} className={className} style={style}>
+        {children}
+      </Link>
+    )
+  }
+  return (
+    <a href={to} className={className} style={style}>
+      {children}
+    </a>
+  )
+}
 
 
 
@@ -167,27 +184,27 @@ export function JobResult({ result, onReset }: JobResultProps) {
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-            <a href={`/console/forecast/${jobId}`} className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+            <WorkspaceLink to={`/console/forecast/${jobId}`} className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
               <TrendingUp size={12} /> Forecast
-            </a>
-            <a href="/console/progression" className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+            </WorkspaceLink>
+            <WorkspaceLink to="/console/progression" className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
               <GitBranch size={12} /> Progression
-            </a>
-            <a href={`/console/evidence/${jobId}`} className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+            </WorkspaceLink>
+            <WorkspaceLink to={`/console/evidence/${jobId}`} className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
               <Shield size={12} /> Evidence
-            </a>
-            <a href="/console/traffic" className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+            </WorkspaceLink>
+            <WorkspaceLink to="/console/traffic" className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
               <Activity size={12} /> Traffic
-            </a>
-            <a href="/console/network" className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+            </WorkspaceLink>
+            <WorkspaceLink to="/console/network" className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
               <Network size={12} /> Network
-            </a>
-            <a href="/console/replay" className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+            </WorkspaceLink>
+            <WorkspaceLink to="/console/replay" className="button button-quiet" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
               <PlayCircle size={12} /> Replay
-            </a>
-            <a href={`/console/reports/${jobId}`} className="button button-primary" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
+            </WorkspaceLink>
+            <WorkspaceLink to={`/console/reports/${jobId}`} className="button button-primary" style={{ fontSize: '11px', height: '28px', padding: '0 10px', gap: '5px', textDecoration: 'none' }}>
               <FileText size={12} /> Report
-            </a>
+            </WorkspaceLink>
           </div>
         </div>
       </Panel>

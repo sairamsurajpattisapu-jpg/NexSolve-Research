@@ -6,6 +6,7 @@ import {
   Radio,
 } from 'lucide-react'
 import { ForecastConsole } from '../components/ForecastConsole'
+import { ErrorBoundary } from '../components/ErrorBoundary'
 import { AnalysisPipelineVisualizer } from '../components/AnalysisPipelineVisualizer'
 import { WorkspaceContextBanner } from '../components/WorkspaceContextBanner'
 import { Panel } from '../components/Ui'
@@ -152,7 +153,7 @@ export function Forecast() {
               </summary>
               <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px', color: 'var(--text-secondary)' }}>
                 <div><strong>Job ID:</strong> {jobId}</div>
-                <div><strong>Error Details:</strong> {jobError}</div>
+                <div><strong>Error Details:</strong> {(job?.error as any)?.message || (job?.error as any)?.explanation || jobError}</div>
               </div>
             </details>
           </div>
@@ -225,10 +226,12 @@ export function Forecast() {
   // CASE 5: Render completed canonical forecast console!
   if (activeAnalysis) {
     return (
-      <ForecastConsole
-        analysis={activeAnalysis}
-        onAnalyzeNew={() => navigate('/console/analyze')}
-      />
+      <ErrorBoundary boundaryName="Forecast Console">
+        <ForecastConsole
+          analysis={activeAnalysis}
+          onAnalyzeNew={() => navigate('/console/analyze')}
+        />
+      </ErrorBoundary>
     )
   }
 

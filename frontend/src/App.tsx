@@ -25,6 +25,7 @@ import { Traffic } from './pages/Traffic'
 import { Workflow } from './pages/Workflow'
 
 import { AnalysisProvider } from './context/AnalysisContext'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 function ScrollToTop() {
   const { pathname, search } = useLocation()
@@ -64,9 +65,10 @@ function App() {
 
   return (
     <AnalysisProvider>
-      <BrowserRouter>
-        <ScrollToTop />
-        <Routes>
+      <ErrorBoundary boundaryName="NexSolve Application">
+        <BrowserRouter>
+          <ScrollToTop />
+          <Routes>
         {/* Marketing / Explanatory Pages */}
         <Route element={<MarketingLayout />}>
           <Route path="/" element={<Landing />} />
@@ -126,6 +128,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </ErrorBoundary>
     </AnalysisProvider>
   )
 }

@@ -21,7 +21,15 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!assets/|api/|jobs/|health|ready|favicon\\.svg|favicon\\.ico|.*\\.[a-zA-Z0-9]+$).*)",
+      "source": "/console/(.*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/forecast/(.*)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/((?!assets/|api/|jobs/|health|ready|favicon\\.svg|favicon\\.ico|.*\\.(?:js|css|svg|ico|png|jpg|jpeg|gif|webp|woff|woff2|ttf|eot|map)$).*)",
       "destination": "/index.html"
     }
   ]
